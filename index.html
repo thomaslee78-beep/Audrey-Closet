@@ -138,17 +138,16 @@
       </div>
       <div class="form-grid">
         <label>Category<select id="itemCategory" required></select></label>
-        <label>Type<input id="itemType" placeholder="T-shirt, jeans, sneakers…" /></label>
+        <label>Type<select id="itemType" required></select></label>
         <label>Brand<input id="itemBrand" placeholder="Brand" /></label>
-        <label>Size<input id="itemSize" placeholder="XS, 12, 7.5…" /></label>
-        <label>Color<input id="itemColor" list="colorList" placeholder="Olive, burgundy…" /></label>
+        <label>Size<select id="itemSize"></select></label>
+        <label>Color<select id="itemColor"></select></label>
         <label>Pattern<select id="itemPattern"><option>Solid</option><option>Stripe</option><option>Plaid</option><option>Floral/Print</option><option>Graphic</option><option>Colorblock</option><option>Other</option></select></label>
         <label>Acquired<select id="itemAcquired"></select></label>
         <label>Season<select id="itemSeason"><option>All-season</option><option>Winter</option><option>Spring</option><option>Summer</option><option>Fall</option></select></label>
       </div>
-      <datalist id="colorList"></datalist>
       <label class="full-label">Notes<textarea id="itemNotes" placeholder="Fit, styling notes, sentimental story…"></textarea></label>
-      <div class="sheet-actions"><button value="cancel" class="soft-btn">Cancel</button><button type="button" class="danger-text hidden" id="deleteItemBtn">Delete</button><button type="submit" value="default" class="primary">Save piece</button></div>
+      <div class="sheet-actions"><button value="cancel" class="soft-btn">Cancel</button><button type="button" class="danger-text hidden" id="deleteItemBtn">Delete</button><button type="submit" value="default" class="primary" id="saveItemBtn">Save piece</button></div>
     </form>
   </dialog>
 
@@ -157,7 +156,7 @@
       <div class="sheet-head"><div><p class="script">future find</p><h2>Wishlist item</h2></div><button value="cancel" class="close-btn">×</button></div>
       <input type="hidden" id="wishId" />
       <div class="photo-capture compact-photo"><div class="photo-preview-wrap"><img id="wishPhotoPreview" /><div class="photo-placeholder" id="wishPhotoPlaceholder">photo</div></div><label class="soft-btn file-label">Add photo<input type="file" id="wishPhoto" accept="image/*" capture="environment" /></label></div>
-      <div class="form-grid"><label>Item<input id="wishName" required placeholder="Striped cardigan" /></label><label>Brand<input id="wishBrand" placeholder="Brand" /></label><label>Price<input id="wishPrice" inputmode="decimal" placeholder="$45" /></label><label>Link<input id="wishLink" type="url" placeholder="https://…" /></label><label>Category<select id="wishCategory"></select></label><label>Color<input id="wishColor" placeholder="Color" /></label></div>
+      <div class="form-grid"><label>Item<input id="wishName" required placeholder="Striped cardigan" /></label><label>Brand<input id="wishBrand" placeholder="Brand" /></label><label>Price<input id="wishPrice" inputmode="decimal" placeholder="$45" /></label><label>Link<input id="wishLink" type="url" placeholder="https://…" /></label><label>Category<select id="wishCategory"></select></label><label>Color<select id="wishColor"></select></label></div>
       <label class="full-label">Notes<textarea id="wishNotes"></textarea></label>
       <div class="sheet-actions"><button value="cancel" class="soft-btn">Cancel</button><button type="button" class="danger-text hidden" id="deleteWishBtn">Delete</button><button type="submit" value="default" class="primary">Save wish</button></div>
     </form>
