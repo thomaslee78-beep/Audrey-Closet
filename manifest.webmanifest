@@ -1,6 +1,6 @@
 {
-  "name": "Audrey's Closet Journal",
-  "short_name": "Audrey's Closet",
+  "name": "Audrey's Clothing App",
+  "short_name": "Audrey's App",
   "description": "A fashionable clothing catalog, outfit board, wear journal and wishlist.",
   "start_url": "./",
   "scope": "./",

@@ -16,7 +16,7 @@
   <div class="paper-grain"></div>
   <header class="topbar">
     <div>
-      <div class="eyebrow">AUDREY'S</div>
+      <div class="eyebrow" id="appNameEyebrow">AUDREY'S CLOTHING APP</div>
       <h1>Closet <span>Journal</span></h1>
     </div>
     <button class="icon-btn" id="quickAddBtn" aria-label="Quick add item">＋</button>
@@ -63,10 +63,30 @@
         <button class="soft-btn" id="newBoardBtn">New board</button>
       </div>
       <div class="board-shell">
-        <div class="board" id="outfitBoard">
-          <div class="board-tip">Drag pieces here<br><small>pinch/drag your ideas around</small></div>
+        <div>
+          <div class="board" id="outfitBoard">
+            <div class="board-tip">Tap a piece, then drag it<br><small>pinch with two fingers to resize + rotate</small></div>
+          </div>
+          <div class="board-editbar" id="boardEditbar">
+            <button type="button" id="sendBackBtn" title="Move behind">⇩ Back</button>
+            <button type="button" id="bringFrontBtn" title="Move in front">⇧ Front</button>
+            <button type="button" id="rotateLeftBtn" title="Rotate left">↶</button>
+            <button type="button" id="rotateRightBtn" title="Rotate right">↷</button>
+            <button type="button" id="duplicateBoardBtn" title="Duplicate">⧉</button>
+            <button type="button" id="deleteBoardBtn" class="danger-mini" title="Remove">×</button>
+          </div>
         </div>
         <div class="board-controls">
+          <div class="creative-tools">
+            <div class="tool-row"><input id="boardTextInput" maxlength="60" placeholder="Add a note or title…"><button type="button" class="soft-btn" id="addBoardTextBtn">Add text</button></div>
+            <div class="sticker-row" aria-label="Creative stickers">
+              <button type="button" data-sticker="★">★</button><button type="button" data-sticker="♡">♡</button><button type="button" data-sticker="✿">✿</button><button type="button" data-sticker="✦">✦</button><button type="button" data-sticker="☻">☻</button><button type="button" data-sticker="🦋">🦋</button><button type="button" data-sticker="🌼">🌼</button><button type="button" data-sticker="✨">✨</button>
+            </div>
+            <div class="shape-row">
+              <button type="button" data-shape="circle">○ circle</button><button type="button" data-shape="line">— line</button><button type="button" data-shape="tape">tape</button><button type="button" id="drawModeBtn">✎ doodle</button>
+            </div>
+            <p class="board-help" id="boardHelp">Select an object to move, resize, rotate, layer or delete it.</p>
+          </div>
           <input id="outfitName" placeholder="Outfit name" />
           <textarea id="outfitNotes" placeholder="Notes: where I'd wear it, vibe, styling ideas…"></textarea>
           <div class="inline-actions"><button class="primary" id="saveOutfitBtn">Save outfit</button><button class="soft-btn" id="clearBoardBtn">Clear</button></div>
@@ -100,6 +120,14 @@
 
     <section class="screen" data-screen="more">
       <div class="page-head"><div><p class="script">closet housekeeping</p><h2>More</h2></div></div>
+      <div class="settings-card app-identity-card">
+        <h3>App identity</h3>
+        <p>Give this closet its own name. The name is saved on this device and included in backups.</p>
+        <label class="settings-label" for="appNameInput">App name</label>
+        <input id="appNameInput" maxlength="60" autocomplete="off" placeholder="Audrey's Clothing App" />
+        <div class="stack-actions settings-actions"><button class="primary" type="button" id="saveAppNameBtn">Save name</button><button class="soft-btn" type="button" id="resetAppNameBtn">Use Audrey's default</button></div>
+        <p class="settings-note">Current name: <strong id="currentAppName">Audrey's Clothing App</strong></p>
+      </div>
       <div class="settings-card">
         <h3>Data</h3>
         <p>Your closet is stored on this device in Safari. Export a backup whenever you want.</p>

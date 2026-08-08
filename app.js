@@ -16,6 +16,7 @@ const STORE_KEY='audreyClosetV1';
 const DB_NAME='AudreyClosetDB';
 const DB_VERSION=1;
 const DB_STORE='app';
+const DEFAULT_APP_NAME="Audrey's Clothing App";
 let state=emptyState();
 let selectedCategory='';
 let itemWorkingPhoto='';
@@ -23,8 +24,11 @@ let wishWorkingPhoto='';
 let boardItems=[];
 let traySource='closet';
 let viewingOutfitId=null;
+let selectedBoardUid=null;
+let doodleMode=false;
+let activeDoodle=null;
 
-function emptyState(){return {items:[],outfits:[],journal:[],wishlist:[]}}
+function emptyState(){return {items:[],outfits:[],journal:[],wishlist:[],settings:{appName:DEFAULT_APP_NAME}}}
 function openDB(){return new Promise((resolve,reject)=>{const req=indexedDB.open(DB_NAME,DB_VERSION);req.onupgradeneeded=()=>{const db=req.result;if(!db.objectStoreNames.contains(DB_STORE))db.createObjectStore(DB_STORE)};req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)})}
 async function loadState(){
   try{
@@ -57,6 +61,7 @@ async function init(){
   $('#clearFilters').onclick=()=>{selectedCategory='';$('#filterCategory').value='';$('#filterSeason').value='';$('#filterColor').value='';renderCatalog();renderCategories()};
   ['filterCategory','filterSeason','filterColor'].forEach(x=>$('#'+x).addEventListener('change',renderCatalog));
   $('#exportBtn').onclick=exportData;$('#importFile').onchange=importData;$('#resetBtn').onclick=resetData;
+  $('#saveAppNameBtn').onclick=saveAppName;$('#resetAppNameBtn').onclick=resetAppName;
   if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js').catch(()=>{});
   renderAll();
 }
@@ -108,7 +113,7 @@ async function saveItem(){
 function setPhotoBusy(busy,message=''){['#removeBgBtn','#smartScanBtn','#saveItemBtn'].forEach(sel=>{const el=$(sel);if(el)el.disabled=busy});if(message)$('#scanStatus').textContent=message}
 function deleteItem(){const iid=$('#itemId').value;if(!iid||!confirm('Delete this closet piece?'))return;state.items=state.items.filter(x=>x.id!==iid);state.journal=state.journal.map(j=>({...j,itemIds:j.itemIds.filter(x=>x!==iid)}));saveState();$('#itemDialog').close();toast('Piece deleted')}
 
-function renderAll(){renderCategories();renderCatalog();renderOutfits();renderWishlist();renderJournal()}
+function renderAll(){applyAppName();renderCategories();renderCatalog();renderOutfits();renderWishlist();renderJournal()}
 function renderCategories(){const host=$('#categoryStrip');host.innerHTML=CATEGORIES.map(c=>{const n=state.items.filter(i=>i.category===c).length;return`<button class="category-chip ${selectedCategory===c?'active':''}" data-cat="${c}"><strong>${c}</strong><span>${n} ${n===1?'piece':'pieces'}</span></button>`}).join('');$$('.category-chip').forEach(b=>b.onclick=()=>{selectedCategory=selectedCategory===b.dataset.cat?'':b.dataset.cat;renderCategories();renderCatalog()})}
 function renderCatalog(){
   const q=$('#catalogSearch').value.toLowerCase().trim(),fc=$('#filterCategory').value,fs=$('#filterSeason').value,fcol=$('#filterColor').value;
@@ -123,18 +128,68 @@ function deleteWish(){const wid=$('#wishId').value;if(!confirm('Remove this wish
 function renderWishlist(){$('#wishlistGrid').innerHTML=state.wishlist.map(w=>`<article class="wish-card" data-id="${w.id}"><div class="wish-photo">${w.photo?`<img src="${w.photo}">`:'♡'}</div><div class="wish-body"><h4>${esc(w.name)}</h4><p>${esc(w.brand||'')} ${w.color?'· '+esc(w.color):''}</p><div class="price">${esc(w.price||'')}</div>${w.link?`<p>link saved ↗</p>`:''}</div></article>`).join('');$('#wishlistEmpty').classList.toggle('hidden',state.wishlist.length>0);$$('.wish-card').forEach(c=>c.onclick=()=>openWish(state.wishlist.find(w=>w.id===c.dataset.id)))}
 
 function bindBoard(){
-  $('#newBoardBtn').onclick=()=>{clearBoard();$('#outfitName').value='';$('#outfitNotes').value=''};$('#clearBoardBtn').onclick=clearBoard;$('#saveOutfitBtn').onclick=saveOutfit;
+  $('#newBoardBtn').onclick=()=>{clearBoard();$('#outfitName').value='';$('#outfitNotes').value=''};
+  $('#clearBoardBtn').onclick=clearBoard;$('#saveOutfitBtn').onclick=saveOutfit;
   $$('.tabs-small button').forEach(b=>b.onclick=()=>{traySource=b.dataset.source;$$('.tabs-small button').forEach(x=>x.classList.toggle('active',x===b));renderPieceTray()});
+  $('#addBoardTextBtn').onclick=()=>{const text=$('#boardTextInput').value.trim();if(!text)return toast('Type something first');addCreativeItem('text',text);$('#boardTextInput').value=''};
+  $$('.sticker-row [data-sticker]').forEach(b=>b.onclick=()=>addCreativeItem('sticker',b.dataset.sticker));
+  $$('.shape-row [data-shape]').forEach(b=>b.onclick=()=>addCreativeItem('shape',b.dataset.shape));
+  $('#bringFrontBtn').onclick=()=>layerSelected('front');$('#sendBackBtn').onclick=()=>layerSelected('back');
+  $('#rotateLeftBtn').onclick=()=>rotateSelected(-10);$('#rotateRightBtn').onclick=()=>rotateSelected(10);
+  $('#duplicateBoardBtn').onclick=duplicateSelected;$('#deleteBoardBtn').onclick=deleteSelected;
+  $('#drawModeBtn').onclick=()=>{doodleMode=!doodleMode;$('#drawModeBtn').classList.toggle('active',doodleMode);$('#outfitBoard').classList.toggle('drawing',doodleMode);$('#boardHelp').textContent=doodleMode?'Doodle mode: draw directly on the board. Tap doodle again when finished.':'Select an object to move, resize, rotate, layer or delete it.'};
+  const board=$('#outfitBoard');
+  board.addEventListener('pointerdown',startDoodle);
+  board.addEventListener('pointermove',moveDoodle);
+  board.addEventListener('pointerup',endDoodle);
+  board.addEventListener('pointercancel',endDoodle);
+  board.addEventListener('pointerdown',e=>{if(!doodleMode&&e.target===board){selectedBoardUid=null;drawBoard()}});
 }
 function renderOutfits(){renderPieceTray();renderSavedOutfits()}
 function renderPieceTray(){const arr=traySource==='closet'?state.items:state.wishlist;$('#pieceTray').innerHTML=arr.map(x=>`<button class="tray-piece" data-id="${x.id}" data-source="${traySource}"><div class="mini-photo">${x.photo?`<img src="${x.photo}">`:'✣'}</div><small>${esc(x.type||x.name||x.category)}</small></button>`).join('')||'<p class="muted" style="color:#786f61">Nothing here yet.</p>';$$('.tray-piece').forEach(b=>b.onclick=()=>addBoardPiece(b.dataset.id,b.dataset.source))}
-function addBoardPiece(pid,source){const src=source==='closet'?state.items:state.wishlist,obj=src.find(x=>x.id===pid);if(!obj)return;const bi={uid:id(),source,id:pid,x:20+Math.random()*140,y:30+Math.random()*140};boardItems.push(bi);drawBoard();}
-function drawBoard(){const board=$('#outfitBoard');board.querySelectorAll('.board-piece').forEach(x=>x.remove());const tip=board.querySelector('.board-tip');tip.style.display=boardItems.length?'none':'flex';boardItems.forEach(b=>{const obj=(b.source==='closet'?state.items:state.wishlist).find(x=>x.id===b.id);if(!obj)return;const el=document.createElement('div');el.className='board-piece';el.dataset.uid=b.uid;el.style.left=b.x+'px';el.style.top=b.y+'px';el.innerHTML=`${obj.photo?`<img src="${obj.photo}">`:`<div>${esc(obj.type||obj.name)}</div>`}<button class="remove-board-piece">×</button>`;el.querySelector('button').onclick=e=>{e.stopPropagation();boardItems=boardItems.filter(x=>x.uid!==b.uid);drawBoard()};makeDraggable(el,b);board.appendChild(el)})}
-function makeDraggable(el,model){let sx=0,sy=0,ox=0,oy=0;el.onpointerdown=e=>{if(e.target.tagName==='BUTTON')return;el.setPointerCapture(e.pointerId);sx=e.clientX;sy=e.clientY;ox=model.x;oy=model.y};el.onpointermove=e=>{if(!el.hasPointerCapture(e.pointerId))return;const board=$('#outfitBoard');model.x=Math.max(-40,Math.min(board.clientWidth-70,ox+e.clientX-sx));model.y=Math.max(-40,Math.min(board.clientHeight-70,oy+e.clientY-sy));el.style.left=model.x+'px';el.style.top=model.y+'px'};}
-function clearBoard(){boardItems=[];drawBoard()}
-function saveOutfit(){if(!boardItems.length)return toast('Add at least one piece');const name=$('#outfitName').value.trim()||'Untitled look';state.outfits.unshift({id:id(),name,notes:$('#outfitNotes').value.trim(),pieces:boardItems.map(x=>({...x})),created:Date.now()});saveState();toast('Outfit saved')}
-function renderSavedOutfits(){$('#outfitCount').textContent=state.outfits.length;$('#savedOutfits').innerHTML=state.outfits.map(o=>`<article class="outfit-card" data-id="${o.id}"><div class="outfit-mini">${o.pieces.slice(0,5).map((p,n)=>{const obj=(p.source==='closet'?state.items:state.wishlist).find(x=>x.id===p.id);return obj?.photo?`<img src="${obj.photo}" style="left:${8+n*23}px;top:${8+(n%2)*25}px">`:''}).join('')}</div><h4>${esc(o.name)}</h4><p>${o.pieces.length} pieces · ${new Date(o.created).toLocaleDateString()}</p></article>`).join('');$$('.outfit-card').forEach(c=>c.onclick=()=>viewOutfit(c.dataset.id))}
-function viewOutfit(oid){const o=state.outfits.find(x=>x.id===oid);if(!o)return;viewingOutfitId=oid;$('#viewOutfitName').textContent=o.name;$('#viewOutfitNotes').textContent=o.notes||'No notes yet.';const board=$('#viewOutfitBoard');board.innerHTML='';o.pieces.forEach(p=>{const obj=(p.source==='closet'?state.items:state.wishlist).find(x=>x.id===p.id);if(!obj?.photo)return;const img=document.createElement('img');img.src=obj.photo;img.style.position='absolute';img.style.width='120px';img.style.height='145px';img.style.objectFit='contain';img.style.left=(p.x*.75)+'px';img.style.top=(p.y*.75)+'px';board.appendChild(img)});$('#outfitViewDialog').showModal()}
+function nextZ(){return Math.max(0,...boardItems.map(x=>Number(x.z)||0))+1}
+function addBoardPiece(pid,source){const src=source==='closet'?state.items:state.wishlist,obj=src.find(x=>x.id===pid);if(!obj)return;const bi={uid:id(),kind:'piece',source,id:pid,x:28+Math.random()*120,y:42+Math.random()*100,w:132,h:156,rotation:0,z:nextZ()};boardItems.push(bi);selectedBoardUid=bi.uid;drawBoard()}
+function addCreativeItem(kind,value){const defaults=kind==='text'?{w:180,h:70}:{w:90,h:90};const bi={uid:id(),kind,value,x:60+Math.random()*90,y:70+Math.random()*80,...defaults,rotation:kind==='shape'&&value==='tape'?-8:0,z:nextZ()};if(kind==='shape'&&value==='line'){bi.w=170;bi.h=35}boardItems.push(bi);selectedBoardUid=bi.uid;drawBoard()}
+function normalizeBoardItem(b){b.kind=b.kind||'piece';b.w=Number(b.w)||132;b.h=Number(b.h)||156;b.rotation=Number(b.rotation)||0;b.z=Number(b.z)||1;return b}
+function boardItemContent(b){
+  if(b.kind==='piece'){const obj=(b.source==='closet'?state.items:state.wishlist).find(x=>x.id===b.id);if(!obj)return '';return obj.photo?`<img src="${obj.photo}" alt="">`:`<div class="piece-fallback">${esc(obj.type||obj.name||'piece')}</div>`}
+  if(b.kind==='text')return `<div class="board-text">${esc(b.value)}</div>`;
+  if(b.kind==='sticker')return `<div class="board-sticker">${esc(b.value)}</div>`;
+  if(b.kind==='shape')return `<div class="board-shape shape-${esc(b.value)}"></div>`;
+  if(b.kind==='doodle')return `<svg class="doodle-svg" viewBox="0 0 ${Math.max(1,b.w)} ${Math.max(1,b.h)}" preserveAspectRatio="none"><polyline points="${esc(b.points||'')}" fill="none" vector-effect="non-scaling-stroke"/></svg>`;
+  return '';
+}
+function drawBoard(){
+  const board=$('#outfitBoard');board.querySelectorAll('.board-piece').forEach(x=>x.remove());const tip=board.querySelector('.board-tip');tip.style.display=boardItems.length?'none':'flex';
+  boardItems.map(normalizeBoardItem).sort((a,b)=>a.z-b.z).forEach(b=>{const content=boardItemContent(b);if(!content)return;const el=document.createElement('div');el.className='board-piece kind-'+b.kind+(selectedBoardUid===b.uid?' selected':'');el.dataset.uid=b.uid;el.style.left=b.x+'px';el.style.top=b.y+'px';el.style.width=b.w+'px';el.style.height=b.h+'px';el.style.zIndex=b.z;el.style.transform=`rotate(${b.rotation}deg)`;el.innerHTML=`<div class="board-object">${content}</div><button type="button" class="resize-handle" aria-label="Resize">↘</button>`;makeBoardInteractive(el,b);board.appendChild(el)});
+  const selected=boardItems.find(x=>x.uid===selectedBoardUid);$('#boardEditbar').classList.toggle('has-selection',!!selected);if(selected&&!doodleMode)$('#boardHelp').textContent='Drag to move. Pinch with two fingers to resize + rotate. Use ↘ for one-finger resize.';
+}
+function makeBoardInteractive(el,model){
+  const pointers=new Map();let gesture=null;
+  const board=$('#outfitBoard');
+  function clampPosition(){model.x=Math.max(-model.w*.55,Math.min(board.clientWidth-model.w*.45,model.x));model.y=Math.max(-model.h*.55,Math.min(board.clientHeight-model.h*.45,model.y))}
+  function twoPointStats(){const pts=[...pointers.values()];if(pts.length<2)return null;const a=pts[0],b=pts[1],dx=b.x-a.x,dy=b.y-a.y;return{dist:Math.hypot(dx,dy),angle:Math.atan2(dy,dx)*180/Math.PI,cx:(a.x+b.x)/2,cy:(a.y+b.y)/2}}
+  el.addEventListener('pointerdown',e=>{if(doodleMode)return;e.stopPropagation();selectedBoardUid=model.uid;model.z=model.z||nextZ();drawSelectionOnly(model.uid);el.setPointerCapture(e.pointerId);pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});if(e.target.classList.contains('resize-handle')){gesture={mode:'resize',sx:e.clientX,sy:e.clientY,w:model.w,h:model.h};return}if(pointers.size===1){gesture={mode:'drag',sx:e.clientX,sy:e.clientY,x:model.x,y:model.y}}else if(pointers.size===2){const st=twoPointStats();gesture={mode:'pinch',start:st,w:model.w,h:model.h,rotation:model.rotation,x:model.x,y:model.y}}});
+  el.addEventListener('pointermove',e=>{if(!pointers.has(e.pointerId)||!gesture)return;e.preventDefault();pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});if(gesture.mode==='resize'){const dx=e.clientX-gesture.sx,dy=e.clientY-gesture.sy,delta=(dx+dy)/2,ratio=model.h/model.w;model.w=Math.max(45,Math.min(300,gesture.w+delta));model.h=Math.max(40,Math.min(340,model.w*ratio));}else if(gesture.mode==='drag'&&pointers.size===1){model.x=gesture.x+e.clientX-gesture.sx;model.y=gesture.y+e.clientY-gesture.sy;clampPosition()}else if(pointers.size>=2){if(gesture.mode!=='pinch'){const st=twoPointStats();gesture={mode:'pinch',start:st,w:model.w,h:model.h,rotation:model.rotation,x:model.x,y:model.y}}const st=twoPointStats(),scale=Math.max(.35,Math.min(2.8,st.dist/Math.max(1,gesture.start.dist)));model.w=Math.max(45,Math.min(320,gesture.w*scale));model.h=Math.max(40,Math.min(360,gesture.h*scale));model.rotation=gesture.rotation+(st.angle-gesture.start.angle);model.x=gesture.x+(st.cx-gesture.start.cx);model.y=gesture.y+(st.cy-gesture.start.cy);clampPosition()}el.style.left=model.x+'px';el.style.top=model.y+'px';el.style.width=model.w+'px';el.style.height=model.h+'px';el.style.transform=`rotate(${model.rotation}deg)`});
+  function release(e){pointers.delete(e.pointerId);if(pointers.size===1){const p=[...pointers.values()][0];gesture={mode:'drag',sx:p.x,sy:p.y,x:model.x,y:model.y}}else if(!pointers.size)gesture=null}
+  el.addEventListener('pointerup',release);el.addEventListener('pointercancel',release);
+}
+function drawSelectionOnly(uid){$$('#outfitBoard .board-piece').forEach(el=>el.classList.toggle('selected',el.dataset.uid===uid));$('#boardEditbar').classList.toggle('has-selection',!!uid)}
+function selectedBoardItem(){return boardItems.find(x=>x.uid===selectedBoardUid)}
+function layerSelected(where){const b=selectedBoardItem();if(!b)return toast('Select something on the board');if(where==='front')b.z=nextZ();else b.z=Math.min(0,...boardItems.filter(x=>x!==b).map(x=>Number(x.z)||0))-1;drawBoard()}
+function rotateSelected(delta){const b=selectedBoardItem();if(!b)return toast('Select something on the board');b.rotation=(Number(b.rotation)||0)+delta;drawBoard()}
+function duplicateSelected(){const b=selectedBoardItem();if(!b)return toast('Select something on the board');const copy={...b,uid:id(),x:b.x+18,y:b.y+18,z:nextZ()};boardItems.push(copy);selectedBoardUid=copy.uid;drawBoard()}
+function deleteSelected(){if(!selectedBoardUid)return toast('Select something on the board');boardItems=boardItems.filter(x=>x.uid!==selectedBoardUid);selectedBoardUid=null;drawBoard()}
+function clearBoard(){boardItems=[];selectedBoardUid=null;doodleMode=false;$('#drawModeBtn')?.classList.remove('active');$('#outfitBoard')?.classList.remove('drawing');drawBoard()}
+function localBoardPoint(e,board){const r=board.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top}}
+function startDoodle(e){if(!doodleMode||e.target.closest('.board-piece'))return;e.preventDefault();const board=$('#outfitBoard'),p=localBoardPoint(e,board);activeDoodle={pointerId:e.pointerId,points:[p]};board.setPointerCapture(e.pointerId)}
+function moveDoodle(e){if(!doodleMode||!activeDoodle||activeDoodle.pointerId!==e.pointerId)return;e.preventDefault();activeDoodle.points.push(localBoardPoint(e,$('#outfitBoard')))}
+function endDoodle(e){if(!activeDoodle||activeDoodle.pointerId!==e.pointerId)return;const pts=activeDoodle.points;activeDoodle=null;if(pts.length<2)return;const minx=Math.min(...pts.map(p=>p.x)),maxx=Math.max(...pts.map(p=>p.x)),miny=Math.min(...pts.map(p=>p.y)),maxy=Math.max(...pts.map(p=>p.y));const pad=8,w=Math.max(24,maxx-minx+pad*2),h=Math.max(24,maxy-miny+pad*2);const points=pts.map(p=>`${(p.x-minx+pad).toFixed(1)},${(p.y-miny+pad).toFixed(1)}`).join(' ');const b={uid:id(),kind:'doodle',points,x:minx-pad,y:miny-pad,w,h,rotation:0,z:nextZ()};boardItems.push(b);selectedBoardUid=b.uid;drawBoard()}
+async function saveOutfit(){if(!boardItems.length)return toast('Add at least one piece');const name=$('#outfitName').value.trim()||'Untitled look';const board=$('#outfitBoard');state.outfits.unshift({id:id(),name,notes:$('#outfitNotes').value.trim(),pieces:boardItems.map(x=>({...x})),boardWidth:board.clientWidth,boardHeight:board.clientHeight,created:Date.now()});await saveState();renderSavedOutfits();toast('Outfit saved')}
+function renderMiniPiece(p,n){p=normalizeBoardItem({...p});if(p.kind==='piece'){const obj=(p.source==='closet'?state.items:state.wishlist).find(x=>x.id===p.id);return obj?.photo?`<img src="${obj.photo}" style="left:${8+n*19}px;top:${8+(n%2)*24}px;transform:rotate(${p.rotation||0}deg)">`:''}if(p.kind==='text')return `<span class="mini-deco" style="left:${8+n*9}px;top:${10+n*13}px">${esc(p.value)}</span>`;if(p.kind==='sticker')return `<span class="mini-sticker" style="left:${8+n*14}px;top:${12+n*12}px">${esc(p.value)}</span>`;return ''}
+function renderSavedOutfits(){$('#outfitCount').textContent=state.outfits.length;$('#savedOutfits').innerHTML=state.outfits.map(o=>`<article class="outfit-card" data-id="${o.id}"><div class="outfit-mini">${o.pieces.slice(0,7).map(renderMiniPiece).join('')}</div><h4>${esc(o.name)}</h4><p>${o.pieces.length} elements · ${new Date(o.created).toLocaleDateString()}</p></article>`).join('');$$('.outfit-card').forEach(c=>c.onclick=()=>viewOutfit(c.dataset.id))}
+function renderSnapshotPiece(board,p,scaleX,scaleY){p=normalizeBoardItem({...p});const el=document.createElement('div');el.className='snapshot-piece kind-'+p.kind;el.style.left=(p.x*scaleX)+'px';el.style.top=(p.y*scaleY)+'px';el.style.width=(p.w*scaleX)+'px';el.style.height=(p.h*scaleY)+'px';el.style.zIndex=p.z;el.style.transform=`rotate(${p.rotation}deg)`;el.innerHTML=boardItemContent(p);board.appendChild(el)}
+function viewOutfit(oid){const o=state.outfits.find(x=>x.id===oid);if(!o)return;viewingOutfitId=oid;$('#viewOutfitName').textContent=o.name;$('#viewOutfitNotes').textContent=o.notes||'No notes yet.';const board=$('#viewOutfitBoard');board.innerHTML='';$('#outfitViewDialog').showModal();requestAnimationFrame(()=>{const sourceW=o.boardWidth||390,sourceH=o.boardHeight||420,scaleX=(board.clientWidth||390)/sourceW,scaleY=(board.clientHeight||350)/sourceH;o.pieces.slice().sort((a,b)=>(a.z||0)-(b.z||0)).forEach(p=>renderSnapshotPiece(board,p,scaleX,scaleY))})}
 function deleteOutfit(){if(!viewingOutfitId||!confirm('Delete this saved outfit?'))return;state.outfits=state.outfits.filter(x=>x.id!==viewingOutfitId);saveState();$('#outfitViewDialog').close()}
 
 function openWear(){if(!state.items.length)return toast('Add closet pieces first');$('#wearDate').value=new Date().toISOString().slice(0,10);$('#wearNotes').value='';$('#wearPicker').innerHTML=state.items.map(i=>`<button type="button" class="wear-option" data-id="${i.id}">${i.photo?`<img src="${i.photo}">`:'✣'}<small>${esc(i.type||i.category)}</small></button>`).join('');$$('.wear-option').forEach(b=>b.onclick=()=>b.classList.toggle('selected'));$('#wearDialog').showModal()}
@@ -156,8 +211,29 @@ async function removeSimpleBackground(dataURL){const img=await imageFrom(dataURL
 function imageFrom(src){return new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=rej;i.src=src})}
 function fileToDataURL(file,max=1200,quality=.85){return new Promise((resolve,reject)=>{const r=new FileReader();r.onload=async()=>{try{const img=await imageFrom(r.result),scale=Math.min(1,max/Math.max(img.width,img.height)),c=document.createElement('canvas');c.width=Math.round(img.width*scale);c.height=Math.round(img.height*scale);c.getContext('2d').drawImage(img,0,0,c.width,c.height);resolve(c.toDataURL('image/jpeg',quality))}catch(e){reject(e)}};r.onerror=reject;r.readAsDataURL(file)})}
 function showPhoto(imgSel,phSel,src){const img=$(imgSel),ph=$(phSel);if(src){img.src=src;img.style.display='block';ph.style.display='none'}else{img.removeAttribute('src');img.style.display='none';ph.style.display='block'}}
-function exportData(){const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`audrey-closet-backup-${new Date().toISOString().slice(0,10)}.json`;a.click();URL.revokeObjectURL(a.href)}
-async function importData(e){const f=e.target.files[0];if(!f)return;try{const obj=JSON.parse(await f.text());state={...emptyState(),...obj};saveState();toast('Backup imported')}catch{alert('That file does not look like an Audrey Closet backup.')}e.target.value=''}
+function getAppName(){return (state.settings?.appName||DEFAULT_APP_NAME).trim()||DEFAULT_APP_NAME}
+function applyAppName(){
+  if(!state.settings)state.settings={appName:DEFAULT_APP_NAME};
+  const name=getAppName();
+  const eyebrow=$('#appNameEyebrow'),input=$('#appNameInput'),current=$('#currentAppName');
+  if(eyebrow)eyebrow.textContent=name.toUpperCase();
+  if(input&&document.activeElement!==input)input.value=name;
+  if(current)current.textContent=name;
+  document.title=`${name} · Closet Journal`;
+  const appleTitle=document.querySelector('meta[name="apple-mobile-web-app-title"]');if(appleTitle)appleTitle.setAttribute('content',name);
+}
+async function saveAppName(){
+  const value=$('#appNameInput').value.trim().replace(/\s+/g,' ');
+  if(!value)return toast('Enter an app name');
+  if(!state.settings)state.settings={};state.settings.appName=value.slice(0,60);
+  const ok=await saveState();if(ok)toast('App name updated');
+}
+async function resetAppName(){
+  if(!state.settings)state.settings={};state.settings.appName=DEFAULT_APP_NAME;$('#appNameInput').value=DEFAULT_APP_NAME;
+  const ok=await saveState();if(ok)toast("Restored Audrey's default");
+}
+function exportData(){const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);const safe=getAppName().toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')||'clothing-app';a.download=`${safe}-backup-${new Date().toISOString().slice(0,10)}.json`;a.click();URL.revokeObjectURL(a.href)}
+async function importData(e){const f=e.target.files[0];if(!f)return;try{const obj=JSON.parse(await f.text());state={...emptyState(),...obj,settings:{...emptyState().settings,...(obj.settings||{})}};saveState();toast('Backup imported')}catch{alert('That file does not look like a valid clothing-app backup.')}e.target.value=''}
 function resetData(){if(confirm('Erase all closet, outfit, journal and wishlist data from this device?')){state=emptyState();saveState();toast('App data erased')}}
 
 init();
