@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#66715a" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Audrey's Closet" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
+  <link rel="stylesheet" href="styles.css" />
+  <title>Audrey's Closet</title>
+</head>
+<body>
+  <div class="paper-grain"></div>
+  <header class="topbar">
+    <div>
+      <div class="eyebrow">AUDREY'S</div>
+      <h1>Closet <span>Journal</span></h1>
+    </div>
+    <button class="icon-btn" id="quickAddBtn" aria-label="Quick add item">＋</button>
+  </header>
+
+  <main id="app">
+    <section class="screen active" data-screen="catalog">
+      <div class="hero-card plaid-corner">
+        <div>
+          <p class="script">wear what feels like you</p>
+          <h2>Clothing Catalog</h2>
+          <p class="muted">Photograph, organize, search, and rediscover every piece.</p>
+        </div>
+        <button class="primary" id="addItemBtn">Add piece</button>
+      </div>
+
+      <div class="category-strip" id="categoryStrip"></div>
+
+      <div class="toolbar">
+        <label class="searchbox"><span>⌕</span><input id="catalogSearch" placeholder="Search brand, color, notes…" /></label>
+        <button class="soft-btn" id="filterBtn">Filter</button>
+      </div>
+
+      <div class="filter-panel hidden" id="filterPanel">
+        <select id="filterCategory"><option value="">All categories</option></select>
+        <select id="filterSeason"><option value="">All seasons</option><option>Winter</option><option>Spring</option><option>Summer</option><option>Fall</option><option>All-season</option></select>
+        <select id="filterColor"><option value="">All colors</option></select>
+        <button class="text-btn" id="clearFilters">Clear</button>
+      </div>
+
+      <div class="section-title"><h3>Closet</h3><span id="catalogCount">0 pieces</span></div>
+      <div class="closet-grid" id="catalogGrid"></div>
+      <div class="empty-state" id="catalogEmpty">
+        <div class="hanger">⌇</div>
+        <h3>Your closet starts here</h3>
+        <p>Take a photo of a piece. The app will detect its main color and can try to read visible brand/size text.</p>
+        <button class="primary" id="emptyAddBtn">Photograph first item</button>
+      </div>
+    </section>
+
+    <section class="screen" data-screen="outfits">
+      <div class="page-head">
+        <div><p class="script">mix • match • play</p><h2>Outfit Board</h2></div>
+        <button class="soft-btn" id="newBoardBtn">New board</button>
+      </div>
+      <div class="board-shell">
+        <div class="board" id="outfitBoard">
+          <div class="board-tip">Drag pieces here<br><small>pinch/drag your ideas around</small></div>
+        </div>
+        <div class="board-controls">
+          <input id="outfitName" placeholder="Outfit name" />
+          <textarea id="outfitNotes" placeholder="Notes: where I'd wear it, vibe, styling ideas…"></textarea>
+          <div class="inline-actions"><button class="primary" id="saveOutfitBtn">Save outfit</button><button class="soft-btn" id="clearBoardBtn">Clear</button></div>
+        </div>
+      </div>
+      <div class="tabs-small"><button class="active" data-source="closet">Closet</button><button data-source="wishlist">Wishlist</button></div>
+      <div class="piece-tray" id="pieceTray"></div>
+      <div class="section-title"><h3>Saved looks</h3><span id="outfitCount">0</span></div>
+      <div class="saved-outfits" id="savedOutfits"></div>
+    </section>
+
+    <section class="screen" data-screen="journal">
+      <div class="page-head"><div><p class="script">the story of what you wear</p><h2>Journal</h2></div><button class="primary" id="logWearBtn">Log today</button></div>
+      <div class="stats-grid">
+        <article class="stat-card"><span>Most worn</span><strong id="mostWorn">—</strong><small id="mostWornMeta">No wear data yet</small></article>
+        <article class="stat-card"><span>Favorite color</span><strong id="favColor">—</strong><small id="favColorMeta">No wear data yet</small></article>
+        <article class="stat-card"><span>Closet wears</span><strong id="totalWears">0</strong><small>journaled item-wears</small></article>
+        <article class="stat-card"><span>This season</span><strong id="seasonWears">0</strong><small id="seasonName">—</small></article>
+      </div>
+      <div class="chart-card"><div class="section-title"><h3>Color story</h3><span>by wears</span></div><canvas id="colorChart" width="640" height="270"></canvas></div>
+      <div class="chart-card"><div class="section-title"><h3>Season rhythm</h3><span>journal entries</span></div><canvas id="seasonChart" width="640" height="240"></canvas></div>
+      <div class="section-title"><h3>Recent journal</h3><span id="journalCount">0 days</span></div>
+      <div class="journal-list" id="journalList"></div>
+    </section>
+
+    <section class="screen" data-screen="wishlist">
+      <div class="page-head"><div><p class="script">maybe someday…</p><h2>Wishlist</h2></div><button class="primary" id="addWishBtn">Add wish</button></div>
+      <div class="wishlist-grid" id="wishlistGrid"></div>
+      <div class="empty-state compact" id="wishlistEmpty"><h3>Save future finds</h3><p>Add a photo, link, price and brand. Wishlist pieces can be tried on your Outfit Board.</p></div>
+    </section>
+
+    <section class="screen" data-screen="more">
+      <div class="page-head"><div><p class="script">closet housekeeping</p><h2>More</h2></div></div>
+      <div class="settings-card">
+        <h3>Data</h3>
+        <p>Your closet is stored on this device in Safari. Export a backup whenever you want.</p>
+        <div class="stack-actions"><button class="soft-btn" id="exportBtn">Export backup</button><label class="soft-btn file-label">Import backup<input type="file" id="importFile" accept="application/json" /></label></div>
+      </div>
+      <div class="settings-card">
+        <h3>Smart photo scan</h3>
+        <p>Color and simple pattern detection happen on-device. Brand/size text detection is attempted online when supported. “How acquired” cannot be reliably inferred from a photo, so the app leaves it for you to choose.</p>
+      </div>
+      <div class="settings-card danger-zone">
+        <h3>Reset</h3><p>Erase all local closet data on this device.</p><button class="danger-btn" id="resetBtn">Erase app data</button>
+      </div>
+    </section>
+  </main>
+
+  <nav class="bottom-nav">
+    <button class="active" data-nav="catalog"><span>▦</span>Catalog</button>
+    <button data-nav="outfits"><span>✣</span>Outfits</button>
+    <button data-nav="journal"><span>◷</span>Journal</button>
+    <button data-nav="wishlist"><span>♡</span>Wishlist</button>
+    <button data-nav="more"><span>•••</span>More</button>
+  </nav>
+
+  <dialog id="itemDialog" class="sheet-dialog">
+    <form method="dialog" id="itemForm">
+      <div class="sheet-head"><div><p class="script">closet piece</p><h2 id="itemDialogTitle">Add a piece</h2></div><button value="cancel" class="close-btn">×</button></div>
+      <input type="hidden" id="itemId" />
+      <div class="photo-capture">
+        <div class="photo-preview-wrap"><img id="itemPhotoPreview" alt="Item preview" /><div class="photo-placeholder" id="photoPlaceholder">photo</div></div>
+        <div class="photo-actions">
+          <label class="primary file-label">Take photo<input type="file" id="itemPhoto" accept="image/*" capture="environment" /></label>
+          <button type="button" class="soft-btn" id="removeBgBtn">Remove background</button>
+          <button type="button" class="soft-btn" id="smartScanBtn">Smart scan</button>
+          <div class="scan-status" id="scanStatus"></div>
+        </div>
+      </div>
+      <div class="form-grid">
+        <label>Category<select id="itemCategory" required></select></label>
+        <label>Type<input id="itemType" placeholder="T-shirt, jeans, sneakers…" /></label>
+        <label>Brand<input id="itemBrand" placeholder="Brand" /></label>
+        <label>Size<input id="itemSize" placeholder="XS, 12, 7.5…" /></label>
+        <label>Color<input id="itemColor" list="colorList" placeholder="Olive, burgundy…" /></label>
+        <label>Pattern<select id="itemPattern"><option>Solid</option><option>Stripe</option><option>Plaid</option><option>Floral/Print</option><option>Graphic</option><option>Colorblock</option><option>Other</option></select></label>
+        <label>Acquired<select id="itemAcquired"></select></label>
+        <label>Season<select id="itemSeason"><option>All-season</option><option>Winter</option><option>Spring</option><option>Summer</option><option>Fall</option></select></label>
+      </div>
+      <datalist id="colorList"></datalist>
+      <label class="full-label">Notes<textarea id="itemNotes" placeholder="Fit, styling notes, sentimental story…"></textarea></label>
+      <div class="sheet-actions"><button value="cancel" class="soft-btn">Cancel</button><button type="button" class="danger-text hidden" id="deleteItemBtn">Delete</button><button type="submit" value="default" class="primary">Save piece</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="wishDialog" class="sheet-dialog">
+    <form method="dialog" id="wishForm">
+      <div class="sheet-head"><div><p class="script">future find</p><h2>Wishlist item</h2></div><button value="cancel" class="close-btn">×</button></div>
+      <input type="hidden" id="wishId" />
+      <div class="photo-capture compact-photo"><div class="photo-preview-wrap"><img id="wishPhotoPreview" /><div class="photo-placeholder" id="wishPhotoPlaceholder">photo</div></div><label class="soft-btn file-label">Add photo<input type="file" id="wishPhoto" accept="image/*" capture="environment" /></label></div>
+      <div class="form-grid"><label>Item<input id="wishName" required placeholder="Striped cardigan" /></label><label>Brand<input id="wishBrand" placeholder="Brand" /></label><label>Price<input id="wishPrice" inputmode="decimal" placeholder="$45" /></label><label>Link<input id="wishLink" type="url" placeholder="https://…" /></label><label>Category<select id="wishCategory"></select></label><label>Color<input id="wishColor" placeholder="Color" /></label></div>
+      <label class="full-label">Notes<textarea id="wishNotes"></textarea></label>
+      <div class="sheet-actions"><button value="cancel" class="soft-btn">Cancel</button><button type="button" class="danger-text hidden" id="deleteWishBtn">Delete</button><button type="submit" value="default" class="primary">Save wish</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="wearDialog" class="sheet-dialog">
+    <form method="dialog" id="wearForm">
+      <div class="sheet-head"><div><p class="script">today's look</p><h2>Log what you wore</h2></div><button value="cancel" class="close-btn">×</button></div>
+      <label>Date<input type="date" id="wearDate" required /></label>
+      <div class="wear-picker" id="wearPicker"></div>
+      <label class="full-label">Notes<textarea id="wearNotes" placeholder="School, weekend, weather, how the outfit felt…"></textarea></label>
+      <div class="sheet-actions"><button value="cancel" class="soft-btn">Cancel</button><button type="submit" value="default" class="primary">Save journal</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="outfitViewDialog" class="sheet-dialog">
+    <div class="sheet-head"><div><p class="script">saved look</p><h2 id="viewOutfitName"></h2></div><button class="close-btn" onclick="this.closest('dialog').close()">×</button></div>
+    <div id="viewOutfitBoard" class="board snapshot"></div>
+    <p id="viewOutfitNotes" class="outfit-note"></p>
+    <div class="sheet-actions"><button class="danger-text" id="deleteOutfitBtn">Delete outfit</button><button class="soft-btn" onclick="this.closest('dialog').close()">Close</button></div>
+  </dialog>
+
+  <div class="toast" id="toast"></div>
+  <script src="app.js"></script>
+</body>
+</html>

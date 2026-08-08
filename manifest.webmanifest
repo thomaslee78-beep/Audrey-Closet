@@ -1,0 +1,14 @@
+{
+  "name": "Audrey's Closet Journal",
+  "short_name": "Audrey's Closet",
+  "description": "A fashionable clothing catalog, outfit board, wear journal and wishlist.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f3eee1",
+  "theme_color": "#66715a",
+  "icons": [
+    {"src":"icon-192.png","sizes":"192x192","type":"image/png"},
+    {"src":"icon-512.png","sizes":"512x512","type":"image/png"}
+  ]
+}
