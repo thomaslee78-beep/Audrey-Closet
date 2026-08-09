@@ -19,3 +19,7 @@ Replace the files in the repository with this folder's contents and commit. Keep
 
 ## v4
 Adds a customizable app name under More → App identity. The name updates the in-app header, browser title, backup filename, and is included in exported backups. The Home Screen icon label is controlled by iOS/PWA installation metadata and may require removing/re-adding the Home Screen icon to reflect a renamed app.
+
+
+## v5 enhancement
+Saved outfits can now be tapped to load them back onto the Outfit Board for continued editing. Saving while editing updates the existing outfit rather than creating a duplicate. Use New Board to start a separate outfit.
