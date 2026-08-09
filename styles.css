@@ -67,3 +67,15 @@
 #itemDialog .item-sheet-actions button{width:100%;min-height:44px;display:flex;align-items:center;justify-content:center;text-align:center;margin:0}
 #itemDialog #cancelItemBtn{grid-column:1}#itemDialog #deleteItemBtn{grid-column:2;color:#8c2f3a}#itemDialog #saveItemBtn{grid-column:3}
 @media(max-width:410px){#itemDialog{width:calc(100% - 8px);border-radius:22px 22px 8px 8px}#itemDialog #itemForm{padding:14px 14px 0}#itemDialog .item-sheet-actions{margin:16px -14px 0;padding-left:14px;padding-right:14px;gap:7px}#itemDialog .item-sheet-actions button{padding-left:7px;padding-right:7px;font-size:12px}.photo-tools-disclosure summary{padding:10px 11px}.photo-tools-disclosure summary small{display:none}.item-photo-large{aspect-ratio:1/1.05}}
+
+
+/* v12.3 — catalog modal containment + photo-library import */
+body.item-dialog-open{position:fixed;left:0;right:0;width:100%;overflow:hidden;overscroll-behavior:none}
+#itemDialog::backdrop{background:rgba(45,38,31,.46);touch-action:none;overscroll-behavior:none}
+#itemDialog{overscroll-behavior:contain;touch-action:none}
+#itemDialog #itemForm{touch-action:pan-y;overscroll-behavior:contain;scrollbar-gutter:stable}
+#itemDialog .sheet-head,#itemDialog .item-sheet-actions,#itemDialog button,#itemDialog input,#itemDialog select,#itemDialog textarea,#itemDialog summary,#itemDialog label{touch-action:manipulation}
+#itemDialog .item-photo-stage,#itemDialog .item-swipe-zone{touch-action:pan-y}
+.photo-actions-bottom{grid-template-columns:repeat(2,minmax(0,1fr))}
+.photo-actions-bottom .file-label{position:relative;overflow:hidden}
+@supports(height:100dvh){#itemDialog{max-height:calc(100dvh - 8px)}#itemDialog #itemForm{max-height:calc(100dvh - 8px)}}

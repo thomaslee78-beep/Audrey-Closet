@@ -24,6 +24,8 @@ let selectedCategory='';
 let catalogReviewIds=[];
 let itemReviewIds=[];
 let itemSwipeStart=null;
+let itemPhotoPickerActive=false;
+let itemDialogScrollY=0;
 let itemWorkingPhoto='';
 let itemOriginalPhoto='';
 let studioSourcePhoto='';
@@ -125,7 +127,12 @@ function bindNav(){
 function showScreen(name){$$('.screen').forEach(s=>s.classList.toggle('active',s.dataset.screen===name));$$('.bottom-nav button').forEach(b=>b.classList.toggle('active',b.dataset.nav===name));scrollTo({top:0,behavior:'smooth'});if(name==='journal')renderJournal();if(name==='outfits')renderOutfits();if(name==='portfolio')renderSavedOutfits();if(name==='more')renderPortfolioFolderEditor()}
 
 function bindDialogs(){
-  $('#itemPhoto').onchange=async e=>{const f=e.target.files[0];if(!f)return;setPhotoBusy(true,'Optimizing photo…');try{itemOriginalPhoto=await fileToDataURL(f,1100,.78);itemWorkingPhoto=itemOriginalPhoto;showPhoto('#itemPhotoPreview','#photoPlaceholder',itemWorkingPhoto);updateOriginalPhotoButton();$('#scanStatus').textContent='Photo ready. Open Photo Studio to crop, cut out and normalize it.';const scan=await analyzeImage(itemWorkingPhoto);applyVisualScan(scan);$('#scanStatus').textContent=`Photo ready · ${scan.color} · ${scan.pattern}. Photo Studio can make the catalog image more consistent.`}catch(err){console.error(err);$('#scanStatus').textContent='Photo could not be processed. Try another photo.';toast('Could not process that photo')}finally{setPhotoBusy(false)}};
+  $('#itemPhoto').onchange=e=>handleItemPhotoSelection(e,'camera');
+  $('#itemPhotoLibrary').onchange=e=>handleItemPhotoSelection(e,'library');
+  ['itemPhoto','itemPhotoLibrary'].forEach(inputId=>{const input=$('#'+inputId);input.addEventListener('click',()=>{itemPhotoPickerActive=true;ensureItemDialogVisible()})});
+  window.addEventListener('focus',()=>{if(itemPhotoPickerActive)setTimeout(restoreItemDialogAfterPicker,180)});
+  window.addEventListener('pageshow',()=>{if(itemPhotoPickerActive)setTimeout(restoreItemDialogAfterPicker,180)});
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&itemPhotoPickerActive)setTimeout(restoreItemDialogAfterPicker,180)});
   $('#removeBgBtn').onclick=()=>openPhotoStudio();
   $('#photoStudioBtn').onclick=()=>openPhotoStudio();
   $('#restoreOriginalPhotoBtn').onclick=()=>restoreCapturedOriginal(false);
@@ -146,13 +153,13 @@ function bindDialogs(){
 function openItem(item=null){
   itemReviewIds=item ? (catalogReviewIds.includes(item.id)?[...catalogReviewIds]:state.items.map(i=>i.id)) : [];
   loadItemIntoEditor(item);
-  if(!$('#itemDialog').open)$('#itemDialog').showModal();
+  if(!$('#itemDialog').open){lockPageForItemDialog();$('#itemDialog').showModal()}
 }
 function loadItemIntoEditor(item=null){
   const isEdit=!!item;
   $('#itemDialog').classList.toggle('editing-existing',isEdit);
   $('#itemDialogTitle').textContent=isEdit?'Review piece':'Add a piece';$('#itemId').value=item?.id||'';itemWorkingPhoto=item?.photo||'';itemOriginalPhoto=item?.originalPhoto||item?.photo||'';
-  showPhoto('#itemPhotoPreview','#photoPlaceholder',itemWorkingPhoto);updateOriginalPhotoButton();const category=item?.category||'Tops';$('#itemCategory').value=category;populateTypeOptions(category,item?.type||'');populateSizeOptions(category,item?.size||'');$('#itemBrand').value=item?.brand||'';$('#itemColor').value=item?.color||'';$('#itemPattern').value=item?.pattern||'Solid';$('#itemAcquired').value=item?.acquired||'Bought new';$('#itemSeason').value=item?.season||'All-season';$('#itemNotes').value=item?.notes||'';$('#scanStatus').textContent='';$('#deleteItemBtn').classList.toggle('hidden',!item);$('#itemPhoto').value='';
+  showPhoto('#itemPhotoPreview','#photoPlaceholder',itemWorkingPhoto);updateOriginalPhotoButton();const category=item?.category||'Tops';$('#itemCategory').value=category;populateTypeOptions(category,item?.type||'');populateSizeOptions(category,item?.size||'');$('#itemBrand').value=item?.brand||'';$('#itemColor').value=item?.color||'';$('#itemPattern').value=item?.pattern||'Solid';$('#itemAcquired').value=item?.acquired||'Bought new';$('#itemSeason').value=item?.season||'All-season';$('#itemNotes').value=item?.notes||'';$('#scanStatus').textContent='';$('#deleteItemBtn').classList.toggle('hidden',!item);$('#itemPhoto').value='';$('#itemPhotoLibrary').value='';
   const tools=$('.photo-tools-disclosure');if(tools)tools.open=false;
   $('#itemReviewSummary').classList.toggle('hidden',!isEdit);$('#itemSwipeHint').classList.toggle('hidden',!isEdit||itemReviewIds.length<2);updateItemReviewSummary();
   if($('#itemDialog').open)$('#itemDialog').scrollTop=0;
@@ -167,8 +174,46 @@ function navigateReviewItem(delta){
 }
 function closeItemWithoutSaving(){
   // Form fields and photo edits are working copies only. Closing never mutates state.
-  itemWorkingPhoto='';itemOriginalPhoto='';$('#itemPhoto').value='';$('#scanStatus').textContent='';$('#itemDialog').close('cancel');
+  itemWorkingPhoto='';itemOriginalPhoto='';itemPhotoPickerActive=false;$('#itemPhoto').value='';$('#itemPhotoLibrary').value='';$('#scanStatus').textContent='';
+  if($('#itemDialog').open)$('#itemDialog').close('cancel');
+  unlockPageForItemDialog();
 }
+async function handleItemPhotoSelection(e,source='camera'){
+  const f=e.target.files&&e.target.files[0];
+  itemPhotoPickerActive=false;
+  ensureItemDialogVisible();
+  if(!f){$('#scanStatus').textContent=source==='library'?'No photo selected.':'Camera canceled — your piece is still open.';return}
+  setPhotoBusy(true,source==='library'?'Importing photo…':'Optimizing photo…');
+  try{
+    itemOriginalPhoto=await fileToDataURL(f,1100,.78);
+    itemWorkingPhoto=itemOriginalPhoto;
+    showPhoto('#itemPhotoPreview','#photoPlaceholder',itemWorkingPhoto);updateOriginalPhotoButton();
+    const scan=await analyzeImage(itemWorkingPhoto);applyVisualScan(scan);
+    $('#scanStatus').textContent=`${source==='library'?'Imported':'Photo ready'} · ${scan.color} · ${scan.pattern}. Photo Studio can crop, cut out and normalize it.`;
+  }catch(err){console.error(err);$('#scanStatus').textContent='Photo could not be processed. Try another photo.';toast('Could not process that photo')}
+  finally{setPhotoBusy(false);e.target.value=''}
+}
+function ensureItemDialogVisible(){
+  const d=$('#itemDialog');
+  if(!d.open){try{lockPageForItemDialog();d.showModal()}catch(err){console.warn('Could not restore item review dialog',err)}}
+}
+function restoreItemDialogAfterPicker(){
+  if(!itemPhotoPickerActive)return;
+  ensureItemDialogVisible();
+  setTimeout(()=>{itemPhotoPickerActive=false},700);
+}
+function lockPageForItemDialog(){
+  if(document.body.classList.contains('item-dialog-open'))return;
+  itemDialogScrollY=window.scrollY||0;
+  document.body.style.top=`-${itemDialogScrollY}px`;
+  document.body.classList.add('item-dialog-open');
+}
+function unlockPageForItemDialog(){
+  if(!document.body.classList.contains('item-dialog-open'))return;
+  document.body.classList.remove('item-dialog-open');document.body.style.top='';
+  window.scrollTo(0,itemDialogScrollY||0);
+}
+
 function updateItemReviewSummary(){
   const isEdit=!!$('#itemId').value;$('#itemReviewSummary').classList.toggle('hidden',!isEdit);if(!isEdit)return;
   const type=$('#itemType').value||$('#itemCategory').value||'Clothing item',color=$('#itemColor').value||'Color not set',brand=$('#itemBrand').value.trim()||'No brand';
@@ -179,10 +224,10 @@ async function saveItem(){
   const previous=state.items;if(iid)state.items=state.items.map(x=>x.id===iid?obj:x);else state.items=[obj,...state.items];
   const btn=$('#saveItemBtn');btn.disabled=true;btn.textContent='Saving…';$('#scanStatus').textContent='Saving securely on this device…';
   const ok=await saveState();btn.disabled=false;btn.textContent='Save piece';
-  if(ok){$('#itemDialog').close();toast(iid?'Piece updated':'Added to closet')}else{state.items=previous;$('#scanStatus').textContent='Save failed. Your entry is still open so you can try again.'}
+  if(ok){$('#itemDialog').close();unlockPageForItemDialog();toast(iid?'Piece updated':'Added to closet')}else{state.items=previous;$('#scanStatus').textContent='Save failed. Your entry is still open so you can try again.'}
 }
 function setPhotoBusy(busy,message=''){['#removeBgBtn','#smartScanBtn','#saveItemBtn'].forEach(sel=>{const el=$(sel);if(el)el.disabled=busy});if(message)$('#scanStatus').textContent=message}
-function deleteItem(){const iid=$('#itemId').value;if(!iid||!confirm('Delete this closet piece?'))return;state.items=state.items.filter(x=>x.id!==iid);state.journal=state.journal.map(j=>({...j,itemIds:j.itemIds.filter(x=>x!==iid)}));saveState();$('#itemDialog').close();toast('Piece deleted')}
+function deleteItem(){const iid=$('#itemId').value;if(!iid||!confirm('Delete this closet piece?'))return;state.items=state.items.filter(x=>x.id!==iid);state.journal=state.journal.map(j=>({...j,itemIds:j.itemIds.filter(x=>x!==iid)}));saveState();$('#itemDialog').close();unlockPageForItemDialog();toast('Piece deleted')}
 
 function renderAll(){ensureSettings();applyAppName();renderCategories();renderCatalog();renderOutfits();renderSavedOutfits();renderWishlist();renderJournal();renderPortfolioFolderEditor()}
 function renderCategories(){const host=$('#categoryStrip');host.innerHTML=CATEGORIES.map(c=>{const n=state.items.filter(i=>i.category===c).length;return`<button class="category-chip ${selectedCategory===c?'active':''}" data-cat="${c}"><strong>${c}</strong><span>${n} ${n===1?'piece':'pieces'}</span></button>`}).join('');$$('.category-chip').forEach(b=>b.onclick=()=>{selectedCategory=selectedCategory===b.dataset.cat?'':b.dataset.cat;renderCategories();renderCatalog()})}
