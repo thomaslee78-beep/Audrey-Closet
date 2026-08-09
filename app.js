@@ -170,7 +170,7 @@ function loadItemIntoEditor(item=null,preferredCategory=''){
   $('#itemDialog').classList.toggle('editing-existing',isEdit);
   $('#itemDialogTitle').textContent=isEdit?'Review piece':'Add a piece';$('#itemId').value=item?.id||'';itemWorkingPhoto=item?.photo||'';itemOriginalPhoto=item?.originalPhoto||item?.photo||'';
   showPhoto('#itemPhotoPreview','#photoPlaceholder',itemWorkingPhoto);updateOriginalPhotoButton();const category=item?.category||preferredCategory||selectedCategory||$('#filterCategory').value||'Tops';$('#itemCategory').value=category;populateTypeOptions(category,item?.type||'');populateSizeOptions(category,item?.size||'');$('#itemBrand').value=item?.brand||'';$('#itemColor').value=item?.color||'';$('#itemPattern').value=item?.pattern||'Solid';$('#itemAcquired').value=item?.acquired||'Bought new';$('#itemSeason').value=item?.season||'All-season';$('#itemNotes').value=item?.notes||'';$('#scanStatus').textContent='';$('#deleteItemBtn').classList.toggle('hidden',!item);$('#itemPhoto').value='';$('#itemPhotoLibrary').value='';
-  const tools=$('.photo-tools-disclosure');if(tools)tools.open=false;
+  const tools=$('.photo-tools-disclosure');if(tools)tools.open=!isEdit;
   $('#itemReviewSummary').classList.toggle('hidden',!isEdit);$('#itemSwipeHint').classList.toggle('hidden',!isEdit||itemReviewIds.length<2);updateItemReviewSummary();
   if($('#itemDialog').open)$('#itemDialog').scrollTop=0;
 }
@@ -474,7 +474,7 @@ function boardItemContent(b){
 function drawBoard(){
   const board=$('#outfitBoard');board.querySelectorAll('.board-piece').forEach(x=>x.remove());const tip=board.querySelector('.board-tip');tip.style.display=boardItems.length?'none':'flex';
   boardItems.map(normalizeBoardItem).sort((a,b)=>a.z-b.z).forEach(b=>{const content=boardItemContent(b);if(!content)return;const el=document.createElement('div');el.className='board-piece kind-'+b.kind+(selectedBoardUid===b.uid?' selected':'');el.dataset.uid=b.uid;el.style.left=b.x+'px';el.style.top=b.y+'px';el.style.width=b.w+'px';el.style.height=b.h+'px';el.style.zIndex=b.z;el.style.transform=`rotate(${b.rotation}deg)`;el.innerHTML=`<div class="board-object">${content}</div><button type="button" class="board-remove-handle" aria-label="Remove from board">×</button><button type="button" class="resize-handle" aria-label="Resize">↘</button>`;makeBoardInteractive(el,b);board.appendChild(el)});
-  const selected=boardItems.find(x=>x.uid===selectedBoardUid);$('#boardEditbar').classList.toggle('has-selection',!!selected);$('#boardEditbar').classList.toggle('hidden',!selected);if(selected&&!doodleMode)$('#boardHelp').textContent='Drag gently to move. Pinch to resize + rotate. Use Front / Back for layering.';updateUndoButton();
+  const selected=boardItems.find(x=>x.uid===selectedBoardUid);updateBoardEditControls(!!selected);if(selected&&!doodleMode)$('#boardHelp').textContent='Drag gently to move. Pinch to resize + rotate. Use Front / Back for layering.';updateUndoButton();
 }
 function makeBoardInteractive(el,model){
   const pointers=new Map();let gesture=null;
@@ -486,7 +486,8 @@ function makeBoardInteractive(el,model){
   function release(e){pointers.delete(e.pointerId);if(pointers.size===1){const p=[...pointers.values()][0];gesture={mode:'drag',sx:p.x,sy:p.y,x:model.x,y:model.y}}else if(!pointers.size)gesture=null}
   el.addEventListener('pointerup',release);el.addEventListener('pointercancel',release);
 }
-function drawSelectionOnly(uid){$$('#outfitBoard .board-piece').forEach(el=>el.classList.toggle('selected',el.dataset.uid===uid));$('#boardEditbar').classList.toggle('has-selection',!!uid)}
+function updateBoardEditControls(hasSelection){const bar=$('#boardEditbar');if(!bar)return;bar.classList.toggle('has-selection',hasSelection);['sendBackBtn','bringFrontBtn','rotateLeftBtn','rotateRightBtn','duplicateBoardBtn','deleteBoardBtn'].forEach(id=>{const btn=$('#'+id);if(btn)btn.disabled=!hasSelection})}
+function drawSelectionOnly(uid){$$('#outfitBoard .board-piece').forEach(el=>el.classList.toggle('selected',el.dataset.uid===uid));updateBoardEditControls(!!uid);updateUndoButton()}
 function selectedBoardItem(){return boardItems.find(x=>x.uid===selectedBoardUid)}
 function layerSelected(where){const b=selectedBoardItem();if(!b)return toast('Select something on the board');if(where==='front')b.z=nextZ();else b.z=Math.min(0,...boardItems.filter(x=>x!==b).map(x=>Number(x.z)||0))-1;drawBoard()}
 function rotateSelected(delta){const b=selectedBoardItem();if(!b)return toast('Select something on the board');b.rotation=(Number(b.rotation)||0)+delta;drawBoard()}

@@ -127,3 +127,22 @@ body.closet-reordering{overflow-x:hidden!important;overflow-y:auto!important}
 #undoBoardBtn.undo-ready{border-color:rgba(77,142,138,.65);background:#e8f0e8}
 .board-editbar button{min-height:38px}
 .board-piece{will-change:left,top,width,height,transform}
+
+
+/* v12.9 — clearer closet reorder states + persistent board controls */
+.item-card.closet-drag-source{
+  opacity:.78!important;filter:none!important;
+  outline:3px solid rgba(77,142,138,.92)!important;outline-offset:-3px!important;
+  box-shadow:0 0 0 2px rgba(255,250,240,.95),0 9px 20px rgba(56,46,34,.14)!important;
+}
+.item-card.closet-drop-target{
+  outline:3px dashed rgba(125,53,71,.72)!important;outline-offset:-4px!important;
+  box-shadow:0 5px 14px rgba(56,46,34,.08)!important;
+}
+.item-card.closet-drop-target:after{background:rgba(125,53,71,.86)!important}
+.item-card.closet-drop-target.drop-before:before,.item-card.closet-drop-target.drop-after:before{background:var(--burgundy)!important}
+.board-editbar{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-top:8px;opacity:1!important}
+.board-editbar.hidden{display:grid!important}
+.board-editbar button:disabled{opacity:.34;filter:saturate(.35);cursor:default}
+#undoBoardBtn.undo-ready{opacity:1!important;filter:none!important}
+@media(max-width:430px){.board-editbar{grid-template-columns:repeat(4,minmax(0,1fr))}.board-editbar button{font-size:11px;padding:7px 4px}}
