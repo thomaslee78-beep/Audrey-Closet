@@ -40,6 +40,9 @@ let editingOutfitId=null;
 let selectedBoardUid=null;
 let doodleMode=false;
 let activeDoodle=null;
+let pendingShareBlob=null;
+let pendingShareUrl='';
+let pendingShareFileName='outfit.jpg';
 
 function emptyState(){return {items:[],outfits:[],journal:[],wishlist:[],settings:{appName:DEFAULT_APP_NAME}}}
 function openDB(){return new Promise((resolve,reject)=>{const req=indexedDB.open(DB_NAME,DB_VERSION);req.onupgradeneeded=()=>{const db=req.result;if(!db.objectStoreNames.contains(DB_STORE))db.createObjectStore(DB_STORE)};req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)})}
@@ -143,7 +146,10 @@ function renderWishlist(){$('#wishlistGrid').innerHTML=state.wishlist.map(w=>`<a
 
 function bindBoard(){
   $('#newBoardBtn').onclick=()=>{editingOutfitId=null;clearBoard();$('#outfitName').value='';$('#outfitNotes').value='';$('#saveOutfitBtn').textContent='Save outfit';toast('New outfit board')};
-  $('#clearBoardBtn').onclick=clearBoard;$('#saveOutfitBtn').onclick=saveOutfit;$('#shareOutfitBtn').onclick=shareOutfitImage;
+  $('#clearBoardBtn').onclick=clearBoard;$('#saveOutfitBtn').onclick=saveOutfit;$('#shareOutfitBtn').onclick=prepareOutfitShare;
+  $('#shareNowBtn').onclick=sharePreparedOutfit;
+  $('#openShareImageBtn').onclick=openPreparedShareImage;
+  $('#closeSharePreviewBtn').onclick=closeSharePreview;
   $$('.tabs-small button').forEach(b=>b.onclick=()=>{traySource=b.dataset.source;$$('.tabs-small button').forEach(x=>x.classList.toggle('active',x===b));renderPieceTray()});
   $('#addBoardTextBtn').onclick=()=>{const text=$('#boardTextInput').value.trim();if(!text)return toast('Type something first');addCreativeItem('text',text);$('#boardTextInput').value=''};
   $$('.sticker-row [data-sticker]').forEach(b=>b.onclick=()=>addCreativeItem('sticker',b.dataset.sticker));
@@ -245,19 +251,54 @@ async function makeOutfitShareBlob(){
   return new Promise((resolve,reject)=>c.toBlob(b=>b?resolve(b):reject(new Error('image export failed')),'image/jpeg',.92));
 }
 function wrapCanvasText(ctx,text,x,y,maxWidth,lineHeight){const words=String(text).split(/\s+/),lines=[];let line='';for(const word of words){const test=line?line+' '+word:word;if(ctx.measureText(test).width>maxWidth&&line){lines.push(line);line=word}else line=test}if(line)lines.push(line);const start=y-(lines.length-1)*lineHeight/2;lines.slice(0,4).forEach((l,i)=>ctx.fillText(l,x,start+i*lineHeight,maxWidth))}
-async function shareOutfitImage(){
+async function prepareOutfitShare(){
   if(!boardItems.length)return toast('Add something to the board first');
-  const btn=$('#shareOutfitBtn');btn.disabled=true;const old=btn.textContent;btn.textContent='Creating image…';
+  const btn=$('#shareOutfitBtn');btn.disabled=true;const old=btn.textContent;btn.textContent='Creating preview…';
   try{
-    const blob=await makeOutfitShareBlob();const safe=(($('#outfitName').value.trim()||'outfit').replace(/[^a-z0-9]+/gi,'-').replace(/^-|-$/g,'').toLowerCase()||'outfit');
-    const file=new File([blob],`${safe}.jpg`,{type:'image/jpeg'});
-    if(navigator.share&&(!navigator.canShare||navigator.canShare({files:[file]}))){
-      await navigator.share({title:$('#outfitName').value.trim()||'Outfit',text:'Check out this outfit board!',files:[file]});
-    }else{
-      const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=file.name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);toast('Image saved — share it from Photos or Files');
-    }
-  }catch(err){if(err?.name!=='AbortError'){console.error(err);toast('Could not create the outfit image')}}finally{btn.disabled=false;btn.textContent=old}
+    if(pendingShareUrl){URL.revokeObjectURL(pendingShareUrl);pendingShareUrl=''}
+    pendingShareBlob=await makeOutfitShareBlob();
+    const safe=(($('#outfitName').value.trim()||'outfit').replace(/[^a-z0-9]+/gi,'-').replace(/^-|-$/g,'').toLowerCase()||'outfit');
+    pendingShareFileName=`${safe}.jpg`;
+    pendingShareUrl=URL.createObjectURL(pendingShareBlob);
+    $('#sharePreviewImage').src=pendingShareUrl;
+    $('#sharePreviewTitle').textContent=$('#outfitName').value.trim()||'My outfit';
+    $('#sharePreviewStatus').textContent=navigator.share?'Image ready. Tap “Share now” to open the iPhone share sheet.':'Image ready. Tap “Open image” and use the browser share button.';
+    $('#shareNowBtn').classList.toggle('hidden',!navigator.share);
+    $('#sharePreviewDialog').showModal();
+  }catch(err){console.error(err);toast('Could not create the outfit image')}
+  finally{btn.disabled=false;btn.textContent=old}
 }
+async function sharePreparedOutfit(){
+  if(!pendingShareBlob)return toast('Create the preview again');
+  const btn=$('#shareNowBtn');btn.disabled=true;const old=btn.textContent;btn.textContent='Opening share…';
+  try{
+    const file=new File([pendingShareBlob],pendingShareFileName,{type:'image/jpeg'});
+    if(navigator.canShare&&!navigator.canShare({files:[file]}))throw new Error('file sharing unsupported');
+    await navigator.share({title:$('#outfitName').value.trim()||'Outfit',text:'Check out this outfit board!',files:[file]});
+  }catch(err){
+    if(err?.name!=='AbortError'){
+      console.warn('Native file share failed',err);
+      $('#sharePreviewStatus').textContent='The iPhone share sheet could not accept the file here. Tap “Open image” below, then use Share from Safari.';
+      toast('Try Open image instead');
+    }
+  }finally{btn.disabled=false;btn.textContent=old}
+}
+function openPreparedShareImage(){
+  if(!pendingShareUrl)return toast('Create the preview again');
+  // This runs directly from the user tap, so iOS is much less likely to block it.
+  const w=window.open(pendingShareUrl,'_blank');
+  if(!w){
+    const a=document.createElement('a');a.href=pendingShareUrl;a.target='_blank';a.rel='noopener';document.body.appendChild(a);a.click();a.remove();
+  }
+  $('#sharePreviewStatus').textContent='The image should open by itself. Use the iPhone Share button there, or touch and hold the image to save/copy it.';
+}
+function closeSharePreview(){
+  $('#sharePreviewDialog').close();
+  // Keep the object URL alive while the dialog is open only; the blob itself remains cached for another share attempt.
+  if(pendingShareUrl){URL.revokeObjectURL(pendingShareUrl);pendingShareUrl='';}
+  $('#sharePreviewImage').removeAttribute('src');
+}
+
 
 async function saveOutfit(){if(!boardItems.length)return toast('Add at least one piece');const name=$('#outfitName').value.trim()||'Untitled look';const board=$('#outfitBoard');const snapshot={name,notes:$('#outfitNotes').value.trim(),pieces:boardItems.map(x=>({...x})),boardWidth:board.clientWidth,boardHeight:board.clientHeight};if(editingOutfitId){const existing=state.outfits.find(x=>x.id===editingOutfitId);if(existing){Object.assign(existing,snapshot,{updated:Date.now()})}else editingOutfitId=null}if(!editingOutfitId){const created={id:id(),...snapshot,created:Date.now()};state.outfits.unshift(created);editingOutfitId=created.id}await saveState();renderSavedOutfits();$('#saveOutfitBtn').textContent='Update outfit';toast('Outfit saved')}
 function renderMiniPiece(p,n){p=normalizeBoardItem({...p});if(p.kind==='piece'){const obj=(p.source==='closet'?state.items:state.wishlist).find(x=>x.id===p.id);return obj?.photo?`<img src="${obj.photo}" style="left:${8+n*19}px;top:${8+(n%2)*24}px;transform:rotate(${p.rotation||0}deg)">`:''}if(p.kind==='text')return `<span class="mini-deco" style="left:${8+n*9}px;top:${10+n*13}px">${esc(p.value)}</span>`;if(p.kind==='sticker')return `<span class="mini-sticker" style="left:${8+n*14}px;top:${12+n*12}px">${esc(p.value)}</span>`;return ''}

@@ -226,6 +226,14 @@
     <div class="sheet-actions"><button class="danger-text" id="deleteOutfitBtn">Delete outfit</button><button class="soft-btn" onclick="this.closest('dialog').close()">Close</button></div>
   </dialog>
 
+  <dialog id="sharePreviewDialog" class="sheet-dialog share-preview-dialog">
+    <div class="sheet-head"><div><p class="script">share your look</p><h2 id="sharePreviewTitle">My outfit</h2></div><button type="button" class="close-btn" id="closeSharePreviewBtn">×</button></div>
+    <p class="share-preview-help">Your board has been turned into a regular image first. This two-step approach works more reliably from an iPhone Home Screen app.</p>
+    <div class="share-preview-frame"><img id="sharePreviewImage" alt="Outfit board image preview"></div>
+    <p class="scan-status share-preview-status" id="sharePreviewStatus">Image ready.</p>
+    <div class="sheet-actions share-preview-actions"><button type="button" class="soft-btn" id="openShareImageBtn">Open image</button><button type="button" class="primary" id="shareNowBtn">↗ Share now</button></div>
+  </dialog>
+
   <div class="toast" id="toast"></div>
   <script src="app.js"></script>
 </body>

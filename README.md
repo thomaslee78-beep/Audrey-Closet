@@ -33,3 +33,7 @@ Saved outfits can now be tapped to load them back onto the Outfit Board for cont
 
 ## v7
 Outfit Board can export the current collage as a JPEG and use the iPhone Web Share sheet (Messages, AirDrop, Mail, etc.). A download fallback is used where file sharing is unavailable.
+
+
+## v8 sharing fix
+Outfit sharing now uses a two-step workflow: first render the board to an image preview, then share the already-created file from a second user tap. This is more reliable on iOS because Web Share requires a live user activation and long asynchronous canvas work before `navigator.share()` can cause Safari/Home Screen apps to reject the share. An **Open image** fallback is also provided so the generated JPEG can be opened separately and shared with the normal iOS controls.
