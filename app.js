@@ -320,8 +320,10 @@ function startCatalogDrag(){
   document.body.appendChild(ghost);d.ghost=ghost;d.ghostOffsetX=d.x-rect.left;d.ghostOffsetY=d.y-rect.top;
   const dropOutline=document.createElement('div');dropOutline.className='closet-drop-outline';dropOutline.setAttribute('aria-hidden','true');document.body.appendChild(dropOutline);d.dropOutline=dropOutline;
   document.body.classList.add('closet-reordering');$('#catalogGrid')?.classList.add('closet-grid-reordering');
-  navigator.vibrate?.(18);positionCatalogGhost(d.x,d.y);updateCatalogDropTarget(d.x,d.y);
-  toast('Reorder mode — choose a new slot, then release');
+  navigator.vibrate?.(18);positionCatalogGhost(d.x,d.y);
+  // Do not choose a destination until the user actually starts dragging.
+  clearCatalogDropTarget();d.targetId=null;d.targetAfter=false;
+  toast('Reorder mode — drag to a new slot, then release');
 }
 function positionCatalogGhost(x,y){
   const d=closetDrag;if(!d.ghost)return;
@@ -339,8 +341,12 @@ function moveCatalogDrag(x,y,pointerId,touchId,e){
     return;
   }
   if(e?.cancelable)e.preventDefault();
-  d.moved=true;positionCatalogGhost(x,y);
-  d.pendingX=x;d.pendingY=y;
+  positionCatalogGhost(x,y);
+  // Require a deliberate movement before highlighting any destination. This prevents
+  // the neighboring card from lighting up the instant reorder mode begins.
+  const dragDistance=Math.hypot(dx,dy);
+  if(dragDistance<24){clearCatalogDropTarget();d.targetId=null;d.targetAfter=false;return}
+  d.moved=true;d.pendingX=x;d.pendingY=y;
   if(!d.raf)d.raf=requestAnimationFrame(()=>{d.raf=null;autoScrollCatalogDrag(d.pendingY);updateCatalogDropTarget(d.pendingX,d.pendingY)});
 }
 function autoScrollCatalogDrag(y){

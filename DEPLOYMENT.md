@@ -26,9 +26,9 @@ Closet drag-and-drop reliability update for iPhone. No database migration is req
 Closet reorder interaction polish. No database migration required. Service-worker cache is v12.7.
 
 
-### v12.10
+### v12.11
 Closet reorder now previews a target without moving neighboring cards until drop. Outfit Board adds undo for removed objects, clearer front/back layering controls, and gentler movement sensitivity for iPhone editing. No database migration required.
 
 
-### v12.10 polish
+### v12.11 polish
 Closet reorder now uses a solid outline on the item being moved and a dotted outline on the destination. Board edit controls remain visible below the board and gray out until an object is selected; Undo remains independently available. Photo Tools opens automatically for brand-new closet items but stays collapsed when reviewing existing pieces.
