@@ -143,7 +143,7 @@ function renderWishlist(){$('#wishlistGrid').innerHTML=state.wishlist.map(w=>`<a
 
 function bindBoard(){
   $('#newBoardBtn').onclick=()=>{editingOutfitId=null;clearBoard();$('#outfitName').value='';$('#outfitNotes').value='';$('#saveOutfitBtn').textContent='Save outfit';toast('New outfit board')};
-  $('#clearBoardBtn').onclick=clearBoard;$('#saveOutfitBtn').onclick=saveOutfit;
+  $('#clearBoardBtn').onclick=clearBoard;$('#saveOutfitBtn').onclick=saveOutfit;$('#shareOutfitBtn').onclick=shareOutfitImage;
   $$('.tabs-small button').forEach(b=>b.onclick=()=>{traySource=b.dataset.source;$$('.tabs-small button').forEach(x=>x.classList.toggle('active',x===b));renderPieceTray()});
   $('#addBoardTextBtn').onclick=()=>{const text=$('#boardTextInput').value.trim();if(!text)return toast('Type something first');addCreativeItem('text',text);$('#boardTextInput').value=''};
   $$('.sticker-row [data-sticker]').forEach(b=>b.onclick=()=>addCreativeItem('sticker',b.dataset.sticker));
@@ -199,6 +199,66 @@ function localBoardPoint(e,board){const r=board.getBoundingClientRect();return{x
 function startDoodle(e){if(!doodleMode||e.target.closest('.board-piece'))return;e.preventDefault();const board=$('#outfitBoard'),p=localBoardPoint(e,board);activeDoodle={pointerId:e.pointerId,points:[p]};board.setPointerCapture(e.pointerId)}
 function moveDoodle(e){if(!doodleMode||!activeDoodle||activeDoodle.pointerId!==e.pointerId)return;e.preventDefault();activeDoodle.points.push(localBoardPoint(e,$('#outfitBoard')))}
 function endDoodle(e){if(!activeDoodle||activeDoodle.pointerId!==e.pointerId)return;const pts=activeDoodle.points;activeDoodle=null;if(pts.length<2)return;const minx=Math.min(...pts.map(p=>p.x)),maxx=Math.max(...pts.map(p=>p.x)),miny=Math.min(...pts.map(p=>p.y)),maxy=Math.max(...pts.map(p=>p.y));const pad=8,w=Math.max(24,maxx-minx+pad*2),h=Math.max(24,maxy-miny+pad*2);const points=pts.map(p=>`${(p.x-minx+pad).toFixed(1)},${(p.y-miny+pad).toFixed(1)}`).join(' ');const b={uid:id(),kind:'doodle',points,x:minx-pad,y:miny-pad,w,h,rotation:0,z:nextZ()};boardItems.push(b);selectedBoardUid=b.uid;drawBoard()}
+
+async function imageFromSrc(src){
+  return new Promise((resolve,reject)=>{const img=new Image();img.onload=()=>resolve(img);img.onerror=reject;img.src=src});
+}
+function roundRectPath(ctx,x,y,w,h,r){r=Math.min(r,w/2,h/2);ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath()}
+function parseDoodlePoints(points=''){return points.trim().split(/\s+/).map(pair=>pair.split(',').map(Number)).filter(p=>p.length===2&&p.every(Number.isFinite))}
+async function makeOutfitShareBlob(){
+  if(!boardItems.length)throw new Error('empty');
+  const board=$('#outfitBoard'),sourceW=board.clientWidth||390,sourceH=board.clientHeight||420;
+  const W=1080,H=1200,pad=66,header=130,footer=82,drawW=W-pad*2,drawH=H-header-footer;
+  const sx=drawW/sourceW,sy=drawH/sourceH;
+  const c=document.createElement('canvas');c.width=W;c.height=H;const ctx=c.getContext('2d');
+  ctx.fillStyle='#f7f0df';ctx.fillRect(0,0,W,H);
+  ctx.fillStyle='#efe9d9';roundRectPath(ctx,pad,header,drawW,drawH,42);ctx.fill();
+  ctx.save();roundRectPath(ctx,pad,header,drawW,drawH,42);ctx.clip();
+  ctx.strokeStyle='rgba(108,81,66,.10)';ctx.lineWidth=2;const grid=24*((sx+sy)/2);
+  for(let x=pad;x<=pad+drawW;x+=grid){ctx.beginPath();ctx.moveTo(x,header);ctx.lineTo(x,header+drawH);ctx.stroke()}
+  for(let y=header;y<=header+drawH;y+=grid){ctx.beginPath();ctx.moveTo(pad,y);ctx.lineTo(pad+drawW,y);ctx.stroke()}
+  const pieces=boardItems.map(x=>normalizeBoardItem({...x})).sort((a,b)=>a.z-b.z);
+  for(const b of pieces){
+    const x=pad+b.x*sx,y=header+b.y*sy,w=b.w*sx,h=b.h*sy,cx=x+w/2,cy=y+h/2;
+    ctx.save();ctx.translate(cx,cy);ctx.rotate((b.rotation||0)*Math.PI/180);ctx.translate(-w/2,-h/2);
+    if(b.kind==='piece'){
+      const obj=(b.source==='closet'?state.items:state.wishlist).find(o=>o.id===b.id);
+      if(obj?.photo){try{const img=await imageFromSrc(obj.photo);const ar=img.naturalWidth/img.naturalHeight,box=w/h;let dw=w,dh=h,dx=0,dy=0;if(ar>box){dh=w/ar;dy=(h-dh)/2}else{dw=h*ar;dx=(w-dw)/2}ctx.drawImage(img,dx,dy,dw,dh)}catch{}}
+      else if(obj){ctx.fillStyle='#6c5142';ctx.textAlign='center';ctx.textBaseline='middle';ctx.font=`${Math.max(18,24*sx)}px Georgia`;ctx.fillText(obj.type||obj.name||'piece',w/2,h/2,w*.9)}
+    } else if(b.kind==='text'){
+      ctx.fillStyle='#7d3547';ctx.textAlign='center';ctx.textBaseline='middle';ctx.font=`italic ${Math.max(24,38*sx)}px Georgia`;wrapCanvasText(ctx,b.value||'',w/2,h/2,w*.95,Math.max(30,43*sx));
+    } else if(b.kind==='sticker'){
+      ctx.textAlign='center';ctx.textBaseline='middle';ctx.font=`${Math.max(38,72*sx)}px system-ui, Apple Color Emoji`;ctx.fillText(b.value||'✨',w/2,h/2,w);
+    } else if(b.kind==='shape'){
+      if(b.value==='circle'){ctx.strokeStyle='#4d8e8a';ctx.lineWidth=Math.max(5,8*sx);ctx.beginPath();ctx.ellipse(w/2,h/2,Math.max(2,w/2-7),Math.max(2,h/2-7),0,0,Math.PI*2);ctx.stroke()}
+      if(b.value==='line'){ctx.strokeStyle='#7d3547';ctx.lineWidth=Math.max(6,10*sx);ctx.lineCap='round';ctx.beginPath();ctx.moveTo(5,h/2);ctx.lineTo(w-5,h/2);ctx.stroke()}
+      if(b.value==='tape'){ctx.fillStyle='rgba(198,163,78,.48)';ctx.fillRect(0,h*.08,w,h*.84)}
+    } else if(b.kind==='doodle'){
+      const pts=parseDoodlePoints(b.points||'');if(pts.length){ctx.strokeStyle='#6c5142';ctx.lineWidth=Math.max(4,6*sx);ctx.lineCap='round';ctx.lineJoin='round';ctx.beginPath();pts.forEach((p,i)=>{const px=p[0]*w/b.w,py=p[1]*h/b.h;i?ctx.lineTo(px,py):ctx.moveTo(px,py)});ctx.stroke()}
+    }
+    ctx.restore();
+  }
+  ctx.restore();
+  ctx.fillStyle='#2e2a24';ctx.textAlign='left';ctx.textBaseline='alphabetic';ctx.font='600 48px Georgia';const title=($('#outfitName').value.trim()||'My outfit');ctx.fillText(title,pad,74,W-pad*2);
+  ctx.fillStyle='#7d3547';ctx.font='italic 27px Georgia';ctx.fillText((state.settings?.appName||DEFAULT_APP_NAME),pad,108,W-pad*2);
+  const notes=$('#outfitNotes').value.trim();if(notes){ctx.fillStyle='#6c5142';ctx.font='24px system-ui';ctx.textAlign='center';ctx.fillText(notes,W/2,H-31,W-pad*2)}
+  return new Promise((resolve,reject)=>c.toBlob(b=>b?resolve(b):reject(new Error('image export failed')),'image/jpeg',.92));
+}
+function wrapCanvasText(ctx,text,x,y,maxWidth,lineHeight){const words=String(text).split(/\s+/),lines=[];let line='';for(const word of words){const test=line?line+' '+word:word;if(ctx.measureText(test).width>maxWidth&&line){lines.push(line);line=word}else line=test}if(line)lines.push(line);const start=y-(lines.length-1)*lineHeight/2;lines.slice(0,4).forEach((l,i)=>ctx.fillText(l,x,start+i*lineHeight,maxWidth))}
+async function shareOutfitImage(){
+  if(!boardItems.length)return toast('Add something to the board first');
+  const btn=$('#shareOutfitBtn');btn.disabled=true;const old=btn.textContent;btn.textContent='Creating image…';
+  try{
+    const blob=await makeOutfitShareBlob();const safe=(($('#outfitName').value.trim()||'outfit').replace(/[^a-z0-9]+/gi,'-').replace(/^-|-$/g,'').toLowerCase()||'outfit');
+    const file=new File([blob],`${safe}.jpg`,{type:'image/jpeg'});
+    if(navigator.share&&(!navigator.canShare||navigator.canShare({files:[file]}))){
+      await navigator.share({title:$('#outfitName').value.trim()||'Outfit',text:'Check out this outfit board!',files:[file]});
+    }else{
+      const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=file.name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);toast('Image saved — share it from Photos or Files');
+    }
+  }catch(err){if(err?.name!=='AbortError'){console.error(err);toast('Could not create the outfit image')}}finally{btn.disabled=false;btn.textContent=old}
+}
+
 async function saveOutfit(){if(!boardItems.length)return toast('Add at least one piece');const name=$('#outfitName').value.trim()||'Untitled look';const board=$('#outfitBoard');const snapshot={name,notes:$('#outfitNotes').value.trim(),pieces:boardItems.map(x=>({...x})),boardWidth:board.clientWidth,boardHeight:board.clientHeight};if(editingOutfitId){const existing=state.outfits.find(x=>x.id===editingOutfitId);if(existing){Object.assign(existing,snapshot,{updated:Date.now()})}else editingOutfitId=null}if(!editingOutfitId){const created={id:id(),...snapshot,created:Date.now()};state.outfits.unshift(created);editingOutfitId=created.id}await saveState();renderSavedOutfits();$('#saveOutfitBtn').textContent='Update outfit';toast('Outfit saved')}
 function renderMiniPiece(p,n){p=normalizeBoardItem({...p});if(p.kind==='piece'){const obj=(p.source==='closet'?state.items:state.wishlist).find(x=>x.id===p.id);return obj?.photo?`<img src="${obj.photo}" style="left:${8+n*19}px;top:${8+(n%2)*24}px;transform:rotate(${p.rotation||0}deg)">`:''}if(p.kind==='text')return `<span class="mini-deco" style="left:${8+n*9}px;top:${10+n*13}px">${esc(p.value)}</span>`;if(p.kind==='sticker')return `<span class="mini-sticker" style="left:${8+n*14}px;top:${12+n*12}px">${esc(p.value)}</span>`;return ''}
 function renderSavedOutfits(){$('#outfitCount').textContent=state.outfits.length;$('#savedOutfits').innerHTML=state.outfits.map(o=>`<article class="outfit-card" data-id="${o.id}"><div class="outfit-mini">${o.pieces.slice(0,7).map(renderMiniPiece).join('')}</div><h4>${esc(o.name)}</h4><p>${o.pieces.length} elements · ${new Date(o.created).toLocaleDateString()} · tap to edit</p></article>`).join('');$$('.outfit-card').forEach(c=>c.onclick=()=>loadOutfitForEditing(c.dataset.id))}

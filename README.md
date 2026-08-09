@@ -29,3 +29,7 @@ Saved outfits can now be tapped to load them back onto the Outfit Board for cont
 - Photo Studio with original, quick cutout and cleaner cutout modes
 - Standardized square framing, auto fit, scaling, rotation, edge control, erase/restore brush, and background choices
 - Men’s waist sizes for Bottoms (W28–W48)
+
+
+## v7
+Outfit Board can export the current collage as a JPEG and use the iPhone Web Share sheet (Messages, AirDrop, Mail, etc.). A download fallback is used where file sharing is unavailable.
