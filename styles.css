@@ -113,3 +113,17 @@ body.closet-reordering{overflow-x:hidden!important;overflow-y:auto!important}
 #itemDialog .form-grid label,#itemDialog .full-label{font-weight:600;color:#665e55;letter-spacing:0}
 #itemDialog .form-grid input,#itemDialog .form-grid select,#itemDialog .full-label textarea{font-weight:400;color:#3f3a34;background:#fffdf8}
 #itemDialog .form-grid select{font-family:var(--sans)}
+
+/* v12.8: calm, no-reflow closet reorder preview */
+.closet-grid-reordering .item-card{transition:none!important;animation:none!important}
+.item-card.closet-drag-source{opacity:.32;filter:saturate(.75);outline:2px dashed rgba(77,142,138,.5);outline-offset:-3px}
+.item-card.closet-drop-target{position:relative;z-index:2;box-shadow:0 0 0 3px rgba(77,142,138,.68),0 8px 18px rgba(56,46,34,.12)!important}
+.item-card.closet-drop-target:after{content:"DROP HERE";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);padding:6px 8px;border-radius:11px;background:rgba(54,91,88,.9);color:#fff;font-size:9px;font-weight:800;letter-spacing:.06em;pointer-events:none;white-space:nowrap}
+.item-card.closet-drop-target.drop-before:before,.item-card.closet-drop-target.drop-after:before{content:"";position:absolute;background:var(--turq);border-radius:5px;z-index:3;pointer-events:none}
+.item-card.closet-drop-target.drop-before:before{left:-5px;top:7%;bottom:7%;width:4px}
+.item-card.closet-drop-target.drop-after:before{right:-5px;top:7%;bottom:7%;width:4px}
+.closet-drag-ghost{opacity:.92!important;box-shadow:0 15px 36px rgba(42,34,26,.28)!important}
+#undoBoardBtn:disabled{opacity:.35!important}
+#undoBoardBtn.undo-ready{border-color:rgba(77,142,138,.65);background:#e8f0e8}
+.board-editbar button{min-height:38px}
+.board-piece{will-change:left,top,width,height,transform}

@@ -40,6 +40,8 @@ let studioDrawing=false;
 let studioRestoreCanvas=null;
 let wishWorkingPhoto='';
 let boardItems=[];
+let boardUndoStack=[];
+const BOARD_MOVE_SENSITIVITY=.72;
 let traySource='closet';
 let trayCategory='Recent';
 let portfolioFilter='All';
@@ -301,28 +303,26 @@ function startCatalogDrag(){
   d.active=true;d.timer=null;suppressCatalogClickUntil=Date.now()+900;
   const rect=d.card.getBoundingClientRect();
 
-  // Keep a real grid slot in the layout and hide the original card. Moving only this
-  // lightweight placeholder avoids the flashing/repainting caused by moving the full card.
-  const slot=document.createElement('article');
-  slot.className='item-card closet-drop-slot';
-  slot.setAttribute('aria-hidden','true');
-  slot.style.height=rect.height+'px';
-  d.card.parentElement.insertBefore(slot,d.card);
-  d.placeholder=slot;
-  d.card.style.display='none';
+  // Keep the grid completely stable while dragging. The original card remains in its slot
+  // (dimmed) and we only highlight the intended destination. No neighboring cards move
+  // until the user actually drops the item, which prevents the flashing seen on iPhone.
+  d.card.classList.add('closet-drag-source');
+  d.originalId=d.card.dataset.id;
+  d.targetId=d.originalId;
+  d.targetAfter=false;
 
   const ghost=d.card.cloneNode(true);ghost.classList.add('closet-drag-ghost');ghost.removeAttribute('data-id');ghost.removeAttribute('style');
   ghost.querySelectorAll('img').forEach(img=>{img.draggable=false});
   Object.assign(ghost.style,{position:'fixed',left:'0',top:'0',width:rect.width+'px',height:rect.height+'px',margin:'0',pointerEvents:'none',zIndex:'5000',willChange:'transform'});
   document.body.appendChild(ghost);d.ghost=ghost;d.ghostOffsetX=d.x-rect.left;d.ghostOffsetY=d.y-rect.top;
   document.body.classList.add('closet-reordering');$('#catalogGrid')?.classList.add('closet-grid-reordering');
-  navigator.vibrate?.(18);positionCatalogGhost(d.x,d.y);
-  toast('Reorder mode — drag to the highlighted slot');
+  navigator.vibrate?.(18);positionCatalogGhost(d.x,d.y);updateCatalogDropTarget(d.x,d.y);
+  toast('Reorder mode — choose a new slot, then release');
 }
 function positionCatalogGhost(x,y){
   const d=closetDrag;if(!d.ghost)return;
   const left=x-(d.ghostOffsetX||0),top=y-(d.ghostOffsetY||0);
-  d.ghost.style.transform=`translate3d(${left}px,${top}px,0) scale(1.025)`;
+  d.ghost.style.transform=`translate3d(${left}px,${top}px,0) scale(1.018)`;
 }
 function moveCatalogDrag(x,y,pointerId,touchId,e){
   const d=closetDrag;if(!d.card)return;
@@ -331,73 +331,53 @@ function moveCatalogDrag(x,y,pointerId,touchId,e){
   d.x=x;d.y=y;
   const dx=x-d.startX,dy=y-d.startY;
   if(!d.active){
-    // Ordinary scrolling wins if the finger moves before the long press fires.
     if(Math.hypot(dx,dy)>14){clearTimeout(d.timer);d.timer=null}
     return;
   }
   if(e?.cancelable)e.preventDefault();
   d.moved=true;positionCatalogGhost(x,y);
-  // Throttle layout work to one update per animation frame for smoother iPhone dragging.
   d.pendingX=x;d.pendingY=y;
-  if(!d.raf)d.raf=requestAnimationFrame(()=>{d.raf=null;autoScrollCatalogDrag(d.pendingY);repositionCatalogPlaceholder(d.pendingX,d.pendingY)});
+  if(!d.raf)d.raf=requestAnimationFrame(()=>{d.raf=null;autoScrollCatalogDrag(d.pendingY);updateCatalogDropTarget(d.pendingX,d.pendingY)});
 }
 function autoScrollCatalogDrag(y){
-  const edge=105,speed=12;
+  const edge=105,speed=10;
   if(y<edge)window.scrollBy(0,-speed);
   else if(y>window.innerHeight-edge)window.scrollBy(0,speed);
 }
-function animateCatalogReflow(before){
-  if(!before||!Element.prototype.animate)return;
-  [...$('#catalogGrid').querySelectorAll('.item-card[data-id]')].forEach(el=>{
-    if(el.style.display==='none')return;
-    const old=before.get(el);if(!old)return;
-    const now=el.getBoundingClientRect(),dx=old.left-now.left,dy=old.top-now.top;
-    if(Math.abs(dx)>1||Math.abs(dy)>1)el.animate([{transform:`translate3d(${dx}px,${dy}px,0)`},{transform:'translate3d(0,0,0)'}],{duration:150,easing:'cubic-bezier(.2,.8,.2,1)'});
-  });
+function clearCatalogDropTarget(){
+  $$('#catalogGrid .closet-drop-target').forEach(el=>el.classList.remove('closet-drop-target','drop-before','drop-after'));
 }
-function moveCatalogSlot(target,beforeTarget,placementKey){
-  const d=closetDrag,grid=$('#catalogGrid');if(!d.placeholder||!grid||d.lastPlacement===placementKey)return;
-  const rects=new Map([...grid.querySelectorAll('.item-card[data-id]')].filter(el=>el.style.display!=='none').map(el=>[el,el.getBoundingClientRect()]));
-  if(target){
-    if(beforeTarget)grid.insertBefore(d.placeholder,target);
-    else grid.insertBefore(d.placeholder,target.nextSibling);
-  }else grid.appendChild(d.placeholder);
-  d.lastPlacement=placementKey;
-  animateCatalogReflow(rects);
-}
-function repositionCatalogPlaceholder(x,y){
-  const d=closetDrag,grid=$('#catalogGrid');if(!d.placeholder||!grid)return;
-  const cards=[...grid.querySelectorAll('.item-card[data-id]')].filter(c=>c!==d.card&&c.style.display!=='none');
-  if(!cards.length)return;
+function updateCatalogDropTarget(x,y){
+  const d=closetDrag,grid=$('#catalogGrid');if(!grid||!d.card)return;
+  const cards=[...grid.querySelectorAll('.item-card[data-id]')].filter(c=>c!==d.card);
+  clearCatalogDropTarget();
+  if(!cards.length){d.targetId=d.originalId;d.targetAfter=false;return}
 
-  // Prefer the card actually under the finger. Using the whole card as a snap target
-  // makes the first/left slot easy to hit instead of requiring a tiny edge gesture.
-  let target=document.elementFromPoint(x,y)?.closest?.('.item-card[data-id]');
-  if(target===d.card||!cards.includes(target))target=null;
-  if(target){
-    const r=target.getBoundingClientRect();
-    // Most of a card snaps BEFORE it; only its far-right/lower edge means "after".
-    // This feels like replacing a slot and fixes the difficult first-left position.
-    const horizontal=Math.abs(y-(r.top+r.height/2))<=r.height*.6;
-    const before=horizontal ? x<r.left+r.width*.72 : y<r.top+r.height*.72;
-    moveCatalogSlot(target,before,`${target.dataset.id}:${before?'b':'a'}`);return;
+  // Pick the closest card center. This works consistently across rows/columns without
+  // reflowing the grid during the gesture.
+  let target=null,best=Infinity;
+  for(const c of cards){
+    const r=c.getBoundingClientRect();
+    const cx=r.left+r.width/2,cy=r.top+r.height/2;
+    const dist=Math.hypot(x-cx,y-cy);
+    if(dist<best){best=dist;target=c}
   }
-
-  // Outside a card: choose the closest card, with explicit top/bottom handling.
-  const first=cards[0],last=cards[cards.length-1],fr=first.getBoundingClientRect(),lr=last.getBoundingClientRect();
-  if(y<fr.top){moveCatalogSlot(first,true,`${first.dataset.id}:b`);return}
-  if(y>lr.bottom){moveCatalogSlot(null,false,'end');return}
-  let nearest=cards[0],best=Infinity;
-  for(const c of cards){const r=c.getBoundingClientRect(),dist=Math.hypot(x-(r.left+r.width/2),y-(r.top+r.height/2));if(dist<best){best=dist;nearest=c}}
-  const r=nearest.getBoundingClientRect(),before=x<r.left+r.width*.72;
-  moveCatalogSlot(nearest,before,`${nearest.dataset.id}:${before?'b':'a'}`);
+  if(!target)return;
+  const r=target.getBoundingClientRect();
+  const sameRow=y>=r.top-r.height*.22&&y<=r.bottom+r.height*.22;
+  const after=sameRow ? x>r.left+r.width/2 : y>r.top+r.height/2;
+  d.targetId=target.dataset.id;d.targetAfter=after;
+  target.classList.add('closet-drop-target',after?'drop-after':'drop-before');
 }
+
 function cleanupCatalogGhost(){
   const d=closetDrag;
   if(d?.raf){cancelAnimationFrame(d.raf);d.raf=null}
   if(d?.ghost){try{d.ghost.remove()}catch{}}
+  clearCatalogDropTarget();
   $('#catalogGrid')?.classList.remove('closet-grid-reordering');
   document.body.classList.remove('closet-reordering');
+  d?.card?.classList.remove('closet-drag-source');
 }
 async function finishCatalogDrag(pointerId,touchId,canceled=false,e){
   const d=closetDrag;if(!d.card)return;
@@ -407,24 +387,24 @@ async function finishCatalogDrag(pointerId,touchId,canceled=false,e){
   if(d.active){
     if(e?.cancelable)e.preventDefault();
     suppressCatalogClickUntil=Date.now()+650;
-    const grid=$('#catalogGrid');
-    if(d.placeholder&&grid){
-      if(!canceled)grid.insertBefore(d.card,d.placeholder);
-      d.placeholder.remove();d.placeholder=null;
+    if(!canceled&&d.targetId&&d.originalId){
+      ensureSettings();
+      const categoryIds=state.items.filter(x=>x.category===d.category).map(x=>x.id);
+      let order=(state.settings.closetOrder[d.category]||[]).filter(id=>categoryIds.includes(id));
+      order=[...order,...categoryIds.filter(id=>!order.includes(id))];
+      order=order.filter(id=>id!==d.originalId);
+      let idx=order.indexOf(d.targetId);
+      if(idx<0)idx=0;
+      if(d.targetAfter)idx+=1;
+      order.splice(Math.max(0,Math.min(order.length,idx)),0,d.originalId);
+      state.settings.closetOrder[d.category]=[...new Set(order)];
+      await saveState();
+      renderCatalog();
+      toast('Closet order saved');
     }
-    d.card.style.display='';cleanupCatalogGhost();
-    if(!canceled){
-      const visible=[...grid.querySelectorAll('.item-card[data-id]')].map(c=>c.dataset.id);
-      const old=state.settings.closetOrder[d.category]||[];
-      const visibleSet=new Set(visible);let vi=0;
-      state.settings.closetOrder[d.category]=old.map(id=>visibleSet.has(id)?visible[vi++]:id);
-      while(vi<visible.length)state.settings.closetOrder[d.category].push(visible[vi++]);
-      state.settings.closetOrder[d.category]=[...new Set(state.settings.closetOrder[d.category])];
-      await saveState();renderCatalog();toast('Closet order saved');
-    }else renderCatalog();
   }
   cleanupCatalogGhost();
-  closetDrag={timer:null,pointerId:null,touchId:null,startX:0,startY:0,x:0,y:0,card:null,category:'',active:false,moved:false,ghost:null,placeholder:null,lastPlacement:'',raf:null};
+  closetDrag={timer:null,pointerId:null,touchId:null,startX:0,startY:0,x:0,y:0,card:null,category:'',active:false,moved:false,ghost:null,placeholder:null,lastPlacement:'',raf:null,targetId:null,targetAfter:false,originalId:null};
 }
 
 function itemCard(i){return`<article class="item-card" data-id="${i.id}"><div class="thumb">${i.photo?`<img src="${i.photo}" alt="${esc(i.type||i.category)}" draggable="false">`:`<div class="hanger">⌇</div>`}<span class="count-badge">${i.wears||0} wears</span></div><div class="card-body"><h4>${esc(i.type||i.category)}</h4><p>${i.color?`<span class="swatch" style="background:${colorHex(i.color)}"></span>${esc(i.color)} · `:''}${esc(i.brand||'No brand')}</p><p>${esc(i.size||'Size —')} · ${esc(i.pattern||'Solid')}</p></div></article>`}
@@ -448,7 +428,7 @@ function bindBoard(){
   $$('.shape-row [data-shape]').forEach(b=>b.onclick=()=>addCreativeItem('shape',b.dataset.shape));
   $('#bringFrontBtn').onclick=()=>layerSelected('front');$('#sendBackBtn').onclick=()=>layerSelected('back');
   $('#rotateLeftBtn').onclick=()=>rotateSelected(-10);$('#rotateRightBtn').onclick=()=>rotateSelected(10);
-  $('#duplicateBoardBtn').onclick=duplicateSelected;$('#deleteBoardBtn').onclick=deleteSelected;
+  $('#duplicateBoardBtn').onclick=duplicateSelected;$('#deleteBoardBtn').onclick=deleteSelected;$('#undoBoardBtn').onclick=undoBoardDelete;
   $('#drawModeBtn').onclick=()=>{doodleMode=!doodleMode;$('#drawModeBtn').classList.toggle('active',doodleMode);$('#outfitBoard').classList.toggle('drawing',doodleMode);$('#boardHelp').textContent=doodleMode?'Doodle mode: draw directly on the board. Tap doodle again when finished.':'Select an object to move, resize, rotate, layer or delete it.'};
   const board=$('#outfitBoard');
   board.addEventListener('pointerdown',startDoodle);
@@ -458,7 +438,7 @@ function bindBoard(){
   board.addEventListener('pointerdown',e=>{if(!doodleMode&&e.target===board){selectedBoardUid=null;drawBoard()}});
 }
 function renderOutfits(){populatePortfolioFolderSelect($('#outfitFolder').value);renderPieceTray()}
-function startNewOutfit(){editingOutfitId=null;clearBoard();$('#outfitName').value='';$('#outfitNotes').value='';populatePortfolioFolderSelect(state.settings.portfolioFolders[0]||'Everyday');$('#saveOutfitBtn').textContent='Save outfit';toast('New outfit board')}
+function startNewOutfit(){editingOutfitId=null;boardUndoStack=[];clearBoard();$('#outfitName').value='';$('#outfitNotes').value='';populatePortfolioFolderSelect(state.settings.portfolioFolders[0]||'Everyday');$('#saveOutfitBtn').textContent='Save outfit';toast('New outfit board')}
 function populatePortfolioFolderSelect(selected=''){
   ensureSettings();
   const folders=state.settings.portfolioFolders;
@@ -494,15 +474,15 @@ function boardItemContent(b){
 function drawBoard(){
   const board=$('#outfitBoard');board.querySelectorAll('.board-piece').forEach(x=>x.remove());const tip=board.querySelector('.board-tip');tip.style.display=boardItems.length?'none':'flex';
   boardItems.map(normalizeBoardItem).sort((a,b)=>a.z-b.z).forEach(b=>{const content=boardItemContent(b);if(!content)return;const el=document.createElement('div');el.className='board-piece kind-'+b.kind+(selectedBoardUid===b.uid?' selected':'');el.dataset.uid=b.uid;el.style.left=b.x+'px';el.style.top=b.y+'px';el.style.width=b.w+'px';el.style.height=b.h+'px';el.style.zIndex=b.z;el.style.transform=`rotate(${b.rotation}deg)`;el.innerHTML=`<div class="board-object">${content}</div><button type="button" class="board-remove-handle" aria-label="Remove from board">×</button><button type="button" class="resize-handle" aria-label="Resize">↘</button>`;makeBoardInteractive(el,b);board.appendChild(el)});
-  const selected=boardItems.find(x=>x.uid===selectedBoardUid);$('#boardEditbar').classList.toggle('has-selection',!!selected);$('#boardEditbar').classList.toggle('hidden',!selected);if(selected&&!doodleMode)$('#boardHelp').textContent='Drag to move. Pinch with two fingers to resize + rotate. Use ↘ for one-finger resize.';
+  const selected=boardItems.find(x=>x.uid===selectedBoardUid);$('#boardEditbar').classList.toggle('has-selection',!!selected);$('#boardEditbar').classList.toggle('hidden',!selected);if(selected&&!doodleMode)$('#boardHelp').textContent='Drag gently to move. Pinch to resize + rotate. Use Front / Back for layering.';updateUndoButton();
 }
 function makeBoardInteractive(el,model){
   const pointers=new Map();let gesture=null;
   const board=$('#outfitBoard');
   function clampPosition(){model.x=Math.max(-model.w*.55,Math.min(board.clientWidth-model.w*.45,model.x));model.y=Math.max(-model.h*.55,Math.min(board.clientHeight-model.h*.45,model.y))}
   function twoPointStats(){const pts=[...pointers.values()];if(pts.length<2)return null;const a=pts[0],b=pts[1],dx=b.x-a.x,dy=b.y-a.y;return{dist:Math.hypot(dx,dy),angle:Math.atan2(dy,dx)*180/Math.PI,cx:(a.x+b.x)/2,cy:(a.y+b.y)/2}}
-  el.addEventListener('pointerdown',e=>{if(doodleMode)return;e.stopPropagation();if(e.target.classList.contains('board-remove-handle')){e.preventDefault();boardItems=boardItems.filter(x=>x.uid!==model.uid);if(selectedBoardUid===model.uid)selectedBoardUid=null;drawBoard();return}selectedBoardUid=model.uid;model.z=model.z||nextZ();drawSelectionOnly(model.uid);el.setPointerCapture(e.pointerId);pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});if(e.target.classList.contains('resize-handle')){gesture={mode:'resize',sx:e.clientX,sy:e.clientY,w:model.w,h:model.h};return}if(pointers.size===1){gesture={mode:'drag',sx:e.clientX,sy:e.clientY,x:model.x,y:model.y}}else if(pointers.size===2){const st=twoPointStats();gesture={mode:'pinch',start:st,w:model.w,h:model.h,rotation:model.rotation,x:model.x,y:model.y}}});
-  el.addEventListener('pointermove',e=>{if(!pointers.has(e.pointerId)||!gesture)return;e.preventDefault();pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});if(gesture.mode==='resize'){const dx=e.clientX-gesture.sx,dy=e.clientY-gesture.sy,delta=(dx+dy)/2,ratio=model.h/model.w;model.w=Math.max(45,Math.min(300,gesture.w+delta));model.h=Math.max(40,Math.min(340,model.w*ratio));}else if(gesture.mode==='drag'&&pointers.size===1){model.x=gesture.x+e.clientX-gesture.sx;model.y=gesture.y+e.clientY-gesture.sy;clampPosition()}else if(pointers.size>=2){if(gesture.mode!=='pinch'){const st=twoPointStats();gesture={mode:'pinch',start:st,w:model.w,h:model.h,rotation:model.rotation,x:model.x,y:model.y}}const st=twoPointStats(),scale=Math.max(.35,Math.min(2.8,st.dist/Math.max(1,gesture.start.dist)));model.w=Math.max(45,Math.min(320,gesture.w*scale));model.h=Math.max(40,Math.min(360,gesture.h*scale));model.rotation=gesture.rotation+(st.angle-gesture.start.angle);model.x=gesture.x+(st.cx-gesture.start.cx);model.y=gesture.y+(st.cy-gesture.start.cy);clampPosition()}el.style.left=model.x+'px';el.style.top=model.y+'px';el.style.width=model.w+'px';el.style.height=model.h+'px';el.style.transform=`rotate(${model.rotation}deg)`});
+  el.addEventListener('pointerdown',e=>{if(doodleMode)return;e.stopPropagation();if(e.target.classList.contains('board-remove-handle')){e.preventDefault();removeBoardItem(model.uid);return}selectedBoardUid=model.uid;model.z=model.z||nextZ();drawSelectionOnly(model.uid);el.setPointerCapture(e.pointerId);pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});if(e.target.classList.contains('resize-handle')){gesture={mode:'resize',sx:e.clientX,sy:e.clientY,w:model.w,h:model.h};return}if(pointers.size===1){gesture={mode:'drag',sx:e.clientX,sy:e.clientY,x:model.x,y:model.y}}else if(pointers.size===2){const st=twoPointStats();gesture={mode:'pinch',start:st,w:model.w,h:model.h,rotation:model.rotation,x:model.x,y:model.y}}});
+  el.addEventListener('pointermove',e=>{if(!pointers.has(e.pointerId)||!gesture)return;e.preventDefault();pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});if(gesture.mode==='resize'){const dx=e.clientX-gesture.sx,dy=e.clientY-gesture.sy,delta=((dx+dy)/2)*.78,ratio=model.h/model.w;model.w=Math.max(45,Math.min(300,gesture.w+delta));model.h=Math.max(40,Math.min(340,model.w*ratio));}else if(gesture.mode==='drag'&&pointers.size===1){model.x=gesture.x+(e.clientX-gesture.sx)*BOARD_MOVE_SENSITIVITY;model.y=gesture.y+(e.clientY-gesture.sy)*BOARD_MOVE_SENSITIVITY;clampPosition()}else if(pointers.size>=2){if(gesture.mode!=='pinch'){const st=twoPointStats();gesture={mode:'pinch',start:st,w:model.w,h:model.h,rotation:model.rotation,x:model.x,y:model.y}}const st=twoPointStats(),scale=Math.max(.35,Math.min(2.8,st.dist/Math.max(1,gesture.start.dist)));model.w=Math.max(45,Math.min(320,gesture.w*scale));model.h=Math.max(40,Math.min(360,gesture.h*scale));model.rotation=gesture.rotation+(st.angle-gesture.start.angle);model.x=gesture.x+(st.cx-gesture.start.cx)*BOARD_MOVE_SENSITIVITY;model.y=gesture.y+(st.cy-gesture.start.cy)*BOARD_MOVE_SENSITIVITY;clampPosition()}el.style.left=model.x+'px';el.style.top=model.y+'px';el.style.width=model.w+'px';el.style.height=model.h+'px';el.style.transform=`rotate(${model.rotation}deg)`});
   function release(e){pointers.delete(e.pointerId);if(pointers.size===1){const p=[...pointers.values()][0];gesture={mode:'drag',sx:p.x,sy:p.y,x:model.x,y:model.y}}else if(!pointers.size)gesture=null}
   el.addEventListener('pointerup',release);el.addEventListener('pointercancel',release);
 }
@@ -511,8 +491,11 @@ function selectedBoardItem(){return boardItems.find(x=>x.uid===selectedBoardUid)
 function layerSelected(where){const b=selectedBoardItem();if(!b)return toast('Select something on the board');if(where==='front')b.z=nextZ();else b.z=Math.min(0,...boardItems.filter(x=>x!==b).map(x=>Number(x.z)||0))-1;drawBoard()}
 function rotateSelected(delta){const b=selectedBoardItem();if(!b)return toast('Select something on the board');b.rotation=(Number(b.rotation)||0)+delta;drawBoard()}
 function duplicateSelected(){const b=selectedBoardItem();if(!b)return toast('Select something on the board');const copy={...b,uid:id(),x:b.x+18,y:b.y+18,z:nextZ()};boardItems.push(copy);selectedBoardUid=copy.uid;drawBoard()}
-function deleteSelected(){if(!selectedBoardUid)return toast('Select something on the board');boardItems=boardItems.filter(x=>x.uid!==selectedBoardUid);selectedBoardUid=null;drawBoard()}
-function clearBoard(){boardItems=[];selectedBoardUid=null;doodleMode=false;$('#drawModeBtn')?.classList.remove('active');$('#outfitBoard')?.classList.remove('drawing');drawBoard()}
+function updateUndoButton(){const b=$('#undoBoardBtn');if(!b)return;b.disabled=!boardUndoStack.length;b.classList.toggle('undo-ready',!!boardUndoStack.length)}
+function removeBoardItem(uid){const idx=boardItems.findIndex(x=>x.uid===uid);if(idx<0)return;const removed={item:{...boardItems[idx]},index:idx};boardItems.splice(idx,1);boardUndoStack.push(removed);if(boardUndoStack.length>12)boardUndoStack.shift();if(selectedBoardUid===uid)selectedBoardUid=null;drawBoard();updateUndoButton();toast('Item removed — Undo is available')}
+function deleteSelected(){if(!selectedBoardUid)return toast('Select something on the board');removeBoardItem(selectedBoardUid)}
+function undoBoardDelete(){const last=boardUndoStack.pop();if(!last)return toast('Nothing to undo');const idx=Math.max(0,Math.min(boardItems.length,last.index));boardItems.splice(idx,0,last.item);selectedBoardUid=last.item.uid;drawBoard();updateUndoButton();toast('Item restored')}
+function clearBoard(){boardItems=[];boardUndoStack=[];selectedBoardUid=null;doodleMode=false;$('#drawModeBtn')?.classList.remove('active');$('#outfitBoard')?.classList.remove('drawing');drawBoard();updateUndoButton()}
 function localBoardPoint(e,board){const r=board.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top}}
 function startDoodle(e){if(!doodleMode||e.target.closest('.board-piece'))return;e.preventDefault();const board=$('#outfitBoard'),p=localBoardPoint(e,board);activeDoodle={pointerId:e.pointerId,points:[p]};board.setPointerCapture(e.pointerId)}
 function moveDoodle(e){if(!doodleMode||!activeDoodle||activeDoodle.pointerId!==e.pointerId)return;e.preventDefault();activeDoodle.points.push(localBoardPoint(e,$('#outfitBoard')))}
@@ -640,7 +623,7 @@ function renderSavedOutfits(){
   $$('.outfit-card').forEach(c=>c.onclick=e=>{if(e.target.closest('.favorite-outfit'))return;viewOutfit(c.dataset.id)});
   $$('.favorite-outfit').forEach(b=>b.onclick=async e=>{e.stopPropagation();const o=state.outfits.find(x=>x.id===b.dataset.fav);if(!o)return;o.favorite=!o.favorite;await saveState();renderSavedOutfits();toast(o.favorite?'Added to favorites':'Removed from favorites')});
 }
-function loadOutfitForEditing(oid){const o=state.outfits.find(x=>x.id===oid);if(!o)return;editingOutfitId=oid;boardItems=(o.pieces||[]).map(p=>normalizeBoardItem({...p,uid:p.uid||id()}));selectedBoardUid=null;doodleMode=false;$('#drawModeBtn')?.classList.remove('active');$('#outfitBoard')?.classList.remove('drawing');$('#outfitName').value=o.name||'';$('#outfitNotes').value=o.notes||'';populatePortfolioFolderSelect(o.folder||state.settings.portfolioFolders[0]);$('#saveOutfitBtn').textContent='Update outfit';drawBoard();showScreen('outfits');setTimeout(()=>$('#outfitBoard').scrollIntoView({behavior:'smooth',block:'center'}),80);toast('Outfit loaded — keep editing')}
+function loadOutfitForEditing(oid){const o=state.outfits.find(x=>x.id===oid);if(!o)return;editingOutfitId=oid;boardUndoStack=[];boardItems=(o.pieces||[]).map(p=>normalizeBoardItem({...p,uid:p.uid||id()}));selectedBoardUid=null;doodleMode=false;$('#drawModeBtn')?.classList.remove('active');$('#outfitBoard')?.classList.remove('drawing');$('#outfitName').value=o.name||'';$('#outfitNotes').value=o.notes||'';populatePortfolioFolderSelect(o.folder||state.settings.portfolioFolders[0]);$('#saveOutfitBtn').textContent='Update outfit';drawBoard();showScreen('outfits');setTimeout(()=>$('#outfitBoard').scrollIntoView({behavior:'smooth',block:'center'}),80);toast('Outfit loaded — keep editing')}
 function renderSnapshotPiece(board,p,scaleX,scaleY){p=normalizeBoardItem({...p});const el=document.createElement('div');el.className='snapshot-piece kind-'+p.kind;el.style.left=(p.x*scaleX)+'px';el.style.top=(p.y*scaleY)+'px';el.style.width=(p.w*scaleX)+'px';el.style.height=(p.h*scaleY)+'px';el.style.zIndex=p.z;el.style.transform=`rotate(${p.rotation}deg)`;el.innerHTML=boardItemContent(p);board.appendChild(el)}
 function viewOutfit(oid){const o=state.outfits.find(x=>x.id===oid);if(!o)return;viewingOutfitId=oid;$('#viewOutfitName').textContent=o.name;$('#favoriteViewedOutfitBtn').textContent=(o.favorite?'★':'☆')+' Favorite';$('#viewOutfitNotes').textContent=o.notes||'No notes yet.';const board=$('#viewOutfitBoard');board.innerHTML='';$('#outfitViewDialog').showModal();requestAnimationFrame(()=>{const sourceW=o.boardWidth||390,sourceH=o.boardHeight||420,scaleX=(board.clientWidth||390)/sourceW,scaleY=(board.clientHeight||350)/sourceH;o.pieces.slice().sort((a,b)=>(a.z||0)-(b.z||0)).forEach(p=>renderSnapshotPiece(board,p,scaleX,scaleY))})}
 function deleteOutfit(){if(!viewingOutfitId||!confirm('Delete this saved outfit?'))return;state.outfits=state.outfits.filter(x=>x.id!==viewingOutfitId);saveState();$('#outfitViewDialog').close();renderSavedOutfits()}
