@@ -146,3 +146,22 @@ body.closet-reordering{overflow-x:hidden!important;overflow-y:auto!important}
 .board-editbar button:disabled{opacity:.34;filter:saturate(.35);cursor:default}
 #undoBoardBtn.undo-ready{opacity:1!important;filter:none!important}
 @media(max-width:430px){.board-editbar{grid-template-columns:repeat(4,minmax(0,1fr))}.board-editbar button{font-size:11px;padding:7px 4px}}
+
+
+/* v12.10 — long-press tap guard, full-card reorder outlines, gentler board pinch */
+.item-card.closet-drag-source{
+  outline:none!important;
+  box-shadow:inset 0 0 0 3px rgba(77,142,138,.96),0 9px 20px rgba(56,46,34,.14)!important;
+}
+.closet-drag-ghost{
+  border:0!important;
+  box-shadow:inset 0 0 0 3px rgba(77,142,138,.98),0 18px 42px rgba(55,43,31,.28)!important;
+}
+.item-card.closet-drop-target{outline:none!important;box-shadow:0 5px 14px rgba(56,46,34,.08)!important}
+.closet-drop-outline{
+  position:fixed;display:none;pointer-events:none;z-index:5200;
+  border:3px dashed rgba(125,53,71,.9);border-radius:19px;
+  box-sizing:border-box;background:transparent;
+  filter:drop-shadow(0 2px 2px rgba(255,250,240,.9));
+}
+.closet-drop-outline.visible{display:block}

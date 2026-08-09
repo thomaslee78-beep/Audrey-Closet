@@ -42,6 +42,9 @@ let wishWorkingPhoto='';
 let boardItems=[];
 let boardUndoStack=[];
 const BOARD_MOVE_SENSITIVITY=.72;
+const BOARD_PINCH_SCALE_SENSITIVITY=.58;
+const BOARD_PINCH_ROTATION_SENSITIVITY=.58;
+const BOARD_PINCH_MOVE_SENSITIVITY=.58;
 let traySource='closet';
 let trayCategory='Recent';
 let portfolioFilter='All';
@@ -53,7 +56,7 @@ let activeDoodle=null;
 let pendingShareBlob=null;
 let pendingShareUrl='';
 let pendingShareFileName='outfit.jpg';
-let closetDrag={timer:null,pointerId:null,touchId:null,startX:0,startY:0,x:0,y:0,card:null,category:'',active:false,moved:false,ghost:null,placeholder:null,lastPlacement:'',raf:null};
+let closetDrag={timer:null,pointerId:null,touchId:null,startX:0,startY:0,x:0,y:0,card:null,category:'',active:false,moved:false,ghost:null,dropOutline:null,placeholder:null,lastPlacement:'',raf:null,longPressed:false};
 let suppressCatalogClickUntil=0;
 
 function emptyState(){return {items:[],outfits:[],journal:[],wishlist:[],settings:{appName:DEFAULT_APP_NAME,portfolioFolders:[...DEFAULT_PORTFOLIO_FOLDERS],boardRecent:{closet:[],wishlist:[]}}}}
@@ -294,13 +297,13 @@ function bindCatalogReorder(activeCategory){
 }
 function beginCatalogPress(card,activeCategory,pointerId,x,y,touchId){
   clearTimeout(closetDrag.timer);cleanupCatalogGhost();
-  closetDrag={timer:null,pointerId,touchId,startX:x,startY:y,x,y,card,category:activeCategory||'',active:false,moved:false,ghost:null,placeholder:null,lastPlacement:'',raf:null};
+  closetDrag={timer:null,pointerId,touchId,startX:x,startY:y,x,y,card,category:activeCategory||'',active:false,moved:false,ghost:null,dropOutline:null,placeholder:null,lastPlacement:'',raf:null,longPressed:false};
   closetDrag.timer=setTimeout(()=>startCatalogDrag(),430);
 }
 function startCatalogDrag(){
   const d=closetDrag;if(!d.card)return;
-  if(!d.category){d.timer=null;toast('Choose a clothing category first, then press & hold to reorder.');return}
-  d.active=true;d.timer=null;suppressCatalogClickUntil=Date.now()+900;
+  if(!d.category){d.timer=null;d.longPressed=true;suppressCatalogClickUntil=Date.now()+1100;navigator.vibrate?.(12);toast('Choose a clothing category first, then press & hold to reorder.');return}
+  d.active=true;d.longPressed=true;d.timer=null;suppressCatalogClickUntil=Date.now()+900;
   const rect=d.card.getBoundingClientRect();
 
   // Keep the grid completely stable while dragging. The original card remains in its slot
@@ -315,6 +318,7 @@ function startCatalogDrag(){
   ghost.querySelectorAll('img').forEach(img=>{img.draggable=false});
   Object.assign(ghost.style,{position:'fixed',left:'0',top:'0',width:rect.width+'px',height:rect.height+'px',margin:'0',pointerEvents:'none',zIndex:'5000',willChange:'transform'});
   document.body.appendChild(ghost);d.ghost=ghost;d.ghostOffsetX=d.x-rect.left;d.ghostOffsetY=d.y-rect.top;
+  const dropOutline=document.createElement('div');dropOutline.className='closet-drop-outline';dropOutline.setAttribute('aria-hidden','true');document.body.appendChild(dropOutline);d.dropOutline=dropOutline;
   document.body.classList.add('closet-reordering');$('#catalogGrid')?.classList.add('closet-grid-reordering');
   navigator.vibrate?.(18);positionCatalogGhost(d.x,d.y);updateCatalogDropTarget(d.x,d.y);
   toast('Reorder mode — choose a new slot, then release');
@@ -346,6 +350,7 @@ function autoScrollCatalogDrag(y){
 }
 function clearCatalogDropTarget(){
   $$('#catalogGrid .closet-drop-target').forEach(el=>el.classList.remove('closet-drop-target','drop-before','drop-after'));
+  const o=closetDrag?.dropOutline;if(o)o.classList.remove('visible');
 }
 function updateCatalogDropTarget(x,y){
   const d=closetDrag,grid=$('#catalogGrid');if(!grid||!d.card)return;
@@ -368,12 +373,14 @@ function updateCatalogDropTarget(x,y){
   const after=sameRow ? x>r.left+r.width/2 : y>r.top+r.height/2;
   d.targetId=target.dataset.id;d.targetAfter=after;
   target.classList.add('closet-drop-target',after?'drop-after':'drop-before');
+  if(d.dropOutline){const tr=target.getBoundingClientRect();Object.assign(d.dropOutline.style,{left:tr.left+'px',top:tr.top+'px',width:tr.width+'px',height:tr.height+'px'});d.dropOutline.classList.add('visible')}
 }
 
 function cleanupCatalogGhost(){
   const d=closetDrag;
   if(d?.raf){cancelAnimationFrame(d.raf);d.raf=null}
   if(d?.ghost){try{d.ghost.remove()}catch{}}
+  if(d?.dropOutline){try{d.dropOutline.remove()}catch{}}
   clearCatalogDropTarget();
   $('#catalogGrid')?.classList.remove('closet-grid-reordering');
   document.body.classList.remove('closet-reordering');
@@ -404,7 +411,7 @@ async function finishCatalogDrag(pointerId,touchId,canceled=false,e){
     }
   }
   cleanupCatalogGhost();
-  closetDrag={timer:null,pointerId:null,touchId:null,startX:0,startY:0,x:0,y:0,card:null,category:'',active:false,moved:false,ghost:null,placeholder:null,lastPlacement:'',raf:null,targetId:null,targetAfter:false,originalId:null};
+  closetDrag={timer:null,pointerId:null,touchId:null,startX:0,startY:0,x:0,y:0,card:null,category:'',active:false,moved:false,ghost:null,dropOutline:null,placeholder:null,lastPlacement:'',raf:null,targetId:null,targetAfter:false,originalId:null,longPressed:false};
 }
 
 function itemCard(i){return`<article class="item-card" data-id="${i.id}"><div class="thumb">${i.photo?`<img src="${i.photo}" alt="${esc(i.type||i.category)}" draggable="false">`:`<div class="hanger">⌇</div>`}<span class="count-badge">${i.wears||0} wears</span></div><div class="card-body"><h4>${esc(i.type||i.category)}</h4><p>${i.color?`<span class="swatch" style="background:${colorHex(i.color)}"></span>${esc(i.color)} · `:''}${esc(i.brand||'No brand')}</p><p>${esc(i.size||'Size —')} · ${esc(i.pattern||'Solid')}</p></div></article>`}
@@ -482,7 +489,7 @@ function makeBoardInteractive(el,model){
   function clampPosition(){model.x=Math.max(-model.w*.55,Math.min(board.clientWidth-model.w*.45,model.x));model.y=Math.max(-model.h*.55,Math.min(board.clientHeight-model.h*.45,model.y))}
   function twoPointStats(){const pts=[...pointers.values()];if(pts.length<2)return null;const a=pts[0],b=pts[1],dx=b.x-a.x,dy=b.y-a.y;return{dist:Math.hypot(dx,dy),angle:Math.atan2(dy,dx)*180/Math.PI,cx:(a.x+b.x)/2,cy:(a.y+b.y)/2}}
   el.addEventListener('pointerdown',e=>{if(doodleMode)return;e.stopPropagation();if(e.target.classList.contains('board-remove-handle')){e.preventDefault();removeBoardItem(model.uid);return}selectedBoardUid=model.uid;model.z=model.z||nextZ();drawSelectionOnly(model.uid);el.setPointerCapture(e.pointerId);pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});if(e.target.classList.contains('resize-handle')){gesture={mode:'resize',sx:e.clientX,sy:e.clientY,w:model.w,h:model.h};return}if(pointers.size===1){gesture={mode:'drag',sx:e.clientX,sy:e.clientY,x:model.x,y:model.y}}else if(pointers.size===2){const st=twoPointStats();gesture={mode:'pinch',start:st,w:model.w,h:model.h,rotation:model.rotation,x:model.x,y:model.y}}});
-  el.addEventListener('pointermove',e=>{if(!pointers.has(e.pointerId)||!gesture)return;e.preventDefault();pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});if(gesture.mode==='resize'){const dx=e.clientX-gesture.sx,dy=e.clientY-gesture.sy,delta=((dx+dy)/2)*.78,ratio=model.h/model.w;model.w=Math.max(45,Math.min(300,gesture.w+delta));model.h=Math.max(40,Math.min(340,model.w*ratio));}else if(gesture.mode==='drag'&&pointers.size===1){model.x=gesture.x+(e.clientX-gesture.sx)*BOARD_MOVE_SENSITIVITY;model.y=gesture.y+(e.clientY-gesture.sy)*BOARD_MOVE_SENSITIVITY;clampPosition()}else if(pointers.size>=2){if(gesture.mode!=='pinch'){const st=twoPointStats();gesture={mode:'pinch',start:st,w:model.w,h:model.h,rotation:model.rotation,x:model.x,y:model.y}}const st=twoPointStats(),scale=Math.max(.35,Math.min(2.8,st.dist/Math.max(1,gesture.start.dist)));model.w=Math.max(45,Math.min(320,gesture.w*scale));model.h=Math.max(40,Math.min(360,gesture.h*scale));model.rotation=gesture.rotation+(st.angle-gesture.start.angle);model.x=gesture.x+(st.cx-gesture.start.cx)*BOARD_MOVE_SENSITIVITY;model.y=gesture.y+(st.cy-gesture.start.cy)*BOARD_MOVE_SENSITIVITY;clampPosition()}el.style.left=model.x+'px';el.style.top=model.y+'px';el.style.width=model.w+'px';el.style.height=model.h+'px';el.style.transform=`rotate(${model.rotation}deg)`});
+  el.addEventListener('pointermove',e=>{if(!pointers.has(e.pointerId)||!gesture)return;e.preventDefault();pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});if(gesture.mode==='resize'){const dx=e.clientX-gesture.sx,dy=e.clientY-gesture.sy,delta=((dx+dy)/2)*.78,ratio=model.h/model.w;model.w=Math.max(45,Math.min(300,gesture.w+delta));model.h=Math.max(40,Math.min(340,model.w*ratio));}else if(gesture.mode==='drag'&&pointers.size===1){model.x=gesture.x+(e.clientX-gesture.sx)*BOARD_MOVE_SENSITIVITY;model.y=gesture.y+(e.clientY-gesture.sy)*BOARD_MOVE_SENSITIVITY;clampPosition()}else if(pointers.size>=2){if(gesture.mode!=='pinch'){const st=twoPointStats();gesture={mode:'pinch',start:st,w:model.w,h:model.h,rotation:model.rotation,x:model.x,y:model.y}}const st=twoPointStats(),rawScale=st.dist/Math.max(1,gesture.start.dist),scale=Math.max(.52,Math.min(2.15,1+(rawScale-1)*BOARD_PINCH_SCALE_SENSITIVITY));model.w=Math.max(45,Math.min(320,gesture.w*scale));model.h=Math.max(40,Math.min(360,gesture.h*scale));model.rotation=gesture.rotation+(st.angle-gesture.start.angle)*BOARD_PINCH_ROTATION_SENSITIVITY;model.x=gesture.x+(st.cx-gesture.start.cx)*BOARD_PINCH_MOVE_SENSITIVITY;model.y=gesture.y+(st.cy-gesture.start.cy)*BOARD_PINCH_MOVE_SENSITIVITY;clampPosition()}el.style.left=model.x+'px';el.style.top=model.y+'px';el.style.width=model.w+'px';el.style.height=model.h+'px';el.style.transform=`rotate(${model.rotation}deg)`});
   function release(e){pointers.delete(e.pointerId);if(pointers.size===1){const p=[...pointers.values()][0];gesture={mode:'drag',sx:p.x,sy:p.y,x:model.x,y:model.y}}else if(!pointers.size)gesture=null}
   el.addEventListener('pointerup',release);el.addEventListener('pointercancel',release);
 }
