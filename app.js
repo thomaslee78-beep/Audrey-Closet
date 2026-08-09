@@ -21,6 +21,9 @@ const DEFAULT_APP_NAME="Audrey's Clothing App";
 const DEFAULT_PORTFOLIO_FOLDERS=['Everyday','School','Weekend','Dressy','Sport','Seasonal','Ideas'];
 let state=emptyState();
 let selectedCategory='';
+let catalogReviewIds=[];
+let itemReviewIds=[];
+let itemSwipeStart=null;
 let itemWorkingPhoto='';
 let itemOriginalPhoto='';
 let studioSourcePhoto='';
@@ -133,6 +136,7 @@ function bindDialogs(){
   $('#itemDialog').addEventListener('cancel',e=>{e.preventDefault();closeItemWithoutSaving()});
   ['itemCategory','itemType','itemBrand','itemColor'].forEach(id=>$('#'+id).addEventListener('input',updateItemReviewSummary));
   $('#deleteItemBtn').onclick=deleteItem;
+  bindItemSwipe();
   $('#wishPhoto').onchange=async e=>{const f=e.target.files[0];if(!f)return;wishWorkingPhoto=await fileToDataURL(f,900,.74);showPhoto('#wishPhotoPreview','#wishPhotoPlaceholder',wishWorkingPhoto)};
   $('#wishForm').onsubmit=e=>{e.preventDefault();saveWish()};
   $('#deleteWishBtn').onclick=deleteWish;
@@ -140,11 +144,26 @@ function bindDialogs(){
   $('#deleteOutfitBtn').onclick=deleteOutfit;$('#favoriteViewedOutfitBtn').onclick=favoriteViewedOutfit;$('#editViewedOutfitBtn').onclick=editViewedOutfit;$('#shareViewedOutfitBtn').onclick=shareViewedOutfit;
 }
 function openItem(item=null){
+  itemReviewIds=item ? (catalogReviewIds.includes(item.id)?[...catalogReviewIds]:state.items.map(i=>i.id)) : [];
+  loadItemIntoEditor(item);
+  if(!$('#itemDialog').open)$('#itemDialog').showModal();
+}
+function loadItemIntoEditor(item=null){
   const isEdit=!!item;
   $('#itemDialog').classList.toggle('editing-existing',isEdit);
   $('#itemDialogTitle').textContent=isEdit?'Review piece':'Add a piece';$('#itemId').value=item?.id||'';itemWorkingPhoto=item?.photo||'';itemOriginalPhoto=item?.originalPhoto||item?.photo||'';
   showPhoto('#itemPhotoPreview','#photoPlaceholder',itemWorkingPhoto);updateOriginalPhotoButton();const category=item?.category||'Tops';$('#itemCategory').value=category;populateTypeOptions(category,item?.type||'');populateSizeOptions(category,item?.size||'');$('#itemBrand').value=item?.brand||'';$('#itemColor').value=item?.color||'';$('#itemPattern').value=item?.pattern||'Solid';$('#itemAcquired').value=item?.acquired||'Bought new';$('#itemSeason').value=item?.season||'All-season';$('#itemNotes').value=item?.notes||'';$('#scanStatus').textContent='';$('#deleteItemBtn').classList.toggle('hidden',!item);$('#itemPhoto').value='';
-  $('#itemReviewSummary').classList.toggle('hidden',!isEdit);updateItemReviewSummary();$('#itemDialog').showModal();
+  const tools=$('.photo-tools-disclosure');if(tools)tools.open=false;
+  $('#itemReviewSummary').classList.toggle('hidden',!isEdit);$('#itemSwipeHint').classList.toggle('hidden',!isEdit||itemReviewIds.length<2);updateItemReviewSummary();
+  if($('#itemDialog').open)$('#itemDialog').scrollTop=0;
+}
+function bindItemSwipe(){
+  const zone=$('#itemSwipeZone');if(!zone)return;
+  zone.addEventListener('touchstart',e=>{if(!$('#itemId').value||e.touches.length!==1)return;const t=e.touches[0];itemSwipeStart={x:t.clientX,y:t.clientY,time:Date.now()}},{passive:true});
+  zone.addEventListener('touchend',e=>{if(!itemSwipeStart||!$('#itemId').value)return;const t=e.changedTouches[0],dx=t.clientX-itemSwipeStart.x,dy=t.clientY-itemSwipeStart.y,elapsed=Date.now()-itemSwipeStart.time;itemSwipeStart=null;if(elapsed>700||Math.abs(dx)<55||Math.abs(dx)<Math.abs(dy)*1.25)return;navigateReviewItem(dx<0?1:-1)});
+}
+function navigateReviewItem(delta){
+  const current=$('#itemId').value;if(!current||itemReviewIds.length<2)return;const idx=itemReviewIds.indexOf(current);if(idx<0)return;const nextIndex=idx+delta;if(nextIndex<0||nextIndex>=itemReviewIds.length){toast(delta<0?'First piece in this view':'Last piece in this view');return}const next=state.items.find(i=>i.id===itemReviewIds[nextIndex]);if(!next)return;loadItemIntoEditor(next);const zone=$('#itemSwipeZone');zone.classList.remove('swipe-next','swipe-prev');void zone.offsetWidth;zone.classList.add(delta>0?'swipe-next':'swipe-prev');setTimeout(()=>zone.classList.remove('swipe-next','swipe-prev'),220);
 }
 function closeItemWithoutSaving(){
   // Form fields and photo edits are working copies only. Closing never mutates state.
@@ -170,6 +189,7 @@ function renderCategories(){const host=$('#categoryStrip');host.innerHTML=CATEGO
 function renderCatalog(){
   const q=$('#catalogSearch').value.toLowerCase().trim(),fc=$('#filterCategory').value,fs=$('#filterSeason').value,fcol=$('#filterColor').value;
   const items=state.items.filter(i=>(!selectedCategory||i.category===selectedCategory)&&(!fc||i.category===fc)&&(!fs||i.season===fs)&&(!fcol||i.color===fcol)&&(!q||[i.type,i.brand,i.color,i.pattern,i.notes,i.category].join(' ').toLowerCase().includes(q)));
+  catalogReviewIds=items.map(i=>i.id);
   $('#catalogCount').textContent=`${items.length} ${items.length===1?'piece':'pieces'}`;$('#catalogGrid').innerHTML=items.map(i=>itemCard(i)).join('');$('#catalogEmpty').classList.toggle('hidden',state.items.length>0||q||selectedCategory||fc||fs||fcol);$$('.item-card').forEach(c=>c.onclick=()=>openItem(state.items.find(i=>i.id===c.dataset.id)));
 }
 function itemCard(i){return`<article class="item-card" data-id="${i.id}"><div class="thumb">${i.photo?`<img src="${i.photo}" alt="${esc(i.type||i.category)}">`:`<div class="hanger">⌇</div>`}<span class="count-badge">${i.wears||0} wears</span></div><div class="card-body"><h4>${esc(i.type||i.category)}</h4><p>${i.color?`<span class="swatch" style="background:${colorHex(i.color)}"></span>${esc(i.color)} · `:''}${esc(i.brand||'No brand')}</p><p>${esc(i.size||'Size —')} · ${esc(i.pattern||'Solid')}</p></div></article>`}
