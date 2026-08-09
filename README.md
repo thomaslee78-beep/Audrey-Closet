@@ -1,39 +1,17 @@
-# Audrey's Closet — v3 Creative Outfit Board
+# Audrey’s Clothing App v10
 
-GitHub Pages-ready static web app.
+A phone-first GitHub Pages closet, outfit board, style portfolio, journal and wishlist.
 
-## New in v3
-- Two-finger pinch to resize outfit-board items
-- Two-finger twist to rotate items
-- One-finger resize handle on selected items
-- Front/back layering controls
-- Text elements and emoji stickers
-- Circle, line and tape design elements
-- Freehand doodle mode
-- Duplicate, rotate and delete selected elements
-- Saved outfits preserve size, rotation and layer order
+## v10 UX changes
+- Outfit Board now starts with a 3-column clothing gallery and an internal scroll area, so roughly nine pieces are visible at once on iPhone.
+- Added Recent, category, Closet and Wishlist filters to the Board picker.
+- Creative text/stickers/shapes/doodle tools are collapsed behind a Decorate button.
+- Object editing controls only appear when something on the board is selected.
+- Style Portfolio is now its own main tab with large two-column lookbook cards and a smart Favorites folder.
+- Portfolio folders can be renamed, reordered, added or removed from Preferences (gear button). Existing outfits follow folder renames and are reassigned safely if a folder is removed.
+- Tapping a portfolio look opens a larger preview with Favorite, Share and Edit on Board actions.
 
-## Update an existing GitHub Pages install
-Replace the files in the repository with this folder's contents and commit. Keep the same repository/Page URL so existing browser data remains associated with the same site. Open the Pages URL in Safari once and refresh, then reopen the Home Screen app.
+Existing IndexedDB data remains compatible with prior releases.
 
-
-## v4
-Adds a customizable app name under More → App identity. The name updates the in-app header, browser title, backup filename, and is included in exported backups. The Home Screen icon label is controlled by iOS/PWA installation metadata and may require removing/re-adding the Home Screen icon to reflect a renamed app.
-
-
-## v5 enhancement
-Saved outfits can now be tapped to load them back onto the Outfit Board for continued editing. Saving while editing updates the existing outfit rather than creating a duplicate. Use New Board to start a separate outfit.
-
-
-## v6 enhancements
-- Photo Studio with original, quick cutout and cleaner cutout modes
-- Standardized square framing, auto fit, scaling, rotation, edge control, erase/restore brush, and background choices
-- Men’s waist sizes for Bottoms (W28–W48)
-
-
-## v7
-Outfit Board can export the current collage as a JPEG and use the iPhone Web Share sheet (Messages, AirDrop, Mail, etc.). A download fallback is used where file sharing is unavailable.
-
-
-## v8 sharing fix
-Outfit sharing now uses a two-step workflow: first render the board to an image preview, then share the already-created file from a second user tap. This is more reliable on iOS because Web Share requires a live user activation and long asynchronous canvas work before `navigator.share()` can cause Safari/Home Screen apps to reject the share. An **Open image** fallback is also provided so the generated JPEG can be opened separately and shared with the normal iOS controls.
+## GitHub Pages
+Upload all files in this folder to the root of the existing GitHub Pages repository. Keep the same repository/URL to preserve device-local data.

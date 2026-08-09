@@ -19,7 +19,7 @@
       <div class="eyebrow" id="appNameEyebrow">AUDREY'S CLOTHING APP</div>
       <h1>Closet <span>Journal</span></h1>
     </div>
-    <button class="icon-btn" id="quickAddBtn" aria-label="Quick add item">＋</button>
+    <div class="top-actions"><button class="icon-btn" id="quickAddBtn" aria-label="Quick add item">＋</button><button class="icon-btn settings-icon" id="settingsBtn" aria-label="Open preferences">⚙</button></div>
   </header>
 
   <main id="app">
@@ -58,16 +58,24 @@
     </section>
 
     <section class="screen" data-screen="outfits">
-      <div class="page-head">
+      <div class="page-head board-page-head">
         <div><p class="script">mix • match • play</p><h2>Outfit Board</h2></div>
-        <button class="soft-btn" id="newBoardBtn">New board</button>
+        <button class="soft-btn" id="newBoardBtn">New</button>
       </div>
-      <div class="board-shell">
+
+      <div class="board-picker-card">
+        <div class="picker-head"><strong>Pick your pieces</strong><span>Tap to add</span></div>
+        <div class="tabs-small"><button class="active" data-source="closet">Closet</button><button data-source="wishlist">Wishlist</button></div>
+        <div class="outfit-category-filter" id="outfitCategoryFilter"></div>
+        <div class="piece-tray piece-grid" id="pieceTray"></div>
+      </div>
+
+      <div class="board-shell simplified-board">
         <div>
           <div class="board" id="outfitBoard">
-            <div class="board-tip">Tap a piece, then drag it<br><small>pinch with two fingers to resize + rotate</small></div>
+            <div class="board-tip">Tap a piece above, then drag it<br><small>pinch with two fingers to resize + rotate</small></div>
           </div>
-          <div class="board-editbar" id="boardEditbar">
+          <div class="board-editbar hidden" id="boardEditbar">
             <button type="button" id="sendBackBtn" title="Move behind">⇩ Back</button>
             <button type="button" id="bringFrontBtn" title="Move in front">⇧ Front</button>
             <button type="button" id="rotateLeftBtn" title="Rotate left">↶</button>
@@ -77,7 +85,8 @@
           </div>
         </div>
         <div class="board-controls">
-          <div class="creative-tools">
+          <button type="button" class="decorate-toggle" id="decorateToggle">＋ Decorate <span>text • stickers • draw</span></button>
+          <div class="creative-tools hidden" id="creativeTools">
             <div class="tool-row"><input id="boardTextInput" maxlength="60" placeholder="Add a note or title…"><button type="button" class="soft-btn" id="addBoardTextBtn">Add text</button></div>
             <div class="sticker-row" aria-label="Creative stickers">
               <button type="button" data-sticker="★">★</button><button type="button" data-sticker="♡">♡</button><button type="button" data-sticker="✿">✿</button><button type="button" data-sticker="✦">✦</button><button type="button" data-sticker="☻">☻</button><button type="button" data-sticker="🦋">🦋</button><button type="button" data-sticker="🌼">🌼</button><button type="button" data-sticker="✨">✨</button>
@@ -87,18 +96,22 @@
             </div>
             <p class="board-help" id="boardHelp">Select an object to move, resize, rotate, layer or delete it.</p>
           </div>
-          <input id="outfitName" placeholder="Outfit name" />
-          <select id="outfitFolder" aria-label="Portfolio folder"><option>Everyday</option><option>School</option><option>Weekend</option><option>Dressy</option><option>Sport</option><option>Seasonal</option><option>Ideas</option></select>
-          <textarea id="outfitNotes" placeholder="Notes: where I'd wear it, vibe, styling ideas…"></textarea>
-          <div class="inline-actions"><button class="primary" id="saveOutfitBtn">Save outfit</button><button class="soft-btn" id="shareOutfitBtn">↗ Share image</button><button class="soft-btn" id="clearBoardBtn">Clear</button></div>
+          <div class="save-look-fields">
+            <input id="outfitName" placeholder="Outfit name" />
+            <select id="outfitFolder" aria-label="Portfolio folder"></select>
+            <textarea id="outfitNotes" placeholder="Notes: where I'd wear it, vibe, styling ideas…"></textarea>
+          </div>
+          <div class="inline-actions board-save-actions"><button class="primary" id="saveOutfitBtn">Save outfit</button><button class="soft-btn" id="shareOutfitBtn">↗ Share</button><button class="soft-btn" id="clearBoardBtn">Clear</button></div>
         </div>
       </div>
-      <div class="tabs-small"><button class="active" data-source="closet">Closet</button><button data-source="wishlist">Wishlist</button></div>
-      <div class="outfit-category-filter" id="outfitCategoryFilter"></div>
-      <div class="piece-tray" id="pieceTray"></div>
-      <div class="section-title"><h3>Style Portfolio</h3><span id="outfitCount">0</span></div>
+    </section>
+
+    <section class="screen" data-screen="portfolio">
+      <div class="page-head"><div><p class="script">looks worth keeping</p><h2>Style Portfolio</h2></div><button class="soft-btn" id="portfolioNewBtn">＋ New look</button></div>
+      <p class="portfolio-intro">Browse saved outfits like a lookbook. Favorites stay together automatically.</p>
       <div class="portfolio-tabs" id="portfolioTabs"></div>
-      <div class="saved-outfits" id="savedOutfits"></div>
+      <div class="portfolio-summary"><span id="outfitCount">0 looks</span><button class="text-btn" id="managePortfolioBtn">Manage folders</button></div>
+      <div class="saved-outfits portfolio-gallery" id="savedOutfits"></div>
     </section>
 
     <section class="screen" data-screen="journal">
@@ -131,6 +144,12 @@
         <div class="stack-actions settings-actions"><button class="primary" type="button" id="saveAppNameBtn">Save name</button><button class="soft-btn" type="button" id="resetAppNameBtn">Use Audrey's default</button></div>
         <p class="settings-note">Current name: <strong id="currentAppName">Audrey's Clothing App</strong></p>
       </div>
+      <div class="settings-card portfolio-settings-card">
+        <h3>Portfolio folders</h3>
+        <p>Rename and reorder the folders used to organize saved looks. All and Favorites are automatic.</p>
+        <div id="portfolioFolderEditor" class="folder-editor"></div>
+        <div class="folder-add-row"><input id="newPortfolioFolder" maxlength="24" placeholder="New folder name"><button class="soft-btn" type="button" id="addPortfolioFolderBtn">＋ Add</button></div>
+      </div>
       <div class="settings-card">
         <h3>Data</h3>
         <p>Your closet is stored on this device in Safari. Export a backup whenever you want.</p>
@@ -147,11 +166,11 @@
   </main>
 
   <nav class="bottom-nav">
-    <button class="active" data-nav="catalog"><span>▦</span>Catalog</button>
-    <button data-nav="outfits"><span>✣</span>Outfits</button>
+    <button class="active" data-nav="catalog"><span>▦</span>Closet</button>
+    <button data-nav="outfits"><span>✣</span>Board</button>
+    <button data-nav="portfolio"><span>▤</span>Portfolio</button>
     <button data-nav="journal"><span>◷</span>Journal</button>
     <button data-nav="wishlist"><span>♡</span>Wishlist</button>
-    <button data-nav="more"><span>•••</span>More</button>
   </nav>
 
   <dialog id="itemDialog" class="sheet-dialog">
@@ -226,7 +245,7 @@
     <div class="sheet-head"><div><p class="script">saved look</p><h2 id="viewOutfitName"></h2></div><button class="close-btn" onclick="this.closest('dialog').close()">×</button></div>
     <div id="viewOutfitBoard" class="board snapshot"></div>
     <p id="viewOutfitNotes" class="outfit-note"></p>
-    <div class="sheet-actions"><button class="danger-text" id="deleteOutfitBtn">Delete outfit</button><button class="soft-btn" onclick="this.closest('dialog').close()">Close</button></div>
+    <div class="sheet-actions outfit-view-actions"><button class="danger-text" id="deleteOutfitBtn">Delete</button><button class="soft-btn" id="favoriteViewedOutfitBtn">☆ Favorite</button><button class="soft-btn" id="shareViewedOutfitBtn">↗ Share</button><button class="primary" id="editViewedOutfitBtn">Edit on Board</button></div>
   </dialog>
 
   <dialog id="sharePreviewDialog" class="sheet-dialog share-preview-dialog">
