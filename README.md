@@ -1,8 +1,8 @@
-# Audrey’s Clothing App v11
+# Audrey’s Clothing App v12
 
 A phone-first GitHub Pages closet, outfit board, style portfolio, journal and wishlist.
 
-## v11 Board layout update
+## v12 Board layout update
 - Outfit Board/design canvas is back near the top of the Board screen.
 - The optional Decorate control now sits directly above the canvas.
 - Outfit name, notes and Save/Share/Clear stay just below the canvas.

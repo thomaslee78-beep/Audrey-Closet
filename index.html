@@ -185,6 +185,7 @@
         <div class="photo-actions">
           <label class="primary file-label">Take photo<input type="file" id="itemPhoto" accept="image/*" capture="environment" /></label>
           <button type="button" class="soft-btn" id="photoStudioBtn">✂ Photo Studio</button>
+          <button type="button" class="soft-btn hidden" id="restoreOriginalPhotoBtn">↶ Original photo</button>
           <button type="button" class="soft-btn" id="removeBgBtn">Quick photo cleanup</button>
           <button type="button" class="soft-btn" id="smartScanBtn">Smart scan</button>
           <div class="scan-status" id="scanStatus"></div>
@@ -217,7 +218,8 @@
       <label>Edge cleanup<input id="studioEdge" type="range" min="25" max="80" value="45"></label>
       <label>Brush size<input id="studioBrush" type="range" min="10" max="60" value="26"></label>
     </div>
-    <div class="studio-tool-row"><button type="button" class="soft-btn" id="studioAutoFit">◎ Auto fit</button><button type="button" class="soft-btn brush-btn" data-brush="erase">⌫ Erase</button><button type="button" class="soft-btn brush-btn" data-brush="restore">↶ Restore</button></div>
+    <div class="studio-tool-row"><button type="button" class="soft-btn" id="studioAutoFit">◎ Auto fit</button><button type="button" class="soft-btn brush-btn" data-brush="erase">⌫ Erase</button><button type="button" class="soft-btn brush-btn" data-brush="restore">↶ Restore edge</button></div>
+    <div class="studio-original-row"><button type="button" class="soft-btn" id="studioUseOriginal">↶ Use captured original</button><small>Returns to the photo exactly as it was first captured.</small></div>
     <div class="studio-bg-row"><span>Background</span><button type="button" class="studio-bg active" data-bg="transparent">Transparent</button><button type="button" class="studio-bg" data-bg="cream">Cream</button><button type="button" class="studio-bg" data-bg="paper">Paper</button></div>
     <p class="scan-status" id="studioStatus">Tip: a plain contrasting floor or wall gives the cleanest cutout.</p>
     <div class="sheet-actions"><button type="button" class="soft-btn" onclick="document.getElementById('photoStudioDialog').close()">Cancel</button><button type="button" class="primary" id="studioApply">Use this photo</button></div>
