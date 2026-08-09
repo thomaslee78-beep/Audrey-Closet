@@ -278,18 +278,18 @@ function bindCatalogReorder(activeCategory){
       beginCatalogPress(card,activeCategory,null,t.clientX,t.clientY,t.identifier);
     };
     card.ontouchmove=e=>{
-      const d=closetDrag;if(d.touchId==null)return;
+      const d=closetDrag;if(d.touchId==null||d.active)return;
       const t=[...e.changedTouches].find(x=>x.identifier===d.touchId)||[...e.touches].find(x=>x.identifier===d.touchId);
       if(!t)return;
       moveCatalogDrag(t.clientX,t.clientY,null,d.touchId,e);
     };
     card.ontouchend=e=>{
-      const d=closetDrag;if(d.touchId==null)return;
+      const d=closetDrag;if(d.touchId==null||d.active)return;
       const t=[...e.changedTouches].find(x=>x.identifier===d.touchId);
       if(t)finishCatalogDrag(null,d.touchId,false,e);
     };
     card.ontouchcancel=e=>{
-      const d=closetDrag;if(d.touchId==null)return;
+      const d=closetDrag;if(d.touchId==null||d.active)return;
       finishCatalogDrag(null,d.touchId,true,e);
     };
     card.oncontextmenu=e=>{if(closetDrag.active||closetDrag.timer)e.preventDefault()};
@@ -300,6 +300,33 @@ function beginCatalogPress(card,activeCategory,pointerId,x,y,touchId){
   closetDrag={timer:null,pointerId,touchId,startX:x,startY:y,x,y,card,category:activeCategory||'',active:false,moved:false,ghost:null,dropOutline:null,placeholder:null,lastPlacement:'',raf:null,longPressed:false};
   closetDrag.timer=setTimeout(()=>startCatalogDrag(),430);
 }
+
+function handleActiveCatalogTouchMove(e){
+  const d=closetDrag;if(!d?.active||d.touchId==null)return;
+  const t=[...e.changedTouches].find(x=>x.identifier===d.touchId)||[...e.touches].find(x=>x.identifier===d.touchId);
+  if(!t)return;
+  moveCatalogDrag(t.clientX,t.clientY,null,d.touchId,e);
+}
+function handleActiveCatalogTouchEnd(e){
+  const d=closetDrag;if(!d?.active||d.touchId==null)return;
+  const t=[...e.changedTouches].find(x=>x.identifier===d.touchId);
+  if(t)finishCatalogDrag(null,d.touchId,false,e);
+}
+function handleActiveCatalogTouchCancel(e){
+  const d=closetDrag;if(!d?.active||d.touchId==null)return;
+  finishCatalogDrag(null,d.touchId,true,e);
+}
+function bindActiveCatalogTouchTracking(){
+  window.addEventListener('touchmove',handleActiveCatalogTouchMove,{passive:false,capture:true});
+  window.addEventListener('touchend',handleActiveCatalogTouchEnd,{passive:false,capture:true});
+  window.addEventListener('touchcancel',handleActiveCatalogTouchCancel,{passive:false,capture:true});
+}
+function unbindActiveCatalogTouchTracking(){
+  window.removeEventListener('touchmove',handleActiveCatalogTouchMove,true);
+  window.removeEventListener('touchend',handleActiveCatalogTouchEnd,true);
+  window.removeEventListener('touchcancel',handleActiveCatalogTouchCancel,true);
+}
+
 function startCatalogDrag(){
   const d=closetDrag;if(!d.card)return;
   if(!d.category){d.timer=null;d.longPressed=true;suppressCatalogClickUntil=Date.now()+1100;navigator.vibrate?.(12);toast('Choose a clothing category first, then press & hold to reorder.');return}
@@ -320,6 +347,7 @@ function startCatalogDrag(){
   document.body.appendChild(ghost);d.ghost=ghost;d.ghostOffsetX=d.x-rect.left;d.ghostOffsetY=d.y-rect.top;
   const dropOutline=document.createElement('div');dropOutline.className='closet-drop-outline';dropOutline.setAttribute('aria-hidden','true');document.body.appendChild(dropOutline);d.dropOutline=dropOutline;
   document.body.classList.add('closet-reordering');$('#catalogGrid')?.classList.add('closet-grid-reordering');
+  if(d.touchId!=null)bindActiveCatalogTouchTracking();
   navigator.vibrate?.(18);positionCatalogGhost(d.x,d.y);
   // Do not choose a destination until the user actually starts dragging.
   clearCatalogDropTarget();d.targetId=null;d.targetAfter=false;
@@ -383,6 +411,7 @@ function updateCatalogDropTarget(x,y){
 }
 
 function cleanupCatalogGhost(){
+  unbindActiveCatalogTouchTracking();
   const d=closetDrag;
   if(d?.raf){cancelAnimationFrame(d.raf);d.raf=null}
   if(d?.ghost){try{d.ghost.remove()}catch{}}

@@ -46,3 +46,8 @@ Closet reorder now previews a target without moving neighboring cards until drop
 
 ### v12.11 polish
 Closet reorder now uses a solid outline on the item being moved and a dotted outline on the destination. Board edit controls remain visible below the board and gray out until an object is selected; Undo remains independently available. Photo Tools opens automatically for brand-new closet items but stays collapsed when reviewing existing pieces.
+
+
+### v12.12
+- Fixes iPhone Closet reorder tracking so the floating garment remains attached to your finger after the long press, even after your finger leaves the original card.
+- Active touch tracking now moves to the window level during reorder mode and is removed cleanly on drop/cancel.
