@@ -35,6 +35,8 @@ let studioRestoreCanvas=null;
 let wishWorkingPhoto='';
 let boardItems=[];
 let traySource='closet';
+let trayCategory='All';
+let portfolioFilter='All';
 let viewingOutfitId=null;
 let editingOutfitId=null;
 let selectedBoardUid=null;
@@ -145,12 +147,12 @@ function deleteWish(){const wid=$('#wishId').value;if(!confirm('Remove this wish
 function renderWishlist(){$('#wishlistGrid').innerHTML=state.wishlist.map(w=>`<article class="wish-card" data-id="${w.id}"><div class="wish-photo">${w.photo?`<img src="${w.photo}">`:'♡'}</div><div class="wish-body"><h4>${esc(w.name)}</h4><p>${esc(w.brand||'')} ${w.color?'· '+esc(w.color):''}</p><div class="price">${esc(w.price||'')}</div>${w.link?`<p>link saved ↗</p>`:''}</div></article>`).join('');$('#wishlistEmpty').classList.toggle('hidden',state.wishlist.length>0);$$('.wish-card').forEach(c=>c.onclick=()=>openWish(state.wishlist.find(w=>w.id===c.dataset.id)))}
 
 function bindBoard(){
-  $('#newBoardBtn').onclick=()=>{editingOutfitId=null;clearBoard();$('#outfitName').value='';$('#outfitNotes').value='';$('#saveOutfitBtn').textContent='Save outfit';toast('New outfit board')};
+  $('#newBoardBtn').onclick=()=>{editingOutfitId=null;clearBoard();$('#outfitName').value='';$('#outfitNotes').value='';$('#outfitFolder').value='Everyday';$('#saveOutfitBtn').textContent='Save outfit';toast('New outfit board')};
   $('#clearBoardBtn').onclick=clearBoard;$('#saveOutfitBtn').onclick=saveOutfit;$('#shareOutfitBtn').onclick=prepareOutfitShare;
   $('#shareNowBtn').onclick=sharePreparedOutfit;
   $('#openShareImageBtn').onclick=openPreparedShareImage;
   $('#closeSharePreviewBtn').onclick=closeSharePreview;
-  $$('.tabs-small button').forEach(b=>b.onclick=()=>{traySource=b.dataset.source;$$('.tabs-small button').forEach(x=>x.classList.toggle('active',x===b));renderPieceTray()});
+  $$('.tabs-small button').forEach(b=>b.onclick=()=>{traySource=b.dataset.source;trayCategory='All';$$('.tabs-small button').forEach(x=>x.classList.toggle('active',x===b));renderPieceTray()});
   $('#addBoardTextBtn').onclick=()=>{const text=$('#boardTextInput').value.trim();if(!text)return toast('Type something first');addCreativeItem('text',text);$('#boardTextInput').value=''};
   $$('.sticker-row [data-sticker]').forEach(b=>b.onclick=()=>addCreativeItem('sticker',b.dataset.sticker));
   $$('.shape-row [data-shape]').forEach(b=>b.onclick=()=>addCreativeItem('shape',b.dataset.shape));
@@ -166,7 +168,15 @@ function bindBoard(){
   board.addEventListener('pointerdown',e=>{if(!doodleMode&&e.target===board){selectedBoardUid=null;drawBoard()}});
 }
 function renderOutfits(){renderPieceTray();renderSavedOutfits()}
-function renderPieceTray(){const arr=traySource==='closet'?state.items:state.wishlist;$('#pieceTray').innerHTML=arr.map(x=>`<button class="tray-piece" data-id="${x.id}" data-source="${traySource}"><div class="mini-photo">${x.photo?`<img src="${x.photo}">`:'✣'}</div><small>${esc(x.type||x.name||x.category)}</small></button>`).join('')||'<p class="muted" style="color:#786f61">Nothing here yet.</p>';$$('.tray-piece').forEach(b=>b.onclick=()=>addBoardPiece(b.dataset.id,b.dataset.source))}
+function renderPieceTray(){
+  const all=traySource==='closet'?state.items:state.wishlist;
+  const cats=['All',...CATEGORIES.filter(c=>all.some(x=>x.category===c))];
+  $('#outfitCategoryFilter').innerHTML=cats.map(c=>`<button class="${trayCategory===c?'active':''}" data-traycat="${c}">${c}<span>${c==='All'?all.length:all.filter(x=>x.category===c).length}</span></button>`).join('');
+  $$('#outfitCategoryFilter [data-traycat]').forEach(b=>b.onclick=()=>{trayCategory=b.dataset.traycat;renderPieceTray()});
+  const arr=all.filter(x=>trayCategory==='All'||x.category===trayCategory);
+  $('#pieceTray').innerHTML=arr.map(x=>`<button class="tray-piece" data-id="${x.id}" data-source="${traySource}"><div class="mini-photo">${x.photo?`<img src="${x.photo}">`:'✣'}</div><small>${esc(x.type||x.name||x.category)}</small><em>${esc(x.category||'')}</em></button>`).join('')||'<p class="tray-empty">No pieces in this category yet.</p>';
+  $$('.tray-piece').forEach(b=>b.onclick=()=>addBoardPiece(b.dataset.id,b.dataset.source));
+}
 function nextZ(){return Math.max(0,...boardItems.map(x=>Number(x.z)||0))+1}
 function addBoardPiece(pid,source){const src=source==='closet'?state.items:state.wishlist,obj=src.find(x=>x.id===pid);if(!obj)return;const bi={uid:id(),kind:'piece',source,id:pid,x:28+Math.random()*120,y:42+Math.random()*100,w:132,h:156,rotation:0,z:nextZ()};boardItems.push(bi);selectedBoardUid=bi.uid;drawBoard()}
 function addCreativeItem(kind,value){const defaults=kind==='text'?{w:180,h:70}:{w:90,h:90};const bi={uid:id(),kind,value,x:60+Math.random()*90,y:70+Math.random()*80,...defaults,rotation:kind==='shape'&&value==='tape'?-8:0,z:nextZ()};if(kind==='shape'&&value==='line'){bi.w=170;bi.h=35}boardItems.push(bi);selectedBoardUid=bi.uid;drawBoard()}
@@ -300,10 +310,19 @@ function closeSharePreview(){
 }
 
 
-async function saveOutfit(){if(!boardItems.length)return toast('Add at least one piece');const name=$('#outfitName').value.trim()||'Untitled look';const board=$('#outfitBoard');const snapshot={name,notes:$('#outfitNotes').value.trim(),pieces:boardItems.map(x=>({...x})),boardWidth:board.clientWidth,boardHeight:board.clientHeight};if(editingOutfitId){const existing=state.outfits.find(x=>x.id===editingOutfitId);if(existing){Object.assign(existing,snapshot,{updated:Date.now()})}else editingOutfitId=null}if(!editingOutfitId){const created={id:id(),...snapshot,created:Date.now()};state.outfits.unshift(created);editingOutfitId=created.id}await saveState();renderSavedOutfits();$('#saveOutfitBtn').textContent='Update outfit';toast('Outfit saved')}
+async function saveOutfit(){if(!boardItems.length)return toast('Add at least one piece');const name=$('#outfitName').value.trim()||'Untitled look';const board=$('#outfitBoard');const snapshot={name,notes:$('#outfitNotes').value.trim(),folder:$('#outfitFolder').value||'Everyday',favorite:editingOutfitId?(state.outfits.find(x=>x.id===editingOutfitId)?.favorite||false):false,pieces:boardItems.map(x=>({...x})),boardWidth:board.clientWidth,boardHeight:board.clientHeight};if(editingOutfitId){const existing=state.outfits.find(x=>x.id===editingOutfitId);if(existing){Object.assign(existing,snapshot,{updated:Date.now()})}else editingOutfitId=null}if(!editingOutfitId){const created={id:id(),...snapshot,created:Date.now()};state.outfits.unshift(created);editingOutfitId=created.id}await saveState();renderSavedOutfits();$('#saveOutfitBtn').textContent='Update outfit';toast('Outfit saved')}
 function renderMiniPiece(p,n){p=normalizeBoardItem({...p});if(p.kind==='piece'){const obj=(p.source==='closet'?state.items:state.wishlist).find(x=>x.id===p.id);return obj?.photo?`<img src="${obj.photo}" style="left:${8+n*19}px;top:${8+(n%2)*24}px;transform:rotate(${p.rotation||0}deg)">`:''}if(p.kind==='text')return `<span class="mini-deco" style="left:${8+n*9}px;top:${10+n*13}px">${esc(p.value)}</span>`;if(p.kind==='sticker')return `<span class="mini-sticker" style="left:${8+n*14}px;top:${12+n*12}px">${esc(p.value)}</span>`;return ''}
-function renderSavedOutfits(){$('#outfitCount').textContent=state.outfits.length;$('#savedOutfits').innerHTML=state.outfits.map(o=>`<article class="outfit-card" data-id="${o.id}"><div class="outfit-mini">${o.pieces.slice(0,7).map(renderMiniPiece).join('')}</div><h4>${esc(o.name)}</h4><p>${o.pieces.length} elements · ${new Date(o.created).toLocaleDateString()} · tap to edit</p></article>`).join('');$$('.outfit-card').forEach(c=>c.onclick=()=>loadOutfitForEditing(c.dataset.id))}
-function loadOutfitForEditing(oid){const o=state.outfits.find(x=>x.id===oid);if(!o)return;editingOutfitId=oid;boardItems=(o.pieces||[]).map(p=>normalizeBoardItem({...p,uid:p.uid||id()}));selectedBoardUid=null;doodleMode=false;$('#drawModeBtn')?.classList.remove('active');$('#outfitBoard')?.classList.remove('drawing');$('#outfitName').value=o.name||'';$('#outfitNotes').value=o.notes||'';$('#saveOutfitBtn').textContent='Update outfit';drawBoard();$('#outfitBoard').scrollIntoView({behavior:'smooth',block:'center'});toast('Outfit loaded — edit and save again')}
+function renderSavedOutfits(){
+  const folders=['All','Favorites',...Array.from(new Set(state.outfits.map(o=>o.folder||'Everyday')))];
+  $('#portfolioTabs').innerHTML=folders.map(f=>`<button class="portfolio-tab ${portfolioFilter===f?'active':''}" data-portfolio="${esc(f)}">${f==='Favorites'?'★ ':''}${esc(f)}<span>${f==='All'?state.outfits.length:f==='Favorites'?state.outfits.filter(o=>o.favorite).length:state.outfits.filter(o=>(o.folder||'Everyday')===f).length}</span></button>`).join('');
+  $$('#portfolioTabs [data-portfolio]').forEach(b=>b.onclick=()=>{portfolioFilter=b.dataset.portfolio;renderSavedOutfits()});
+  const shown=state.outfits.filter(o=>portfolioFilter==='All'||(portfolioFilter==='Favorites'?o.favorite:(o.folder||'Everyday')===portfolioFilter));
+  $('#outfitCount').textContent=`${shown.length} of ${state.outfits.length}`;
+  $('#savedOutfits').innerHTML=shown.map(o=>`<article class="outfit-card" data-id="${o.id}"><button class="favorite-outfit ${o.favorite?'active':''}" data-fav="${o.id}" aria-label="Favorite">${o.favorite?'★':'☆'}</button><div class="folder-label">${esc(o.folder||'Everyday')}</div><div class="outfit-mini">${o.pieces.slice(0,7).map(renderMiniPiece).join('')}</div><h4>${esc(o.name)}</h4><p>${o.pieces.length} elements · ${new Date(o.created).toLocaleDateString()}</p><small class="edit-cue">Tap look to reopen board</small></article>`).join('')||'<div class="portfolio-empty">No looks in this folder yet.</div>';
+  $$('.outfit-card').forEach(c=>c.onclick=e=>{if(e.target.closest('.favorite-outfit'))return;loadOutfitForEditing(c.dataset.id)});
+  $$('.favorite-outfit').forEach(b=>b.onclick=async e=>{e.stopPropagation();const o=state.outfits.find(x=>x.id===b.dataset.fav);if(!o)return;o.favorite=!o.favorite;await saveState();renderSavedOutfits();toast(o.favorite?'Added to favorites':'Removed from favorites')});
+}
+function loadOutfitForEditing(oid){const o=state.outfits.find(x=>x.id===oid);if(!o)return;editingOutfitId=oid;boardItems=(o.pieces||[]).map(p=>normalizeBoardItem({...p,uid:p.uid||id()}));selectedBoardUid=null;doodleMode=false;$('#drawModeBtn')?.classList.remove('active');$('#outfitBoard')?.classList.remove('drawing');$('#outfitName').value=o.name||'';$('#outfitNotes').value=o.notes||'';$('#outfitFolder').value=o.folder||'Everyday';$('#saveOutfitBtn').textContent='Update outfit';drawBoard();$('#outfitBoard').scrollIntoView({behavior:'smooth',block:'center'});toast('Outfit loaded — edit and save again')}
 function renderSnapshotPiece(board,p,scaleX,scaleY){p=normalizeBoardItem({...p});const el=document.createElement('div');el.className='snapshot-piece kind-'+p.kind;el.style.left=(p.x*scaleX)+'px';el.style.top=(p.y*scaleY)+'px';el.style.width=(p.w*scaleX)+'px';el.style.height=(p.h*scaleY)+'px';el.style.zIndex=p.z;el.style.transform=`rotate(${p.rotation}deg)`;el.innerHTML=boardItemContent(p);board.appendChild(el)}
 function viewOutfit(oid){const o=state.outfits.find(x=>x.id===oid);if(!o)return;viewingOutfitId=oid;$('#viewOutfitName').textContent=o.name;$('#viewOutfitNotes').textContent=o.notes||'No notes yet.';const board=$('#viewOutfitBoard');board.innerHTML='';$('#outfitViewDialog').showModal();requestAnimationFrame(()=>{const sourceW=o.boardWidth||390,sourceH=o.boardHeight||420,scaleX=(board.clientWidth||390)/sourceW,scaleY=(board.clientHeight||350)/sourceH;o.pieces.slice().sort((a,b)=>(a.z||0)-(b.z||0)).forEach(p=>renderSnapshotPiece(board,p,scaleX,scaleY))})}
 function deleteOutfit(){if(!viewingOutfitId||!confirm('Delete this saved outfit?'))return;state.outfits=state.outfits.filter(x=>x.id!==viewingOutfitId);saveState();$('#outfitViewDialog').close()}

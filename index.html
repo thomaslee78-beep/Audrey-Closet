@@ -88,13 +88,16 @@
             <p class="board-help" id="boardHelp">Select an object to move, resize, rotate, layer or delete it.</p>
           </div>
           <input id="outfitName" placeholder="Outfit name" />
+          <select id="outfitFolder" aria-label="Portfolio folder"><option>Everyday</option><option>School</option><option>Weekend</option><option>Dressy</option><option>Sport</option><option>Seasonal</option><option>Ideas</option></select>
           <textarea id="outfitNotes" placeholder="Notes: where I'd wear it, vibe, styling ideas…"></textarea>
           <div class="inline-actions"><button class="primary" id="saveOutfitBtn">Save outfit</button><button class="soft-btn" id="shareOutfitBtn">↗ Share image</button><button class="soft-btn" id="clearBoardBtn">Clear</button></div>
         </div>
       </div>
       <div class="tabs-small"><button class="active" data-source="closet">Closet</button><button data-source="wishlist">Wishlist</button></div>
+      <div class="outfit-category-filter" id="outfitCategoryFilter"></div>
       <div class="piece-tray" id="pieceTray"></div>
-      <div class="section-title"><h3>Saved looks</h3><span id="outfitCount">0</span></div>
+      <div class="section-title"><h3>Style Portfolio</h3><span id="outfitCount">0</span></div>
+      <div class="portfolio-tabs" id="portfolioTabs"></div>
       <div class="saved-outfits" id="savedOutfits"></div>
     </section>
 
