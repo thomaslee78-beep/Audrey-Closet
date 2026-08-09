@@ -9,7 +9,8 @@ const TYPES={
   Accessories:['Hat','Belt','Bag / Purse','Backpack','Scarf','Jewelry','Sunglasses','Hair accessory','Gloves','Other'],
   Misc:['Dress','Jumpsuit / Romper','Swimsuit','Socks','Tights','Underwear','Pajamas / Sleepwear','Costume','Uniform','Other']
 };
-const CLOTHING_SIZES=['Not set','XXS','XS','S','M','L','XL','XXL','Girls 8','Girls 10','Girls 12','Girls 14','Girls 16','00','0','2','4','6','8','10','12','14','16','18','One Size','Other'];
+const CLOTHING_SIZES=['Not set','XXS','XS','S','M','L','XL','XXL','Girls 8','Girls 10','Girls 12','Girls 14','Girls 16','00','0','2','4','6','8','10','12','14','16','18','Men XS','Men S','Men M','Men L','Men XL','Men XXL','One Size','Other'];
+const BOTTOM_SIZES=['Not set','XXS','XS','S','M','L','XL','XXL','Girls 8','Girls 10','Girls 12','Girls 14','Girls 16','00','0','2','4','6','8','10','12','14','16','18',...Array.from({length:17},(_,i)=>`Men W${28+i}`),'Men W46','Men W48','Other'];
 const SHOE_SIZES=['Not set',...Array.from({length:25},(_,i)=>String(1+i*.5)),'Other'];
 const ACCESSORY_SIZES=['Not set','One Size','XS','S','M','L','XL','Other'];
 const STORE_KEY='audreyClosetV1';
@@ -20,6 +21,17 @@ const DEFAULT_APP_NAME="Audrey's Clothing App";
 let state=emptyState();
 let selectedCategory='';
 let itemWorkingPhoto='';
+let itemOriginalPhoto='';
+let studioSourcePhoto='';
+let studioCutoutPhoto='';
+let studioMode='original';
+let studioBg='transparent';
+let studioScale=88;
+let studioRotation=0;
+let studioEdge=45;
+let studioBrushMode='';
+let studioDrawing=false;
+let studioRestoreCanvas=null;
 let wishWorkingPhoto='';
 let boardItems=[];
 let traySource='closet';
@@ -56,7 +68,7 @@ function colorHex(name){const map={Black:'#262626',White:'#faf9f4',Cream:'#f1e7c
 
 async function init(){
   state=await loadState();
-  fillSelects(); bindNav(); bindDialogs(); bindBoard();
+  fillSelects(); bindNav(); bindDialogs(); bindBoard(); bindPhotoStudio();
   $('#catalogSearch').addEventListener('input',renderCatalog);
   $('#filterBtn').onclick=()=>$('#filterPanel').classList.toggle('hidden');
   $('#clearFilters').onclick=()=>{selectedCategory='';$('#filterCategory').value='';$('#filterSeason').value='';$('#filterColor').value='';renderCatalog();renderCategories()};
@@ -78,7 +90,7 @@ function fillSelects(){
   $('#itemCategory').addEventListener('change',()=>{populateTypeOptions($('#itemCategory').value);populateSizeOptions($('#itemCategory').value)});
 }
 function populateTypeOptions(category,selected=''){const opts=[...(TYPES[category]||['Other'])];if(selected&&!opts.includes(selected))opts.unshift(selected);$('#itemType').innerHTML=opts.map(v=>`<option${v===selected?' selected':''}>${esc(v)}</option>`).join('')}
-function sizesForCategory(category){if(category==='Shoes')return [...SHOE_SIZES];if(category==='Accessories')return [...ACCESSORY_SIZES];return [...CLOTHING_SIZES]}
+function sizesForCategory(category){if(category==='Shoes')return [...SHOE_SIZES];if(category==='Accessories')return [...ACCESSORY_SIZES];if(category==='Bottoms')return [...BOTTOM_SIZES];return [...CLOTHING_SIZES]}
 function populateSizeOptions(category,selected=''){const opts=sizesForCategory(category);if(selected&&!opts.includes(selected))opts.unshift(selected);$('#itemSize').innerHTML=opts.map(v=>`<option value="${v==='Not set'?'':esc(v)}"${v===selected||(!selected&&v==='Not set')?' selected':''}>${esc(v)}</option>`).join('')}
 function bindNav(){
   $$('.bottom-nav button').forEach(b=>b.onclick=()=>showScreen(b.dataset.nav));
@@ -89,8 +101,9 @@ function bindNav(){
 function showScreen(name){$$('.screen').forEach(s=>s.classList.toggle('active',s.dataset.screen===name));$$('.bottom-nav button').forEach(b=>b.classList.toggle('active',b.dataset.nav===name));scrollTo({top:0,behavior:'smooth'});if(name==='journal')renderJournal();if(name==='outfits')renderOutfits()}
 
 function bindDialogs(){
-  $('#itemPhoto').onchange=async e=>{const f=e.target.files[0];if(!f)return;setPhotoBusy(true,'Optimizing photo…');try{itemWorkingPhoto=await fileToDataURL(f,900,.74);showPhoto('#itemPhotoPreview','#photoPlaceholder',itemWorkingPhoto);$('#scanStatus').textContent='Photo optimized. Detecting color…';const scan=await analyzeImage(itemWorkingPhoto);applyVisualScan(scan);$('#scanStatus').textContent=`Photo ready · ${scan.color} · ${scan.pattern}. You can save now or run Smart scan.`}catch(err){console.error(err);$('#scanStatus').textContent='Photo could not be processed. Try another photo.';toast('Could not process that photo')}finally{setPhotoBusy(false)}};
-  $('#removeBgBtn').onclick=async()=>{if(!itemWorkingPhoto)return toast('Take or choose a photo first');setPhotoBusy(true,'Removing simple background…');try{itemWorkingPhoto=await removeSimpleBackground(itemWorkingPhoto);showPhoto('#itemPhotoPreview','#photoPlaceholder',itemWorkingPhoto);$('#scanStatus').textContent='Background removed and optimized. Best with a plain wall or floor.'}catch(err){console.error(err);toast('Background removal failed')}finally{setPhotoBusy(false)}};
+  $('#itemPhoto').onchange=async e=>{const f=e.target.files[0];if(!f)return;setPhotoBusy(true,'Optimizing photo…');try{itemOriginalPhoto=await fileToDataURL(f,1100,.78);itemWorkingPhoto=itemOriginalPhoto;showPhoto('#itemPhotoPreview','#photoPlaceholder',itemWorkingPhoto);$('#scanStatus').textContent='Photo ready. Open Photo Studio to crop, cut out and normalize it.';const scan=await analyzeImage(itemWorkingPhoto);applyVisualScan(scan);$('#scanStatus').textContent=`Photo ready · ${scan.color} · ${scan.pattern}. Photo Studio can make the catalog image more consistent.`}catch(err){console.error(err);$('#scanStatus').textContent='Photo could not be processed. Try another photo.';toast('Could not process that photo')}finally{setPhotoBusy(false)}};
+  $('#removeBgBtn').onclick=()=>openPhotoStudio();
+  $('#photoStudioBtn').onclick=()=>openPhotoStudio();
   $('#smartScanBtn').onclick=smartScan;
   $('#itemForm').onsubmit=e=>{e.preventDefault();saveItem()};
   $('#deleteItemBtn').onclick=deleteItem;
@@ -101,7 +114,7 @@ function bindDialogs(){
   $('#deleteOutfitBtn').onclick=deleteOutfit;
 }
 function openItem(item=null){
-  $('#itemDialogTitle').textContent=item?'Edit piece':'Add a piece';$('#itemId').value=item?.id||'';itemWorkingPhoto=item?.photo||'';
+  $('#itemDialogTitle').textContent=item?'Edit piece':'Add a piece';$('#itemId').value=item?.id||'';itemWorkingPhoto=item?.photo||'';itemOriginalPhoto=item?.photo||'';
   showPhoto('#itemPhotoPreview','#photoPlaceholder',itemWorkingPhoto);const category=item?.category||'Tops';$('#itemCategory').value=category;populateTypeOptions(category,item?.type||'');populateSizeOptions(category,item?.size||'');$('#itemBrand').value=item?.brand||'';$('#itemColor').value=item?.color||'';$('#itemPattern').value=item?.pattern||'Solid';$('#itemAcquired').value=item?.acquired||'Bought new';$('#itemSeason').value=item?.season||'All-season';$('#itemNotes').value=item?.notes||'';$('#scanStatus').textContent='';$('#deleteItemBtn').classList.toggle('hidden',!item);$('#itemPhoto').value='';$('#itemDialog').showModal();
 }
 async function saveItem(){
@@ -203,6 +216,54 @@ function renderJournal(){
 }
 function drawDonut(canvas,data){const ctx=canvas.getContext('2d'),w=canvas.width,h=canvas.height;ctx.clearRect(0,0,w,h);const entries=Object.entries(data).sort((a,b)=>b[1]-a[1]).slice(0,7),total=entries.reduce((n,x)=>n+x[1],0);if(!total){ctx.fillStyle='#8d8273';ctx.font='18px Avenir';ctx.textAlign='center';ctx.fillText('Log outfits to reveal your color story',w/2,h/2);return}let a=-Math.PI/2;entries.forEach(([c,v])=>{const next=a+(v/total)*Math.PI*2;ctx.beginPath();ctx.strokeStyle=colorHex(c);ctx.lineWidth=44;ctx.arc(150,h/2,75,a,next);ctx.stroke();a=next});ctx.fillStyle='#2e2a24';ctx.textAlign='center';ctx.font='32px Georgia';ctx.fillText(total,150,h/2+7);ctx.font='12px Avenir';ctx.fillText('item-wears',150,h/2+27);ctx.textAlign='left';entries.forEach(([c,v],n)=>{const y=42+n*27;ctx.fillStyle=colorHex(c);ctx.fillRect(285,y-11,16,16);ctx.fillStyle='#3c372f';ctx.font='14px Avenir';ctx.fillText(`${c}  ${v}`,312,y+2)})}
 function drawBars(canvas,data){const ctx=canvas.getContext('2d'),w=canvas.width,h=canvas.height;ctx.clearRect(0,0,w,h);const vals=Object.values(data),max=Math.max(1,...vals),names=Object.keys(data),gap=32,bw=(w-gap*5)/4;names.forEach((n,i)=>{const x=gap+i*(bw+gap),bh=(data[n]/max)*(h-70);ctx.fillStyle=['#6d7a5d','#8ca78d','#c6a34e','#8a4b58'][i];ctx.fillRect(x,h-40-bh,bw,bh);ctx.fillStyle='#4b443a';ctx.textAlign='center';ctx.font='13px Avenir';ctx.fillText(n,x+bw/2,h-16);ctx.font='18px Georgia';ctx.fillText(data[n],x+bw/2,h-48-bh)})}
+
+
+function templateHint(category){return {Tops:'TOP • center shoulders and sleeves',Bottoms:'BOTTOM • center waistband and hems',Outerwear:'OUTERWEAR • leave room around sleeves',Shoes:'SHOES • place pair side-by-side',Accessories:'ACCESSORY • center the full shape',Misc:'GARMENT • keep the whole item inside the guide'}[category]||'CENTER ITEM'}
+async function openPhotoStudio(){
+  if(!itemWorkingPhoto)return toast('Take or choose a photo first');
+  studioSourcePhoto=itemOriginalPhoto||itemWorkingPhoto;studioCutoutPhoto='';studioMode='original';studioBg='transparent';studioScale=88;studioRotation=0;studioEdge=45;studioBrushMode='';
+  $('#studioScale').value=studioScale;$('#studioRotate').value=studioRotation;$('#studioEdge').value=studioEdge;$('#studioTemplateHint').textContent=templateHint($('#itemCategory').value);
+  $$('.studio-mode').forEach(b=>b.classList.toggle('active',b.dataset.mode==='original'));$$('.studio-bg').forEach(b=>b.classList.toggle('active',b.dataset.bg==='transparent'));$$('.brush-btn').forEach(b=>b.classList.remove('active'));
+  $('#photoStudioDialog').showModal();await renderStudio();
+}
+async function buildCutout(clean=false){
+  const src=studioSourcePhoto||itemWorkingPhoto;if(!src)return src;
+  $('#studioStatus').textContent=clean?'Making a cleaner edge…':'Removing background…';
+  try{studioCutoutPhoto=clean?await removeAdvancedBackground(src,Number($('#studioEdge').value)||45):await removeSimpleBackground(src);studioMode=clean?'clean':'quick';$$('.studio-mode').forEach(b=>b.classList.toggle('active',b.dataset.mode===studioMode));await renderStudio();$('#studioStatus').textContent=clean?'Clean cutout ready. Adjust edge if needed.':'Quick cutout ready.';return studioCutoutPhoto}catch(e){console.error(e);$('#studioStatus').textContent='Cutout failed — original is still safe.';toast('Could not remove background')}
+}
+async function renderStudio(){
+  const canvas=$('#studioCanvas'),ctx=canvas.getContext('2d');canvas.width=720;canvas.height=720;ctx.clearRect(0,0,720,720);
+  if(studioBg==='cream'){ctx.fillStyle='#f4ecd9';ctx.fillRect(0,0,720,720)}else if(studioBg==='paper'){ctx.fillStyle='#e9dfc9';ctx.fillRect(0,0,720,720);ctx.globalAlpha=.15;for(let y=0;y<720;y+=24){ctx.fillStyle=y%48===0?'#8b765e':'#fff';ctx.fillRect(0,y,720,1)}ctx.globalAlpha=1}
+  const src=studioMode==='original'?studioSourcePhoto:(studioCutoutPhoto||studioSourcePhoto);if(!src)return;
+  const img=await imageFrom(src);let sx=0,sy=0,sw=img.width,sh=img.height;
+  if(studioMode!=='original'&&studioCutoutPhoto){const b=await transparentBounds(img);sx=b.x;sy=b.y;sw=b.w;sh=b.h}
+  const base=Math.min(650/sw,650/sh),scale=base*(studioScale/88),dw=sw*scale,dh=sh*scale;
+  ctx.save();ctx.translate(360,360);ctx.rotate(studioRotation*Math.PI/180);ctx.drawImage(img,sx,sy,sw,sh,-dw/2,-dh/2,dw,dh);ctx.restore();
+  studioRestoreCanvas=document.createElement('canvas');studioRestoreCanvas.width=720;studioRestoreCanvas.height=720;const rctx=studioRestoreCanvas.getContext('2d');const oimg=await imageFrom(studioSourcePhoto);const obase=Math.min(650/oimg.width,650/oimg.height),oscale=obase*(studioScale/88),odw=oimg.width*oscale,odh=oimg.height*oscale;rctx.translate(360,360);rctx.rotate(studioRotation*Math.PI/180);rctx.drawImage(oimg,-odw/2,-odh/2,odw,odh);
+  $('#studioScaleValue').textContent=studioScale+'%';$('#studioRotateValue').textContent=studioRotation+'°';
+}
+async function autoFitStudio(){studioScale=88;studioRotation=0;$('#studioScale').value=studioScale;$('#studioRotate').value=0;await renderStudio();toast('Centered and fitted')}
+async function transparentBounds(img){const c=document.createElement('canvas'),max=360,sc=Math.min(1,max/Math.max(img.width,img.height));c.width=Math.max(1,Math.round(img.width*sc));c.height=Math.max(1,Math.round(img.height*sc));const x=c.getContext('2d');x.drawImage(img,0,0,c.width,c.height);const d=x.getImageData(0,0,c.width,c.height).data;let minX=c.width,minY=c.height,maxX=-1,maxY=-1;for(let y=0;y<c.height;y++)for(let xx=0;xx<c.width;xx++){if(d[(y*c.width+xx)*4+3]>30){if(xx<minX)minX=xx;if(xx>maxX)maxX=xx;if(y<minY)minY=y;if(y>maxY)maxY=y}}if(maxX<0)return{x:0,y:0,w:img.width,h:img.height};const pad=8;minX=Math.max(0,minX-pad);minY=Math.max(0,minY-pad);maxX=Math.min(c.width-1,maxX+pad);maxY=Math.min(c.height-1,maxY+pad);return{x:minX/sc,y:minY/sc,w:(maxX-minX+1)/sc,h:(maxY-minY+1)/sc}}
+function studioPointerPos(e){const c=$('#studioCanvas'),r=c.getBoundingClientRect();return{x:(e.clientX-r.left)*c.width/r.width,y:(e.clientY-r.top)*c.height/r.height}}
+function paintStudio(e){if(!studioBrushMode)return;const c=$('#studioCanvas'),ctx=c.getContext('2d'),p=studioPointerPos(e),rad=Number($('#studioBrush').value)||26;ctx.save();ctx.beginPath();ctx.arc(p.x,p.y,rad,0,Math.PI*2);ctx.clip();if(studioBrushMode==='erase'){ctx.globalCompositeOperation='destination-out';ctx.fillStyle='#000';ctx.fillRect(p.x-rad,p.y-rad,rad*2,rad*2)}else if(studioRestoreCanvas){ctx.globalCompositeOperation='source-over';ctx.drawImage(studioRestoreCanvas,0,0)}ctx.restore()}
+async function applyPhotoStudio(){const c=$('#studioCanvas');itemWorkingPhoto=c.toDataURL('image/webp',.80);if(!itemWorkingPhoto.startsWith('data:image/webp'))itemWorkingPhoto=c.toDataURL('image/jpeg',.82);showPhoto('#itemPhotoPreview','#photoPlaceholder',itemWorkingPhoto);$('#photoStudioDialog').close();$('#scanStatus').textContent='Photo Studio image applied · standardized square crop.';toast('Photo applied')}
+function bindPhotoStudio(){
+  $$('.studio-mode').forEach(b=>b.onclick=async()=>{studioMode=b.dataset.mode;if(studioMode==='original'){$$('.studio-mode').forEach(x=>x.classList.toggle('active',x===b));await renderStudio()}else await buildCutout(studioMode==='clean')});
+  $$('.studio-bg').forEach(b=>b.onclick=async()=>{studioBg=b.dataset.bg;$$('.studio-bg').forEach(x=>x.classList.toggle('active',x===b));await renderStudio()});
+  $('#studioScale').oninput=async e=>{studioScale=Number(e.target.value);await renderStudio()};$('#studioRotate').oninput=async e=>{studioRotation=Number(e.target.value);await renderStudio()};
+  $('#studioEdge').onchange=async()=>{if(studioMode==='clean')await buildCutout(true)};$('#studioAutoFit').onclick=autoFitStudio;$('#studioApply').onclick=applyPhotoStudio;
+  $$('.brush-btn').forEach(b=>b.onclick=()=>{studioBrushMode=studioBrushMode===b.dataset.brush?'':b.dataset.brush;$$('.brush-btn').forEach(x=>x.classList.toggle('active',x.dataset.brush===studioBrushMode))});
+  const c=$('#studioCanvas');c.addEventListener('pointerdown',e=>{if(!studioBrushMode)return;studioDrawing=true;c.setPointerCapture(e.pointerId);paintStudio(e)});c.addEventListener('pointermove',e=>{if(studioDrawing)paintStudio(e)});c.addEventListener('pointerup',()=>studioDrawing=false);c.addEventListener('pointercancel',()=>studioDrawing=false);
+}
+async function removeAdvancedBackground(dataURL,edge=45){
+  const img=await imageFrom(dataURL),max=900,scale=Math.min(1,max/Math.max(img.width,img.height)),c=document.createElement('canvas');c.width=Math.round(img.width*scale);c.height=Math.round(img.height*scale);const ctx=c.getContext('2d');ctx.drawImage(img,0,0,c.width,c.height);const im=ctx.getImageData(0,0,c.width,c.height),d=im.data,w=c.width,h=c.height;
+  const samples=[];const sample=(x,y)=>{const i=(y*w+x)*4;samples.push([d[i],d[i+1],d[i+2]])};const step=Math.max(2,Math.floor(Math.min(w,h)/28));for(let x=0;x<w;x+=step){for(let k=0;k<Math.min(14,h);k+=4){sample(x,k);sample(x,h-1-k)}}for(let y=0;y<h;y+=step){for(let k=0;k<Math.min(14,w);k+=4){sample(k,y);sample(w-1-k,y)}};
+  samples.sort((a,b)=>(a[0]+a[1]+a[2])-(b[0]+b[1]+b[2]));const mid=samples[Math.floor(samples.length/2)]||[240,240,240];const low=Math.max(20,edge*.72),high=Math.max(low+22,edge*1.75);
+  const alpha=new Uint8ClampedArray(w*h);for(let p=0;p<w*h;p++){const i=p*4,dr=d[i]-mid[0],dg=d[i+1]-mid[1],db=d[i+2]-mid[2],dist=Math.sqrt(dr*dr+dg*dg+db*db);alpha[p]=dist<=low?0:dist>=high?255:Math.round(255*(dist-low)/(high-low))}
+  /* Flood clear only background-connected weak pixels, which protects similarly colored areas inside the garment. */
+  const q=new Int32Array(w*h),seen=new Uint8Array(w*h);let head=0,tail=0;const push=p=>{if(p<0||p>=w*h||seen[p]||alpha[p]>210)return;seen[p]=1;q[tail++]=p};for(let x=0;x<w;x++){push(x);push((h-1)*w+x)}for(let y=0;y<h;y++){push(y*w);push(y*w+w-1)}while(head<tail){const p=q[head++],x=p%w,y=(p/w)|0;alpha[p]=0;if(x>0)push(p-1);if(x<w-1)push(p+1);if(y>0)push(p-w);if(y<h-1)push(p+w)}
+  for(let p=0;p<w*h;p++)d[p*4+3]=alpha[p];ctx.putImageData(im,0,0);return c.toDataURL('image/webp',.80)
+}
 
 async function smartScan(){if(!itemWorkingPhoto)return toast('Take or choose a photo first');$('#scanStatus').textContent='Scanning color, pattern and visible text…';const visual=await analyzeImage(itemWorkingPhoto);applyVisualScan(visual);let text='';try{text=await tryOCR(itemWorkingPhoto)}catch{}if(text){const t=text.replace(/\n/g,' ');const brands=['Nike','Adidas','Lacoste','Gap','Old Navy','Zara','H&M','Uniqlo','Levi','Levi\'s','Converse','Vans','Champion','Aritzia','Brandy Melville','Hollister','Abercrombie','American Eagle','Puma','New Balance','Patagonia','North Face'];const brand=brands.find(b=>new RegExp(`\\b${b.replace("'","\\'")}\\b`,'i').test(t));if(brand&&!$('#itemBrand').value)$('#itemBrand').value=brand;const sm=t.match(/\b(XXS|XS|S|M|L|XL|XXL|[0-9]{1,2}(?:\.[05])?)\b/i);if(sm&&!$('#itemSize').value)$('#itemSize').value=sm[1].toUpperCase();$('#scanStatus').textContent=`Detected ${visual.color}${brand?' · '+brand:''}${sm?' · size '+sm[1]:''}. Please verify.`}else $('#scanStatus').textContent=`Detected ${visual.color} · ${visual.pattern}. Brand/size text wasn't readable; please verify fields.`}
 function applyVisualScan(scan){if(!$('#itemColor').value)$('#itemColor').value=scan.color;if($('#itemPattern').value==='Solid')$('#itemPattern').value=scan.pattern;$('#scanStatus').textContent=`Photo scan: ${scan.color} · ${scan.pattern}. Please verify.`}

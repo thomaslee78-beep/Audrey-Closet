@@ -159,7 +159,8 @@
         <div class="photo-preview-wrap"><img id="itemPhotoPreview" alt="Item preview" /><div class="photo-placeholder" id="photoPlaceholder">photo</div></div>
         <div class="photo-actions">
           <label class="primary file-label">Take photo<input type="file" id="itemPhoto" accept="image/*" capture="environment" /></label>
-          <button type="button" class="soft-btn" id="removeBgBtn">Remove background</button>
+          <button type="button" class="soft-btn" id="photoStudioBtn">✂ Photo Studio</button>
+          <button type="button" class="soft-btn" id="removeBgBtn">Quick photo cleanup</button>
           <button type="button" class="soft-btn" id="smartScanBtn">Smart scan</button>
           <div class="scan-status" id="scanStatus"></div>
         </div>
@@ -177,6 +178,24 @@
       <label class="full-label">Notes<textarea id="itemNotes" placeholder="Fit, styling notes, sentimental story…"></textarea></label>
       <div class="sheet-actions"><button value="cancel" class="soft-btn">Cancel</button><button type="button" class="danger-text hidden" id="deleteItemBtn">Delete</button><button type="submit" value="default" class="primary" id="saveItemBtn">Save piece</button></div>
     </form>
+  </dialog>
+
+  <dialog id="photoStudioDialog" class="sheet-dialog studio-dialog">
+    <div class="sheet-head"><div><p class="script">photo studio</p><h2>Clean up the garment</h2></div><button class="close-btn" onclick="document.getElementById('photoStudioDialog').close()">×</button></div>
+    <p class="studio-intro">Choose a cutout style, then center and size the garment so every catalog card feels consistent.</p>
+    <div class="studio-template" id="studioTemplateHint">CENTER ITEM</div>
+    <div class="studio-canvas-wrap"><canvas id="studioCanvas"></canvas><div class="studio-guide"><i></i></div></div>
+    <div class="studio-tabs"><button type="button" class="studio-mode active" data-mode="original">Original</button><button type="button" class="studio-mode" data-mode="quick">Quick cutout</button><button type="button" class="studio-mode" data-mode="clean">Clean cutout</button></div>
+    <div class="studio-controls">
+      <label>Size <span id="studioScaleValue">88%</span><input id="studioScale" type="range" min="60" max="125" value="88"></label>
+      <label>Rotate <span id="studioRotateValue">0°</span><input id="studioRotate" type="range" min="-18" max="18" value="0"></label>
+      <label>Edge cleanup<input id="studioEdge" type="range" min="25" max="80" value="45"></label>
+      <label>Brush size<input id="studioBrush" type="range" min="10" max="60" value="26"></label>
+    </div>
+    <div class="studio-tool-row"><button type="button" class="soft-btn" id="studioAutoFit">◎ Auto fit</button><button type="button" class="soft-btn brush-btn" data-brush="erase">⌫ Erase</button><button type="button" class="soft-btn brush-btn" data-brush="restore">↶ Restore</button></div>
+    <div class="studio-bg-row"><span>Background</span><button type="button" class="studio-bg active" data-bg="transparent">Transparent</button><button type="button" class="studio-bg" data-bg="cream">Cream</button><button type="button" class="studio-bg" data-bg="paper">Paper</button></div>
+    <p class="scan-status" id="studioStatus">Tip: a plain contrasting floor or wall gives the cleanest cutout.</p>
+    <div class="sheet-actions"><button type="button" class="soft-btn" onclick="document.getElementById('photoStudioDialog').close()">Cancel</button><button type="button" class="primary" id="studioApply">Use this photo</button></div>
   </dialog>
 
   <dialog id="wishDialog" class="sheet-dialog">

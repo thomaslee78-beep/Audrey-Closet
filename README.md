@@ -23,3 +23,9 @@ Adds a customizable app name under More → App identity. The name updates the i
 
 ## v5 enhancement
 Saved outfits can now be tapped to load them back onto the Outfit Board for continued editing. Saving while editing updates the existing outfit rather than creating a duplicate. Use New Board to start a separate outfit.
+
+
+## v6 enhancements
+- Photo Studio with original, quick cutout and cleaner cutout modes
+- Standardized square framing, auto fit, scaling, rotation, edge control, erase/restore brush, and background choices
+- Men’s waist sizes for Bottoms (W28–W48)
