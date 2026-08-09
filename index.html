@@ -63,17 +63,24 @@
         <button class="soft-btn" id="newBoardBtn">New</button>
       </div>
 
-      <div class="board-picker-card">
-        <div class="picker-head"><strong>Pick your pieces</strong><span>Tap to add</span></div>
-        <div class="tabs-small"><button class="active" data-source="closet">Closet</button><button data-source="wishlist">Wishlist</button></div>
-        <div class="outfit-category-filter" id="outfitCategoryFilter"></div>
-        <div class="piece-tray piece-grid" id="pieceTray"></div>
+      <div class="board-controls board-controls-top">
+        <button type="button" class="decorate-toggle" id="decorateToggle">＋ Decorate <span>text • stickers • draw</span></button>
+        <div class="creative-tools hidden" id="creativeTools">
+          <div class="tool-row"><input id="boardTextInput" maxlength="60" placeholder="Add a note or title…"><button type="button" class="soft-btn" id="addBoardTextBtn">Add text</button></div>
+          <div class="sticker-row" aria-label="Creative stickers">
+            <button type="button" data-sticker="★">★</button><button type="button" data-sticker="♡">♡</button><button type="button" data-sticker="✿">✿</button><button type="button" data-sticker="✦">✦</button><button type="button" data-sticker="☻">☻</button><button type="button" data-sticker="🦋">🦋</button><button type="button" data-sticker="🌼">🌼</button><button type="button" data-sticker="✨">✨</button>
+          </div>
+          <div class="shape-row">
+            <button type="button" data-shape="circle">○ circle</button><button type="button" data-shape="line">— line</button><button type="button" data-shape="tape">tape</button><button type="button" id="drawModeBtn">✎ doodle</button>
+          </div>
+          <p class="board-help" id="boardHelp">Select an object to move, resize, rotate, layer or delete it.</p>
+        </div>
       </div>
 
-      <div class="board-shell simplified-board">
+      <div class="board-shell simplified-board board-first">
         <div>
           <div class="board" id="outfitBoard">
-            <div class="board-tip">Tap a piece above, then drag it<br><small>pinch with two fingers to resize + rotate</small></div>
+            <div class="board-tip">Build your look here<br><small>pick clothes below • drag to move • pinch to resize + rotate</small></div>
           </div>
           <div class="board-editbar hidden" id="boardEditbar">
             <button type="button" id="sendBackBtn" title="Move behind">⇩ Back</button>
@@ -84,25 +91,21 @@
             <button type="button" id="deleteBoardBtn" class="danger-mini" title="Remove">×</button>
           </div>
         </div>
-        <div class="board-controls">
-          <button type="button" class="decorate-toggle" id="decorateToggle">＋ Decorate <span>text • stickers • draw</span></button>
-          <div class="creative-tools hidden" id="creativeTools">
-            <div class="tool-row"><input id="boardTextInput" maxlength="60" placeholder="Add a note or title…"><button type="button" class="soft-btn" id="addBoardTextBtn">Add text</button></div>
-            <div class="sticker-row" aria-label="Creative stickers">
-              <button type="button" data-sticker="★">★</button><button type="button" data-sticker="♡">♡</button><button type="button" data-sticker="✿">✿</button><button type="button" data-sticker="✦">✦</button><button type="button" data-sticker="☻">☻</button><button type="button" data-sticker="🦋">🦋</button><button type="button" data-sticker="🌼">🌼</button><button type="button" data-sticker="✨">✨</button>
-            </div>
-            <div class="shape-row">
-              <button type="button" data-shape="circle">○ circle</button><button type="button" data-shape="line">— line</button><button type="button" data-shape="tape">tape</button><button type="button" id="drawModeBtn">✎ doodle</button>
-            </div>
-            <p class="board-help" id="boardHelp">Select an object to move, resize, rotate, layer or delete it.</p>
-          </div>
+        <div class="board-controls board-save-panel">
           <div class="save-look-fields">
             <input id="outfitName" placeholder="Outfit name" />
-            <select id="outfitFolder" aria-label="Portfolio folder"></select>
             <textarea id="outfitNotes" placeholder="Notes: where I'd wear it, vibe, styling ideas…"></textarea>
           </div>
+          <p class="save-destination-hint">Portfolio folder is chosen when you save.</p>
           <div class="inline-actions board-save-actions"><button class="primary" id="saveOutfitBtn">Save outfit</button><button class="soft-btn" id="shareOutfitBtn">↗ Share</button><button class="soft-btn" id="clearBoardBtn">Clear</button></div>
         </div>
+      </div>
+
+      <div class="board-picker-card board-picker-bottom">
+        <div class="picker-head"><strong>Pick your pieces</strong><span>Tap to add</span></div>
+        <div class="tabs-small"><button class="active" data-source="closet">Closet</button><button data-source="wishlist">Wishlist</button></div>
+        <div class="outfit-category-filter" id="outfitCategoryFilter"></div>
+        <div class="piece-tray piece-grid" id="pieceTray"></div>
       </div>
     </section>
 
@@ -246,6 +249,13 @@
     <div id="viewOutfitBoard" class="board snapshot"></div>
     <p id="viewOutfitNotes" class="outfit-note"></p>
     <div class="sheet-actions outfit-view-actions"><button class="danger-text" id="deleteOutfitBtn">Delete</button><button class="soft-btn" id="favoriteViewedOutfitBtn">☆ Favorite</button><button class="soft-btn" id="shareViewedOutfitBtn">↗ Share</button><button class="primary" id="editViewedOutfitBtn">Edit on Board</button></div>
+  </dialog>
+
+  <dialog id="outfitSaveDialog" class="sheet-dialog compact-save-dialog">
+    <div class="sheet-head"><div><p class="script">file this look</p><h2>Save to portfolio</h2></div><button type="button" class="close-btn" id="closeOutfitSaveBtn">×</button></div>
+    <p class="save-dialog-copy">Choose where this outfit should live. You can change your portfolio folders anytime in Preferences.</p>
+    <label class="full-label">Portfolio folder<select id="outfitFolder" aria-label="Portfolio folder"></select></label>
+    <div class="sheet-actions"><button type="button" class="soft-btn" id="cancelOutfitSaveBtn">Cancel</button><button type="button" class="primary" id="confirmSaveOutfitBtn">Save here</button></div>
   </dialog>
 
   <dialog id="sharePreviewDialog" class="sheet-dialog share-preview-dialog">

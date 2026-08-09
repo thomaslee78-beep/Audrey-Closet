@@ -164,7 +164,8 @@ function renderWishlist(){$('#wishlistGrid').innerHTML=state.wishlist.map(w=>`<a
 
 function bindBoard(){
   $('#newBoardBtn').onclick=startNewOutfit;
-  $('#clearBoardBtn').onclick=clearBoard;$('#saveOutfitBtn').onclick=saveOutfit;$('#shareOutfitBtn').onclick=prepareOutfitShare;
+  $('#clearBoardBtn').onclick=clearBoard;$('#saveOutfitBtn').onclick=requestSaveOutfit;$('#shareOutfitBtn').onclick=prepareOutfitShare;
+  $('#confirmSaveOutfitBtn').onclick=saveOutfit;$('#cancelOutfitSaveBtn').onclick=()=>$('#outfitSaveDialog').close();$('#closeOutfitSaveBtn').onclick=()=>$('#outfitSaveDialog').close();
   $('#shareNowBtn').onclick=sharePreparedOutfit;
   $('#openShareImageBtn').onclick=openPreparedShareImage;
   $('#closeSharePreviewBtn').onclick=closeSharePreview;
@@ -339,7 +340,8 @@ function closeSharePreview(){
 }
 
 
-async function saveOutfit(){if(!boardItems.length)return toast('Add at least one piece');const name=$('#outfitName').value.trim()||'Untitled look';const board=$('#outfitBoard');ensureSettings();const snapshot={name,notes:$('#outfitNotes').value.trim(),folder:$('#outfitFolder').value||state.settings.portfolioFolders[0]||'Everyday',favorite:editingOutfitId?(state.outfits.find(x=>x.id===editingOutfitId)?.favorite||false):false,pieces:boardItems.map(x=>({...x})),boardWidth:board.clientWidth,boardHeight:board.clientHeight};if(editingOutfitId){const existing=state.outfits.find(x=>x.id===editingOutfitId);if(existing){Object.assign(existing,snapshot,{updated:Date.now()})}else editingOutfitId=null}if(!editingOutfitId){const created={id:id(),...snapshot,created:Date.now()};state.outfits.unshift(created);editingOutfitId=created.id}await saveState();renderSavedOutfits();$('#saveOutfitBtn').textContent='Update outfit';toast('Outfit saved')}
+function requestSaveOutfit(){if(!boardItems.length)return toast('Add at least one piece');ensureSettings();const existing=editingOutfitId?state.outfits.find(x=>x.id===editingOutfitId):null;populatePortfolioFolderSelect(existing?.folder||state.settings.portfolioFolders[0]||'Everyday');$('#confirmSaveOutfitBtn').textContent=editingOutfitId?'Update here':'Save here';$('#outfitSaveDialog').showModal()}
+async function saveOutfit(){if(!boardItems.length){$('#outfitSaveDialog').close();return toast('Add at least one piece')}const name=$('#outfitName').value.trim()||'Untitled look';const board=$('#outfitBoard');ensureSettings();const snapshot={name,notes:$('#outfitNotes').value.trim(),folder:$('#outfitFolder').value||state.settings.portfolioFolders[0]||'Everyday',favorite:editingOutfitId?(state.outfits.find(x=>x.id===editingOutfitId)?.favorite||false):false,pieces:boardItems.map(x=>({...x})),boardWidth:board.clientWidth,boardHeight:board.clientHeight};if(editingOutfitId){const existing=state.outfits.find(x=>x.id===editingOutfitId);if(existing){Object.assign(existing,snapshot,{updated:Date.now()})}else editingOutfitId=null}if(!editingOutfitId){const created={id:id(),...snapshot,created:Date.now()};state.outfits.unshift(created);editingOutfitId=created.id}const ok=await saveState();if(ok===false)return toast('Could not save — please try again');$('#outfitSaveDialog').close();renderSavedOutfits();$('#saveOutfitBtn').textContent='Update outfit';toast('Outfit saved to '+snapshot.folder)}
 function renderMiniPiece(p,o){
   p=normalizeBoardItem({...p});const sw=o.boardWidth||390,sh=o.boardHeight||420;
   const left=Math.max(-10,Math.min(100,(p.x/sw)*100)),top=Math.max(-10,Math.min(100,(p.y/sh)*100));
