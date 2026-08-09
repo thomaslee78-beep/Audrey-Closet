@@ -27,3 +27,8 @@ Upload all files in this folder to the root of the existing GitHub Pages reposit
 - Press and hold a closet card while viewing a specific category, then drag it to set your preferred order.
 - Custom ordering is stored locally and persists across app restarts.
 - Item review form controls use iPhone-safe 16px text sizing to prevent Safari from zooming into Brand/Notes fields and leaving the review screen awkwardly magnified.
+
+## v12.5 closet reorder reliability
+- Reworked touch reordering for iPhone/iOS instead of relying on pointer events with `touch-action: pan-y`.
+- Long-press now creates a floating visual card, leaves a placeholder, and moves that placeholder live as you drag.
+- The final visual order is persisted immediately and the Closet rerenders from that saved preference order.

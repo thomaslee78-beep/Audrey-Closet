@@ -85,3 +85,10 @@ body.item-dialog-open{position:fixed;left:0;right:0;width:100%;overflow:hidden;o
 .item-card.closet-dragging{z-index:40;transform:scale(1.035);box-shadow:0 15px 30px rgba(55,43,31,.22);opacity:.93;touch-action:none;cursor:grabbing}
 .item-card.closet-dragging .thumb img{pointer-events:none}
 @media(max-width:768px){#itemDialog input,#itemDialog textarea,#itemDialog select{font-size:16px!important;line-height:1.3}#itemDialog input,#itemDialog select{min-height:44px}#itemDialog textarea{min-height:88px}}
+
+/* v12.5: iPhone-safe long-press closet reordering */
+.item-card{-webkit-touch-callout:none}
+.item-card.closet-drag-placeholder{opacity:.28;outline:2px dashed rgba(125,53,71,.38);outline-offset:-3px;transform:scale(.98)}
+.closet-drag-ghost{background:#fffaf0;border:1px solid var(--line);border-radius:19px;overflow:hidden;box-shadow:0 20px 40px rgba(55,43,31,.28);transform:scale(1.035);opacity:.97}
+body.closet-reordering{overflow:hidden!important;touch-action:none}
+body.closet-reordering .bottom-nav{pointer-events:none}

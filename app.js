@@ -51,7 +51,7 @@ let activeDoodle=null;
 let pendingShareBlob=null;
 let pendingShareUrl='';
 let pendingShareFileName='outfit.jpg';
-let closetDrag={timer:null,pointerId:null,startX:0,startY:0,card:null,category:'',active:false,moved:false};
+let closetDrag={timer:null,pointerId:null,touchId:null,startX:0,startY:0,x:0,y:0,card:null,category:'',active:false,moved:false,ghost:null};
 let suppressCatalogClickUntil=0;
 
 function emptyState(){return {items:[],outfits:[],journal:[],wishlist:[],settings:{appName:DEFAULT_APP_NAME,portfolioFolders:[...DEFAULT_PORTFOLIO_FOLDERS],boardRecent:{closet:[],wishlist:[]}}}}
@@ -254,39 +254,114 @@ function renderCatalog(){
 function bindCatalogReorder(activeCategory){
   const grid=$('#catalogGrid');if(!grid)return;
   grid.querySelectorAll('.item-card').forEach(card=>{
+    // Mouse / trackpad path. Touch gets its own non-passive handlers below so iOS
+    // can hand control to us after a deliberate long press.
     card.onpointerdown=e=>{
+      if(e.pointerType==='touch')return;
       if(e.pointerType==='mouse'&&e.button!==0)return;
-      clearTimeout(closetDrag.timer);closetDrag={timer:null,pointerId:e.pointerId,startX:e.clientX,startY:e.clientY,card,category:activeCategory||'',active:false,moved:false};
-      closetDrag.timer=setTimeout(()=>startCatalogDrag(e.pointerId),360);
+      beginCatalogPress(card,activeCategory,e.pointerId,e.clientX,e.clientY,null);
     };
-    card.onpointermove=e=>handleCatalogPointerMove(e);
-    card.onpointerup=e=>finishCatalogDrag(e);
-    card.onpointercancel=e=>finishCatalogDrag(e,true);
+    card.onpointermove=e=>{if(e.pointerType!=='touch')moveCatalogDrag(e.clientX,e.clientY,e.pointerId,null,e)};
+    card.onpointerup=e=>{if(e.pointerType!=='touch')finishCatalogDrag(e.pointerId,null,false,e)};
+    card.onpointercancel=e=>{if(e.pointerType!=='touch')finishCatalogDrag(e.pointerId,null,true,e)};
+    card.ontouchstart=e=>{
+      if(e.touches.length!==1)return;
+      const t=e.changedTouches[0];
+      beginCatalogPress(card,activeCategory,null,t.clientX,t.clientY,t.identifier);
+    };
+    card.ontouchmove=e=>{
+      const d=closetDrag;if(d.touchId==null)return;
+      const t=[...e.changedTouches].find(x=>x.identifier===d.touchId)||[...e.touches].find(x=>x.identifier===d.touchId);
+      if(!t)return;
+      moveCatalogDrag(t.clientX,t.clientY,null,d.touchId,e);
+    };
+    card.ontouchend=e=>{
+      const d=closetDrag;if(d.touchId==null)return;
+      const t=[...e.changedTouches].find(x=>x.identifier===d.touchId);
+      if(t)finishCatalogDrag(null,d.touchId,false,e);
+    };
+    card.ontouchcancel=e=>{
+      const d=closetDrag;if(d.touchId==null)return;
+      finishCatalogDrag(null,d.touchId,true,e);
+    };
     card.oncontextmenu=e=>{if(closetDrag.active||closetDrag.timer)e.preventDefault()};
   });
 }
-function startCatalogDrag(pointerId){
-  const d=closetDrag;if(!d.card||d.pointerId!==pointerId)return;
+function beginCatalogPress(card,activeCategory,pointerId,x,y,touchId){
+  clearTimeout(closetDrag.timer);cleanupCatalogGhost();
+  closetDrag={timer:null,pointerId,touchId,startX:x,startY:y,x,y,card,category:activeCategory||'',active:false,moved:false,ghost:null};
+  closetDrag.timer=setTimeout(()=>startCatalogDrag(),430);
+}
+function startCatalogDrag(){
+  const d=closetDrag;if(!d.card)return;
   if(!d.category){d.timer=null;toast('Choose a clothing category first, then press & hold to reorder.');return}
-  d.active=true;d.timer=null;d.card.classList.add('closet-dragging');d.card.setPointerCapture?.(pointerId);navigator.vibrate?.(18);suppressCatalogClickUntil=Date.now()+700;
+  d.active=true;d.timer=null;suppressCatalogClickUntil=Date.now()+900;
+  const rect=d.card.getBoundingClientRect();
+  const ghost=d.card.cloneNode(true);ghost.classList.add('closet-drag-ghost');ghost.removeAttribute('data-id');
+  Object.assign(ghost.style,{position:'fixed',left:rect.left+'px',top:rect.top+'px',width:rect.width+'px',height:rect.height+'px',margin:'0',pointerEvents:'none',zIndex:'5000'});
+  document.body.appendChild(ghost);d.ghost=ghost;d.ghostOffsetX=d.x-rect.left;d.ghostOffsetY=d.y-rect.top;
+  d.card.classList.add('closet-drag-placeholder');document.body.classList.add('closet-reordering');
+  navigator.vibrate?.(18);positionCatalogGhost(d.x,d.y);
 }
-function handleCatalogPointerMove(e){
-  const d=closetDrag;if(!d.card||e.pointerId!==d.pointerId)return;
-  const dx=e.clientX-d.startX,dy=e.clientY-d.startY;
-  if(!d.active){if(Math.hypot(dx,dy)>9){clearTimeout(d.timer);d.timer=null}return}
-  e.preventDefault();d.moved=true;
-  const target=document.elementFromPoint(e.clientX,e.clientY)?.closest?.('.item-card');
-  if(!target||target===d.card||target.parentElement!==d.card.parentElement)return;
-  const dragged=state.items.find(i=>i.id===d.card.dataset.id),hover=state.items.find(i=>i.id===target.dataset.id);if(!dragged||!hover||dragged.category!==d.category||hover.category!==d.category)return;
-  const rect=target.getBoundingClientRect(),before=(e.clientY<rect.top+rect.height/2)||(Math.abs(e.clientY-(rect.top+rect.height/2))<rect.height*.22&&e.clientX<rect.left+rect.width/2);
-  target.parentElement.insertBefore(d.card,before?target:target.nextSibling);
+function positionCatalogGhost(x,y){
+  const d=closetDrag;if(!d.ghost)return;
+  d.ghost.style.left=(x-(d.ghostOffsetX||0))+'px';d.ghost.style.top=(y-(d.ghostOffsetY||0))+'px';
 }
-async function finishCatalogDrag(e,canceled=false){
-  const d=closetDrag;if(!d.card||e.pointerId!==d.pointerId)return;clearTimeout(d.timer);
-  if(d.active){e.preventDefault();d.card.classList.remove('closet-dragging');try{d.card.releasePointerCapture?.(e.pointerId)}catch{};suppressCatalogClickUntil=Date.now()+500;
-    if(!canceled){const visible=[...$('#catalogGrid').querySelectorAll('.item-card')].map(c=>c.dataset.id);const old=state.settings.closetOrder[d.category]||[];const visibleSet=new Set(visible);let vi=0;state.settings.closetOrder[d.category]=old.map(id=>visibleSet.has(id)?visible[vi++]:id);while(vi<visible.length)state.settings.closetOrder[d.category].push(visible[vi++]);await saveState();toast('Closet order saved')}
+function moveCatalogDrag(x,y,pointerId,touchId,e){
+  const d=closetDrag;if(!d.card)return;
+  if(pointerId!=null&&d.pointerId!==pointerId)return;
+  if(touchId!=null&&d.touchId!==touchId)return;
+  d.x=x;d.y=y;
+  const dx=x-d.startX,dy=y-d.startY;
+  if(!d.active){
+    // Allow ordinary closet scrolling. A small amount of finger wobble is okay;
+    // a real scroll cancels the long-press timer.
+    if(Math.hypot(dx,dy)>14){clearTimeout(d.timer);d.timer=null}
+    return;
   }
-  closetDrag={timer:null,pointerId:null,startX:0,startY:0,card:null,category:'',active:false,moved:false};
+  if(e?.cancelable)e.preventDefault();
+  d.moved=true;positionCatalogGhost(x,y);repositionCatalogPlaceholder(x,y);
+}
+function repositionCatalogPlaceholder(x,y){
+  const d=closetDrag,grid=$('#catalogGrid');if(!d.card||!grid)return;
+  const others=[...grid.querySelectorAll('.item-card')].filter(c=>c!==d.card);
+  if(!others.length)return;
+  let target=null,best=Infinity;
+  for(const c of others){
+    const r=c.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;
+    const dist=Math.hypot(x-cx,y-cy);
+    if(dist<best){best=dist;target=c}
+  }
+  if(!target)return;
+  const r=target.getBoundingClientRect(),sameRow=y>=r.top&&y<=r.bottom;
+  const before=sameRow ? x<(r.left+r.width/2) : y<(r.top+r.height/2);
+  const parent=target.parentElement;
+  if(before)parent.insertBefore(d.card,target);else parent.insertBefore(d.card,target.nextSibling);
+}
+function cleanupCatalogGhost(){
+  if(closetDrag?.ghost){try{closetDrag.ghost.remove()}catch{}}
+  document.body.classList.remove('closet-reordering');
+}
+async function finishCatalogDrag(pointerId,touchId,canceled=false,e){
+  const d=closetDrag;if(!d.card)return;
+  if(pointerId!=null&&d.pointerId!==pointerId)return;
+  if(touchId!=null&&d.touchId!==touchId)return;
+  clearTimeout(d.timer);
+  if(d.active){
+    if(e?.cancelable)e.preventDefault();
+    d.card.classList.remove('closet-drag-placeholder');cleanupCatalogGhost();suppressCatalogClickUntil=Date.now()+650;
+    if(!canceled){
+      const visible=[...$('#catalogGrid').querySelectorAll('.item-card')].map(c=>c.dataset.id);
+      const old=state.settings.closetOrder[d.category]||[];
+      const visibleSet=new Set(visible);let vi=0;
+      state.settings.closetOrder[d.category]=old.map(id=>visibleSet.has(id)?visible[vi++]:id);
+      while(vi<visible.length)state.settings.closetOrder[d.category].push(visible[vi++]);
+      state.settings.closetOrder[d.category]=[...new Set(state.settings.closetOrder[d.category])];
+      await saveState();renderCatalog();toast('Closet order saved');
+    }else renderCatalog();
+  }
+  cleanupCatalogGhost();
+  closetDrag={timer:null,pointerId:null,touchId:null,startX:0,startY:0,x:0,y:0,card:null,category:'',active:false,moved:false,ghost:null};
 }
 
 function itemCard(i){return`<article class="item-card" data-id="${i.id}"><div class="thumb">${i.photo?`<img src="${i.photo}" alt="${esc(i.type||i.category)}">`:`<div class="hanger">⌇</div>`}<span class="count-badge">${i.wears||0} wears</span></div><div class="card-body"><h4>${esc(i.type||i.category)}</h4><p>${i.color?`<span class="swatch" style="background:${colorHex(i.color)}"></span>${esc(i.color)} · `:''}${esc(i.brand||'No brand')}</p><p>${esc(i.size||'Size —')} · ${esc(i.pattern||'Solid')}</p></div></article>`}

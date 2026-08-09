@@ -17,3 +17,6 @@ This is a bug-fix/refinement release. It uses the same IndexedDB database as v12
 
 ### v12.4
 Closet preference ordering and iPhone form-zoom stabilization. Uses the existing IndexedDB database and settings object; no destructive migration is required.
+
+### v12.5
+Closet drag-and-drop reliability update for iPhone. No database migration is required; the existing `settings.closetOrder` preference data is reused. The service-worker cache is bumped to v12.5.
