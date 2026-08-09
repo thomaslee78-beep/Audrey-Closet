@@ -105,3 +105,11 @@ body.closet-reordering{touch-action:none}
 @keyframes closetSlotPulse{from{border-color:rgba(77,142,138,.55);background:rgba(77,142,138,.07)}to{border-color:rgba(77,142,138,.95);background:rgba(77,142,138,.14)}}
 
 body.closet-reordering{overflow-x:hidden!important;overflow-y:auto!important}
+
+
+/* v12.7 — usability polish */
+.board-remove-handle{display:none;position:absolute;right:-12px;top:-12px;width:31px;height:31px;border-radius:50%;border:2px solid #fffaf0;background:var(--burgundy);color:#fff;font-size:20px;line-height:1;align-items:center;justify-content:center;box-shadow:0 2px 7px rgba(0,0,0,.18);touch-action:none;z-index:5;padding:0}
+.board-piece.selected .board-remove-handle{display:flex}
+#itemDialog .form-grid label,#itemDialog .full-label{font-weight:600;color:#665e55;letter-spacing:0}
+#itemDialog .form-grid input,#itemDialog .form-grid select,#itemDialog .full-label textarea{font-weight:400;color:#3f3a34;background:#fffdf8}
+#itemDialog .form-grid select{font-family:var(--sans)}
