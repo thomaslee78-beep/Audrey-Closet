@@ -178,18 +178,15 @@
 
   <dialog id="itemDialog" class="sheet-dialog">
     <form method="dialog" id="itemForm">
-      <div class="sheet-head"><div><p class="script">closet piece</p><h2 id="itemDialogTitle">Add a piece</h2></div><button value="cancel" class="close-btn">×</button></div>
+      <div class="sheet-head"><div><p class="script">closet piece</p><h2 id="itemDialogTitle">Add a piece</h2></div><button type="button" id="closeItemDialogBtn" class="close-btn" aria-label="Close">×</button></div>
       <input type="hidden" id="itemId" />
-      <div class="photo-capture">
-        <div class="photo-preview-wrap"><img id="itemPhotoPreview" alt="Item preview" /><div class="photo-placeholder" id="photoPlaceholder">photo</div></div>
-        <div class="photo-actions">
-          <label class="primary file-label">Take photo<input type="file" id="itemPhoto" accept="image/*" capture="environment" /></label>
-          <button type="button" class="soft-btn" id="photoStudioBtn">✂ Photo Studio</button>
-          <button type="button" class="soft-btn hidden" id="restoreOriginalPhotoBtn">↶ Original photo</button>
-          <button type="button" class="soft-btn" id="removeBgBtn">Quick photo cleanup</button>
-          <button type="button" class="soft-btn" id="smartScanBtn">Smart scan</button>
-          <div class="scan-status" id="scanStatus"></div>
-        </div>
+      <div id="itemReviewSummary" class="item-review-summary hidden">
+        <p class="item-review-kicker">closet card</p>
+        <h3 id="itemReviewTitle">Clothing item</h3>
+        <p id="itemReviewMeta">Type · Color · Brand</p>
+      </div>
+      <div class="item-photo-stage">
+        <div class="photo-preview-wrap item-photo-large"><img id="itemPhotoPreview" alt="Item preview" /><div class="photo-placeholder" id="photoPlaceholder">photo</div></div>
       </div>
       <div class="form-grid">
         <label>Category<select id="itemCategory" required></select></label>
@@ -202,7 +199,18 @@
         <label>Season<select id="itemSeason"><option>All-season</option><option>Winter</option><option>Spring</option><option>Summer</option><option>Fall</option></select></label>
       </div>
       <label class="full-label">Notes<textarea id="itemNotes" placeholder="Fit, styling notes, sentimental story…"></textarea></label>
-      <div class="sheet-actions"><button value="cancel" class="soft-btn">Cancel</button><button type="button" class="danger-text hidden" id="deleteItemBtn">Delete</button><button type="submit" value="default" class="primary" id="saveItemBtn">Save piece</button></div>
+      <section class="photo-edit-panel" aria-label="Photo tools">
+        <div class="photo-edit-heading"><strong>Photo tools</strong><span>Optional — edits are only kept when you tap Save piece.</span></div>
+        <div class="photo-actions photo-actions-bottom">
+          <label class="primary file-label">Take new photo<input type="file" id="itemPhoto" accept="image/*" capture="environment" /></label>
+          <button type="button" class="soft-btn" id="photoStudioBtn">✂ Photo Studio</button>
+          <button type="button" class="soft-btn hidden" id="restoreOriginalPhotoBtn">↶ Original photo</button>
+          <button type="button" class="soft-btn" id="removeBgBtn">Quick photo cleanup</button>
+          <button type="button" class="soft-btn" id="smartScanBtn">Smart scan</button>
+        </div>
+        <div class="scan-status" id="scanStatus"></div>
+      </section>
+      <div class="sheet-actions"><button type="button" id="cancelItemBtn" class="soft-btn">Cancel</button><button type="button" class="danger-text hidden" id="deleteItemBtn">Delete</button><button type="submit" value="default" class="primary" id="saveItemBtn">Save piece</button></div>
     </form>
   </dialog>
 

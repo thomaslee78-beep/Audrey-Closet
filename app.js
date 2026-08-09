@@ -108,7 +108,7 @@ function fillSelects(){
   $('#itemColor').innerHTML=colorOpts;$('#wishColor').innerHTML=colorOpts;
   $('#filterColor').innerHTML='<option value="">All colors</option>'+COLORS.map(c=>`<option>${c}</option>`).join('');
   populateTypeOptions('Tops');populateSizeOptions('Tops');
-  $('#itemCategory').addEventListener('change',()=>{populateTypeOptions($('#itemCategory').value);populateSizeOptions($('#itemCategory').value)});
+  $('#itemCategory').addEventListener('change',()=>{populateTypeOptions($('#itemCategory').value);populateSizeOptions($('#itemCategory').value);updateItemReviewSummary()});
 }
 function populateTypeOptions(category,selected=''){const opts=[...(TYPES[category]||['Other'])];if(selected&&!opts.includes(selected))opts.unshift(selected);$('#itemType').innerHTML=opts.map(v=>`<option${v===selected?' selected':''}>${esc(v)}</option>`).join('')}
 function sizesForCategory(category){if(category==='Shoes')return [...SHOE_SIZES];if(category==='Accessories')return [...ACCESSORY_SIZES];if(category==='Bottoms')return [...BOTTOM_SIZES];return [...CLOTHING_SIZES]}
@@ -128,6 +128,10 @@ function bindDialogs(){
   $('#restoreOriginalPhotoBtn').onclick=()=>restoreCapturedOriginal(false);
   $('#smartScanBtn').onclick=smartScan;
   $('#itemForm').onsubmit=e=>{e.preventDefault();saveItem()};
+  $('#cancelItemBtn').onclick=closeItemWithoutSaving;
+  $('#closeItemDialogBtn').onclick=closeItemWithoutSaving;
+  $('#itemDialog').addEventListener('cancel',e=>{e.preventDefault();closeItemWithoutSaving()});
+  ['itemCategory','itemType','itemBrand','itemColor'].forEach(id=>$('#'+id).addEventListener('input',updateItemReviewSummary));
   $('#deleteItemBtn').onclick=deleteItem;
   $('#wishPhoto').onchange=async e=>{const f=e.target.files[0];if(!f)return;wishWorkingPhoto=await fileToDataURL(f,900,.74);showPhoto('#wishPhotoPreview','#wishPhotoPlaceholder',wishWorkingPhoto)};
   $('#wishForm').onsubmit=e=>{e.preventDefault();saveWish()};
@@ -136,8 +140,20 @@ function bindDialogs(){
   $('#deleteOutfitBtn').onclick=deleteOutfit;$('#favoriteViewedOutfitBtn').onclick=favoriteViewedOutfit;$('#editViewedOutfitBtn').onclick=editViewedOutfit;$('#shareViewedOutfitBtn').onclick=shareViewedOutfit;
 }
 function openItem(item=null){
-  $('#itemDialogTitle').textContent=item?'Edit piece':'Add a piece';$('#itemId').value=item?.id||'';itemWorkingPhoto=item?.photo||'';itemOriginalPhoto=item?.originalPhoto||item?.photo||'';
-  showPhoto('#itemPhotoPreview','#photoPlaceholder',itemWorkingPhoto);updateOriginalPhotoButton();const category=item?.category||'Tops';$('#itemCategory').value=category;populateTypeOptions(category,item?.type||'');populateSizeOptions(category,item?.size||'');$('#itemBrand').value=item?.brand||'';$('#itemColor').value=item?.color||'';$('#itemPattern').value=item?.pattern||'Solid';$('#itemAcquired').value=item?.acquired||'Bought new';$('#itemSeason').value=item?.season||'All-season';$('#itemNotes').value=item?.notes||'';$('#scanStatus').textContent='';$('#deleteItemBtn').classList.toggle('hidden',!item);$('#itemPhoto').value='';$('#itemDialog').showModal();
+  const isEdit=!!item;
+  $('#itemDialog').classList.toggle('editing-existing',isEdit);
+  $('#itemDialogTitle').textContent=isEdit?'Review piece':'Add a piece';$('#itemId').value=item?.id||'';itemWorkingPhoto=item?.photo||'';itemOriginalPhoto=item?.originalPhoto||item?.photo||'';
+  showPhoto('#itemPhotoPreview','#photoPlaceholder',itemWorkingPhoto);updateOriginalPhotoButton();const category=item?.category||'Tops';$('#itemCategory').value=category;populateTypeOptions(category,item?.type||'');populateSizeOptions(category,item?.size||'');$('#itemBrand').value=item?.brand||'';$('#itemColor').value=item?.color||'';$('#itemPattern').value=item?.pattern||'Solid';$('#itemAcquired').value=item?.acquired||'Bought new';$('#itemSeason').value=item?.season||'All-season';$('#itemNotes').value=item?.notes||'';$('#scanStatus').textContent='';$('#deleteItemBtn').classList.toggle('hidden',!item);$('#itemPhoto').value='';
+  $('#itemReviewSummary').classList.toggle('hidden',!isEdit);updateItemReviewSummary();$('#itemDialog').showModal();
+}
+function closeItemWithoutSaving(){
+  // Form fields and photo edits are working copies only. Closing never mutates state.
+  itemWorkingPhoto='';itemOriginalPhoto='';$('#itemPhoto').value='';$('#scanStatus').textContent='';$('#itemDialog').close('cancel');
+}
+function updateItemReviewSummary(){
+  const isEdit=!!$('#itemId').value;$('#itemReviewSummary').classList.toggle('hidden',!isEdit);if(!isEdit)return;
+  const type=$('#itemType').value||$('#itemCategory').value||'Clothing item',color=$('#itemColor').value||'Color not set',brand=$('#itemBrand').value.trim()||'No brand';
+  $('#itemReviewTitle').textContent=type;$('#itemReviewMeta').innerHTML=`<span class="swatch" style="background:${colorHex(color)}"></span>${esc(color)} · ${esc(brand)}`;
 }
 async function saveItem(){
   const iid=$('#itemId').value;const old=state.items.find(x=>x.id===iid);const obj={id:iid||id(),photo:itemWorkingPhoto,originalPhoto:itemOriginalPhoto||itemWorkingPhoto,category:$('#itemCategory').value,type:$('#itemType').value,brand:$('#itemBrand').value.trim(),size:$('#itemSize').value,color:$('#itemColor').value,pattern:$('#itemPattern').value,acquired:$('#itemAcquired').value,season:$('#itemSeason').value,notes:$('#itemNotes').value.trim(),created:old?.created||Date.now(),wears:old?.wears||0};
@@ -451,8 +467,8 @@ async function removeAdvancedBackground(dataURL,edge=45){
   for(let p=0;p<w*h;p++)d[p*4+3]=alpha[p];ctx.putImageData(im,0,0);return c.toDataURL('image/png')
 }
 
-async function smartScan(){if(!itemWorkingPhoto)return toast('Take or choose a photo first');$('#scanStatus').textContent='Scanning color, pattern and visible text…';const visual=await analyzeImage(itemWorkingPhoto);applyVisualScan(visual);let text='';try{text=await tryOCR(itemWorkingPhoto)}catch{}if(text){const t=text.replace(/\n/g,' ');const brands=['Nike','Adidas','Lacoste','Gap','Old Navy','Zara','H&M','Uniqlo','Levi','Levi\'s','Converse','Vans','Champion','Aritzia','Brandy Melville','Hollister','Abercrombie','American Eagle','Puma','New Balance','Patagonia','North Face'];const brand=brands.find(b=>new RegExp(`\\b${b.replace("'","\\'")}\\b`,'i').test(t));if(brand&&!$('#itemBrand').value)$('#itemBrand').value=brand;const sm=t.match(/\b(XXS|XS|S|M|L|XL|XXL|[0-9]{1,2}(?:\.[05])?)\b/i);if(sm&&!$('#itemSize').value)$('#itemSize').value=sm[1].toUpperCase();$('#scanStatus').textContent=`Detected ${visual.color}${brand?' · '+brand:''}${sm?' · size '+sm[1]:''}. Please verify.`}else $('#scanStatus').textContent=`Detected ${visual.color} · ${visual.pattern}. Brand/size text wasn't readable; please verify fields.`}
-function applyVisualScan(scan){if(!$('#itemColor').value)$('#itemColor').value=scan.color;if($('#itemPattern').value==='Solid')$('#itemPattern').value=scan.pattern;$('#scanStatus').textContent=`Photo scan: ${scan.color} · ${scan.pattern}. Please verify.`}
+async function smartScan(){if(!itemWorkingPhoto)return toast('Take or choose a photo first');$('#scanStatus').textContent='Scanning color, pattern and visible text…';const visual=await analyzeImage(itemWorkingPhoto);applyVisualScan(visual);let text='';try{text=await tryOCR(itemWorkingPhoto)}catch{}if(text){const t=text.replace(/\n/g,' ');const brands=['Nike','Adidas','Lacoste','Gap','Old Navy','Zara','H&M','Uniqlo','Levi','Levi\'s','Converse','Vans','Champion','Aritzia','Brandy Melville','Hollister','Abercrombie','American Eagle','Puma','New Balance','Patagonia','North Face'];const brand=brands.find(b=>new RegExp(`\\b${b.replace("'","\\'")}\\b`,'i').test(t));if(brand&&!$('#itemBrand').value)$('#itemBrand').value=brand;const sm=t.match(/\b(XXS|XS|S|M|L|XL|XXL|[0-9]{1,2}(?:\.[05])?)\b/i);if(sm&&!$('#itemSize').value)$('#itemSize').value=sm[1].toUpperCase();$('#scanStatus').textContent=`Detected ${visual.color}${brand?' · '+brand:''}${sm?' · size '+sm[1]:''}. Please verify.`}else $('#scanStatus').textContent=`Detected ${visual.color} · ${visual.pattern}. Brand/size text wasn't readable; please verify fields.`;updateItemReviewSummary()}
+function applyVisualScan(scan){if(!$('#itemColor').value)$('#itemColor').value=scan.color;if($('#itemPattern').value==='Solid')$('#itemPattern').value=scan.pattern;$('#scanStatus').textContent=`Photo scan: ${scan.color} · ${scan.pattern}. Please verify.`;updateItemReviewSummary()}
 async function tryOCR(dataURL){if(!navigator.onLine)return'';if(!window.Tesseract){await new Promise((res,rej)=>{const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';s.onload=res;s.onerror=rej;document.head.appendChild(s)})}const r=await Tesseract.recognize(dataURL,'eng',{logger:()=>{}});return r?.data?.text||''}
 async function analyzeImage(dataURL){const img=await imageFrom(dataURL);const c=document.createElement('canvas'),size=96;c.width=c.height=size;const ctx=c.getContext('2d');ctx.drawImage(img,0,0,size,size);const d=ctx.getImageData(0,0,size,size).data;let rs=0,gs=0,bs=0,n=0,lum=[],sat=[];for(let i=0;i<d.length;i+=4){if(d[i+3]<80)continue;const r=d[i],g=d[i+1],b=d[i+2];if(r>245&&g>245&&b>245)continue;rs+=r;gs+=g;bs+=b;n++;const mx=Math.max(r,g,b),mn=Math.min(r,g,b);lum.push((r+g+b)/3);sat.push(mx-mn)}if(!n)return{color:'Multicolor',pattern:'Solid'};const r=rs/n,g=gs/n,b=bs/n;color=nearestColor(r,g,b);const mean=lum.reduce((a,x)=>a+x,0)/lum.length,variance=lum.reduce((a,x)=>a+(x-mean)**2,0)/lum.length,avgSat=sat.reduce((a,x)=>a+x,0)/sat.length;let pattern='Solid';if(variance>2200&&avgSat>45)pattern='Floral/Print';else if(variance>1500)pattern='Graphic';return{color,pattern}}
 function nearestColor(r,g,b){const palette={Black:[35,35,35],White:[242,240,234],Cream:[235,222,190],Gray:[135,135,130],Brown:[117,82,60],Coffee:[108,81,66],Tan:[177,145,105],Beige:[211,192,157],Burgundy:[125,53,71],Red:[178,63,61],Orange:[209,120,53],Yellow:[220,190,65],Mustard:[195,160,75],Olive:[102,113,90],Green:[67,117,70],Mint:[151,196,166],Turquoise:[77,142,138],Blue:[78,117,164],Navy:[50,65,92],Purple:[116,88,139],Pink:[196,107,132]};let best='Multicolor',dist=1e9;for(const[k,v]of Object.entries(palette)){const d=(r-v[0])**2+(g-v[1])**2+(b-v[2])**2;if(d<dist){dist=d;best=k}}return best}

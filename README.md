@@ -16,3 +16,9 @@ Existing IndexedDB data remains compatible with prior releases.
 
 ## GitHub Pages
 Upload all files in this folder to the root of the existing GitHub Pages repository. Keep the same repository/URL to preserve device-local data.
+
+## v12.1 stability update
+- Stabilizes the iPhone/PWA bottom navigation bar during long Closet and Board scrolling.
+- Cancel/close on the closet item editor now discards all unsaved field and photo edits; only **Save piece** writes changes.
+- Existing-item review now shows a larger image and a quick identity header (type, color, brand).
+- Photo tools have moved below the item attributes/notes to keep review focused on the garment.

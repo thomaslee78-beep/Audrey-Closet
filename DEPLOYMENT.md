@@ -11,3 +11,6 @@ Recommended GitHub Pages setup:
 The `.nojekyll` file is included so GitHub Pages serves the static files directly without Jekyll processing.
 
 A Node.js deprecation warning shown by the GitHub-generated Pages workflow is about GitHub Actions runtime dependencies, not this app; this app contains no Node package and no npm dependencies.
+
+### v12.1
+This is a bug-fix/refinement release. It uses the same IndexedDB database as v12 and does not intentionally migrate or erase closet data. After GitHub Pages deploys, refresh the Pages URL in Safari once, then close/reopen the Home Screen app.
