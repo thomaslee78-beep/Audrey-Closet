@@ -32,3 +32,9 @@ Upload all files in this folder to the root of the existing GitHub Pages reposit
 - Reworked touch reordering for iPhone/iOS instead of relying on pointer events with `touch-action: pan-y`.
 - Long-press now creates a floating visual card, leaves a placeholder, and moves that placeholder live as you drag.
 - The final visual order is persisted immediately and the Closet rerenders from that saved preference order.
+
+
+## v12.6 closet reorder polish
+- Prevents iOS from popping/copy-dragging the garment image itself.
+- Uses a stable highlighted drop slot instead of moving the full catalog card during drag.
+- Improves first-left-slot snapping, throttles touch layout updates, adds smooth card reflow animation, and auto-scrolls near screen edges.

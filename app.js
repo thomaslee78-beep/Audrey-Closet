@@ -51,7 +51,7 @@ let activeDoodle=null;
 let pendingShareBlob=null;
 let pendingShareUrl='';
 let pendingShareFileName='outfit.jpg';
-let closetDrag={timer:null,pointerId:null,touchId:null,startX:0,startY:0,x:0,y:0,card:null,category:'',active:false,moved:false,ghost:null};
+let closetDrag={timer:null,pointerId:null,touchId:null,startX:0,startY:0,x:0,y:0,card:null,category:'',active:false,moved:false,ghost:null,placeholder:null,lastPlacement:'',raf:null};
 let suppressCatalogClickUntil=0;
 
 function emptyState(){return {items:[],outfits:[],journal:[],wishlist:[],settings:{appName:DEFAULT_APP_NAME,portfolioFolders:[...DEFAULT_PORTFOLIO_FOLDERS],boardRecent:{closet:[],wishlist:[]}}}}
@@ -254,6 +254,9 @@ function renderCatalog(){
 function bindCatalogReorder(activeCategory){
   const grid=$('#catalogGrid');if(!grid)return;
   grid.querySelectorAll('.item-card').forEach(card=>{
+    // Never let iOS/Safari treat the garment image itself as a draggable/copyable image.
+    card.draggable=false;
+    card.querySelectorAll('img').forEach(img=>{img.draggable=false;img.ondragstart=e=>e.preventDefault()});
     // Mouse / trackpad path. Touch gets its own non-passive handlers below so iOS
     // can hand control to us after a deliberate long press.
     card.onpointerdown=e=>{
@@ -289,7 +292,7 @@ function bindCatalogReorder(activeCategory){
 }
 function beginCatalogPress(card,activeCategory,pointerId,x,y,touchId){
   clearTimeout(closetDrag.timer);cleanupCatalogGhost();
-  closetDrag={timer:null,pointerId,touchId,startX:x,startY:y,x,y,card,category:activeCategory||'',active:false,moved:false,ghost:null};
+  closetDrag={timer:null,pointerId,touchId,startX:x,startY:y,x,y,card,category:activeCategory||'',active:false,moved:false,ghost:null,placeholder:null,lastPlacement:'',raf:null};
   closetDrag.timer=setTimeout(()=>startCatalogDrag(),430);
 }
 function startCatalogDrag(){
@@ -297,15 +300,29 @@ function startCatalogDrag(){
   if(!d.category){d.timer=null;toast('Choose a clothing category first, then press & hold to reorder.');return}
   d.active=true;d.timer=null;suppressCatalogClickUntil=Date.now()+900;
   const rect=d.card.getBoundingClientRect();
-  const ghost=d.card.cloneNode(true);ghost.classList.add('closet-drag-ghost');ghost.removeAttribute('data-id');
-  Object.assign(ghost.style,{position:'fixed',left:rect.left+'px',top:rect.top+'px',width:rect.width+'px',height:rect.height+'px',margin:'0',pointerEvents:'none',zIndex:'5000'});
+
+  // Keep a real grid slot in the layout and hide the original card. Moving only this
+  // lightweight placeholder avoids the flashing/repainting caused by moving the full card.
+  const slot=document.createElement('article');
+  slot.className='item-card closet-drop-slot';
+  slot.setAttribute('aria-hidden','true');
+  slot.style.height=rect.height+'px';
+  d.card.parentElement.insertBefore(slot,d.card);
+  d.placeholder=slot;
+  d.card.style.display='none';
+
+  const ghost=d.card.cloneNode(true);ghost.classList.add('closet-drag-ghost');ghost.removeAttribute('data-id');ghost.removeAttribute('style');
+  ghost.querySelectorAll('img').forEach(img=>{img.draggable=false});
+  Object.assign(ghost.style,{position:'fixed',left:'0',top:'0',width:rect.width+'px',height:rect.height+'px',margin:'0',pointerEvents:'none',zIndex:'5000',willChange:'transform'});
   document.body.appendChild(ghost);d.ghost=ghost;d.ghostOffsetX=d.x-rect.left;d.ghostOffsetY=d.y-rect.top;
-  d.card.classList.add('closet-drag-placeholder');document.body.classList.add('closet-reordering');
+  document.body.classList.add('closet-reordering');$('#catalogGrid')?.classList.add('closet-grid-reordering');
   navigator.vibrate?.(18);positionCatalogGhost(d.x,d.y);
+  toast('Reorder mode — drag to the highlighted slot');
 }
 function positionCatalogGhost(x,y){
   const d=closetDrag;if(!d.ghost)return;
-  d.ghost.style.left=(x-(d.ghostOffsetX||0))+'px';d.ghost.style.top=(y-(d.ghostOffsetY||0))+'px';
+  const left=x-(d.ghostOffsetX||0),top=y-(d.ghostOffsetY||0);
+  d.ghost.style.transform=`translate3d(${left}px,${top}px,0) scale(1.025)`;
 }
 function moveCatalogDrag(x,y,pointerId,touchId,e){
   const d=closetDrag;if(!d.card)return;
@@ -314,32 +331,72 @@ function moveCatalogDrag(x,y,pointerId,touchId,e){
   d.x=x;d.y=y;
   const dx=x-d.startX,dy=y-d.startY;
   if(!d.active){
-    // Allow ordinary closet scrolling. A small amount of finger wobble is okay;
-    // a real scroll cancels the long-press timer.
+    // Ordinary scrolling wins if the finger moves before the long press fires.
     if(Math.hypot(dx,dy)>14){clearTimeout(d.timer);d.timer=null}
     return;
   }
   if(e?.cancelable)e.preventDefault();
-  d.moved=true;positionCatalogGhost(x,y);repositionCatalogPlaceholder(x,y);
+  d.moved=true;positionCatalogGhost(x,y);
+  // Throttle layout work to one update per animation frame for smoother iPhone dragging.
+  d.pendingX=x;d.pendingY=y;
+  if(!d.raf)d.raf=requestAnimationFrame(()=>{d.raf=null;autoScrollCatalogDrag(d.pendingY);repositionCatalogPlaceholder(d.pendingX,d.pendingY)});
+}
+function autoScrollCatalogDrag(y){
+  const edge=105,speed=12;
+  if(y<edge)window.scrollBy(0,-speed);
+  else if(y>window.innerHeight-edge)window.scrollBy(0,speed);
+}
+function animateCatalogReflow(before){
+  if(!before||!Element.prototype.animate)return;
+  [...$('#catalogGrid').querySelectorAll('.item-card[data-id]')].forEach(el=>{
+    if(el.style.display==='none')return;
+    const old=before.get(el);if(!old)return;
+    const now=el.getBoundingClientRect(),dx=old.left-now.left,dy=old.top-now.top;
+    if(Math.abs(dx)>1||Math.abs(dy)>1)el.animate([{transform:`translate3d(${dx}px,${dy}px,0)`},{transform:'translate3d(0,0,0)'}],{duration:150,easing:'cubic-bezier(.2,.8,.2,1)'});
+  });
+}
+function moveCatalogSlot(target,beforeTarget,placementKey){
+  const d=closetDrag,grid=$('#catalogGrid');if(!d.placeholder||!grid||d.lastPlacement===placementKey)return;
+  const rects=new Map([...grid.querySelectorAll('.item-card[data-id]')].filter(el=>el.style.display!=='none').map(el=>[el,el.getBoundingClientRect()]));
+  if(target){
+    if(beforeTarget)grid.insertBefore(d.placeholder,target);
+    else grid.insertBefore(d.placeholder,target.nextSibling);
+  }else grid.appendChild(d.placeholder);
+  d.lastPlacement=placementKey;
+  animateCatalogReflow(rects);
 }
 function repositionCatalogPlaceholder(x,y){
-  const d=closetDrag,grid=$('#catalogGrid');if(!d.card||!grid)return;
-  const others=[...grid.querySelectorAll('.item-card')].filter(c=>c!==d.card);
-  if(!others.length)return;
-  let target=null,best=Infinity;
-  for(const c of others){
-    const r=c.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;
-    const dist=Math.hypot(x-cx,y-cy);
-    if(dist<best){best=dist;target=c}
+  const d=closetDrag,grid=$('#catalogGrid');if(!d.placeholder||!grid)return;
+  const cards=[...grid.querySelectorAll('.item-card[data-id]')].filter(c=>c!==d.card&&c.style.display!=='none');
+  if(!cards.length)return;
+
+  // Prefer the card actually under the finger. Using the whole card as a snap target
+  // makes the first/left slot easy to hit instead of requiring a tiny edge gesture.
+  let target=document.elementFromPoint(x,y)?.closest?.('.item-card[data-id]');
+  if(target===d.card||!cards.includes(target))target=null;
+  if(target){
+    const r=target.getBoundingClientRect();
+    // Most of a card snaps BEFORE it; only its far-right/lower edge means "after".
+    // This feels like replacing a slot and fixes the difficult first-left position.
+    const horizontal=Math.abs(y-(r.top+r.height/2))<=r.height*.6;
+    const before=horizontal ? x<r.left+r.width*.72 : y<r.top+r.height*.72;
+    moveCatalogSlot(target,before,`${target.dataset.id}:${before?'b':'a'}`);return;
   }
-  if(!target)return;
-  const r=target.getBoundingClientRect(),sameRow=y>=r.top&&y<=r.bottom;
-  const before=sameRow ? x<(r.left+r.width/2) : y<(r.top+r.height/2);
-  const parent=target.parentElement;
-  if(before)parent.insertBefore(d.card,target);else parent.insertBefore(d.card,target.nextSibling);
+
+  // Outside a card: choose the closest card, with explicit top/bottom handling.
+  const first=cards[0],last=cards[cards.length-1],fr=first.getBoundingClientRect(),lr=last.getBoundingClientRect();
+  if(y<fr.top){moveCatalogSlot(first,true,`${first.dataset.id}:b`);return}
+  if(y>lr.bottom){moveCatalogSlot(null,false,'end');return}
+  let nearest=cards[0],best=Infinity;
+  for(const c of cards){const r=c.getBoundingClientRect(),dist=Math.hypot(x-(r.left+r.width/2),y-(r.top+r.height/2));if(dist<best){best=dist;nearest=c}}
+  const r=nearest.getBoundingClientRect(),before=x<r.left+r.width*.72;
+  moveCatalogSlot(nearest,before,`${nearest.dataset.id}:${before?'b':'a'}`);
 }
 function cleanupCatalogGhost(){
-  if(closetDrag?.ghost){try{closetDrag.ghost.remove()}catch{}}
+  const d=closetDrag;
+  if(d?.raf){cancelAnimationFrame(d.raf);d.raf=null}
+  if(d?.ghost){try{d.ghost.remove()}catch{}}
+  $('#catalogGrid')?.classList.remove('closet-grid-reordering');
   document.body.classList.remove('closet-reordering');
 }
 async function finishCatalogDrag(pointerId,touchId,canceled=false,e){
@@ -349,9 +406,15 @@ async function finishCatalogDrag(pointerId,touchId,canceled=false,e){
   clearTimeout(d.timer);
   if(d.active){
     if(e?.cancelable)e.preventDefault();
-    d.card.classList.remove('closet-drag-placeholder');cleanupCatalogGhost();suppressCatalogClickUntil=Date.now()+650;
+    suppressCatalogClickUntil=Date.now()+650;
+    const grid=$('#catalogGrid');
+    if(d.placeholder&&grid){
+      if(!canceled)grid.insertBefore(d.card,d.placeholder);
+      d.placeholder.remove();d.placeholder=null;
+    }
+    d.card.style.display='';cleanupCatalogGhost();
     if(!canceled){
-      const visible=[...$('#catalogGrid').querySelectorAll('.item-card')].map(c=>c.dataset.id);
+      const visible=[...grid.querySelectorAll('.item-card[data-id]')].map(c=>c.dataset.id);
       const old=state.settings.closetOrder[d.category]||[];
       const visibleSet=new Set(visible);let vi=0;
       state.settings.closetOrder[d.category]=old.map(id=>visibleSet.has(id)?visible[vi++]:id);
@@ -361,10 +424,10 @@ async function finishCatalogDrag(pointerId,touchId,canceled=false,e){
     }else renderCatalog();
   }
   cleanupCatalogGhost();
-  closetDrag={timer:null,pointerId:null,touchId:null,startX:0,startY:0,x:0,y:0,card:null,category:'',active:false,moved:false,ghost:null};
+  closetDrag={timer:null,pointerId:null,touchId:null,startX:0,startY:0,x:0,y:0,card:null,category:'',active:false,moved:false,ghost:null,placeholder:null,lastPlacement:'',raf:null};
 }
 
-function itemCard(i){return`<article class="item-card" data-id="${i.id}"><div class="thumb">${i.photo?`<img src="${i.photo}" alt="${esc(i.type||i.category)}">`:`<div class="hanger">⌇</div>`}<span class="count-badge">${i.wears||0} wears</span></div><div class="card-body"><h4>${esc(i.type||i.category)}</h4><p>${i.color?`<span class="swatch" style="background:${colorHex(i.color)}"></span>${esc(i.color)} · `:''}${esc(i.brand||'No brand')}</p><p>${esc(i.size||'Size —')} · ${esc(i.pattern||'Solid')}</p></div></article>`}
+function itemCard(i){return`<article class="item-card" data-id="${i.id}"><div class="thumb">${i.photo?`<img src="${i.photo}" alt="${esc(i.type||i.category)}" draggable="false">`:`<div class="hanger">⌇</div>`}<span class="count-badge">${i.wears||0} wears</span></div><div class="card-body"><h4>${esc(i.type||i.category)}</h4><p>${i.color?`<span class="swatch" style="background:${colorHex(i.color)}"></span>${esc(i.color)} · `:''}${esc(i.brand||'No brand')}</p><p>${esc(i.size||'Size —')} · ${esc(i.pattern||'Solid')}</p></div></article>`}
 
 function openWish(w=null){$('#wishId').value=w?.id||'';wishWorkingPhoto=w?.photo||'';showPhoto('#wishPhotoPreview','#wishPhotoPlaceholder',wishWorkingPhoto);$('#wishName').value=w?.name||'';$('#wishBrand').value=w?.brand||'';$('#wishPrice').value=w?.price||'';$('#wishLink').value=w?.link||'';$('#wishCategory').value=w?.category||'Tops';$('#wishColor').value=w?.color||'';$('#wishNotes').value=w?.notes||'';$('#deleteWishBtn').classList.toggle('hidden',!w);$('#wishDialog').showModal()}
 function saveWish(){const wid=$('#wishId').value,old=state.wishlist.find(x=>x.id===wid),obj={id:wid||id(),photo:wishWorkingPhoto,name:$('#wishName').value.trim(),brand:$('#wishBrand').value.trim(),price:$('#wishPrice').value.trim(),link:$('#wishLink').value.trim(),category:$('#wishCategory').value,color:$('#wishColor').value,notes:$('#wishNotes').value.trim(),created:old?.created||Date.now()};if(wid)state.wishlist=state.wishlist.map(x=>x.id===wid?obj:x);else state.wishlist.unshift(obj);saveState();$('#wishDialog').close();toast('Wishlist saved')}
