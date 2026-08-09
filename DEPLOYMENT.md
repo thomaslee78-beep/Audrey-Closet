@@ -14,3 +14,6 @@ A Node.js deprecation warning shown by the GitHub-generated Pages workflow is ab
 
 ### v12.3
 This is a bug-fix/refinement release. It uses the same IndexedDB database as v12 and does not intentionally migrate or erase closet data. After GitHub Pages deploys, refresh the Pages URL in Safari once, then close/reopen the Home Screen app.
+
+### v12.4
+Closet preference ordering and iPhone form-zoom stabilization. Uses the existing IndexedDB database and settings object; no destructive migration is required.

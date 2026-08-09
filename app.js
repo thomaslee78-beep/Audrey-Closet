@@ -51,6 +51,8 @@ let activeDoodle=null;
 let pendingShareBlob=null;
 let pendingShareUrl='';
 let pendingShareFileName='outfit.jpg';
+let closetDrag={timer:null,pointerId:null,startX:0,startY:0,card:null,category:'',active:false,moved:false};
+let suppressCatalogClickUntil=0;
 
 function emptyState(){return {items:[],outfits:[],journal:[],wishlist:[],settings:{appName:DEFAULT_APP_NAME,portfolioFolders:[...DEFAULT_PORTFOLIO_FOLDERS],boardRecent:{closet:[],wishlist:[]}}}}
 function ensureSettings(){
@@ -62,6 +64,12 @@ function ensureSettings(){
   state.settings.boardRecent=state.settings.boardRecent||{closet:[],wishlist:[]};
   state.settings.boardRecent.closet=Array.isArray(state.settings.boardRecent.closet)?state.settings.boardRecent.closet:[];
   state.settings.boardRecent.wishlist=Array.isArray(state.settings.boardRecent.wishlist)?state.settings.boardRecent.wishlist:[];
+  state.settings.closetOrder=state.settings.closetOrder&&typeof state.settings.closetOrder==='object'?state.settings.closetOrder:{};
+  CATEGORIES.forEach(cat=>{
+    const ids=state.items.filter(i=>i.category===cat).map(i=>i.id);
+    const saved=Array.isArray(state.settings.closetOrder[cat])?state.settings.closetOrder[cat]:[];
+    state.settings.closetOrder[cat]=[...saved.filter(x=>ids.includes(x)),...ids.filter(x=>!saved.includes(x))];
+  });
 }
 function openDB(){return new Promise((resolve,reject)=>{const req=indexedDB.open(DB_NAME,DB_VERSION);req.onupgradeneeded=()=>{const db=req.result;if(!db.objectStoreNames.contains(DB_STORE))db.createObjectStore(DB_STORE)};req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)})}
 async function loadState(){
@@ -232,11 +240,55 @@ function deleteItem(){const iid=$('#itemId').value;if(!iid||!confirm('Delete thi
 function renderAll(){ensureSettings();applyAppName();renderCategories();renderCatalog();renderOutfits();renderSavedOutfits();renderWishlist();renderJournal();renderPortfolioFolderEditor()}
 function renderCategories(){const host=$('#categoryStrip');host.innerHTML=CATEGORIES.map(c=>{const n=state.items.filter(i=>i.category===c).length;return`<button class="category-chip ${selectedCategory===c?'active':''}" data-cat="${c}"><strong>${c}</strong><span>${n} ${n===1?'piece':'pieces'}</span></button>`}).join('');$$('.category-chip').forEach(b=>b.onclick=()=>{selectedCategory=selectedCategory===b.dataset.cat?'':b.dataset.cat;renderCategories();renderCatalog()})}
 function renderCatalog(){
+  ensureSettings();
   const q=$('#catalogSearch').value.toLowerCase().trim(),fc=$('#filterCategory').value,fs=$('#filterSeason').value,fcol=$('#filterColor').value;
-  const items=state.items.filter(i=>(!selectedCategory||i.category===selectedCategory)&&(!fc||i.category===fc)&&(!fs||i.season===fs)&&(!fcol||i.color===fcol)&&(!q||[i.type,i.brand,i.color,i.pattern,i.notes,i.category].join(' ').toLowerCase().includes(q)));
+  const activeCategory=selectedCategory||fc||'';
+  let items=state.items.filter(i=>(!selectedCategory||i.category===selectedCategory)&&(!fc||i.category===fc)&&(!fs||i.season===fs)&&(!fcol||i.color===fcol)&&(!q||[i.type,i.brand,i.color,i.pattern,i.notes,i.category].join(' ').toLowerCase().includes(q)));
+  if(activeCategory){const order=state.settings.closetOrder[activeCategory]||[];items=[...items].sort((a,b)=>{const ai=order.indexOf(a.id),bi=order.indexOf(b.id);return (ai<0?999999:ai)-(bi<0?999999:bi)})}
   catalogReviewIds=items.map(i=>i.id);
-  $('#catalogCount').textContent=`${items.length} ${items.length===1?'piece':'pieces'}`;$('#catalogGrid').innerHTML=items.map(i=>itemCard(i)).join('');$('#catalogEmpty').classList.toggle('hidden',state.items.length>0||q||selectedCategory||fc||fs||fcol);$$('.item-card').forEach(c=>c.onclick=()=>openItem(state.items.find(i=>i.id===c.dataset.id)));
+  $('#catalogCount').textContent=`${items.length} ${items.length===1?'piece':'pieces'}`;$('#catalogGrid').innerHTML=items.map(i=>itemCard(i)).join('');$('#catalogEmpty').classList.toggle('hidden',state.items.length>0||q||selectedCategory||fc||fs||fcol);
+  $$('.item-card').forEach(c=>c.onclick=()=>{if(Date.now()<suppressCatalogClickUntil)return;openItem(state.items.find(i=>i.id===c.dataset.id))});
+  bindCatalogReorder(activeCategory);
 }
+
+function bindCatalogReorder(activeCategory){
+  const grid=$('#catalogGrid');if(!grid)return;
+  grid.querySelectorAll('.item-card').forEach(card=>{
+    card.onpointerdown=e=>{
+      if(e.pointerType==='mouse'&&e.button!==0)return;
+      clearTimeout(closetDrag.timer);closetDrag={timer:null,pointerId:e.pointerId,startX:e.clientX,startY:e.clientY,card,category:activeCategory||'',active:false,moved:false};
+      closetDrag.timer=setTimeout(()=>startCatalogDrag(e.pointerId),360);
+    };
+    card.onpointermove=e=>handleCatalogPointerMove(e);
+    card.onpointerup=e=>finishCatalogDrag(e);
+    card.onpointercancel=e=>finishCatalogDrag(e,true);
+    card.oncontextmenu=e=>{if(closetDrag.active||closetDrag.timer)e.preventDefault()};
+  });
+}
+function startCatalogDrag(pointerId){
+  const d=closetDrag;if(!d.card||d.pointerId!==pointerId)return;
+  if(!d.category){d.timer=null;toast('Choose a clothing category first, then press & hold to reorder.');return}
+  d.active=true;d.timer=null;d.card.classList.add('closet-dragging');d.card.setPointerCapture?.(pointerId);navigator.vibrate?.(18);suppressCatalogClickUntil=Date.now()+700;
+}
+function handleCatalogPointerMove(e){
+  const d=closetDrag;if(!d.card||e.pointerId!==d.pointerId)return;
+  const dx=e.clientX-d.startX,dy=e.clientY-d.startY;
+  if(!d.active){if(Math.hypot(dx,dy)>9){clearTimeout(d.timer);d.timer=null}return}
+  e.preventDefault();d.moved=true;
+  const target=document.elementFromPoint(e.clientX,e.clientY)?.closest?.('.item-card');
+  if(!target||target===d.card||target.parentElement!==d.card.parentElement)return;
+  const dragged=state.items.find(i=>i.id===d.card.dataset.id),hover=state.items.find(i=>i.id===target.dataset.id);if(!dragged||!hover||dragged.category!==d.category||hover.category!==d.category)return;
+  const rect=target.getBoundingClientRect(),before=(e.clientY<rect.top+rect.height/2)||(Math.abs(e.clientY-(rect.top+rect.height/2))<rect.height*.22&&e.clientX<rect.left+rect.width/2);
+  target.parentElement.insertBefore(d.card,before?target:target.nextSibling);
+}
+async function finishCatalogDrag(e,canceled=false){
+  const d=closetDrag;if(!d.card||e.pointerId!==d.pointerId)return;clearTimeout(d.timer);
+  if(d.active){e.preventDefault();d.card.classList.remove('closet-dragging');try{d.card.releasePointerCapture?.(e.pointerId)}catch{};suppressCatalogClickUntil=Date.now()+500;
+    if(!canceled){const visible=[...$('#catalogGrid').querySelectorAll('.item-card')].map(c=>c.dataset.id);const old=state.settings.closetOrder[d.category]||[];const visibleSet=new Set(visible);let vi=0;state.settings.closetOrder[d.category]=old.map(id=>visibleSet.has(id)?visible[vi++]:id);while(vi<visible.length)state.settings.closetOrder[d.category].push(visible[vi++]);await saveState();toast('Closet order saved')}
+  }
+  closetDrag={timer:null,pointerId:null,startX:0,startY:0,card:null,category:'',active:false,moved:false};
+}
+
 function itemCard(i){return`<article class="item-card" data-id="${i.id}"><div class="thumb">${i.photo?`<img src="${i.photo}" alt="${esc(i.type||i.category)}">`:`<div class="hanger">⌇</div>`}<span class="count-badge">${i.wears||0} wears</span></div><div class="card-body"><h4>${esc(i.type||i.category)}</h4><p>${i.color?`<span class="swatch" style="background:${colorHex(i.color)}"></span>${esc(i.color)} · `:''}${esc(i.brand||'No brand')}</p><p>${esc(i.size||'Size —')} · ${esc(i.pattern||'Solid')}</p></div></article>`}
 
 function openWish(w=null){$('#wishId').value=w?.id||'';wishWorkingPhoto=w?.photo||'';showPhoto('#wishPhotoPreview','#wishPhotoPlaceholder',wishWorkingPhoto);$('#wishName').value=w?.name||'';$('#wishBrand').value=w?.brand||'';$('#wishPrice').value=w?.price||'';$('#wishLink').value=w?.link||'';$('#wishCategory').value=w?.category||'Tops';$('#wishColor').value=w?.color||'';$('#wishNotes').value=w?.notes||'';$('#deleteWishBtn').classList.toggle('hidden',!w);$('#wishDialog').showModal()}

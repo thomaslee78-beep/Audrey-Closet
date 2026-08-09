@@ -79,3 +79,9 @@ body.item-dialog-open{position:fixed;left:0;right:0;width:100%;overflow:hidden;o
 .photo-actions-bottom{grid-template-columns:repeat(2,minmax(0,1fr))}
 .photo-actions-bottom .file-label{position:relative;overflow:hidden}
 @supports(height:100dvh){#itemDialog{max-height:calc(100dvh - 8px)}#itemDialog #itemForm{max-height:calc(100dvh - 8px)}}
+
+/* v12.4 — closet preference ordering + iPhone form zoom stabilization */
+.item-card{touch-action:pan-y;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;transition:transform .16s ease,box-shadow .16s ease,opacity .16s ease}
+.item-card.closet-dragging{z-index:40;transform:scale(1.035);box-shadow:0 15px 30px rgba(55,43,31,.22);opacity:.93;touch-action:none;cursor:grabbing}
+.item-card.closet-dragging .thumb img{pointer-events:none}
+@media(max-width:768px){#itemDialog input,#itemDialog textarea,#itemDialog select{font-size:16px!important;line-height:1.3}#itemDialog input,#itemDialog select{min-height:44px}#itemDialog textarea{min-height:88px}}

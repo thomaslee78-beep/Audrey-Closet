@@ -22,3 +22,8 @@ Upload all files in this folder to the root of the existing GitHub Pages reposit
 - Cancel/close on the closet item editor now discards all unsaved field and photo edits; only **Save piece** writes changes.
 - Existing-item review now shows a larger image and a quick identity header (type, color, brand).
 - Photo tools have moved below the item attributes/notes to keep review focused on the garment.
+
+## v12.4 closet refinement
+- Press and hold a closet card while viewing a specific category, then drag it to set your preferred order.
+- Custom ordering is stored locally and persists across app restarts.
+- Item review form controls use iPhone-safe 16px text sizing to prevent Safari from zooming into Brand/Notes fields and leaving the review screen awkwardly magnified.
