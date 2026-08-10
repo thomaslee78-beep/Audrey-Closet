@@ -59,7 +59,7 @@ Closet reorder now uses a solid outline on the item being moved and a dotted out
 - Centers the date selector for a cleaner iPhone layout.
 
 
-### v13.4-dev4
+### v13.5-dev1
 - Removed duplicate rating text below the rating/favorite panel.
 - Made Journal notes collapsible in the daily wear detail view.
 - Based on v13.4-dev1 / stable v13.3 catalog code.

@@ -120,6 +120,10 @@
 
     <section class="screen" data-screen="journal">
       <div class="page-head"><div><p class="script">the story of what you wear</p><h2>Journal</h2></div><button class="primary" id="logWearBtn">Log today</button></div>
+      <section id="todayJournalSection" class="today-journal-section hidden">
+        <div class="today-section-title"><strong>Today’s Look</strong><small id="todayJournalMeta">today</small></div>
+        <div class="journal-list today-journal-list" id="todayJournalList"></div>
+      </section>
       <section id="plannedJournalSection" class="planned-journal-section hidden">
         <button type="button" id="plannedJournalToggle" class="planned-section-toggle" aria-expanded="false">
           <span><strong>Planned looks</strong><small id="plannedJournalCount">future dates</small></span><span class="planned-toggle-icon">＋</span>
@@ -320,6 +324,15 @@
       <div id="journalDetailItems" class="journal-detail-items"></div>
     </div>
     <div class="sheet-actions journal-detail-actions"><button type="button" class="danger-text" id="deleteJournalDetailBtn">Delete</button><button type="button" class="primary" id="editJournalDetailBtn">Edit day</button></div>
+  </dialog>
+
+  <dialog id="journalItemPreviewDialog" class="sheet-dialog journal-item-preview-dialog">
+    <div class="journal-item-preview-scroll">
+      <div class="sheet-head"><div><p class="script">closet piece</p><h2 id="journalItemPreviewTitle">Piece details</h2></div><button type="button" class="close-btn" id="closeJournalItemPreviewBtn">×</button></div>
+      <div class="journal-item-preview-photo" id="journalItemPreviewPhoto"></div>
+      <div class="journal-item-preview-details" id="journalItemPreviewDetails"></div>
+    </div>
+    <div class="sheet-actions journal-item-preview-actions"><button type="button" class="soft-btn" id="backJournalItemPreviewBtn">Back to day</button><button type="button" class="primary" id="editJournalItemPreviewBtn">Edit</button></div>
   </dialog>
 
   <dialog id="journalStatDialog" class="sheet-dialog journal-detail-dialog journal-stat-dialog">
