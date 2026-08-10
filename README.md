@@ -57,3 +57,9 @@ Closet reorder now uses a solid outline on the item being moved and a dotted out
 - Locks the background while logging or editing a Journal day.
 - Keeps scrolling contained inside the Journal editor and its bottom actions anchored.
 - Centers the date selector for a cleaner iPhone layout.
+
+
+### v13.4-dev2
+- Removed duplicate rating text below the rating/favorite panel.
+- Made Journal notes collapsible in the daily wear detail view.
+- Based on v13.4-dev1 / stable v13.3 catalog code.

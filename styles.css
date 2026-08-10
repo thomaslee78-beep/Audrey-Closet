@@ -244,3 +244,14 @@ body.wear-dialog-open{position:fixed;left:0;right:0;width:100%;overflow:hidden;o
 #wearDialog #wearDate::-webkit-date-and-time-value{text-align:center;min-width:100%}
 #wearDialog .sheet-head,#wearDialog .journal-edit-actions,#wearDialog button,#wearDialog input,#wearDialog label{touch-action:manipulation}
 @supports(height:100dvh){#wearDialog{max-height:calc(100dvh - 8px)}#wearDialog #wearForm{max-height:calc(100dvh - 8px)}}
+
+/* v13.4-dev2 journal detail cleanup */
+.journal-detail-feedback.hidden{display:none}
+.journal-notes-details{padding:0;overflow:hidden}
+.journal-notes-details>summary{list-style:none;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 12px;cursor:pointer;font-family:var(--serif);font-size:15px;font-weight:600;color:var(--ink);touch-action:manipulation}
+.journal-notes-details>summary::-webkit-details-marker{display:none}
+.journal-notes-details>summary:after{content:'＋';color:var(--burgundy);font-family:var(--sans);font-size:17px;font-weight:500}
+.journal-notes-details[open]>summary:after{content:'−'}
+.journal-notes-details>summary small{margin-left:auto;font-family:var(--sans);font-size:10px;font-weight:400;color:#84786a}
+.journal-notes-body{padding:0 10px 10px}
+.journal-notes-details textarea{margin-top:0}

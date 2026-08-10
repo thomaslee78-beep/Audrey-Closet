@@ -303,11 +303,13 @@
         </div>
       </div>
       <div id="journalDetailFeedback" class="journal-detail-feedback"></div>
-      <div class="journal-detail-notes-block">
-        <label for="journalDetailNotesInput">Notes</label>
-        <textarea id="journalDetailNotesInput" placeholder="School, weekend, weather, styling notes, or anything you want to remember…"></textarea>
-        <button type="button" class="soft-btn journal-save-notes-btn" id="saveJournalDetailNotesBtn">Save notes</button>
-      </div>
+      <details class="journal-detail-notes-block journal-notes-details" id="journalDetailNotesDetails">
+        <summary><span>Notes</span><small id="journalDetailNotesSummary">Add a note</small></summary>
+        <div class="journal-notes-body">
+          <textarea id="journalDetailNotesInput" aria-label="Notes" placeholder="School, weekend, weather, styling notes, or anything you want to remember…"></textarea>
+          <button type="button" class="soft-btn journal-save-notes-btn" id="saveJournalDetailNotesBtn">Save notes</button>
+        </div>
+      </details>
       <div id="journalDetailItems" class="journal-detail-items"></div>
     </div>
     <div class="sheet-actions journal-detail-actions"><button type="button" class="danger-text" id="deleteJournalDetailBtn">Delete</button><button type="button" class="primary" id="editJournalDetailBtn">Edit day</button></div>
