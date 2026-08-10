@@ -181,7 +181,7 @@ function bindDialogs(){
   $('#plannedJournalToggle').onclick=()=>{plannedJournalExpanded=!plannedJournalExpanded;renderPlannedJournalVisibility()};
   $('#closeJournalDetailBtn').onclick=closeJournalDetail;
   $('#journalDetailDialog').addEventListener('cancel',e=>{e.preventDefault();closeJournalDetail()});
-  $('#journalDetailFeel').onchange=saveJournalDetailFeedback;
+  $$('#journalDetailRatingStars .journal-rating-star').forEach(btn=>btn.onclick=()=>saveJournalDetailRating(Number(btn.dataset.rating)));
   $('#journalDetailFavoriteBtn').onclick=toggleJournalDetailFavorite;
   $('#saveJournalDetailNotesBtn').onclick=saveJournalDetailNotes;
   $('#editJournalDetailBtn').onclick=()=>{const j=state.journal.find(x=>x.id===viewingJournalId);closeJournalDetail();if(j)openWear(j.date)};
@@ -816,12 +816,17 @@ function unlockPageForJournalDetail(){
   document.body.classList.remove('journal-detail-open');document.body.style.top='';window.scrollTo(0,journalDetailScrollY||0);
 }
 function closeJournalDetail(){const d=$('#journalDetailDialog');if(d.open)d.close();unlockPageForJournalDetail();viewingJournalId=null}
+const JOURNAL_RATING_TEXT={1:'Would change it',2:'Not quite right',3:'Pretty good',4:'Felt great',5:'Loved it'};
+function legacyJournalRating(feel){const map={'Would change it':1,'Just okay':3,'Felt good':4,'Loved it':5};return map[feel]||0}
+function journalRatingValue(j){const n=Number(j?.rating||0);return n>=1&&n<=5?n:legacyJournalRating(j?.feel)}
 function refreshJournalDetailFeedback(j){
-  const planned=isFutureJournal(j);$('#journalDetailKicker').textContent=planned?'planned look':'wear log';
-  $('#journalDetailFeel').value=j.feel||'';$('#journalDetailFavoriteBtn').textContent=j.favorite?'★':'☆';$('#journalDetailFavoriteBtn').classList.toggle('active',!!j.favorite);
-  const bits=[];if(planned)bits.push('Planned for a future date');if(j.feel)bits.push(j.feel);$('#journalDetailFeedback').textContent=bits.join(' · ')||(planned?'Planned look':'Logged day');
+  const planned=isFutureJournal(j),rating=journalRatingValue(j);$('#journalDetailKicker').textContent=planned?'planned look':'wear log';
+  $$('#journalDetailRatingStars .journal-rating-star').forEach(btn=>{const on=Number(btn.dataset.rating)<=rating;btn.textContent=on?'★':'☆';btn.classList.toggle('active',on);btn.setAttribute('aria-checked',Number(btn.dataset.rating)===rating?'true':'false')});
+  $('#journalDetailRatingText').textContent=rating?`${rating} of 5 · ${JOURNAL_RATING_TEXT[rating]}`:'Not rated yet';
+  $('#journalDetailFavoriteBtn').textContent=j.favorite?'★':'☆';$('#journalDetailFavoriteBtn').classList.toggle('active',!!j.favorite);
+  const bits=[];if(planned)bits.push('Planned for a future date');if(rating)bits.push(`${rating}★ · ${JOURNAL_RATING_TEXT[rating]}`);$('#journalDetailFeedback').textContent=bits.join(' · ')||(planned?'Planned look':'Logged day');
 }
-async function saveJournalDetailFeedback(){const j=state.journal.find(x=>x.id===viewingJournalId);if(!j)return;j.feel=$('#journalDetailFeel').value;j.updated=Date.now();await saveState();refreshJournalDetailFeedback(j);renderJournal();toast('Day rating saved')}
+async function saveJournalDetailRating(rating){const j=state.journal.find(x=>x.id===viewingJournalId);if(!j)return;rating=Math.max(1,Math.min(5,Number(rating)||0));j.rating=rating;j.feel=JOURNAL_RATING_TEXT[rating];j.updated=Date.now();await saveState();refreshJournalDetailFeedback(j);renderJournal();toast(`${rating}-star rating saved`)}
 async function toggleJournalDetailFavorite(){const j=state.journal.find(x=>x.id===viewingJournalId);if(!j)return;j.favorite=!j.favorite;j.updated=Date.now();await saveState();refreshJournalDetailFeedback(j);renderJournal();toast(j.favorite?'Added to favorites':'Removed from favorites')}
 async function saveJournalDetailNotes(){const j=state.journal.find(x=>x.id===viewingJournalId);if(!j)return;j.notes=$('#journalDetailNotesInput').value.trim();j.updated=Date.now();await saveState();renderJournal();toast('Notes saved')}
 function openJournalDetail(jid){

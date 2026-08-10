@@ -286,8 +286,21 @@
     <div class="journal-detail-scroll">
       <div class="sheet-head"><div><p class="script" id="journalDetailKicker">wear log</p><h2 id="journalDetailTitle">Journal day</h2></div><button type="button" class="close-btn" id="closeJournalDetailBtn">×</button></div>
       <div class="journal-detail-rating">
-        <label>How was this look?<select id="journalDetailFeel"><option value="">Not rated</option><option>Loved it</option><option>Felt good</option><option>Just okay</option><option>Would change it</option></select></label>
-        <button type="button" id="journalDetailFavoriteBtn" class="journal-star-btn" aria-label="Favorite this day">☆</button>
+        <div class="journal-rating-control">
+          <span class="journal-rating-label">Rate this look</span>
+          <div class="journal-rating-stars" id="journalDetailRatingStars" role="radiogroup" aria-label="Rate this look from one to five stars">
+            <button type="button" class="journal-rating-star" data-rating="1" aria-label="1 star" aria-checked="false" role="radio">☆</button>
+            <button type="button" class="journal-rating-star" data-rating="2" aria-label="2 stars" aria-checked="false" role="radio">☆</button>
+            <button type="button" class="journal-rating-star" data-rating="3" aria-label="3 stars" aria-checked="false" role="radio">☆</button>
+            <button type="button" class="journal-rating-star" data-rating="4" aria-label="4 stars" aria-checked="false" role="radio">☆</button>
+            <button type="button" class="journal-rating-star" data-rating="5" aria-label="5 stars" aria-checked="false" role="radio">☆</button>
+          </div>
+          <small id="journalDetailRatingText" class="journal-rating-text">Not rated yet</small>
+        </div>
+        <div class="journal-favorite-control">
+          <span class="journal-rating-label">Favorite</span>
+          <button type="button" id="journalDetailFavoriteBtn" class="journal-star-btn" aria-label="Favorite this day">☆</button>
+        </div>
       </div>
       <div id="journalDetailFeedback" class="journal-detail-feedback"></div>
       <div class="journal-detail-notes-block">
