@@ -53,7 +53,7 @@ Closet reorder now uses a solid outline on the item being moved and a dotted out
 - Active touch tracking now moves to the window level during reorder mode and is removed cleanly on drop/cancel.
 
 
-### v13.4
+### v13.3
 - Locks the background while logging or editing a Journal day.
 - Keeps scrolling contained inside the Journal editor and its bottom actions anchored.
 - Centers the date selector for a cleaner iPhone layout.
