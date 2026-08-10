@@ -62,6 +62,7 @@ let wearCategoryFilter='All';
 let editingWearId=null;
 let viewingJournalId=null;
 let journalDetailScrollY=0;
+let wearDialogScrollY=0;
 let journalStatScrollY=0;
 let journalRangeFilter='all';
 let plannedJournalExpanded=false;
@@ -172,6 +173,7 @@ function bindDialogs(){
   $('#closeWearBtn').onclick=closeWearWithoutSaving;
   $('#cancelWearBtn').onclick=closeWearWithoutSaving;
   $('#wearDialog').addEventListener('cancel',e=>{e.preventDefault();closeWearWithoutSaving()});
+  $('#wearDialog').addEventListener('close',unlockPageForWearDialog);
   $('#wearDate').addEventListener('change',()=>loadWearDate($('#wearDate').value));
   $('#clearWearSelectionBtn').onclick=()=>{wearDraftIds.clear();$$('.wear-option.selected').forEach(b=>b.classList.remove('selected'));updateWearSelectedCount()};
   $('#deleteWearBtn').onclick=deleteWearEntry;
@@ -736,14 +738,26 @@ function loadWearDate(date){
   wearCategoryFilter='All';
   renderWearPicker();
 }
+function lockPageForWearDialog(){
+  if(document.body.classList.contains('wear-dialog-open'))return;
+  wearDialogScrollY=window.scrollY||0;
+  document.body.style.top=`-${wearDialogScrollY}px`;
+  document.body.classList.add('wear-dialog-open');
+}
+function unlockPageForWearDialog(){
+  if(!document.body.classList.contains('wear-dialog-open'))return;
+  document.body.classList.remove('wear-dialog-open');
+  document.body.style.top='';
+  window.scrollTo(0,wearDialogScrollY||0);
+}
 function openWear(date=''){
   if(!state.items.length)return toast('Add closet pieces first');
   const target=date||new Date().toISOString().slice(0,10);
   $('#wearDate').value=target;
   loadWearDate(target);
-  if(!$('#wearDialog').open)$('#wearDialog').showModal();
+  if(!$('#wearDialog').open){lockPageForWearDialog();$('#wearDialog').showModal();}
 }
-function closeWearWithoutSaving(){editingWearId=null;wearCategoryFilter='All';wearDraftIds=new Set();if($('#wearDialog').open)$('#wearDialog').close('cancel')}
+function closeWearWithoutSaving(){editingWearId=null;wearCategoryFilter='All';wearDraftIds=new Set();if($('#wearDialog').open)$('#wearDialog').close('cancel');else unlockPageForWearDialog()}
 function recalcWears(){const today=localTodayISO();state.items.forEach(i=>i.wears=state.journal.filter(j=>String(j.date||'')<=today).reduce((n,j)=>n+(j.itemIds||[]).filter(x=>x===i.id).length,0))}
 async function saveWear(){
   const ids=[...wearDraftIds];
@@ -755,14 +769,14 @@ async function saveWear(){
   // One entry per day. If an older duplicate exists, merge its items before removing it.
   const sameDay=state.journal.filter(j=>j.date===date);
   if(sameDay.length>1){const keeper=existing||sameDay[0];keeper.itemIds=[...new Set(sameDay.flatMap(j=>j.itemIds||[]))];state.journal=state.journal.filter(j=>j.date!==date||j.id===keeper.id)}
-  recalcWears();await saveState();editingWearId=null;$('#wearDialog').close();renderJournal();toast(date>localTodayISO()?'Planned look saved':'Journal updated')
+  recalcWears();await saveState();editingWearId=null;$('#wearDialog').close();unlockPageForWearDialog();renderJournal();toast(date>localTodayISO()?'Planned look saved':'Journal updated')
 }
 async function deleteWearEntry(){if(!editingWearId)return;await deleteJournalEntryById(editingWearId,false)}
 async function deleteJournalEntryById(jid,fromDetail=false){
   const j=state.journal.find(x=>x.id===jid);if(!j)return;
   if(!confirm(`Delete the journal entry for ${formatJournalDate(j.date)}?`))return;
   state.journal=state.journal.filter(x=>x.id!==jid);recalcWears();await saveState();
-  if($('#wearDialog').open)$('#wearDialog').close();if(fromDetail&&$('#journalDetailDialog').open)closeJournalDetail();
+  if($('#wearDialog').open){$('#wearDialog').close();unlockPageForWearDialog();}if(fromDetail&&$('#journalDetailDialog').open)closeJournalDetail();
   editingWearId=null;viewingJournalId=null;renderJournal();toast('Journal entry deleted')
 }
 function formatJournalDate(date){return new Date(date+'T12:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'})}

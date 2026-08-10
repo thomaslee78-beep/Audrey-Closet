@@ -231,3 +231,16 @@ body.journal-stat-open{position:fixed;left:0;right:0;width:100%;overflow:hidden;
 #journalStatDialog .journal-stat-scroll{max-height:94dvh;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-y;padding:17px 17px 24px}
 .journal-detail-notes-block{margin:4px 0 13px;padding:10px 11px;background:#fffaf0;border:1px solid var(--line);border-radius:16px}.journal-detail-notes-block label{display:block;font-size:10px;font-weight:700;color:#756a5c;margin-bottom:5px}.journal-detail-notes-block textarea{width:100%;min-height:76px;resize:vertical;border:1px solid var(--line);border-radius:12px;background:#fbf6eb;color:var(--ink);padding:9px 10px;font:400 16px/1.35 var(--sans);box-sizing:border-box}.journal-save-notes-btn{margin-top:7px;width:100%}
 @supports(height:100dvh){#journalStatDialog{max-height:calc(100dvh - 8px)}#journalStatDialog .journal-stat-scroll{max-height:calc(100dvh - 8px)}}
+
+
+/* v13.3 — journal log/edit modal containment + centered date */
+body.wear-dialog-open{position:fixed;left:0;right:0;width:100%;overflow:hidden;overscroll-behavior:none}
+#wearDialog::backdrop{background:rgba(45,38,31,.46);touch-action:none;overscroll-behavior:none}
+#wearDialog{overflow:hidden;padding:0;max-height:94vh;max-height:94dvh;overscroll-behavior:contain;touch-action:none}
+#wearDialog #wearForm{max-height:94vh;max-height:94dvh;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-y;padding:17px 17px 0;scroll-padding-bottom:88px}
+#wearDialog .journal-edit-actions{position:sticky;bottom:0;z-index:20;margin:16px -17px 0;padding:11px 17px max(11px,env(safe-area-inset-bottom));background:#f7f0df;border-top:1px solid rgba(108,81,66,.15);box-shadow:0 -7px 18px rgba(64,52,38,.07)}
+#wearDialog .wear-date-label{display:block;text-align:center;margin:2px auto 4px;font-size:11px;font-weight:700;color:#756a5c}
+#wearDialog #wearDate{display:block;width:min(230px,100%);margin:5px auto 0;text-align:center;text-align-last:center;font-size:16px}
+#wearDialog #wearDate::-webkit-date-and-time-value{text-align:center;min-width:100%}
+#wearDialog .sheet-head,#wearDialog .journal-edit-actions,#wearDialog button,#wearDialog input,#wearDialog label{touch-action:manipulation}
+@supports(height:100dvh){#wearDialog{max-height:calc(100dvh - 8px)}#wearDialog #wearForm{max-height:calc(100dvh - 8px)}}

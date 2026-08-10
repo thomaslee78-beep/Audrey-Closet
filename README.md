@@ -51,3 +51,9 @@ Closet reorder now uses a solid outline on the item being moved and a dotted out
 ### v13.2
 - Fixes iPhone Closet reorder tracking so the floating garment remains attached to your finger after the long press, even after your finger leaves the original card.
 - Active touch tracking now moves to the window level during reorder mode and is removed cleanly on drop/cancel.
+
+
+### v13.3
+- Locks the background while logging or editing a Journal day.
+- Keeps scrolling contained inside the Journal editor and its bottom actions anchored.
+- Centers the date selector for a cleaner iPhone layout.
