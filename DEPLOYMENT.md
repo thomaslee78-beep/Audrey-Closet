@@ -34,5 +34,5 @@ Closet reorder now previews a target without moving neighboring cards until drop
 Closet reorder now uses a solid outline on the item being moved and a dotted outline on the destination. Board edit controls remain visible below the board and gray out until an object is selected; Undo remains independently available. Photo Tools opens automatically for brand-new closet items but stays collapsed when reviewing existing pieces.
 
 
-## v12.12
-Closet drag tracking fix for iPhone. No database migration required. Service-worker cache is v12.12.
+## v13.0
+Closet drag tracking fix for iPhone. No database migration required. Service-worker cache is v13.0.

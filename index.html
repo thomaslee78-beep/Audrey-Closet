@@ -120,16 +120,29 @@
 
     <section class="screen" data-screen="journal">
       <div class="page-head"><div><p class="script">the story of what you wear</p><h2>Journal</h2></div><button class="primary" id="logWearBtn">Log today</button></div>
-      <div class="stats-grid">
-        <article class="stat-card"><span>Most worn</span><strong id="mostWorn">—</strong><small id="mostWornMeta">No wear data yet</small></article>
-        <article class="stat-card"><span>Favorite color</span><strong id="favColor">—</strong><small id="favColorMeta">No wear data yet</small></article>
-        <article class="stat-card"><span>Closet wears</span><strong id="totalWears">0</strong><small>journaled item-wears</small></article>
-        <article class="stat-card"><span>This season</span><strong id="seasonWears">0</strong><small id="seasonName">—</small></article>
+      <div class="journal-toolbar">
+        <div><strong>Wear log</strong><small id="journalCount">0 days</small></div>
+        <select id="journalRange" aria-label="Journal date range">
+          <option value="all">All dates</option>
+          <option value="30">Last 30 days</option>
+          <option value="90">Last 90 days</option>
+          <option value="season">This season</option>
+          <option value="favorites">Favorites</option>
+        </select>
       </div>
-      <div class="chart-card"><div class="section-title"><h3>Color story</h3><span>by wears</span></div><canvas id="colorChart" width="640" height="270"></canvas></div>
-      <div class="chart-card"><div class="section-title"><h3>Season rhythm</h3><span>journal entries</span></div><canvas id="seasonChart" width="640" height="240"></canvas></div>
-      <div class="section-title"><h3>Recent journal</h3><span id="journalCount">0 days</span></div>
       <div class="journal-list" id="journalList"></div>
+      <div class="section-title"><h3>Wear insights</h3><span>tap cards for detail</span></div>
+      <div class="stats-grid">
+        <button class="stat-card stat-action" data-stat="most"><span>Most worn</span><strong id="mostWorn">—</strong><small id="mostWornMeta">No wear data yet</small></button>
+        <button class="stat-card stat-action" data-stat="color"><span>Favorite color</span><strong id="favColor">—</strong><small id="favColorMeta">No wear data yet</small></button>
+        <button class="stat-card stat-action" data-stat="total"><span>Closet wears</span><strong id="totalWears">0</strong><small>journaled item-wears</small></button>
+        <button class="stat-card stat-action" data-stat="season"><span>This season</span><strong id="seasonWears">0</strong><small id="seasonName">—</small></button>
+      </div>
+      <details class="journal-insights-more">
+        <summary>Charts & trends</summary>
+        <div class="chart-card"><div class="section-title"><h3>Color story</h3><span>by wears</span></div><canvas id="colorChart" width="640" height="270"></canvas></div>
+        <div class="chart-card"><div class="section-title"><h3>Season rhythm</h3><span>journal entries</span></div><canvas id="seasonChart" width="640" height="240"></canvas></div>
+      </details>
     </section>
 
     <section class="screen" data-screen="wishlist">
@@ -252,14 +265,34 @@
     </form>
   </dialog>
 
-  <dialog id="wearDialog" class="sheet-dialog">
-    <form method="dialog" id="wearForm">
-      <div class="sheet-head"><div><p class="script">today's look</p><h2>Log what you wore</h2></div><button value="cancel" class="close-btn">×</button></div>
+  <dialog id="wearDialog" class="sheet-dialog wear-dialog">
+    <form id="wearForm">
+      <div class="sheet-head"><div><p class="script">today's look</p><h2 id="wearDialogTitle">Log what you wore</h2></div><button type="button" class="close-btn" id="closeWearBtn">×</button></div>
       <label>Date<input type="date" id="wearDate" required /></label>
+      <div class="wear-category-tabs" id="wearCategoryTabs"></div>
+      <div class="wear-selection-summary"><span id="wearSelectedCount">0 selected</span><button type="button" class="text-btn" id="clearWearSelectionBtn">Clear</button></div>
       <div class="wear-picker" id="wearPicker"></div>
+      <div class="journal-feedback-row">
+        <label>How did it feel?<select id="wearFeel"><option value="">Not rated</option><option>Loved it</option><option>Felt good</option><option>Just okay</option><option>Would change it</option></select></label>
+        <label class="favorite-toggle"><input type="checkbox" id="wearFavorite"> <span>★ Favorite day</span></label>
+      </div>
       <label class="full-label">Notes<textarea id="wearNotes" placeholder="School, weekend, weather, how the outfit felt…"></textarea></label>
-      <div class="sheet-actions"><button value="cancel" class="soft-btn">Cancel</button><button type="submit" value="default" class="primary">Save journal</button></div>
+      <div class="sheet-actions journal-edit-actions"><button type="button" class="soft-btn" id="cancelWearBtn">Cancel</button><button type="button" class="danger-text hidden" id="deleteWearBtn">Delete day</button><button type="submit" class="primary">Save journal</button></div>
     </form>
+  </dialog>
+
+  <dialog id="journalDetailDialog" class="sheet-dialog journal-detail-dialog">
+    <div class="sheet-head"><div><p class="script">wear log</p><h2 id="journalDetailTitle">Journal day</h2></div><button type="button" class="close-btn" id="closeJournalDetailBtn">×</button></div>
+    <div id="journalDetailFeedback" class="journal-detail-feedback"></div>
+    <div id="journalDetailItems" class="journal-detail-items"></div>
+    <p id="journalDetailNotes" class="outfit-note"></p>
+    <div class="sheet-actions"><button type="button" class="danger-text" id="deleteJournalDetailBtn">Delete</button><button type="button" class="primary" id="editJournalDetailBtn">Edit day</button></div>
+  </dialog>
+
+  <dialog id="journalStatDialog" class="sheet-dialog journal-detail-dialog">
+    <div class="sheet-head"><div><p class="script">wear insights</p><h2 id="journalStatTitle">Details</h2></div><button type="button" class="close-btn" id="closeJournalStatBtn">×</button></div>
+    <p id="journalStatSummary" class="outfit-note"></p>
+    <div id="journalStatItems" class="journal-detail-items"></div>
   </dialog>
 
   <dialog id="outfitViewDialog" class="sheet-dialog">
