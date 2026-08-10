@@ -61,10 +61,6 @@ let suppressCatalogClickUntil=0;
 let wearCategoryFilter='All';
 let editingWearId=null;
 let viewingJournalId=null;
-let journalItemReturnId=null;
-let journalItemPreviewId=null;
-let journalItemPreviewSnapshot=null;
-let journalItemPreviewScrollY=0;
 let journalDetailScrollY=0;
 let wearDialogScrollY=0;
 let journalStatScrollY=0;
@@ -72,6 +68,10 @@ let journalRangeFilter='all';
 let plannedJournalExpanded=false;
 let wearLogExpanded=localStorage.getItem('audreyWearLogExpanded')!=='false';
 let wearDraftIds=new Set();
+let journalItemPreviewId=null;
+let journalItemPreviewSnapshot=null;
+let journalItemReturnId=null;
+let journalItemPreviewScrollY=0;
 
 function emptyState(){return {items:[],outfits:[],journal:[],wishlist:[],settings:{appName:DEFAULT_APP_NAME,portfolioFolders:[...DEFAULT_PORTFOLIO_FOLDERS],boardRecent:{closet:[],wishlist:[]}}}}
 function ensureSettings(){
@@ -128,7 +128,7 @@ async function init(){
   $('#addPortfolioFolderBtn').onclick=addPortfolioFolder;
   $('#managePortfolioBtn').onclick=()=>{renderPortfolioFolderEditor();showScreen('more')};
   $('#portfolioNewBtn').onclick=()=>{startNewOutfit();showScreen('outfits')};
-  if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js').catch(()=>{});
+  if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js?v=13.6',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
   renderAll();
 }
 function fillSelects(){
@@ -795,8 +795,7 @@ function formatJournalDate(date){return new Date(date+'T12:00:00').toLocaleDateS
 function localTodayISO(){const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
 function isFutureJournal(j){return String(j?.date||'')>localTodayISO()}
 function journalEntriesForRange(){
-  const today=localTodayISO();
-  let rows=state.journal.filter(j=>!isFutureJournal(j)&&String(j.date||'')!==today);const now=new Date();
+  let rows=state.journal.filter(j=>!isFutureJournal(j));const now=new Date();
   if(journalRangeFilter==='favorites')rows=rows.filter(j=>j.favorite);
   else if(journalRangeFilter==='season'){const sn=seasonForDate(now);rows=rows.filter(j=>seasonForDate(new Date(j.date+'T12:00:00'))===sn)}
   else if(journalRangeFilter==='30'||journalRangeFilter==='90'){const cutoff=new Date(now);cutoff.setDate(cutoff.getDate()-Number(journalRangeFilter));rows=rows.filter(j=>new Date(j.date+'T12:00:00')>=cutoff)}
@@ -817,7 +816,7 @@ function renderJournal(){
   $('#todayJournalList').innerHTML=todayEntry?journalRow(todayEntry,false):'';
   $('#todayJournalMeta').textContent=todayEntry?`${(todayEntry.itemIds||[]).length} ${(todayEntry.itemIds||[]).length===1?'piece':'pieces'}`:'today';
   const planned=state.journal.filter(isFutureJournal).sort((a,b)=>a.date.localeCompare(b.date));$('#plannedJournalSection').classList.toggle('hidden',!planned.length);$('#plannedJournalList').innerHTML=planned.map(j=>journalRow(j,true)).join('');$('#plannedJournalCount').textContent=`${planned.length} ${planned.length===1?'planned day':'planned days'}`;renderPlannedJournalVisibility();
-  const rows=journalEntriesForRange();$('#journalRange').value=journalRangeFilter;$('#journalCount').textContent=`${rows.length} ${rows.length===1?'day':'days'}`;$('#journalList').innerHTML=rows.map(j=>journalRow(j,false)).join('')||'<div class="empty-state compact"><p>No journal entries in this view.</p></div>';$$('.journal-row-button').forEach(b=>b.onclick=()=>openJournalDetail(b.dataset.journalId));renderWearLogVisibility();
+  const rows=journalEntriesForRange().filter(j=>String(j.date||'')!==today);$('#journalRange').value=journalRangeFilter;$('#journalCount').textContent=`${rows.length} ${rows.length===1?'day':'days'}`;$('#journalList').innerHTML=rows.map(j=>journalRow(j,false)).join('')||'<div class="empty-state compact"><p>No journal entries in this view.</p></div>';$$('.journal-row-button').forEach(b=>b.onclick=()=>openJournalDetail(b.dataset.journalId));renderWearLogVisibility();
   drawDonut($('#colorChart'),colorCounts);const seasonCounts={Winter:0,Spring:0,Summer:0,Fall:0};pastJournal.forEach(j=>seasonCounts[seasonForDate(new Date(j.date+'T12:00:00'))]++);drawBars($('#seasonChart'),seasonCounts)
 }
 
@@ -860,25 +859,14 @@ function openJournalDetail(jid){
   const items=(j.itemIds||[]).map(x=>state.items.find(i=>i.id===x)).filter(Boolean);$('#journalDetailItems').innerHTML=items.map(i=>`<button type="button" class="journal-detail-item" data-item-id="${i.id}">${i.photo?`<img src="${i.photo}" alt="${esc(i.type||i.category)}">`:'<div class="wear-placeholder">✣</div>'}<div><strong>${esc(i.type||i.category)}</strong><small>${esc([i.color,i.brand,i.size].filter(Boolean).join(' · ')||i.category)}</small></div></button>`).join('');$$('#journalDetailItems .journal-detail-item').forEach(b=>b.onclick=()=>openJournalItemPreview(b.dataset.itemId));$('#journalDetailNotesInput').value=j.notes||'';setJournalDetailNotesExpanded(false);const notesSummary=$('#journalDetailNotesSummary');if(notesSummary)notesSummary.textContent=j.notes?'Notes saved':'Add a note';lockPageForJournalDetail();$('#journalDetailDialog').showModal()
 }
 function journalItemDetailRows(item){
-  const rows=[
-    ['Category',item.category],['Type',item.type],['Brand',item.brand],['Color',item.color],['Size',item.size],
-    ['Pattern',item.pattern],['Season',item.season],['Acquired',item.acquired],['Wears',Number(item.wears||0)||0],['Notes',item.notes]
-  ].filter(([,value])=>value!==undefined&&value!==null&&String(value).trim()!=='');
+  const rows=[['Category',item.category],['Type',item.type],['Brand',item.brand],['Color',item.color],['Size',item.size],['Pattern',item.pattern],['Season',item.season],['Acquired',item.acquired],['Wears',Number(item.wears||0)||0],['Notes',item.notes]].filter(([,value])=>value!==undefined&&value!==null&&String(value).trim()!=='');
   return rows.map(([label,value])=>`<div class="journal-preview-detail-row"><span>${esc(label)}</span><strong>${esc(value)}</strong></div>`).join('');
 }
-function lockPageForJournalItemPreview(){
-  if(document.body.classList.contains('journal-item-preview-open'))return;
-  journalItemPreviewScrollY=window.scrollY||0;document.body.style.top=`-${journalItemPreviewScrollY}px`;document.body.classList.add('journal-item-preview-open');
-}
-function unlockPageForJournalItemPreview(){
-  if(!document.body.classList.contains('journal-item-preview-open'))return;
-  document.body.classList.remove('journal-item-preview-open');document.body.style.top='';window.scrollTo(0,journalItemPreviewScrollY||0);
-}
+function lockPageForJournalItemPreview(){if(document.body.classList.contains('journal-item-preview-open'))return;journalItemPreviewScrollY=window.scrollY||0;document.body.style.top=`-${journalItemPreviewScrollY}px`;document.body.classList.add('journal-item-preview-open')}
+function unlockPageForJournalItemPreview(){if(!document.body.classList.contains('journal-item-preview-open'))return;document.body.classList.remove('journal-item-preview-open');document.body.style.top='';window.scrollTo(0,journalItemPreviewScrollY||0)}
 function openJournalItemPreview(itemId){
   const live=state.items.find(i=>i.id===itemId);if(!live)return;
-  journalItemReturnId=viewingJournalId;
-  journalItemPreviewId=live.id;
-  journalItemPreviewSnapshot={...live};
+  journalItemReturnId=viewingJournalId;journalItemPreviewId=live.id;journalItemPreviewSnapshot={...live};
   const detail=$('#journalDetailDialog');if(detail.open)detail.close();unlockPageForJournalDetail();viewingJournalId=null;
   $('#journalItemPreviewTitle').textContent=journalItemPreviewSnapshot.type||journalItemPreviewSnapshot.category||'Piece details';
   $('#journalItemPreviewPhoto').innerHTML=journalItemPreviewSnapshot.photo?`<img src="${journalItemPreviewSnapshot.photo}" alt="${esc(journalItemPreviewSnapshot.type||journalItemPreviewSnapshot.category||'Closet piece')}">`:'<div class="journal-preview-placeholder">✣</div>';
@@ -886,14 +874,8 @@ function openJournalItemPreview(itemId){
   lockPageForJournalItemPreview();$('#journalItemPreviewDialog').showModal();
 }
 function clearJournalItemPreview(){journalItemPreviewId=null;journalItemPreviewSnapshot=null}
-function closeJournalItemPreviewToDay(){
-  const returnId=journalItemReturnId,d=$('#journalItemPreviewDialog');if(d.open)d.close();unlockPageForJournalItemPreview();clearJournalItemPreview();journalItemReturnId=null;
-  if(returnId&&state.journal.some(j=>j.id===returnId))openJournalDetail(returnId);
-}
-function editJournalItemPreview(){
-  const itemId=journalItemPreviewId,d=$('#journalItemPreviewDialog');if(d.open)d.close();unlockPageForJournalItemPreview();clearJournalItemPreview();journalItemReturnId=null;
-  const live=state.items.find(i=>i.id===itemId);if(!live)return;showScreen('catalog');openItem(live);
-}
+function closeJournalItemPreviewToDay(){const returnId=journalItemReturnId,d=$('#journalItemPreviewDialog');if(d.open)d.close();unlockPageForJournalItemPreview();clearJournalItemPreview();journalItemReturnId=null;if(returnId&&state.journal.some(j=>j.id===returnId))openJournalDetail(returnId)}
+function editJournalItemPreview(){const itemId=journalItemPreviewId,d=$('#journalItemPreviewDialog');if(d.open)d.close();unlockPageForJournalItemPreview();clearJournalItemPreview();journalItemReturnId=null;const live=state.items.find(i=>i.id===itemId);if(!live)return;showScreen('catalog');openItem(live)}
 function lockPageForJournalStat(){
   if(document.body.classList.contains('journal-stat-open'))return;
   journalStatScrollY=window.scrollY||0;document.body.style.top=`-${journalStatScrollY}px`;document.body.classList.add('journal-stat-open');
