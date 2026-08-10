@@ -121,8 +121,10 @@
     <section class="screen" data-screen="journal">
       <div class="page-head"><div><p class="script">the story of what you wear</p><h2>Journal</h2></div><button class="primary" id="logWearBtn">Log today</button></div>
       <section id="plannedJournalSection" class="planned-journal-section hidden">
-        <div class="section-title planned-section-title"><h3>Planned looks</h3><span>future dates</span></div>
-        <div class="journal-list planned-journal-list" id="plannedJournalList"></div>
+        <button type="button" id="plannedJournalToggle" class="planned-section-toggle" aria-expanded="false">
+          <span><strong>Planned looks</strong><small id="plannedJournalCount">future dates</small></span><span class="planned-toggle-icon">＋</span>
+        </button>
+        <div class="journal-list planned-journal-list hidden" id="plannedJournalList"></div>
       </section>
       <div class="journal-toolbar">
         <div><strong>Wear log</strong><small id="journalCount">0 days</small></div>
@@ -276,7 +278,6 @@
       <div class="wear-category-tabs" id="wearCategoryTabs"></div>
       <div class="wear-selection-summary"><span id="wearSelectedCount">0 selected</span><button type="button" class="text-btn" id="clearWearSelectionBtn">Clear</button></div>
       <div class="wear-picker" id="wearPicker"></div>
-      <label class="full-label">Notes<textarea id="wearNotes" placeholder="School, weekend, weather, or anything you want to remember…"></textarea></label>
       <div class="sheet-actions journal-edit-actions"><button type="button" class="soft-btn" id="cancelWearBtn">Cancel</button><button type="button" class="danger-text hidden" id="deleteWearBtn">Delete day</button><button type="submit" class="primary">Save journal</button></div>
     </form>
   </dialog>
@@ -289,16 +290,22 @@
         <button type="button" id="journalDetailFavoriteBtn" class="journal-star-btn" aria-label="Favorite this day">☆</button>
       </div>
       <div id="journalDetailFeedback" class="journal-detail-feedback"></div>
+      <div class="journal-detail-notes-block">
+        <label for="journalDetailNotesInput">Notes</label>
+        <textarea id="journalDetailNotesInput" placeholder="School, weekend, weather, styling notes, or anything you want to remember…"></textarea>
+        <button type="button" class="soft-btn journal-save-notes-btn" id="saveJournalDetailNotesBtn">Save notes</button>
+      </div>
       <div id="journalDetailItems" class="journal-detail-items"></div>
-      <p id="journalDetailNotes" class="outfit-note"></p>
     </div>
     <div class="sheet-actions journal-detail-actions"><button type="button" class="danger-text" id="deleteJournalDetailBtn">Delete</button><button type="button" class="primary" id="editJournalDetailBtn">Edit day</button></div>
   </dialog>
 
-  <dialog id="journalStatDialog" class="sheet-dialog journal-detail-dialog">
-    <div class="sheet-head"><div><p class="script">wear insights</p><h2 id="journalStatTitle">Details</h2></div><button type="button" class="close-btn" id="closeJournalStatBtn">×</button></div>
-    <p id="journalStatSummary" class="outfit-note"></p>
-    <div id="journalStatItems" class="journal-detail-items"></div>
+  <dialog id="journalStatDialog" class="sheet-dialog journal-detail-dialog journal-stat-dialog">
+    <div class="journal-stat-scroll">
+      <div class="sheet-head"><div><p class="script">wear insights</p><h2 id="journalStatTitle">Details</h2></div><button type="button" class="close-btn" id="closeJournalStatBtn">×</button></div>
+      <p id="journalStatSummary" class="outfit-note"></p>
+      <div id="journalStatItems" class="journal-detail-items"></div>
+    </div>
   </dialog>
 
   <dialog id="outfitViewDialog" class="sheet-dialog">

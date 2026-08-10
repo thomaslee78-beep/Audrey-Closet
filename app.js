@@ -62,7 +62,9 @@ let wearCategoryFilter='All';
 let editingWearId=null;
 let viewingJournalId=null;
 let journalDetailScrollY=0;
+let journalStatScrollY=0;
 let journalRangeFilter='all';
+let plannedJournalExpanded=false;
 let wearDraftIds=new Set();
 
 function emptyState(){return {items:[],outfits:[],journal:[],wishlist:[],settings:{appName:DEFAULT_APP_NAME,portfolioFolders:[...DEFAULT_PORTFOLIO_FOLDERS],boardRecent:{closet:[],wishlist:[]}}}}
@@ -141,7 +143,7 @@ function bindNav(){
   $$('.bottom-nav button').forEach(b=>b.onclick=()=>showScreen(b.dataset.nav));
   ['addItemBtn','emptyAddBtn','quickAddBtn'].forEach(x=>$('#'+x).onclick=()=>openItem(null, selectedCategory||$('#filterCategory').value||''));
   $('#addWishBtn').onclick=()=>openWish();
-  $('#logWearBtn').onclick=openWear;
+  $('#logWearBtn').onclick=()=>openWear();
 }
 function showScreen(name){$$('.screen').forEach(s=>s.classList.toggle('active',s.dataset.screen===name));$$('.bottom-nav button').forEach(b=>b.classList.toggle('active',b.dataset.nav===name));scrollTo({top:0,behavior:'smooth'});if(name==='journal')renderJournal();if(name==='outfits')renderOutfits();if(name==='portfolio')renderSavedOutfits();if(name==='more')renderPortfolioFolderEditor()}
 
@@ -174,13 +176,17 @@ function bindDialogs(){
   $('#clearWearSelectionBtn').onclick=()=>{wearDraftIds.clear();$$('.wear-option.selected').forEach(b=>b.classList.remove('selected'));updateWearSelectedCount()};
   $('#deleteWearBtn').onclick=deleteWearEntry;
   $('#journalRange').onchange=e=>{journalRangeFilter=e.target.value;renderJournal()};
+  $('#plannedJournalToggle').onclick=()=>{plannedJournalExpanded=!plannedJournalExpanded;renderPlannedJournalVisibility()};
   $('#closeJournalDetailBtn').onclick=closeJournalDetail;
   $('#journalDetailDialog').addEventListener('cancel',e=>{e.preventDefault();closeJournalDetail()});
   $('#journalDetailFeel').onchange=saveJournalDetailFeedback;
   $('#journalDetailFavoriteBtn').onclick=toggleJournalDetailFavorite;
+  $('#saveJournalDetailNotesBtn').onclick=saveJournalDetailNotes;
   $('#editJournalDetailBtn').onclick=()=>{const j=state.journal.find(x=>x.id===viewingJournalId);closeJournalDetail();if(j)openWear(j.date)};
   $('#deleteJournalDetailBtn').onclick=()=>deleteJournalEntryById(viewingJournalId,true);
-  $('#closeJournalStatBtn').onclick=()=>$('#journalStatDialog').close();
+  $('#closeJournalStatBtn').onclick=closeJournalStat;
+  $('#journalStatDialog').addEventListener('cancel',e=>{e.preventDefault();closeJournalStat()});
+  $('#journalStatDialog').addEventListener('close',unlockPageForJournalStat);
   $$('.stat-action').forEach(b=>b.onclick=()=>openJournalStat(b.dataset.stat));
   $('#deleteOutfitBtn').onclick=deleteOutfit;$('#favoriteViewedOutfitBtn').onclick=favoriteViewedOutfit;$('#editViewedOutfitBtn').onclick=editViewedOutfit;$('#shareViewedOutfitBtn').onclick=shareViewedOutfit;
 }
@@ -726,7 +732,6 @@ function loadWearDate(date){
   editingWearId=existing?.id||null;
   wearDraftIds=new Set(existing?.itemIds||[]);
   $('#wearDialogTitle').textContent=existing?'Edit what you wore':'Log what you wore';
-  $('#wearNotes').value=existing?.notes||'';
   $('#deleteWearBtn').classList.toggle('hidden',!existing);
   wearCategoryFilter='All';
   renderWearPicker();
@@ -745,7 +750,7 @@ async function saveWear(){
   if(!ids.length)return toast('Select at least one item');
   const date=$('#wearDate').value;if(!date)return toast('Choose a date');
   let existing=editingWearId?state.journal.find(j=>j.id===editingWearId):state.journal.find(j=>j.date===date);
-  const payload={date,itemIds:[...new Set(ids)],notes:$('#wearNotes').value.trim(),updated:Date.now()};
+  const payload={date,itemIds:[...new Set(ids)],notes:existing?.notes||'',updated:Date.now()};
   if(existing)Object.assign(existing,payload);else state.journal.unshift({id:id(),created:Date.now(),feel:'',favorite:false,...payload});
   // One entry per day. If an older duplicate exists, merge its items before removing it.
   const sameDay=state.journal.filter(j=>j.date===date);
@@ -780,9 +785,13 @@ function renderJournal(){
   const pastJournal=state.journal.filter(j=>!isFutureJournal(j));
   const wears=state.items.map(i=>({...i,w:pastJournal.reduce((n,j)=>n+(j.itemIds||[]).filter(x=>x===i.id).length,0)})).sort((a,b)=>b.w-a.w),total=wears.reduce((n,i)=>n+i.w,0);$('#totalWears').textContent=total;const mw=wears[0]?.w?wears[0]:null;$('#mostWorn').textContent=mw?(mw.type||mw.category):'—';$('#mostWornMeta').textContent=mw?`${mw.w} wears · ${mw.color||'color not set'}`:'No wear data yet';
   const colorCounts={};pastJournal.forEach(j=>(j.itemIds||[]).forEach(x=>{const i=state.items.find(z=>z.id===x);if(i?.color)colorCounts[i.color]=(colorCounts[i.color]||0)+1}));const fav=Object.entries(colorCounts).sort((a,b)=>b[1]-a[1])[0];$('#favColor').textContent=fav?.[0]||'—';$('#favColorMeta').textContent=fav?`${fav[1]} item-wears`:'No wear data yet';const sn=seasonForDate();$('#seasonName').textContent=sn;$('#seasonWears').textContent=pastJournal.filter(j=>seasonForDate(new Date(j.date+'T12:00:00'))===sn).reduce((n,j)=>n+(j.itemIds||[]).length,0);
-  const planned=state.journal.filter(isFutureJournal).sort((a,b)=>a.date.localeCompare(b.date));$('#plannedJournalSection').classList.toggle('hidden',!planned.length);$('#plannedJournalList').innerHTML=planned.map(j=>journalRow(j,true)).join('');
+  const planned=state.journal.filter(isFutureJournal).sort((a,b)=>a.date.localeCompare(b.date));$('#plannedJournalSection').classList.toggle('hidden',!planned.length);$('#plannedJournalList').innerHTML=planned.map(j=>journalRow(j,true)).join('');$('#plannedJournalCount').textContent=`${planned.length} ${planned.length===1?'planned day':'planned days'}`;renderPlannedJournalVisibility();
   const rows=journalEntriesForRange();$('#journalRange').value=journalRangeFilter;$('#journalCount').textContent=`${rows.length} ${rows.length===1?'day':'days'}`;$('#journalList').innerHTML=rows.map(j=>journalRow(j,false)).join('')||'<div class="empty-state compact"><p>No journal entries in this view.</p></div>';$$('.journal-row-button').forEach(b=>b.onclick=()=>openJournalDetail(b.dataset.journalId));
   drawDonut($('#colorChart'),colorCounts);const seasonCounts={Winter:0,Spring:0,Summer:0,Fall:0};pastJournal.forEach(j=>seasonCounts[seasonForDate(new Date(j.date+'T12:00:00'))]++);drawBars($('#seasonChart'),seasonCounts)
+}
+function renderPlannedJournalVisibility(){
+  const list=$('#plannedJournalList'),toggle=$('#plannedJournalToggle');if(!list||!toggle)return;
+  list.classList.toggle('hidden',!plannedJournalExpanded);toggle.setAttribute('aria-expanded',plannedJournalExpanded?'true':'false');const icon=toggle.querySelector('.planned-toggle-icon');if(icon)icon.textContent=plannedJournalExpanded?'−':'＋';
 }
 function lockPageForJournalDetail(){
   if(document.body.classList.contains('journal-detail-open'))return;
@@ -800,17 +809,27 @@ function refreshJournalDetailFeedback(j){
 }
 async function saveJournalDetailFeedback(){const j=state.journal.find(x=>x.id===viewingJournalId);if(!j)return;j.feel=$('#journalDetailFeel').value;j.updated=Date.now();await saveState();refreshJournalDetailFeedback(j);renderJournal();toast('Day rating saved')}
 async function toggleJournalDetailFavorite(){const j=state.journal.find(x=>x.id===viewingJournalId);if(!j)return;j.favorite=!j.favorite;j.updated=Date.now();await saveState();refreshJournalDetailFeedback(j);renderJournal();toast(j.favorite?'Added to favorites':'Removed from favorites')}
+async function saveJournalDetailNotes(){const j=state.journal.find(x=>x.id===viewingJournalId);if(!j)return;j.notes=$('#journalDetailNotesInput').value.trim();j.updated=Date.now();await saveState();renderJournal();toast('Notes saved')}
 function openJournalDetail(jid){
   const j=state.journal.find(x=>x.id===jid);if(!j)return;viewingJournalId=jid;$('#journalDetailTitle').textContent=formatJournalDate(j.date);refreshJournalDetailFeedback(j);
-  const items=(j.itemIds||[]).map(x=>state.items.find(i=>i.id===x)).filter(Boolean);$('#journalDetailItems').innerHTML=items.map(i=>`<button type="button" class="journal-detail-item" data-item-id="${i.id}">${i.photo?`<img src="${i.photo}" alt="${esc(i.type||i.category)}">`:'<div class="wear-placeholder">✣</div>'}<div><strong>${esc(i.type||i.category)}</strong><small>${esc([i.color,i.brand,i.size].filter(Boolean).join(' · ')||i.category)}</small></div></button>`).join('');$$('#journalDetailItems .journal-detail-item').forEach(b=>b.onclick=()=>{const item=state.items.find(i=>i.id===b.dataset.itemId);if(item){closeJournalDetail();openItem(item)}});$('#journalDetailNotes').textContent=j.notes||'No notes for this day.';lockPageForJournalDetail();$('#journalDetailDialog').showModal()
+  const items=(j.itemIds||[]).map(x=>state.items.find(i=>i.id===x)).filter(Boolean);$('#journalDetailItems').innerHTML=items.map(i=>`<button type="button" class="journal-detail-item" data-item-id="${i.id}">${i.photo?`<img src="${i.photo}" alt="${esc(i.type||i.category)}">`:'<div class="wear-placeholder">✣</div>'}<div><strong>${esc(i.type||i.category)}</strong><small>${esc([i.color,i.brand,i.size].filter(Boolean).join(' · ')||i.category)}</small></div></button>`).join('');$$('#journalDetailItems .journal-detail-item').forEach(b=>b.onclick=()=>{const item=state.items.find(i=>i.id===b.dataset.itemId);if(item){closeJournalDetail();openItem(item)}});$('#journalDetailNotesInput').value=j.notes||'';lockPageForJournalDetail();$('#journalDetailDialog').showModal()
 }
+function lockPageForJournalStat(){
+  if(document.body.classList.contains('journal-stat-open'))return;
+  journalStatScrollY=window.scrollY||0;document.body.style.top=`-${journalStatScrollY}px`;document.body.classList.add('journal-stat-open');
+}
+function unlockPageForJournalStat(){
+  if(!document.body.classList.contains('journal-stat-open'))return;
+  document.body.classList.remove('journal-stat-open');document.body.style.top='';window.scrollTo(0,journalStatScrollY||0);
+}
+function closeJournalStat(){const d=$('#journalStatDialog');if(d.open)d.close();unlockPageForJournalStat()}
 function openJournalStat(kind){
   const pastJournal=state.journal.filter(j=>!isFutureJournal(j));const wearItems=state.items.map(i=>({...i,w:pastJournal.reduce((n,j)=>n+(j.itemIds||[]).filter(x=>x===i.id).length,0)})).filter(i=>i.w>0).sort((a,b)=>b.w-a.w);let title='Wear details',summary='',items=wearItems;
   if(kind==='most'){title='Most worn pieces';summary=wearItems.length?`Your most-worn piece has ${wearItems[0].w} logged wears.`:'Start logging days to see your most-worn pieces.';items=wearItems.slice(0,12)}
   else if(kind==='color'){const counts={};wearItems.forEach(i=>{if(i.color)counts[i.color]=(counts[i.color]||0)+i.w});const top=Object.entries(counts).sort((a,b)=>b[1]-a[1])[0];title='Favorite color';summary=top?`${top[0]} leads with ${top[1]} item-wears.`:'No color data yet.';items=top?wearItems.filter(i=>i.color===top[0]):[]}
   else if(kind==='season'){const sn=seasonForDate();title=`${sn} wears`;const ids=new Set(pastJournal.filter(j=>seasonForDate(new Date(j.date+'T12:00:00'))===sn).flatMap(j=>j.itemIds||[]));items=wearItems.filter(i=>ids.has(i.id));summary=`${items.length} closet pieces appear in your ${sn.toLowerCase()} journal entries.`}
   else {title='Closet wears';summary=`${wearItems.reduce((n,i)=>n+i.w,0)} total item-wears across ${pastJournal.length} logged days.`;items=wearItems}
-  $('#journalStatTitle').textContent=title;$('#journalStatSummary').textContent=summary;$('#journalStatItems').innerHTML=items.map(i=>`<div class="journal-detail-item stat-detail-item">${i.photo?`<img src="${i.photo}" alt="${esc(i.type||i.category)}">`:'<div class="wear-placeholder">✣</div>'}<div><strong>${esc(i.type||i.category)}${i.w?` · ${i.w} wears`:''}</strong><small>${esc([i.color,i.brand].filter(Boolean).join(' · '))}</small></div></div>`).join('')||'<div class="empty-state compact"><p>No matching wear data yet.</p></div>';$('#journalStatDialog').showModal()
+  $('#journalStatTitle').textContent=title;$('#journalStatSummary').textContent=summary;$('#journalStatItems').innerHTML=items.map(i=>`<div class="journal-detail-item stat-detail-item">${i.photo?`<img src="${i.photo}" alt="${esc(i.type||i.category)}">`:'<div class="wear-placeholder">✣</div>'}<div><strong>${esc(i.type||i.category)}${i.w?` · ${i.w} wears`:''}</strong><small>${esc([i.color,i.brand].filter(Boolean).join(' · '))}</small></div></div>`).join('')||'<div class="empty-state compact"><p>No matching wear data yet.</p></div>';lockPageForJournalStat();$('#journalStatDialog').showModal()
 }
 function drawDonut(canvas,data){const ctx=canvas.getContext('2d'),w=canvas.width,h=canvas.height;ctx.clearRect(0,0,w,h);const entries=Object.entries(data).sort((a,b)=>b[1]-a[1]).slice(0,7),total=entries.reduce((n,x)=>n+x[1],0);if(!total){ctx.fillStyle='#8d8273';ctx.font='18px Avenir';ctx.textAlign='center';ctx.fillText('Log outfits to reveal your color story',w/2,h/2);return}let a=-Math.PI/2;entries.forEach(([c,v])=>{const next=a+(v/total)*Math.PI*2;ctx.beginPath();ctx.strokeStyle=colorHex(c);ctx.lineWidth=44;ctx.arc(150,h/2,75,a,next);ctx.stroke();a=next});ctx.fillStyle='#2e2a24';ctx.textAlign='center';ctx.font='32px Georgia';ctx.fillText(total,150,h/2+7);ctx.font='12px Avenir';ctx.fillText('item-wears',150,h/2+27);ctx.textAlign='left';entries.forEach(([c,v],n)=>{const y=42+n*27;ctx.fillStyle=colorHex(c);ctx.fillRect(285,y-11,16,16);ctx.fillStyle='#3c372f';ctx.font='14px Avenir';ctx.fillText(`${c}  ${v}`,312,y+2)})}
 function drawBars(canvas,data){const ctx=canvas.getContext('2d'),w=canvas.width,h=canvas.height;ctx.clearRect(0,0,w,h);const vals=Object.values(data),max=Math.max(1,...vals),names=Object.keys(data),gap=32,bw=(w-gap*5)/4;names.forEach((n,i)=>{const x=gap+i*(bw+gap),bh=(data[n]/max)*(h-70);ctx.fillStyle=['#6d7a5d','#8ca78d','#c6a34e','#8a4b58'][i];ctx.fillRect(x,h-40-bh,bw,bh);ctx.fillStyle='#4b443a';ctx.textAlign='center';ctx.font='13px Avenir';ctx.fillText(n,x+bw/2,h-16);ctx.font='18px Georgia';ctx.fillText(data[n],x+bw/2,h-48-bh)})}
