@@ -21,6 +21,7 @@ const DEFAULT_APP_NAME="Audrey's Clothing App";
 const DEFAULT_PORTFOLIO_FOLDERS=['Everyday','School','Weekend','Dressy','Sport','Seasonal','Ideas'];
 let state=emptyState();
 let selectedCategory='';
+let includeArchivedCloset=false;
 let catalogReviewIds=[];
 let itemReviewIds=[];
 let itemSwipeStart=null;
@@ -113,6 +114,7 @@ function $(q){return document.querySelector(q)}
 function $$(q){return [...document.querySelectorAll(q)]}
 function seasonForDate(d=new Date()){const m=d.getMonth()+1;if([12,1,2].includes(m))return'Winter';if([3,4,5].includes(m))return'Spring';if([6,7,8].includes(m))return'Summer';return'Fall'}
 function colorHex(name){const map={Black:'#262626',White:'#faf9f4',Cream:'#f1e7c9',Gray:'#8a8984',Brown:'#7a5744',Coffee:'#6c5142',Tan:'#b79876',Beige:'#d9c7a6',Burgundy:'#7d3547',Red:'#b84b46',Orange:'#d37c3f',Yellow:'#d7bb4e',Mustard:'#c3a04b',Olive:'#66715a',Green:'#4d7851',Mint:'#9cc5ab',Turquoise:'#4d8e8a',Blue:'#527aa7',Navy:'#34455f',Purple:'#79618c',Pink:'#c7788b',Multicolor:'#ad7b6a'};return map[name]||'#a39a89'}
+function isArchived(item){return item?.status==='archived'}
 
 async function init(){
   state=await loadState();
@@ -122,13 +124,15 @@ async function init(){
   $('#filterBtn').onclick=()=>$('#filterPanel').classList.toggle('hidden');
   $('#clearFilters').onclick=()=>{selectedCategory='';$('#filterCategory').value='';$('#filterSeason').value='';$('#filterColor').value='';renderCatalog();renderCategories()};
   ['filterCategory','filterSeason','filterColor'].forEach(x=>$('#'+x).addEventListener('change',renderCatalog));
+  $('#includeArchivedCloset').checked=false;
+  $('#includeArchivedCloset').addEventListener('change',e=>{includeArchivedCloset=!!e.target.checked;renderCategories();renderCatalog()});
   $('#exportBtn').onclick=exportData;$('#importFile').onchange=importData;$('#resetBtn').onclick=resetData;
   $('#saveAppNameBtn').onclick=saveAppName;$('#resetAppNameBtn').onclick=resetAppName;
   $('#settingsBtn').onclick=()=>{renderPortfolioFolderEditor();showScreen('more')};
   $('#addPortfolioFolderBtn').onclick=addPortfolioFolder;
   $('#managePortfolioBtn').onclick=()=>{renderPortfolioFolderEditor();showScreen('more')};
   $('#portfolioNewBtn').onclick=()=>{startNewOutfit();showScreen('outfits')};
-  if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js?v=13.6',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
+  if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js?v=13.7-dev1',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
   renderAll();
 }
 function fillSelects(){
@@ -169,7 +173,8 @@ function bindDialogs(){
   $('#closeItemDialogBtn').onclick=closeItemWithoutSaving;
   $('#itemDialog').addEventListener('cancel',e=>{e.preventDefault();closeItemWithoutSaving()});
   ['itemCategory','itemType','itemBrand','itemColor'].forEach(id=>$('#'+id).addEventListener('input',updateItemReviewSummary));
-  $('#deleteItemBtn').onclick=deleteItem;
+  $('#deleteItemBtn').onclick=toggleItemArchived;
+  $('#permanentDeleteItemBtn').onclick=permanentDeleteItem;
   bindItemSwipe();
   $('#wishPhoto').onchange=async e=>{const f=e.target.files[0];if(!f)return;wishWorkingPhoto=await fileToDataURL(f,900,.74);showPhoto('#wishPhotoPreview','#wishPhotoPlaceholder',wishWorkingPhoto)};
   $('#wishForm').onsubmit=e=>{e.preventDefault();saveWish()};
@@ -213,7 +218,7 @@ function loadItemIntoEditor(item=null,preferredCategory=''){
   const isEdit=!!item;
   $('#itemDialog').classList.toggle('editing-existing',isEdit);
   $('#itemDialogTitle').textContent=isEdit?'Review piece':'Add a piece';$('#itemId').value=item?.id||'';itemWorkingPhoto=item?.photo||'';itemOriginalPhoto=item?.originalPhoto||item?.photo||'';
-  showPhoto('#itemPhotoPreview','#photoPlaceholder',itemWorkingPhoto);updateOriginalPhotoButton();const category=item?.category||preferredCategory||selectedCategory||$('#filterCategory').value||'Tops';$('#itemCategory').value=category;populateTypeOptions(category,item?.type||'');populateSizeOptions(category,item?.size||'');$('#itemBrand').value=item?.brand||'';$('#itemColor').value=item?.color||'';$('#itemPattern').value=item?.pattern||'Solid';$('#itemAcquired').value=item?.acquired||'Bought new';$('#itemSeason').value=item?.season||'All-season';$('#itemNotes').value=item?.notes||'';$('#scanStatus').textContent='';$('#deleteItemBtn').classList.toggle('hidden',!item);$('#itemPhoto').value='';$('#itemPhotoLibrary').value='';
+  showPhoto('#itemPhotoPreview','#photoPlaceholder',itemWorkingPhoto);updateOriginalPhotoButton();const category=item?.category||preferredCategory||selectedCategory||$('#filterCategory').value||'Tops';$('#itemCategory').value=category;populateTypeOptions(category,item?.type||'');populateSizeOptions(category,item?.size||'');$('#itemBrand').value=item?.brand||'';$('#itemColor').value=item?.color||'';$('#itemPattern').value=item?.pattern||'Solid';$('#itemAcquired').value=item?.acquired||'Bought new';$('#itemSeason').value=item?.season||'All-season';$('#itemNotes').value=item?.notes||'';$('#scanStatus').textContent='';const archived=!!item&&isArchived(item);$('#deleteItemBtn').classList.toggle('hidden',!item);$('#deleteItemBtn').textContent=archived?'Reactivate':'Remove from Closet';$('#deleteItemBtn').classList.toggle('reactivate-item',archived);$('#permanentDeleteItemBtn').classList.toggle('hidden',!item);$('#itemArchiveNotice').classList.toggle('hidden',!archived);$('#itemPhoto').value='';$('#itemPhotoLibrary').value='';
   const tools=$('.photo-tools-disclosure');if(tools)tools.open=!isEdit;
   $('#itemReviewSummary').classList.toggle('hidden',!isEdit);$('#itemSwipeHint').classList.toggle('hidden',!isEdit||itemReviewIds.length<2);updateItemReviewSummary();
   if($('#itemDialog').open)$('#itemDialog').scrollTop=0;
@@ -274,25 +279,50 @@ function updateItemReviewSummary(){
   $('#itemReviewTitle').textContent=type;$('#itemReviewMeta').innerHTML=`<span class="swatch" style="background:${colorHex(color)}"></span>${esc(color)} · ${esc(brand)}`;
 }
 async function saveItem(){
-  const iid=$('#itemId').value;const old=state.items.find(x=>x.id===iid);const obj={id:iid||id(),photo:itemWorkingPhoto,originalPhoto:itemOriginalPhoto||itemWorkingPhoto,category:$('#itemCategory').value,type:$('#itemType').value,brand:$('#itemBrand').value.trim(),size:$('#itemSize').value,color:$('#itemColor').value,pattern:$('#itemPattern').value,acquired:$('#itemAcquired').value,season:$('#itemSeason').value,notes:$('#itemNotes').value.trim(),created:old?.created||Date.now(),wears:old?.wears||0};
+  const iid=$('#itemId').value;const old=state.items.find(x=>x.id===iid);const obj={id:iid||id(),photo:itemWorkingPhoto,originalPhoto:itemOriginalPhoto||itemWorkingPhoto,category:$('#itemCategory').value,type:$('#itemType').value,brand:$('#itemBrand').value.trim(),size:$('#itemSize').value,color:$('#itemColor').value,pattern:$('#itemPattern').value,acquired:$('#itemAcquired').value,season:$('#itemSeason').value,notes:$('#itemNotes').value.trim(),created:old?.created||Date.now(),wears:old?.wears||0,status:old?.status||'active',statusDate:old?.statusDate||''};
   const previous=state.items;if(iid)state.items=state.items.map(x=>x.id===iid?obj:x);else{state.items=[obj,...state.items];ensureSettings();const order=state.settings.closetOrder[obj.category]||[];state.settings.closetOrder[obj.category]=[obj.id,...order.filter(x=>x!==obj.id)];}
   const btn=$('#saveItemBtn');btn.disabled=true;btn.textContent='Saving…';$('#scanStatus').textContent='Saving securely on this device…';
   const ok=await saveState();btn.disabled=false;btn.textContent='Save piece';
   if(ok){$('#itemDialog').close();unlockPageForItemDialog();toast(iid?'Piece updated':'Added to closet')}else{state.items=previous;$('#scanStatus').textContent='Save failed. Your entry is still open so you can try again.'}
 }
 function setPhotoBusy(busy,message=''){['#removeBgBtn','#smartScanBtn','#saveItemBtn'].forEach(sel=>{const el=$(sel);if(el)el.disabled=busy});if(message)$('#scanStatus').textContent=message}
-function deleteItem(){const iid=$('#itemId').value;if(!iid||!confirm('Delete this closet piece?'))return;state.items=state.items.filter(x=>x.id!==iid);state.journal=state.journal.map(j=>({...j,itemIds:j.itemIds.filter(x=>x!==iid)}));saveState();$('#itemDialog').close();unlockPageForItemDialog();toast('Piece deleted')}
+async function toggleItemArchived(){
+  const iid=$('#itemId').value,item=state.items.find(x=>x.id===iid);if(!item)return;
+  if(isArchived(item)){
+    item.status='active';item.statusDate='';
+    const ok=await saveState();if(!ok)return;
+    loadItemIntoEditor(item);toast('Piece returned to closet');return;
+  }
+  if(!confirm('Remove this piece from your active Closet? It will be archived, but Journal history and saved outfits will be preserved.'))return;
+  item.status='archived';item.statusDate=localTodayISO();
+  const ok=await saveState();if(!ok)return;
+  $('#itemDialog').close();unlockPageForItemDialog();toast('Piece archived');
+}
+async function permanentDeleteItem(){
+  const iid=$('#itemId').value,item=state.items.find(x=>x.id===iid);if(!item)return;
+  const label=item.type||item.category||'this piece';
+  if(!confirm(`Permanently delete ${label}? This is only for mistakes. It will also be removed from Journal entries and saved outfits. This cannot be undone.`))return;
+  if(!confirm('Final warning: permanently delete this piece and its history references?'))return;
+  state.items=state.items.filter(x=>x.id!==iid);
+  state.journal=state.journal.map(j=>({...j,itemIds:(j.itemIds||[]).filter(x=>x!==iid)}));
+  state.outfits=state.outfits.map(o=>({...o,pieces:(o.pieces||[]).filter(p=>!(p.kind==='piece'&&p.source==='closet'&&p.id===iid))}));
+  boardItems=boardItems.filter(p=>!(p.kind==='piece'&&p.source==='closet'&&p.id===iid));
+  if(state.settings?.boardRecent?.closet)state.settings.boardRecent.closet=state.settings.boardRecent.closet.filter(x=>x!==iid);
+  if(state.settings?.closetOrder)Object.keys(state.settings.closetOrder).forEach(cat=>state.settings.closetOrder[cat]=(state.settings.closetOrder[cat]||[]).filter(x=>x!==iid));
+  const ok=await saveState();if(!ok)return;
+  $('#itemDialog').close();unlockPageForItemDialog();drawBoard();toast('Piece permanently deleted');
+}
 
 function renderAll(){ensureSettings();applyAppName();renderCategories();renderCatalog();renderOutfits();renderSavedOutfits();renderWishlist();renderJournal();renderPortfolioFolderEditor()}
-function renderCategories(){const host=$('#categoryStrip');host.innerHTML=CATEGORIES.map(c=>{const n=state.items.filter(i=>i.category===c).length;return`<button class="category-chip ${selectedCategory===c?'active':''}" data-cat="${c}"><strong>${c}</strong><span>${n} ${n===1?'piece':'pieces'}</span></button>`}).join('');$$('.category-chip').forEach(b=>b.onclick=()=>{selectedCategory=selectedCategory===b.dataset.cat?'':b.dataset.cat;renderCategories();renderCatalog()})}
+function renderCategories(){const host=$('#categoryStrip');host.innerHTML=CATEGORIES.map(c=>{const n=state.items.filter(i=>i.category===c&&(includeArchivedCloset||!isArchived(i))).length;return`<button class="category-chip ${selectedCategory===c?'active':''}" data-cat="${c}"><strong>${c}</strong><span>${n} ${n===1?'piece':'pieces'}</span></button>`}).join('');$$('.category-chip').forEach(b=>b.onclick=()=>{selectedCategory=selectedCategory===b.dataset.cat?'':b.dataset.cat;renderCategories();renderCatalog()})}
 function renderCatalog(){
   ensureSettings();
   const q=$('#catalogSearch').value.toLowerCase().trim(),fc=$('#filterCategory').value,fs=$('#filterSeason').value,fcol=$('#filterColor').value;
   const activeCategory=selectedCategory||fc||'';
-  let items=state.items.filter(i=>(!selectedCategory||i.category===selectedCategory)&&(!fc||i.category===fc)&&(!fs||i.season===fs)&&(!fcol||i.color===fcol)&&(!q||[i.type,i.brand,i.color,i.pattern,i.notes,i.category].join(' ').toLowerCase().includes(q)));
+  let items=state.items.filter(i=>(includeArchivedCloset||!isArchived(i))&&(!selectedCategory||i.category===selectedCategory)&&(!fc||i.category===fc)&&(!fs||i.season===fs)&&(!fcol||i.color===fcol)&&(!q||[i.type,i.brand,i.color,i.pattern,i.notes,i.category].join(' ').toLowerCase().includes(q)));
   if(activeCategory){const order=state.settings.closetOrder[activeCategory]||[];items=[...items].sort((a,b)=>{const ai=order.indexOf(a.id),bi=order.indexOf(b.id);return (ai<0?999999:ai)-(bi<0?999999:bi)})}
   catalogReviewIds=items.map(i=>i.id);
-  $('#catalogCount').textContent=`${items.length} ${items.length===1?'piece':'pieces'}`;$('#catalogGrid').innerHTML=items.map(i=>itemCard(i)).join('');$('#catalogEmpty').classList.toggle('hidden',state.items.length>0||q||selectedCategory||fc||fs||fcol);
+  const eligibleCount=state.items.filter(i=>includeArchivedCloset||!isArchived(i)).length;$('#catalogCount').textContent=`${items.length} ${items.length===1?'piece':'pieces'}`;$('#catalogGrid').innerHTML=items.map(i=>itemCard(i)).join('');$('#catalogEmpty').classList.toggle('hidden',eligibleCount>0||q||selectedCategory||fc||fs||fcol);
   $$('.item-card').forEach(c=>c.onclick=()=>{if(Date.now()<suppressCatalogClickUntil)return;openItem(state.items.find(i=>i.id===c.dataset.id))});
   bindCatalogReorder(activeCategory);
 }
@@ -490,7 +520,7 @@ async function finishCatalogDrag(pointerId,touchId,canceled=false,e){
   closetDrag={timer:null,pointerId:null,touchId:null,startX:0,startY:0,x:0,y:0,card:null,category:'',active:false,moved:false,ghost:null,dropOutline:null,placeholder:null,lastPlacement:'',raf:null,targetId:null,targetAfter:false,originalId:null,longPressed:false};
 }
 
-function itemCard(i){return`<article class="item-card" data-id="${i.id}"><div class="thumb">${i.photo?`<img src="${i.photo}" alt="${esc(i.type||i.category)}" draggable="false">`:`<div class="hanger">⌇</div>`}<span class="count-badge">${i.wears||0} wears</span></div><div class="card-body"><h4>${esc(i.type||i.category)}</h4><p>${i.color?`<span class="swatch" style="background:${colorHex(i.color)}"></span>${esc(i.color)} · `:''}${esc(i.brand||'No brand')}</p><p>${esc(i.size||'Size —')} · ${esc(i.pattern||'Solid')}</p></div></article>`}
+function itemCard(i){return`<article class="item-card ${isArchived(i)?'item-card-archived':''}" data-id="${i.id}"><div class="thumb">${i.photo?`<img src="${i.photo}" alt="${esc(i.type||i.category)}" draggable="false">`:`<div class="hanger">⌇</div>`}<span class="count-badge">${i.wears||0} wears</span>${isArchived(i)?'<span class="archived-badge">Archived</span>':''}</div><div class="card-body"><h4>${esc(i.type||i.category)}</h4><p>${i.color?`<span class="swatch" style="background:${colorHex(i.color)}"></span>${esc(i.color)} · `:''}${esc(i.brand||'No brand')}</p><p>${esc(i.size||'Size —')} · ${esc(i.pattern||'Solid')}</p></div></article>`}
 
 function openWish(w=null){$('#wishId').value=w?.id||'';wishWorkingPhoto=w?.photo||'';showPhoto('#wishPhotoPreview','#wishPhotoPlaceholder',wishWorkingPhoto);$('#wishName').value=w?.name||'';$('#wishBrand').value=w?.brand||'';$('#wishPrice').value=w?.price||'';$('#wishLink').value=w?.link||'';$('#wishCategory').value=w?.category||'Tops';$('#wishColor').value=w?.color||'';$('#wishNotes').value=w?.notes||'';$('#deleteWishBtn').classList.toggle('hidden',!w);$('#wishDialog').showModal()}
 function saveWish(){const wid=$('#wishId').value,old=state.wishlist.find(x=>x.id===wid),obj={id:wid||id(),photo:wishWorkingPhoto,name:$('#wishName').value.trim(),brand:$('#wishBrand').value.trim(),price:$('#wishPrice').value.trim(),link:$('#wishLink').value.trim(),category:$('#wishCategory').value,color:$('#wishColor').value,notes:$('#wishNotes').value.trim(),created:old?.created||Date.now()};if(wid)state.wishlist=state.wishlist.map(x=>x.id===wid?obj:x);else state.wishlist.unshift(obj);saveState();$('#wishDialog').close();toast('Wishlist saved')}
@@ -530,7 +560,7 @@ function populatePortfolioFolderSelect(selected=''){
 }
 function renderPieceTray(){
   ensureSettings();
-  const all=traySource==='closet'?state.items:state.wishlist;
+  const all=traySource==='closet'?state.items.filter(i=>!isArchived(i)):state.wishlist;
   const validRecent=(state.settings.boardRecent[traySource]||[]).filter(pid=>all.some(x=>x.id===pid));
   const cats=['Recent','All',...CATEGORIES.filter(c=>all.some(x=>x.category===c))];
   if(!cats.includes(trayCategory)||(trayCategory==='Recent'&&!validRecent.length))trayCategory=validRecent.length?'Recent':'All';
@@ -735,7 +765,7 @@ function renderWearCategoryTabs(){
   $$('#wearCategoryTabs button').forEach(b=>b.onclick=()=>{wearCategoryFilter=b.dataset.cat;renderWearPicker()});
 }
 function renderWearPicker(){
-  const items=state.items.filter(i=>wearCategoryFilter==='All'||i.category===wearCategoryFilter);
+  const items=state.items.filter(i=>(!isArchived(i)||wearDraftIds.has(i.id))&&(wearCategoryFilter==='All'||i.category===wearCategoryFilter));
   $('#wearPicker').innerHTML=items.map(i=>`<button type="button" class="wear-option ${wearDraftIds.has(i.id)?'selected':''}" data-id="${i.id}">${i.photo?`<img src="${i.photo}" alt="${esc(i.type||i.category)}">`:'<div class="wear-placeholder">✣</div>'}<strong>${esc(i.type||i.category)}</strong><small>${esc(i.color||'')} ${i.brand?`· ${esc(i.brand)}`:''}</small></button>`).join('')||'<div class="empty-state compact wear-empty"><p>No pieces in this category.</p></div>';
   $$('.wear-option').forEach(b=>b.onclick=()=>{const iid=b.dataset.id;if(wearDraftIds.has(iid)){wearDraftIds.delete(iid);b.classList.remove('selected')}else{wearDraftIds.add(iid);b.classList.add('selected')}updateWearSelectedCount()});
   renderWearCategoryTabs();updateWearSelectedCount();
@@ -763,8 +793,9 @@ function unlockPageForWearDialog(){
   window.scrollTo(0,wearDialogScrollY||0);
 }
 function openWear(date=''){
-  if(!state.items.length)return toast('Add closet pieces first');
-  const target=date||new Date().toISOString().slice(0,10);
+  const target=date||localTodayISO();
+  const existing=state.journal.find(j=>j.date===target);
+  if(!existing&&!state.items.some(i=>!isArchived(i)))return toast('Add or reactivate a closet piece first');
   $('#wearDate').value=target;
   loadWearDate(target);
   if(!$('#wearDialog').open){lockPageForWearDialog();$('#wearDialog').showModal();}
