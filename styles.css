@@ -255,3 +255,17 @@ body.wear-dialog-open{position:fixed;left:0;right:0;width:100%;overflow:hidden;o
 .journal-notes-details>summary small{margin-left:auto;font-family:var(--sans);font-size:10px;font-weight:400;color:#84786a}
 .journal-notes-body{padding:0 10px 10px}
 .journal-notes-details textarea{margin-top:0}
+
+
+/* v13.4-dev4 — reliable wear-log + notes collapse, duplicate rating cleanup */
+.wear-log-header{margin-bottom:7px}
+.wear-log-header .wear-log-toggle{width:100%;justify-content:space-between}
+.wear-log-content{display:grid;gap:8px;margin-bottom:10px}
+.wear-log-filter-row{display:flex;justify-content:flex-end;padding:0 2px}
+.wear-log-filter-row select{max-width:160px;border:1px solid var(--line);border-radius:12px;padding:8px;background:#fffaf0;font:inherit;font-size:12px;color:var(--ink)}
+.journal-notes-panel{padding:0!important;overflow:hidden}
+.journal-notes-toggle{width:100%;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:9px;border:0;background:transparent;padding:11px 12px;font:inherit;color:inherit;text-align:left;cursor:pointer;touch-action:manipulation}
+.journal-notes-toggle>span:first-child{font-family:var(--serif);font-size:15px;font-weight:600}
+.journal-notes-toggle small{justify-self:end;font-size:10px;color:#84786a}
+.journal-notes-toggle-icon{font-size:17px;color:var(--burgundy)}
+.journal-notes-panel .journal-notes-body{padding:0 10px 10px}

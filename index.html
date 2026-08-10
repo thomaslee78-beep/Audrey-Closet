@@ -126,19 +126,23 @@
         </button>
         <div class="journal-list planned-journal-list hidden" id="plannedJournalList"></div>
       </section>
-      <div class="journal-toolbar">
-        <button type="button" id="wearLogToggle" class="wear-log-toggle" aria-expanded="true">
+      <div class="journal-toolbar wear-log-header">
+        <button type="button" id="wearLogToggle" class="wear-log-toggle" aria-expanded="true" aria-controls="wearLogContent">
           <span><strong>Wear log</strong><small id="journalCount">0 days</small></span><span class="wear-log-toggle-icon">−</span>
         </button>
-        <select id="journalRange" aria-label="Journal date range">
-          <option value="all">All dates</option>
-          <option value="30">Last 30 days</option>
-          <option value="90">Last 90 days</option>
-          <option value="season">This season</option>
-          <option value="favorites">Favorites</option>
-        </select>
       </div>
-      <div class="journal-list" id="journalList"></div>
+      <div id="wearLogContent" class="wear-log-content">
+        <div class="wear-log-filter-row">
+          <select id="journalRange" aria-label="Journal date range">
+            <option value="all">All dates</option>
+            <option value="30">Last 30 days</option>
+            <option value="90">Last 90 days</option>
+            <option value="season">This season</option>
+            <option value="favorites">Favorites</option>
+          </select>
+        </div>
+        <div class="journal-list" id="journalList"></div>
+      </div>
       <div class="section-title"><h3>Wear insights</h3><span>tap cards for detail</span></div>
       <div class="stats-grid">
         <button class="stat-card stat-action" data-stat="most"><span>Most worn</span><strong id="mostWorn">—</strong><small id="mostWornMeta">No wear data yet</small></button>
@@ -304,14 +308,15 @@
           <button type="button" id="journalDetailFavoriteBtn" class="journal-star-btn" aria-label="Favorite this day">☆</button>
         </div>
       </div>
-      <div id="journalDetailFeedback" class="journal-detail-feedback"></div>
-      <details class="journal-detail-notes-block journal-notes-details" id="journalDetailNotesDetails">
-        <summary><span>Notes</span><small id="journalDetailNotesSummary">Add a note</small></summary>
-        <div class="journal-notes-body">
+      <section class="journal-detail-notes-block journal-notes-panel" id="journalDetailNotesPanel">
+        <button type="button" class="journal-notes-toggle" id="journalDetailNotesToggle" aria-expanded="false" aria-controls="journalDetailNotesBody">
+          <span>Notes</span><small id="journalDetailNotesSummary">Add a note</small><span class="journal-notes-toggle-icon">＋</span>
+        </button>
+        <div class="journal-notes-body hidden" id="journalDetailNotesBody">
           <textarea id="journalDetailNotesInput" aria-label="Notes" placeholder="School, weekend, weather, styling notes, or anything you want to remember…"></textarea>
           <button type="button" class="soft-btn journal-save-notes-btn" id="saveJournalDetailNotesBtn">Save notes</button>
         </div>
-      </details>
+      </section>
       <div id="journalDetailItems" class="journal-detail-items"></div>
     </div>
     <div class="sheet-actions journal-detail-actions"><button type="button" class="danger-text" id="deleteJournalDetailBtn">Delete</button><button type="button" class="primary" id="editJournalDetailBtn">Edit day</button></div>
