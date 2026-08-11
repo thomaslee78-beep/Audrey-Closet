@@ -254,23 +254,40 @@
     </form>
   </dialog>
 
-  <dialog id="photoStudioDialog" class="sheet-dialog studio-dialog">
-    <div class="sheet-head"><div><p class="script">photo studio</p><h2>Clean up the garment</h2></div><button class="close-btn" onclick="document.getElementById('photoStudioDialog').close()">×</button></div>
-    <p class="studio-intro">Choose a cutout style, then center and size the garment so every catalog card feels consistent.</p>
-    <div class="studio-template" id="studioTemplateHint">CENTER ITEM</div>
-    <div class="studio-canvas-wrap"><canvas id="studioCanvas"></canvas><div class="studio-guide"><i></i></div></div>
-    <div class="studio-tabs"><button type="button" class="studio-mode active" data-mode="original">Original</button><button type="button" class="studio-mode" data-mode="quick">Quick cutout</button><button type="button" class="studio-mode" data-mode="clean">Clean cutout</button></div>
-    <div class="studio-controls">
-      <label>Size <span id="studioScaleValue">88%</span><input id="studioScale" type="range" min="60" max="125" value="88"></label>
-      <label>Rotate <span id="studioRotateValue">0°</span><input id="studioRotate" type="range" min="-18" max="18" value="0"></label>
-      <label>Edge cleanup<input id="studioEdge" type="range" min="25" max="80" value="45"></label>
-      <label>Brush size<input id="studioBrush" type="range" min="10" max="60" value="26"></label>
+  <dialog id="photoStudioDialog" class="sheet-dialog studio-dialog studio-v138">
+    <div class="studio-shell">
+      <div class="sheet-head studio-head"><div><p class="script">photo studio</p><h2>Clean up the garment</h2></div><button class="close-btn" id="studioCloseBtn">×</button></div>
+      <div class="studio-template" id="studioTemplateHint">CENTER ITEM</div>
+      <div class="studio-canvas-wrap">
+        <canvas id="studioCanvas"></canvas><div class="studio-guide"><i></i></div>
+        <div class="studio-zoom-controls" aria-label="Editing zoom">
+          <button type="button" id="studioZoomOut" title="Zoom out">−</button><button type="button" id="studioZoomReset" title="Reset zoom">100%</button><button type="button" id="studioZoomIn" title="Zoom in">＋</button>
+        </div>
+      </div>
+      <div class="studio-cutout-bar">
+        <span>Starting image</span>
+        <div class="studio-tabs"><button type="button" class="studio-mode active" data-mode="original">Original</button><button type="button" class="studio-mode" data-mode="quick">Quick cutout</button><button type="button" class="studio-mode" data-mode="clean">Clean cutout</button></div>
+        <label class="studio-edge-control">Cutout sensitivity <input id="studioEdge" type="range" min="25" max="80" value="45"></label>
+      </div>
+      <div class="studio-context-controls">
+        <label id="studioBrushControl" class="studio-brush-control">Brush <span id="studioBrushValue">26</span><input id="studioBrush" type="range" min="6" max="70" value="26"></label>
+        <div id="studioMoveHint" class="studio-move-hint hidden">Drag to reposition. Pinch with two fingers to resize.</div>
+      </div>
+      <div class="studio-toolbar" role="toolbar" aria-label="Photo editing tools">
+        <button type="button" class="studio-action brush-btn" data-brush="erase"><span>⌫</span>Erase</button>
+        <button type="button" class="studio-action brush-btn" data-brush="restore"><span>↶</span>Restore</button>
+        <button type="button" class="studio-action" id="studioUndo" disabled><span>↶</span>Undo</button>
+        <button type="button" class="studio-action" id="studioRedo" disabled><span>↷</span>Redo</button>
+        <button type="button" class="studio-action studio-move-toggle" id="studioMoveToggle"><span>✥</span>Move</button>
+      </div>
+      <details class="studio-more-tools">
+        <summary>More options</summary>
+        <div class="studio-more-grid"><button type="button" class="soft-btn" id="studioAutoFit">◎ Center / fit</button><button type="button" class="soft-btn" id="studioUseOriginal">↶ Use captured original</button></div>
+        <div class="studio-bg-row"><span>Background</span><button type="button" class="studio-bg active" data-bg="transparent">Transparent</button><button type="button" class="studio-bg" data-bg="cream">Cream</button><button type="button" class="studio-bg" data-bg="paper">Paper</button></div>
+      </details>
+      <p class="scan-status studio-status" id="studioStatus">Erase or restore with smooth strokes. Use two fingers to zoom the editing view.</p>
+      <div class="sheet-actions studio-save-actions"><button type="button" class="soft-btn" id="studioCancelBtn">Cancel</button><button type="button" class="primary" id="studioApply">Use this photo</button></div>
     </div>
-    <div class="studio-tool-row"><button type="button" class="soft-btn" id="studioAutoFit">◎ Auto fit</button><button type="button" class="soft-btn brush-btn" data-brush="erase">⌫ Erase</button><button type="button" class="soft-btn brush-btn" data-brush="restore">↶ Restore edge</button></div>
-    <div class="studio-original-row"><button type="button" class="soft-btn" id="studioUseOriginal">↶ Use captured original</button><small>Returns to the photo exactly as it was first captured.</small></div>
-    <div class="studio-bg-row"><span>Background</span><button type="button" class="studio-bg active" data-bg="transparent">Transparent</button><button type="button" class="studio-bg" data-bg="cream">Cream</button><button type="button" class="studio-bg" data-bg="paper">Paper</button></div>
-    <p class="scan-status" id="studioStatus">Tip: a plain contrasting floor or wall gives the cleanest cutout.</p>
-    <div class="sheet-actions"><button type="button" class="soft-btn" onclick="document.getElementById('photoStudioDialog').close()">Cancel</button><button type="button" class="primary" id="studioApply">Use this photo</button></div>
   </dialog>
 
   <dialog id="wishDialog" class="sheet-dialog">

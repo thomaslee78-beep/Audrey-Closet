@@ -71,3 +71,13 @@ Closet reorder now uses a solid outline on the item being moved and a dotted out
 - Journal garment taps open a read-only preview; Back returns to the same day, Edit intentionally switches to Closet editing.
 - No IndexedDB schema/version changes.
 - Service worker registration uses a versioned URL and bypasses HTTP cache for update checks.
+
+### v13.8-dev1
+Photo Studio editing-engine rebuild for user testing:
+- Smooth continuous Erase and Restore strokes with adjustable brush size.
+- Mask/work-layer Undo and Redo history (up to 12 recent editing actions).
+- Restore paints back only from the current starting layer (Original / Quick cutout / Clean cutout), so it does not unexpectedly restore the removed original background after a cutout.
+- Two-finger editing-view pinch zoom plus dedicated − / 100% / + zoom controls.
+- Dedicated Move mode: drag to reposition and pinch to resize; toggle Move off to lock the garment before masking.
+- Fixed, compact primary toolbar for Erase / Restore / Undo / Redo / Move with secondary options collapsed below.
+- Photo adjustments (exposure/contrast/highlights) and improved automatic cutout quality are intentionally deferred to later v13.8 development cycles.

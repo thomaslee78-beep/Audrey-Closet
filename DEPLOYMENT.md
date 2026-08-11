@@ -36,3 +36,6 @@ Closet reorder now uses a solid outline on the item being moved and a dotted out
 
 ## v13.0
 Closet drag tracking fix for iPhone. No database migration required. Service-worker cache is v13.0.
+
+## v13.8-dev1
+Upload the complete package together so `index.html`, `app.js`, `styles.css`, and `sw.js` stay in sync. The service-worker cache name is `audrey-closet-v13.8-dev1`.
