@@ -44,11 +44,11 @@
         <select id="filterCategory"><option value="">All categories</option></select>
         <select id="filterSeason"><option value="">All seasons</option><option>Winter</option><option>Spring</option><option>Summer</option><option>Fall</option><option>All-season</option></select>
         <select id="filterColor"><option value="">All colors</option></select>
+        <label class="include-archived-toggle filter-archived-toggle"><input type="checkbox" id="includeArchivedCloset" /> <span>Include archived</span></label>
         <button class="text-btn" id="clearFilters">Clear</button>
       </div>
 
       <div class="section-title closet-section-title"><h3>Closet</h3><span id="catalogCount">0 pieces</span></div>
-      <label class="include-archived-toggle"><input type="checkbox" id="includeArchivedCloset" /> <span>Include archived</span></label>
       <div class="closet-grid" id="catalogGrid"></div>
       <div class="empty-state" id="catalogEmpty">
         <div class="hanger">⌇</div>
@@ -235,6 +235,7 @@
             <button type="button" class="soft-btn" id="smartScanBtn">Smart scan</button>
           </div>
           <div class="scan-status" id="scanStatus"></div>
+          <button type="button" id="permanentDeleteItemBtn" class="permanent-delete-btn hidden">Permanently delete…</button>
         </div>
       </details>
       <div class="form-grid">
@@ -249,7 +250,6 @@
       </div>
       <label class="full-label">Notes<textarea id="itemNotes" placeholder="Fit, styling notes, sentimental story…"></textarea></label>
       <div id="itemArchiveNotice" class="item-archive-notice hidden"><strong>Archived piece</strong><span>Hidden from the normal Closet, but preserved in Journal history and saved outfits.</span></div>
-      <button type="button" id="permanentDeleteItemBtn" class="permanent-delete-btn hidden">Permanently delete…</button>
       <div class="sheet-actions item-sheet-actions"><button type="button" id="cancelItemBtn" class="soft-btn">Cancel</button><button type="button" class="danger-text hidden" id="deleteItemBtn">Remove from Closet</button><button type="submit" value="default" class="primary" id="saveItemBtn">Save piece</button></div>
     </form>
   </dialog>

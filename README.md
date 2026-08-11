@@ -65,7 +65,7 @@ Closet reorder now uses a solid outline on the item being moved and a dotted out
 - Based on v13.4-dev1 / stable v13.3 catalog code.
 
 
-### v13.7-dev1
+### v13.7-dev2
 - Clean rebuild from the verified v13.4-dev4 Journal baseline.
 - Adds a dedicated Today’s Look section above Planned Looks.
 - Journal garment taps open a read-only preview; Back returns to the same day, Edit intentionally switches to Closet editing.

@@ -21,7 +21,7 @@ const DEFAULT_APP_NAME="Audrey's Clothing App";
 const DEFAULT_PORTFOLIO_FOLDERS=['Everyday','School','Weekend','Dressy','Sport','Seasonal','Ideas'];
 let state=emptyState();
 let selectedCategory='';
-let includeArchivedCloset=false;
+let includeArchivedCloset=localStorage.getItem('audreyIncludeArchivedCloset')==='true';
 let catalogReviewIds=[];
 let itemReviewIds=[];
 let itemSwipeStart=null;
@@ -124,15 +124,15 @@ async function init(){
   $('#filterBtn').onclick=()=>$('#filterPanel').classList.toggle('hidden');
   $('#clearFilters').onclick=()=>{selectedCategory='';$('#filterCategory').value='';$('#filterSeason').value='';$('#filterColor').value='';renderCatalog();renderCategories()};
   ['filterCategory','filterSeason','filterColor'].forEach(x=>$('#'+x).addEventListener('change',renderCatalog));
-  $('#includeArchivedCloset').checked=false;
-  $('#includeArchivedCloset').addEventListener('change',e=>{includeArchivedCloset=!!e.target.checked;renderCategories();renderCatalog()});
+  $('#includeArchivedCloset').checked=includeArchivedCloset;
+  $('#includeArchivedCloset').addEventListener('change',e=>{includeArchivedCloset=!!e.target.checked;localStorage.setItem('audreyIncludeArchivedCloset',includeArchivedCloset?'true':'false');renderCategories();renderCatalog()});
   $('#exportBtn').onclick=exportData;$('#importFile').onchange=importData;$('#resetBtn').onclick=resetData;
   $('#saveAppNameBtn').onclick=saveAppName;$('#resetAppNameBtn').onclick=resetAppName;
   $('#settingsBtn').onclick=()=>{renderPortfolioFolderEditor();showScreen('more')};
   $('#addPortfolioFolderBtn').onclick=addPortfolioFolder;
   $('#managePortfolioBtn').onclick=()=>{renderPortfolioFolderEditor();showScreen('more')};
   $('#portfolioNewBtn').onclick=()=>{startNewOutfit();showScreen('outfits')};
-  if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js?v=13.7-dev1',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
+  if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js?v=13.7-dev2',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
   renderAll();
 }
 function fillSelects(){
