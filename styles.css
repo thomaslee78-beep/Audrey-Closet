@@ -366,7 +366,7 @@ body.journal-item-preview-open{position:fixed;left:0;right:0;width:100%;overflow
 .studio-bg-swatch{width:100%;aspect-ratio:1/1;max-width:34px;justify-self:center;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px rgba(92,77,63,.28);background:var(--swatch);padding:0;cursor:pointer}
 .studio-bg-swatch.active{box-shadow:0 0 0 2px var(--burgundy)}
 
-/* v13.8-dev1.7 — disclosure consistency, reusable palettes, legacy cutout safety */
+/* v13.8-dev1.8 — disclosure consistency, reusable palettes, legacy cutout safety */
 .studio-cutout-tools>summary,.studio-more-tools>summary{list-style:none;position:relative;padding-left:27px}
 .studio-cutout-tools>summary::-webkit-details-marker,.studio-more-tools>summary::-webkit-details-marker{display:none}
 .studio-cutout-tools>summary::before,.studio-more-tools>summary::before{content:'▸';position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--burgundy);font-size:11px;line-height:1;transition:transform .14s ease}

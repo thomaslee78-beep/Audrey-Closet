@@ -278,13 +278,13 @@
       <details class="studio-cutout-tools" open>
         <summary><span data-i18n="studio.cutout">Cutout</span><small data-i18n="studio.cutoutHelp">Quick background removal</small></summary>
         <div class="studio-cutout-body">
-          <div class="studio-tabs"><button type="button" class="studio-mode active" data-mode="current" data-i18n="studio.current">Current</button><button type="button" class="studio-mode" data-mode="quick" data-i18n="studio.quick">Quick</button><button type="button" class="studio-mode" data-mode="clean" data-i18n="studio.clean">Clean</button></div>
+          <div class="studio-tabs"><button type="button" class="studio-mode active" data-mode="original" data-i18n="studio.original">Original</button><button type="button" class="studio-mode" data-mode="quick" data-i18n="studio.quick">Quick</button><button type="button" class="studio-mode" data-mode="clean" data-i18n="studio.clean">Clean</button></div>
           <label class="studio-edge-control"><span data-i18n="studio.sensitivity">Sensitivity</span> <input id="studioEdge" type="range" min="25" max="80" value="45"></label>
         </div>
       </details>
       <details class="studio-more-tools">
         <summary data-i18n="studio.more">More options</summary>
-        <div class="studio-more-grid"><button type="button" class="soft-btn" id="studioAutoFit">◎ <span data-i18n="studio.centerFit">Center / fit</span></button><button type="button" class="soft-btn" id="studioUseOriginal">↶ <span data-i18n="studio.useOriginal">Use captured original</span></button></div>
+        <div class="studio-more-grid"><button type="button" class="soft-btn" id="studioAutoFit">◎ <span data-i18n="studio.centerFit">Center / fit</span></button><button type="button" class="soft-btn" id="studioResetAll">↺ <span data-i18n="studio.resetAll">Reset all photo edits</span></button></div>
         <div class="studio-bg-row"><span data-i18n="studio.background">Background</span><button type="button" class="studio-bg active" data-bg="transparent" data-i18n="studio.transparent">Transparent</button><button type="button" class="studio-bg" data-bg="cream" data-i18n="studio.cream">Cream</button><button type="button" class="studio-bg" data-bg="paper" data-i18n="studio.paper">Paper</button><button type="button" class="studio-bg" id="studioCustomBgBtn" data-bg="custom" data-i18n="studio.color">Color</button></div>
         <div class="studio-bg-palette hidden" id="studioBgPalette" aria-label="Background color palette"></div>
       </details>
