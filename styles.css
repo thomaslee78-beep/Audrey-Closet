@@ -320,3 +320,11 @@ body.journal-item-preview-open{position:fixed;left:0;right:0;width:100%;overflow
 .studio-v138 .studio-canvas-wrap.studio-view-mode canvas{cursor:zoom-in}
 .studio-v138 .studio-canvas-wrap.studio-brush-mode canvas{cursor:crosshair}
 .studio-v138 .studio-canvas-wrap.studio-object-move-mode canvas{cursor:move}
+
+
+/* v13.8-dev1.2 — preserve edited photo, placement guide alignment, scrollable studio */
+.studio-v138 .studio-shell{overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding-bottom:0}
+.studio-v138 .studio-head{position:sticky;top:0;z-index:12;background:var(--paper,#fbf6eb)}
+.studio-v138 .studio-toolbar{position:relative;bottom:auto}
+.studio-v138 .studio-save-actions{position:sticky;bottom:0;z-index:14;border-top:1px solid var(--line);box-shadow:0 -5px 14px rgba(70,55,40,.08)}
+.studio-v138 .studio-more-tools{margin-bottom:6px}

@@ -84,3 +84,10 @@ Photo Studio editing-engine rebuild for user testing:
 
 ### v13.8-dev1.1
 Photo Studio editing-engine fixes: cutouts preserve the original framing/position, no editing tool is selected by default, neutral two-finger gestures zoom/pan the board without moving the garment, Erase/Restore are exclusive one-finger edit modes, and Move mode supports drag, pinch resize, and low-sensitivity two-finger rotation.
+
+
+### v13.8-dev1.2
+- Photo Studio now reopens from the currently applied/edited photo instead of automatically returning to the captured original.
+- The starting-image tab is labeled Current photo; captured original remains an explicit restore option.
+- Entering Move mode resets only the editor viewport to 100% so the dashed placement guide matches the saved output canvas.
+- Studio content can scroll when More options is expanded, with save controls kept accessible at the bottom.

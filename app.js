@@ -144,7 +144,7 @@ async function init(){
   $('#addPortfolioFolderBtn').onclick=addPortfolioFolder;
   $('#managePortfolioBtn').onclick=()=>{renderPortfolioFolderEditor();showScreen('more')};
   $('#portfolioNewBtn').onclick=()=>{startNewOutfit();showScreen('outfits')};
-  if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js?v=13.8-dev1.1',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
+  if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js?v=13.8-dev1.2',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
   renderAll();
 }
 function fillSelects(){
@@ -962,9 +962,9 @@ async function setStudioLayer(src,{resetTransform=true}={}){
 }
 async function openPhotoStudio(){
   if(!itemWorkingPhoto)return toast('Take or choose a photo first');
-  studioSourcePhoto=itemOriginalPhoto||itemWorkingPhoto;studioCutoutPhoto='';studioMode='original';studioBg='transparent';studioEdge=45;studioBrushMode=null;studioMoveMode=false;studioDrawing=false;studioPointers.clear();studioGesture=null;
+  studioSourcePhoto=itemWorkingPhoto||itemOriginalPhoto;studioCutoutPhoto='';studioMode='current';studioBg='transparent';studioEdge=45;studioBrushMode=null;studioMoveMode=false;studioDrawing=false;studioPointers.clear();studioGesture=null;
   $('#studioEdge').value=studioEdge;$('#studioBrush').value=26;$('#studioBrushValue').textContent='26';$('#studioTemplateHint').textContent=templateHint($('#itemCategory').value);
-  $$('.studio-mode').forEach(b=>b.classList.toggle('active',b.dataset.mode==='original'));$$('.studio-bg').forEach(b=>b.classList.toggle('active',b.dataset.bg==='transparent'));$$('.brush-btn').forEach(b=>b.classList.remove('active'));$('#studioMoveToggle').classList.remove('active');updateStudioToolUI();
+  $$('.studio-mode').forEach(b=>b.classList.toggle('active',b.dataset.mode==='current'));$$('.studio-bg').forEach(b=>b.classList.toggle('active',b.dataset.bg==='transparent'));$$('.brush-btn').forEach(b=>b.classList.remove('active'));$('#studioMoveToggle').classList.remove('active');updateStudioToolUI();
   $('#photoStudioDialog').showModal();await setStudioLayer(studioSourcePhoto)
 }
 async function buildCutout(clean=false){
@@ -987,7 +987,7 @@ function studioStroke(from,to){if(!studioWorkCanvas||!studioBrushMode)return;con
   else if(studioBrushMode==='restore'&&studioBaseCanvas){const mask=newStudioCanvas(),m=mask.getContext('2d');m.strokeStyle='#fff';m.fillStyle='#fff';m.lineWidth=rad*2;m.lineCap='round';m.lineJoin='round';if(dot){m.beginPath();m.arc(a.x,a.y,rad,0,Math.PI*2);m.fill()}else{m.beginPath();m.moveTo(a.x,a.y);m.lineTo(b.x,b.y);m.stroke()}const patch=newStudioCanvas(),pc=patch.getContext('2d');pc.drawImage(studioBaseCanvas,0,0);pc.globalCompositeOperation='destination-in';pc.drawImage(mask,0,0);ctx.save();ctx.globalCompositeOperation='source-over';ctx.drawImage(patch,0,0);ctx.restore()}
   renderStudio()}
 function updateStudioToolUI(){const move=$('#studioMoveHint'),brush=$('#studioBrushControl'),view=$('#studioViewHint');if(move)move.classList.toggle('hidden',!studioMoveMode);if(brush)brush.classList.toggle('hidden',studioMoveMode||!studioBrushMode);if(view)view.classList.toggle('hidden',studioMoveMode||!!studioBrushMode);$$('.brush-btn').forEach(b=>b.classList.toggle('active',!studioMoveMode&&b.dataset.brush===studioBrushMode));$('#studioMoveToggle')?.classList.toggle('active',studioMoveMode);const wrap=$('#studioCanvas')?.closest('.studio-canvas-wrap');if(wrap){wrap.classList.toggle('studio-view-mode',!studioMoveMode&&!studioBrushMode);wrap.classList.toggle('studio-brush-mode',!!studioBrushMode&&!studioMoveMode);wrap.classList.toggle('studio-object-move-mode',studioMoveMode)}}
-function toggleStudioMove(){studioMoveMode=!studioMoveMode;studioBrushMode=null;studioDrawing=false;studioGesture=null;studioPointers.clear();updateStudioToolUI();$('#studioStatus').textContent=studioMoveMode?'Move mode: drag to reposition. Pinch to resize and gently twist to rotate. Tap Move again to lock it.':'No tool selected. The garment is locked; pinch with two fingers to zoom and pan the board.'}
+function toggleStudioMove(){studioMoveMode=!studioMoveMode;studioBrushMode=null;studioDrawing=false;studioGesture=null;studioPointers.clear();if(studioMoveMode){studioViewZoom=1;studioViewX=0;studioViewY=0;updateStudioZoomLabel();renderStudio()}updateStudioToolUI();$('#studioStatus').textContent=studioMoveMode?'Move mode: view reset to 100% so the dashed guide matches the saved photo. Drag to reposition; pinch to resize and gently twist to rotate. Tap Move again to lock it.':'No tool selected. The garment is locked; pinch with two fingers to zoom and pan the board.'}
 function studioGestureStart(){const pts=[...studioPointers.values()];if(pts.length<2)return null;const a=pts[0],b=pts[1],mx=(a.x+b.x)/2,my=(a.y+b.y)/2,dist=Math.hypot(b.x-a.x,b.y-a.y),angle=Math.atan2(b.y-a.y,b.x-a.x);return{mx,my,dist,angle,viewZoom:studioViewZoom,viewX:studioViewX,viewY:studioViewY,objScale:studioObjectScale,objX:studioObjectX,objY:studioObjectY,objRotation:studioObjectRotation}}
 function studioAngleDelta(a,b){let d=a-b;while(d>Math.PI)d-=Math.PI*2;while(d<-Math.PI)d+=Math.PI*2;return d}
 function handleStudioPointerDown(e){const c=$('#studioCanvas'),p=studioPointerDisplay(e);studioPointers.set(e.pointerId,p);try{c.setPointerCapture(e.pointerId)}catch{}
@@ -1010,7 +1010,7 @@ async function applyPhotoStudio(){if(!studioWorkCanvas)return;const out=newStudi
 function updateOriginalPhotoButton(){const b=$('#restoreOriginalPhotoBtn');if(!b)return;b.classList.toggle('hidden',!itemOriginalPhoto||itemWorkingPhoto===itemOriginalPhoto)}
 function restoreCapturedOriginal(closeStudio=false){if(!itemOriginalPhoto)return toast('No captured original is available');itemWorkingPhoto=itemOriginalPhoto;showPhoto('#itemPhotoPreview','#photoPlaceholder',itemWorkingPhoto);updateOriginalPhotoButton();$('#scanStatus').textContent='Restored the original captured photo.';if(closeStudio&&$('#photoStudioDialog').open)$('#photoStudioDialog').close();toast('Original photo restored')}
 function bindPhotoStudio(){
-  $$('.studio-mode').forEach(b=>b.onclick=async()=>{studioMode=b.dataset.mode;if(studioMode==='original'){$$('.studio-mode').forEach(x=>x.classList.toggle('active',x===b));await setStudioLayer(studioSourcePhoto,{resetTransform:false})}else await buildCutout(studioMode==='clean')});
+  $$('.studio-mode').forEach(b=>b.onclick=async()=>{studioMode=b.dataset.mode;if(studioMode==='current'){$$('.studio-mode').forEach(x=>x.classList.toggle('active',x===b));await setStudioLayer(studioSourcePhoto,{resetTransform:false})}else await buildCutout(studioMode==='clean')});
   $$('.studio-bg').forEach(b=>b.onclick=()=>{studioBg=b.dataset.bg;$$('.studio-bg').forEach(x=>x.classList.toggle('active',x===b));renderStudio()});
   $('#studioEdge').onchange=async()=>{studioEdge=Number($('#studioEdge').value)||45;if(studioMode==='clean')await buildCutout(true)};$('#studioBrush').oninput=e=>$('#studioBrushValue').textContent=e.target.value;
   $('#studioAutoFit').onclick=autoFitStudio;$('#studioApply').onclick=applyPhotoStudio;$('#studioUseOriginal').onclick=()=>restoreCapturedOriginal(true);$('#studioUndo').onclick=undoStudio;$('#studioRedo').onclick=redoStudio;$('#studioMoveToggle').onclick=toggleStudioMove;

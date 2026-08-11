@@ -38,7 +38,11 @@ Closet reorder now uses a solid outline on the item being moved and a dotted out
 Closet drag tracking fix for iPhone. No database migration required. Service-worker cache is v13.0.
 
 ## v13.8-dev1
-Upload the complete package together so `index.html`, `app.js`, `styles.css`, and `sw.js` stay in sync. The service-worker cache name is `audrey-closet-v13.8-dev1.1`.
+Upload the complete package together so `index.html`, `app.js`, `styles.css`, and `sw.js` stay in sync. The service-worker cache name is `audrey-closet-v13.8-dev1.2`.
 
 ## v13.8-dev1.1
-Upload the complete package together. This build keeps the v13.8 editing-engine scope and fixes framing plus touch-mode separation. Service-worker cache: `audrey-closet-v13.8-dev1.1`.
+Upload the complete package together. This build keeps the v13.8 editing-engine scope and fixes framing plus touch-mode separation. Service-worker cache: `audrey-closet-v13.8-dev1.2`.
+
+
+## v13.8-dev1.2
+Upload the complete package together. This build preserves the current edited Studio image on re-entry, resets viewport zoom when entering Move mode so placement matches the saved canvas, and allows the Studio to scroll when More options is expanded. Service-worker cache: `audrey-closet-v13.8-dev1.2`.
