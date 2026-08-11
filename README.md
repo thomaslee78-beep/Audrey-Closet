@@ -110,3 +110,7 @@ Photo Studio final editing-engine fixes: reliable matching disclosure arrows; En
 
 ## v13.8-dev1.9
 Photo Studio Restore now respects the currently selected cutout layer. With Quick or Clean selected, Restore brings back only pixels that exist in that cutout result instead of restoring pixels directly from the captured original. Original mode continues to restore from the original source. Manual erase/restore masks, placement, scale, rotation, and the non-destructive cutout workflow are otherwise unchanged. Service-worker cache: `audrey-closet-v13.8-dev1.9`.
+
+
+## v13.8-dev1.10
+Photo Studio transform-history polish: Undo/Redo now includes completed reposition, resize, and rotation gestures in addition to Erase/Restore strokes. The primary transform tool is renamed from `Move` to `Adjust`. More options now separates `Center` (position only) and `Fit` (scale only); neither changes cutout or manual masks. Both Center and Fit are themselves undoable. Service-worker cache: `audrey-closet-v13.8-dev1.10`.
