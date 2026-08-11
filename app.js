@@ -145,7 +145,7 @@ async function init(){
   $('#addPortfolioFolderBtn').onclick=addPortfolioFolder;
   $('#managePortfolioBtn').onclick=()=>{renderPortfolioFolderEditor();showScreen('more')};
   $('#portfolioNewBtn').onclick=()=>{startNewOutfit();showScreen('outfits')};
-  if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js?v=13.8-dev1.3',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
+  if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js?v=13.8-dev1.6',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
   renderAll();
 }
 function fillSelects(){
@@ -964,7 +964,7 @@ async function openPhotoStudio(){
   if(!itemWorkingPhoto)return toast('Take or choose a photo first');
   studioSourcePhoto=itemWorkingPhoto||itemOriginalPhoto;studioCutoutPhoto='';studioMode='current';studioBg='transparent';studioCustomBg='#ffffff';studioEdge=45;studioBrushMode=null;studioMoveMode=false;studioDrawing=false;studioPointers.clear();studioGesture=null;
   $('#studioEdge').value=studioEdge;$('#studioBrush').value=26;$('#studioBrushValue').textContent='26';$('#studioTemplateHint').textContent=templateHint($('#itemCategory').value);
-  $$('.studio-mode').forEach(b=>b.classList.toggle('active',b.dataset.mode==='current'));$$('.studio-bg').forEach(b=>b.classList.toggle('active',b.dataset.bg==='transparent'));$$('.brush-btn').forEach(b=>b.classList.remove('active'));$('#studioMoveToggle').classList.remove('active');updateStudioToolUI();
+  $$('.studio-mode').forEach(b=>b.classList.toggle('active',b.dataset.mode==='current'));$$('.studio-bg').forEach(b=>b.classList.toggle('active',b.dataset.bg==='transparent'));$('#studioBgPalette')?.classList.add('hidden');$$('.studio-bg-swatch').forEach(b=>b.classList.remove('active'));$$('.brush-btn').forEach(b=>b.classList.remove('active'));$('#studioMoveToggle').classList.remove('active');updateStudioToolUI();
   $('#photoStudioDialog').showModal();await setStudioLayer(studioSourcePhoto)
 }
 async function buildCutout(clean=false){
@@ -980,8 +980,8 @@ function drawStudioBoard(ctx){
   else if(studioBg==='cream'){ctx.fillStyle='#f4ecd9';ctx.fillRect(-360,-360,720,720)}
   else if(studioBg==='paper'){ctx.fillStyle='#e9dfc9';ctx.fillRect(-360,-360,720,720);ctx.globalAlpha=.14;for(let y=-360;y<360;y+=24){ctx.fillStyle=((y+360)%48===0)?'#8b765e':'#fff';ctx.fillRect(-360,y,720,1)}ctx.globalAlpha=1}
   else if(studioBg==='custom'){ctx.fillStyle=studioCustomBg||'#ffffff';ctx.fillRect(-360,-360,720,720)}
-  ctx.strokeStyle='rgba(102,113,90,.62)';ctx.lineWidth=1.5/studioViewZoom;ctx.setLineDash([9/studioViewZoom,7/studioViewZoom]);ctx.beginPath();if(ctx.roundRect)ctx.roundRect(-310,-310,620,620,18/studioViewZoom);else ctx.rect(-310,-310,620,620);ctx.stroke();
-  ctx.strokeStyle='rgba(102,113,90,.38)';ctx.lineWidth=1/studioViewZoom;ctx.setLineDash([7/studioViewZoom,7/studioViewZoom]);ctx.beginPath();ctx.moveTo(0,-310);ctx.lineTo(0,310);ctx.moveTo(-310,0);ctx.lineTo(310,0);ctx.stroke();ctx.setLineDash([]);
+  ctx.strokeStyle='rgba(71,86,61,.86)';ctx.lineWidth=1.8/studioViewZoom;ctx.setLineDash([9/studioViewZoom,6/studioViewZoom]);ctx.beginPath();if(ctx.roundRect)ctx.roundRect(-310,-310,620,620,18/studioViewZoom);else ctx.rect(-310,-310,620,620);ctx.stroke();
+  ctx.strokeStyle='rgba(71,86,61,.66)';ctx.lineWidth=1.25/studioViewZoom;ctx.setLineDash([7/studioViewZoom,6/studioViewZoom]);ctx.beginPath();ctx.moveTo(0,-360);ctx.lineTo(0,360);ctx.moveTo(-360,0);ctx.lineTo(360,0);ctx.stroke();ctx.setLineDash([]);
   ctx.strokeStyle='rgba(90,78,65,.25)';ctx.lineWidth=1/studioViewZoom;ctx.strokeRect(-360,-360,720,720);ctx.restore();
 }
 async function renderStudio(){
@@ -1024,13 +1024,27 @@ function handleStudioPointerUp(e){studioPointers.delete(e.pointerId);studioDrawi
 async function applyPhotoStudio(){if(!studioWorkCanvas)return;const out=newStudioCanvas(),ctx=out.getContext('2d');studioFillBackground(ctx);ctx.save();ctx.translate(360+studioObjectX,360+studioObjectY);ctx.rotate(studioObjectRotation*Math.PI/180);ctx.scale(studioObjectScale,studioObjectScale);ctx.drawImage(studioWorkCanvas,-360,-360);ctx.restore();if(studioBg==='transparent')itemWorkingPhoto=out.toDataURL('image/png');else{itemWorkingPhoto=out.toDataURL('image/webp',.86);if(!itemWorkingPhoto.startsWith('data:image/webp'))itemWorkingPhoto=out.toDataURL('image/jpeg',.88)}showPhoto('#itemPhotoPreview','#photoPlaceholder',itemWorkingPhoto);updateOriginalPhotoButton();$('#photoStudioDialog').close();$('#scanStatus').textContent=studioBg==='transparent'?'Photo Studio image applied · transparency preserved.':'Photo Studio image applied · standardized square crop.';toast('Photo applied')}
 function updateOriginalPhotoButton(){const b=$('#restoreOriginalPhotoBtn');if(!b)return;b.classList.toggle('hidden',!itemOriginalPhoto||itemWorkingPhoto===itemOriginalPhoto)}
 function restoreCapturedOriginal(closeStudio=false){if(!itemOriginalPhoto)return toast('No captured original is available');itemWorkingPhoto=itemOriginalPhoto;showPhoto('#itemPhotoPreview','#photoPlaceholder',itemWorkingPhoto);updateOriginalPhotoButton();$('#scanStatus').textContent='Restored the original captured photo.';if(closeStudio&&$('#photoStudioDialog').open)$('#photoStudioDialog').close();toast('Original photo restored')}
+async function resetStudioToCapturedOriginal(){
+  if(!itemOriginalPhoto)return toast('No captured original is available');
+  studioSourcePhoto=itemOriginalPhoto;studioCutoutPhoto='';studioMode='current';studioBrushMode=null;studioMoveMode=false;studioDrawing=false;studioPointers.clear();studioGesture=null;
+  $$('.studio-mode').forEach(b=>b.classList.toggle('active',b.dataset.mode==='current'));$$('.brush-btn').forEach(b=>b.classList.remove('active'));$('#studioMoveToggle')?.classList.remove('active');updateStudioToolUI();
+  await setStudioLayer(itemOriginalPhoto,{resetTransform:true});
+  $('#studioStatus').textContent='Captured original restored in Photo Studio. Continue editing, or choose Use this photo when ready.';
+  toast('Captured original restored');
+}
+function setStudioBackgroundChoice(bg){
+  studioBg=bg;
+  $$('.studio-bg').forEach(x=>x.classList.toggle('active',x.dataset.bg===bg));
+  const palette=$('#studioBgPalette');if(palette)palette.classList.toggle('hidden',bg!=='custom');
+  if(bg!=='custom')$$('.studio-bg-swatch').forEach(x=>x.classList.remove('active'));
+  renderStudio();
+}
 function bindPhotoStudio(){
   $$('.studio-mode').forEach(b=>b.onclick=async()=>{studioMode=b.dataset.mode;if(studioMode==='current'){$$('.studio-mode').forEach(x=>x.classList.toggle('active',x===b));await setStudioLayer(studioSourcePhoto,{resetTransform:false})}else await buildCutout(studioMode==='clean')});
-  $$('.studio-bg').forEach(b=>b.onclick=()=>{if(b.dataset.bg==='custom'){const picker=$('#studioCustomBgPicker');if(picker){picker.click();return}}studioBg=b.dataset.bg;$$('.studio-bg').forEach(x=>x.classList.toggle('active',x===b));renderStudio()});
-  const customPicker=$('#studioCustomBgPicker');if(customPicker)customPicker.oninput=e=>{studioCustomBg=e.target.value||'#ffffff';studioBg='custom';$$('.studio-bg').forEach(x=>x.classList.toggle('active',x.id==='studioCustomBgBtn'));renderStudio()};
-  $$('.studio-bg-swatch').forEach(b=>b.onclick=()=>{studioCustomBg=b.dataset.color||'#ffffff';if(customPicker)customPicker.value=studioCustomBg;studioBg='custom';$$('.studio-bg').forEach(x=>x.classList.toggle('active',x.id==='studioCustomBgBtn'));$$('.studio-bg-swatch').forEach(x=>x.classList.toggle('active',x===b));renderStudio()});
+  $$('.studio-bg').forEach(b=>b.onclick=()=>{const bg=b.dataset.bg;if(bg==='custom'){setStudioBackgroundChoice('custom');const current=$$('.studio-bg-swatch').find(x=>(x.dataset.color||'').toLowerCase()===studioCustomBg.toLowerCase())||$$('.studio-bg-swatch')[0];$$('.studio-bg-swatch').forEach(x=>x.classList.toggle('active',x===current));if(current)studioCustomBg=current.dataset.color||'#ffffff';renderStudio();return}setStudioBackgroundChoice(bg)});
+  $$('.studio-bg-swatch').forEach(b=>b.onclick=()=>{studioCustomBg=b.dataset.color||'#ffffff';studioBg='custom';$$('.studio-bg').forEach(x=>x.classList.toggle('active',x.id==='studioCustomBgBtn'));$$('.studio-bg-swatch').forEach(x=>x.classList.toggle('active',x===b));$('#studioBgPalette')?.classList.remove('hidden');renderStudio()});
   $('#studioEdge').onchange=async()=>{studioEdge=Number($('#studioEdge').value)||45;if(studioMode==='clean')await buildCutout(true)};$('#studioBrush').oninput=e=>$('#studioBrushValue').textContent=e.target.value;
-  $('#studioAutoFit').onclick=autoFitStudio;$('#studioApply').onclick=applyPhotoStudio;$('#studioUseOriginal').onclick=()=>restoreCapturedOriginal(true);$('#studioUndo').onclick=undoStudio;$('#studioRedo').onclick=redoStudio;$('#studioMoveToggle').onclick=toggleStudioMove;
+  $('#studioAutoFit').onclick=autoFitStudio;$('#studioApply').onclick=applyPhotoStudio;$('#studioUseOriginal').onclick=resetStudioToCapturedOriginal;$('#studioUndo').onclick=undoStudio;$('#studioRedo').onclick=redoStudio;$('#studioMoveToggle').onclick=toggleStudioMove;
   $('#studioZoomIn').onclick=()=>setStudioViewZoom(studioViewZoom+.35);$('#studioZoomOut').onclick=()=>setStudioViewZoom(studioViewZoom-.35);$('#studioZoomReset').onclick=resetStudioView;
   $('#studioCloseBtn').onclick=()=>$('#photoStudioDialog').close();$('#studioCancelBtn').onclick=()=>$('#photoStudioDialog').close();
   $$('.brush-btn').forEach(b=>b.onclick=()=>{const next=(!studioMoveMode&&studioBrushMode===b.dataset.brush)?null:b.dataset.brush;studioMoveMode=false;studioBrushMode=next;studioDrawing=false;studioGesture=null;studioPointers.clear();updateStudioToolUI();$('#studioStatus').textContent=!studioBrushMode?'No tool selected. The garment is locked; drag with one finger to pan and pinch with two fingers to zoom.':studioBrushMode==='erase'?'Erase mode: one finger erases only. Tap Erase again to return to view mode.':'Restore mode: one finger restores only pixels removed from this starting cutout. Tap Restore again to return to view mode.'});

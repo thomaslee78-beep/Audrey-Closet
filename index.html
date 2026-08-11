@@ -276,7 +276,7 @@
         <button type="button" class="studio-action brush-btn" data-brush="erase"><span>⌫</span>Erase</button>
       </div>
       <details class="studio-cutout-tools" open>
-        <summary><span><b class="studio-disclosure-arrow" aria-hidden="true">›</b>Cutout</span><small>Quick background removal</small></summary>
+        <summary><span>Cutout</span><small>Quick background removal</small></summary>
         <div class="studio-cutout-body">
           <div class="studio-tabs"><button type="button" class="studio-mode active" data-mode="current">Current</button><button type="button" class="studio-mode" data-mode="quick">Quick</button><button type="button" class="studio-mode" data-mode="clean">Clean</button></div>
           <label class="studio-edge-control">Sensitivity <input id="studioEdge" type="range" min="25" max="80" value="45"></label>
@@ -285,8 +285,19 @@
       <details class="studio-more-tools">
         <summary>More options</summary>
         <div class="studio-more-grid"><button type="button" class="soft-btn" id="studioAutoFit">◎ Center / fit</button><button type="button" class="soft-btn" id="studioUseOriginal">↶ Use captured original</button></div>
-        <div class="studio-bg-row"><span>Background</span><button type="button" class="studio-bg active" data-bg="transparent">Transparent</button><button type="button" class="studio-bg" data-bg="cream">Cream</button><button type="button" class="studio-bg" data-bg="paper">Paper</button><button type="button" class="studio-bg" id="studioCustomBgBtn" data-bg="custom">Color…</button><input id="studioCustomBgPicker" class="studio-custom-bg-picker" type="color" value="#ffffff" aria-label="Choose custom photo background color"></div>
-        <div class="studio-bg-palette" aria-label="Background color palette"><button type="button" class="studio-bg-swatch" data-color="#ffffff" style="--swatch:#ffffff" aria-label="White"></button><button type="button" class="studio-bg-swatch" data-color="#f3efe7" style="--swatch:#f3efe7" aria-label="Warm white"></button><button type="button" class="studio-bg-swatch" data-color="#e6e7e8" style="--swatch:#e6e7e8" aria-label="Soft gray"></button><button type="button" class="studio-bg-swatch" data-color="#f2dedb" style="--swatch:#f2dedb" aria-label="Blush"></button><button type="button" class="studio-bg-swatch" data-color="#dfe9e5" style="--swatch:#dfe9e5" aria-label="Sage"></button><button type="button" class="studio-bg-swatch" data-color="#dfe8f1" style="--swatch:#dfe8f1" aria-label="Sky"></button></div>
+        <div class="studio-bg-row"><span>Background</span><button type="button" class="studio-bg active" data-bg="transparent">Transparent</button><button type="button" class="studio-bg" data-bg="cream">Cream</button><button type="button" class="studio-bg" data-bg="paper">Paper</button><button type="button" class="studio-bg" id="studioCustomBgBtn" data-bg="custom">Color</button></div>
+        <div class="studio-bg-palette hidden" id="studioBgPalette" aria-label="Background color palette">
+          <button type="button" class="studio-bg-swatch" data-color="#ffffff" style="--swatch:#ffffff" aria-label="White"></button>
+          <button type="button" class="studio-bg-swatch" data-color="#f4f1ea" style="--swatch:#f4f1ea" aria-label="Ivory"></button>
+          <button type="button" class="studio-bg-swatch" data-color="#e9e1d3" style="--swatch:#e9e1d3" aria-label="Light cream"></button>
+          <button type="button" class="studio-bg-swatch" data-color="#d7cbbb" style="--swatch:#d7cbbb" aria-label="Sand"></button>
+          <button type="button" class="studio-bg-swatch" data-color="#c3b6a5" style="--swatch:#c3b6a5" aria-label="Taupe"></button>
+          <button type="button" class="studio-bg-swatch" data-color="#a99e90" style="--swatch:#a99e90" aria-label="Stone"></button>
+          <button type="button" class="studio-bg-swatch" data-color="#8d867d" style="--swatch:#8d867d" aria-label="Warm gray"></button>
+          <button type="button" class="studio-bg-swatch" data-color="#6f6b65" style="--swatch:#6f6b65" aria-label="Medium gray"></button>
+          <button type="button" class="studio-bg-swatch" data-color="#4e4c49" style="--swatch:#4e4c49" aria-label="Charcoal"></button>
+          <button type="button" class="studio-bg-swatch" data-color="#282827" style="--swatch:#282827" aria-label="Near black"></button>
+        </div>
       </details>
       <p class="scan-status studio-status" id="studioStatus">No tool selected. Pinch with two fingers to zoom and pan the board.</p>
       <div class="sheet-actions studio-save-actions"><button type="button" class="soft-btn" id="studioCancelBtn">Cancel</button><button type="button" class="primary" id="studioApply">Use this photo</button></div>

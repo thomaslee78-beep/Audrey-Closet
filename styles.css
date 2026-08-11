@@ -359,9 +359,9 @@ body.journal-item-preview-open{position:fixed;left:0;right:0;width:100%;overflow
 .studio-brush-control{min-height:34px;padding:7px 10px;gap:8px;border-radius:11px}
 .studio-move-hint{min-height:34px;display:flex;align-items:center;justify-content:center;padding:7px 10px}
 .studio-cutout-tools summary span{display:flex;align-items:center;gap:5px}
-.studio-disclosure-arrow{display:inline-block;font:800 16px/1 var(--sans);transform:rotate(0deg);transition:transform .16s ease;color:var(--burgundy)}
-.studio-cutout-tools[open] .studio-disclosure-arrow{transform:rotate(90deg)}
-.studio-custom-bg-picker{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
-.studio-bg-palette{display:flex;align-items:center;gap:7px;padding:0 8px 9px}
-.studio-bg-swatch{width:27px;height:27px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px rgba(92,77,63,.25);background:var(--swatch);padding:0;cursor:pointer}
+.studio-cutout-tools summary::marker,.studio-more-tools summary::marker{color:var(--burgundy);font-size:11px}
+.studio-cutout-tools summary::-webkit-details-marker,.studio-more-tools summary::-webkit-details-marker{color:var(--burgundy)}
+.studio-bg-palette{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;padding:1px 8px 10px}
+.studio-bg-palette.hidden{display:none}
+.studio-bg-swatch{width:100%;aspect-ratio:1/1;max-width:34px;justify-self:center;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px rgba(92,77,63,.28);background:var(--swatch);padding:0;cursor:pointer}
 .studio-bg-swatch.active{box-shadow:0 0 0 2px var(--burgundy)}

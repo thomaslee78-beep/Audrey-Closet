@@ -99,3 +99,7 @@ Photo Studio cosmetic cleanup: removes the obsolete Quick Photo Cleanup shortcut
 
 ## v13.8-dev1.5
 Small Photo Studio polish: renames the camera action to `Take photo` and reorders the primary Studio toolbar to Move, Undo, Redo, Restore, Erase. Service-worker cache: `audrey-closet-v13.8-dev1.5`.
+
+
+## v13.8-dev1.6
+Photo Studio bug-fix polish: Use captured original now resets the Studio in place; Color background expands a 10-step light-to-dark palette and hides for other background modes; Cutout uses the same disclosure marker as More options; canvas placement and center guides are darker, with center lines extending edge-to-edge. Service-worker cache: `audrey-closet-v13.8-dev1.6`.
