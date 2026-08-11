@@ -107,3 +107,6 @@ Photo Studio bug-fix polish: Use captured original now resets the Studio in plac
 
 ## v13.8-dev1.8
 Photo Studio final editing-engine fixes: reliable matching disclosure arrows; English localization-resource foundation for Studio strings; automatic Quick/Clean cutout now runs only from the captured source and is disabled after a cutout until the captured original is restored; legacy edited/transparency state is handled conservatively; permanent-delete typography is locked against iPhone orientation text resizing; and the background picker is a reusable four-row 40-color palette ordered Neutrals, Pastels, Colors, Brights. Service-worker cache: `audrey-closet-v13.8-dev1.8`.
+
+## v13.8-dev1.9
+Photo Studio Restore now respects the currently selected cutout layer. With Quick or Clean selected, Restore brings back only pixels that exist in that cutout result instead of restoring pixels directly from the captured original. Original mode continues to restore from the original source. Manual erase/restore masks, placement, scale, rotation, and the non-destructive cutout workflow are otherwise unchanged. Service-worker cache: `audrey-closet-v13.8-dev1.9`.
