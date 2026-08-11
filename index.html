@@ -264,11 +264,6 @@
           <button type="button" id="studioZoomOut" title="Zoom out">−</button><button type="button" id="studioZoomReset" title="Reset zoom">100%</button><button type="button" id="studioZoomIn" title="Zoom in">＋</button>
         </div>
       </div>
-      <div class="studio-cutout-bar">
-        <span>Starting image</span>
-        <div class="studio-tabs"><button type="button" class="studio-mode active" data-mode="current">Current photo</button><button type="button" class="studio-mode" data-mode="quick">Quick cutout</button><button type="button" class="studio-mode" data-mode="clean">Clean cutout</button></div>
-        <label class="studio-edge-control">Cutout sensitivity <input id="studioEdge" type="range" min="25" max="80" value="45"></label>
-      </div>
       <div class="studio-context-controls">
         <div id="studioViewHint" class="studio-move-hint">No tool selected · pinch with two fingers to zoom and pan the board.</div>
         <label id="studioBrushControl" class="studio-brush-control hidden">Brush <span id="studioBrushValue">26</span><input id="studioBrush" type="range" min="6" max="70" value="26"></label>
@@ -281,6 +276,13 @@
         <button type="button" class="studio-action" id="studioRedo" disabled><span>↷</span>Redo</button>
         <button type="button" class="studio-action studio-move-toggle" id="studioMoveToggle"><span>✥</span>Move</button>
       </div>
+      <details class="studio-cutout-tools" open>
+        <summary><span>Cutout</span><small>Quick background removal</small></summary>
+        <div class="studio-cutout-body">
+          <div class="studio-tabs"><button type="button" class="studio-mode active" data-mode="current">Current</button><button type="button" class="studio-mode" data-mode="quick">Quick</button><button type="button" class="studio-mode" data-mode="clean">Clean</button></div>
+          <label class="studio-edge-control">Sensitivity <input id="studioEdge" type="range" min="25" max="80" value="45"></label>
+        </div>
+      </details>
       <details class="studio-more-tools">
         <summary>More options</summary>
         <div class="studio-more-grid"><button type="button" class="soft-btn" id="studioAutoFit">◎ Center / fit</button><button type="button" class="soft-btn" id="studioUseOriginal">↶ Use captured original</button></div>

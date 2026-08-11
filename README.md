@@ -91,3 +91,7 @@ Photo Studio editing-engine fixes: cutouts preserve the original framing/positio
 - The starting-image tab is labeled Current photo; captured original remains an explicit restore option.
 - Entering Move mode resets only the editor viewport to 100% so the dashed placement guide matches the saved output canvas.
 - Studio content can scroll when More options is expanded, with save controls kept accessible at the bottom.
+
+
+## v13.8-dev1.3
+Photo Studio editing-engine bugfix: full non-shrinking square canvas, collapsible compact Cutout controls below the main editing toolbar, one-finger neutral-mode board panning, and board/guidelines that pan and zoom together with the viewport. Service-worker cache: `audrey-closet-v13.8-dev1.3`.
