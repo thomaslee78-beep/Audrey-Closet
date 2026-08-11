@@ -48,5 +48,9 @@ Upload the complete package together. This build keeps the v13.8 editing-engine 
 Upload the complete package together. This build preserves the current edited Studio image on re-entry, resets viewport zoom when entering Move mode so placement matches the saved canvas, and allows the Studio to scroll when More options is expanded. Service-worker cache: `audrey-closet-v13.8-dev1.2`.
 
 
-## v13.8-dev1.3
-Photo Studio editing-engine bugfix: full non-shrinking square canvas, collapsible compact Cutout controls below the main editing toolbar, one-finger neutral-mode board panning, and board/guidelines that pan and zoom together with the viewport. Service-worker cache: `audrey-closet-v13.8-dev1.3`.
+## v13.8-dev1.4
+Photo Studio editing-engine bugfix: full non-shrinking square canvas, collapsible compact Cutout controls below the main editing toolbar, one-finger neutral-mode board panning, and board/guidelines that pan and zoom together with the viewport. Service-worker cache: `audrey-closet-v13.8-dev1.4`.
+
+
+## v13.8-dev1.5
+Small Photo Studio polish: renames the camera action to `Take photo` and reorders the primary Studio toolbar to Move, Undo, Redo, Restore, Erase. Service-worker cache: `audrey-closet-v13.8-dev1.5`.

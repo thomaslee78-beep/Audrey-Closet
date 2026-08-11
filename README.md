@@ -93,5 +93,9 @@ Photo Studio editing-engine fixes: cutouts preserve the original framing/positio
 - Studio content can scroll when More options is expanded, with save controls kept accessible at the bottom.
 
 
-## v13.8-dev1.3
-Photo Studio editing-engine bugfix: full non-shrinking square canvas, collapsible compact Cutout controls below the main editing toolbar, one-finger neutral-mode board panning, and board/guidelines that pan and zoom together with the viewport. Service-worker cache: `audrey-closet-v13.8-dev1.3`.
+## v13.8-dev1.4
+Photo Studio cosmetic cleanup: removes the obsolete Quick Photo Cleanup shortcut, adds a Cutout disclosure arrow, tightens the brush slider layout, adds rounded/dotted placement guides with center crosshairs, and adds custom/preset background colors in More options. Service-worker cache: `audrey-closet-v13.8-dev1.4`.
+
+
+## v13.8-dev1.5
+Small Photo Studio polish: renames the camera action to `Take photo` and reorders the primary Studio toolbar to Move, Undo, Redo, Restore, Erase. Service-worker cache: `audrey-closet-v13.8-dev1.5`.

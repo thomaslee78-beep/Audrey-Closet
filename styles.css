@@ -353,3 +353,15 @@ body.journal-item-preview-open{position:fixed;left:0;right:0;width:100%;overflow
 .studio-cutout-tools .studio-tabs{margin:0;display:grid;grid-template-columns:repeat(3,1fr);gap:5px}
 .studio-cutout-tools .studio-tabs button{padding:6px 5px;font-size:10px;min-height:32px}
 .studio-cutout-tools .studio-edge-control{margin-top:6px;font-size:9px;padding:0 2px}
+
+/* v13.8-dev1.4 — Photo Studio cosmetic cleanup */
+.studio-context-controls{min-height:36px;margin:6px 12px 5px}
+.studio-brush-control{min-height:34px;padding:7px 10px;gap:8px;border-radius:11px}
+.studio-move-hint{min-height:34px;display:flex;align-items:center;justify-content:center;padding:7px 10px}
+.studio-cutout-tools summary span{display:flex;align-items:center;gap:5px}
+.studio-disclosure-arrow{display:inline-block;font:800 16px/1 var(--sans);transform:rotate(0deg);transition:transform .16s ease;color:var(--burgundy)}
+.studio-cutout-tools[open] .studio-disclosure-arrow{transform:rotate(90deg)}
+.studio-custom-bg-picker{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+.studio-bg-palette{display:flex;align-items:center;gap:7px;padding:0 8px 9px}
+.studio-bg-swatch{width:27px;height:27px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px rgba(92,77,63,.25);background:var(--swatch);padding:0;cursor:pointer}
+.studio-bg-swatch.active{box-shadow:0 0 0 2px var(--burgundy)}

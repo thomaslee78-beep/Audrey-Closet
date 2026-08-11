@@ -227,11 +227,10 @@
         <div class="photo-tools-body">
           <p>Optional — photo changes are only kept when you tap Save piece.</p>
           <div class="photo-actions photo-actions-bottom">
-            <label class="primary file-label" id="takePhotoLabel">Take new photo<input type="file" id="itemPhoto" accept="image/*" capture="environment" /></label>
+            <label class="primary file-label" id="takePhotoLabel">Take photo<input type="file" id="itemPhoto" accept="image/*" capture="environment" /></label>
             <label class="soft-btn file-label" id="uploadPhotoLabel">Upload photo<input type="file" id="itemPhotoLibrary" accept="image/*" /></label>
             <button type="button" class="soft-btn" id="photoStudioBtn">✂ Photo Studio</button>
             <button type="button" class="soft-btn hidden" id="restoreOriginalPhotoBtn">↶ Original photo</button>
-            <button type="button" class="soft-btn" id="removeBgBtn">Quick photo cleanup</button>
             <button type="button" class="soft-btn" id="smartScanBtn">Smart scan</button>
           </div>
           <div class="scan-status" id="scanStatus"></div>
@@ -270,14 +269,14 @@
         <div id="studioMoveHint" class="studio-move-hint hidden">Drag to reposition. Pinch to resize and gently twist to rotate.</div>
       </div>
       <div class="studio-toolbar" role="toolbar" aria-label="Photo editing tools">
-        <button type="button" class="studio-action brush-btn" data-brush="erase"><span>⌫</span>Erase</button>
-        <button type="button" class="studio-action brush-btn" data-brush="restore"><span>↶</span>Restore</button>
+        <button type="button" class="studio-action studio-move-toggle" id="studioMoveToggle"><span>✥</span>Move</button>
         <button type="button" class="studio-action" id="studioUndo" disabled><span>↶</span>Undo</button>
         <button type="button" class="studio-action" id="studioRedo" disabled><span>↷</span>Redo</button>
-        <button type="button" class="studio-action studio-move-toggle" id="studioMoveToggle"><span>✥</span>Move</button>
+        <button type="button" class="studio-action brush-btn" data-brush="restore"><span>↶</span>Restore</button>
+        <button type="button" class="studio-action brush-btn" data-brush="erase"><span>⌫</span>Erase</button>
       </div>
       <details class="studio-cutout-tools" open>
-        <summary><span>Cutout</span><small>Quick background removal</small></summary>
+        <summary><span><b class="studio-disclosure-arrow" aria-hidden="true">›</b>Cutout</span><small>Quick background removal</small></summary>
         <div class="studio-cutout-body">
           <div class="studio-tabs"><button type="button" class="studio-mode active" data-mode="current">Current</button><button type="button" class="studio-mode" data-mode="quick">Quick</button><button type="button" class="studio-mode" data-mode="clean">Clean</button></div>
           <label class="studio-edge-control">Sensitivity <input id="studioEdge" type="range" min="25" max="80" value="45"></label>
@@ -286,7 +285,8 @@
       <details class="studio-more-tools">
         <summary>More options</summary>
         <div class="studio-more-grid"><button type="button" class="soft-btn" id="studioAutoFit">◎ Center / fit</button><button type="button" class="soft-btn" id="studioUseOriginal">↶ Use captured original</button></div>
-        <div class="studio-bg-row"><span>Background</span><button type="button" class="studio-bg active" data-bg="transparent">Transparent</button><button type="button" class="studio-bg" data-bg="cream">Cream</button><button type="button" class="studio-bg" data-bg="paper">Paper</button></div>
+        <div class="studio-bg-row"><span>Background</span><button type="button" class="studio-bg active" data-bg="transparent">Transparent</button><button type="button" class="studio-bg" data-bg="cream">Cream</button><button type="button" class="studio-bg" data-bg="paper">Paper</button><button type="button" class="studio-bg" id="studioCustomBgBtn" data-bg="custom">Color…</button><input id="studioCustomBgPicker" class="studio-custom-bg-picker" type="color" value="#ffffff" aria-label="Choose custom photo background color"></div>
+        <div class="studio-bg-palette" aria-label="Background color palette"><button type="button" class="studio-bg-swatch" data-color="#ffffff" style="--swatch:#ffffff" aria-label="White"></button><button type="button" class="studio-bg-swatch" data-color="#f3efe7" style="--swatch:#f3efe7" aria-label="Warm white"></button><button type="button" class="studio-bg-swatch" data-color="#e6e7e8" style="--swatch:#e6e7e8" aria-label="Soft gray"></button><button type="button" class="studio-bg-swatch" data-color="#f2dedb" style="--swatch:#f2dedb" aria-label="Blush"></button><button type="button" class="studio-bg-swatch" data-color="#dfe9e5" style="--swatch:#dfe9e5" aria-label="Sage"></button><button type="button" class="studio-bg-swatch" data-color="#dfe8f1" style="--swatch:#dfe8f1" aria-label="Sky"></button></div>
       </details>
       <p class="scan-status studio-status" id="studioStatus">No tool selected. Pinch with two fingers to zoom and pan the board.</p>
       <div class="sheet-actions studio-save-actions"><button type="button" class="soft-btn" id="studioCancelBtn">Cancel</button><button type="button" class="primary" id="studioApply">Use this photo</button></div>
