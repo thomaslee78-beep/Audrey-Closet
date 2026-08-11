@@ -114,3 +114,7 @@ Photo Studio Restore now respects the currently selected cutout layer. With Quic
 
 ## v13.8-dev1.10
 Photo Studio transform-history polish: Undo/Redo now includes completed reposition, resize, and rotation gestures in addition to Erase/Restore strokes. The primary transform tool is renamed from `Move` to `Adjust`. More options now separates `Center` (position only) and `Fit` (scale only); neither changes cutout or manual masks. Both Center and Fit are themselves undoable. Service-worker cache: `audrey-closet-v13.8-dev1.10`.
+
+
+## v13.9-dev1
+Improves automatic cutout quality with a more conservative background-removal pass. Quick and Clean now remove only background-connected regions, better protect similarly colored garment interiors, fill enclosed holes, and produce cleaner edges; Clean additionally removes small leftover fragments and keeps the main foreground component. Service-worker cache: `audrey-closet-v13.9-dev1`.
