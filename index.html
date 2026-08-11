@@ -255,7 +255,7 @@
 
   <dialog id="photoStudioDialog" class="sheet-dialog studio-dialog studio-v138">
     <div class="studio-shell">
-      <div class="sheet-head studio-head"><div><p class="script">photo studio</p><h2>Clean up the garment</h2></div><button class="close-btn" id="studioCloseBtn">×</button></div>
+      <div class="sheet-head studio-head"><div><p class="script">photo studio</p><h2 data-i18n="studio.title">Clean up the garment</h2></div><button class="close-btn" id="studioCloseBtn">×</button></div>
       <div class="studio-template" id="studioTemplateHint">CENTER ITEM</div>
       <div class="studio-canvas-wrap">
         <canvas id="studioCanvas"></canvas><div class="studio-guide"><i></i></div>
@@ -264,43 +264,32 @@
         </div>
       </div>
       <div class="studio-context-controls">
-        <div id="studioViewHint" class="studio-move-hint">No tool selected · pinch with two fingers to zoom and pan the board.</div>
+        <div id="studioViewHint" class="studio-move-hint" data-i18n="studio.noTool">No tool selected. The garment is locked; drag with one finger to pan and pinch with two fingers to zoom.</div>
         <label id="studioBrushControl" class="studio-brush-control hidden">Brush <span id="studioBrushValue">26</span><input id="studioBrush" type="range" min="6" max="70" value="26"></label>
         <div id="studioMoveHint" class="studio-move-hint hidden">Drag to reposition. Pinch to resize and gently twist to rotate.</div>
       </div>
       <div class="studio-toolbar" role="toolbar" aria-label="Photo editing tools">
-        <button type="button" class="studio-action studio-move-toggle" id="studioMoveToggle"><span>✥</span>Move</button>
-        <button type="button" class="studio-action" id="studioUndo" disabled><span>↶</span>Undo</button>
-        <button type="button" class="studio-action" id="studioRedo" disabled><span>↷</span>Redo</button>
-        <button type="button" class="studio-action brush-btn" data-brush="restore"><span>↶</span>Restore</button>
-        <button type="button" class="studio-action brush-btn" data-brush="erase"><span>⌫</span>Erase</button>
+        <button type="button" class="studio-action studio-move-toggle" id="studioMoveToggle"><span>✥</span><span data-i18n="studio.move">Move</span></button>
+        <button type="button" class="studio-action" id="studioUndo" disabled><span>↶</span><span data-i18n="studio.undo">Undo</span></button>
+        <button type="button" class="studio-action" id="studioRedo" disabled><span>↷</span><span data-i18n="studio.redo">Redo</span></button>
+        <button type="button" class="studio-action brush-btn" data-brush="restore"><span>↶</span><span data-i18n="studio.restore">Restore</span></button>
+        <button type="button" class="studio-action brush-btn" data-brush="erase"><span>⌫</span><span data-i18n="studio.erase">Erase</span></button>
       </div>
       <details class="studio-cutout-tools" open>
-        <summary><span>Cutout</span><small>Quick background removal</small></summary>
+        <summary><span data-i18n="studio.cutout">Cutout</span><small data-i18n="studio.cutoutHelp">Quick background removal</small></summary>
         <div class="studio-cutout-body">
-          <div class="studio-tabs"><button type="button" class="studio-mode active" data-mode="current">Current</button><button type="button" class="studio-mode" data-mode="quick">Quick</button><button type="button" class="studio-mode" data-mode="clean">Clean</button></div>
-          <label class="studio-edge-control">Sensitivity <input id="studioEdge" type="range" min="25" max="80" value="45"></label>
+          <div class="studio-tabs"><button type="button" class="studio-mode active" data-mode="current" data-i18n="studio.current">Current</button><button type="button" class="studio-mode" data-mode="quick" data-i18n="studio.quick">Quick</button><button type="button" class="studio-mode" data-mode="clean" data-i18n="studio.clean">Clean</button></div>
+          <label class="studio-edge-control"><span data-i18n="studio.sensitivity">Sensitivity</span> <input id="studioEdge" type="range" min="25" max="80" value="45"></label>
         </div>
       </details>
       <details class="studio-more-tools">
-        <summary>More options</summary>
-        <div class="studio-more-grid"><button type="button" class="soft-btn" id="studioAutoFit">◎ Center / fit</button><button type="button" class="soft-btn" id="studioUseOriginal">↶ Use captured original</button></div>
-        <div class="studio-bg-row"><span>Background</span><button type="button" class="studio-bg active" data-bg="transparent">Transparent</button><button type="button" class="studio-bg" data-bg="cream">Cream</button><button type="button" class="studio-bg" data-bg="paper">Paper</button><button type="button" class="studio-bg" id="studioCustomBgBtn" data-bg="custom">Color</button></div>
-        <div class="studio-bg-palette hidden" id="studioBgPalette" aria-label="Background color palette">
-          <button type="button" class="studio-bg-swatch" data-color="#ffffff" style="--swatch:#ffffff" aria-label="White"></button>
-          <button type="button" class="studio-bg-swatch" data-color="#f4f1ea" style="--swatch:#f4f1ea" aria-label="Ivory"></button>
-          <button type="button" class="studio-bg-swatch" data-color="#e9e1d3" style="--swatch:#e9e1d3" aria-label="Light cream"></button>
-          <button type="button" class="studio-bg-swatch" data-color="#d7cbbb" style="--swatch:#d7cbbb" aria-label="Sand"></button>
-          <button type="button" class="studio-bg-swatch" data-color="#c3b6a5" style="--swatch:#c3b6a5" aria-label="Taupe"></button>
-          <button type="button" class="studio-bg-swatch" data-color="#a99e90" style="--swatch:#a99e90" aria-label="Stone"></button>
-          <button type="button" class="studio-bg-swatch" data-color="#8d867d" style="--swatch:#8d867d" aria-label="Warm gray"></button>
-          <button type="button" class="studio-bg-swatch" data-color="#6f6b65" style="--swatch:#6f6b65" aria-label="Medium gray"></button>
-          <button type="button" class="studio-bg-swatch" data-color="#4e4c49" style="--swatch:#4e4c49" aria-label="Charcoal"></button>
-          <button type="button" class="studio-bg-swatch" data-color="#282827" style="--swatch:#282827" aria-label="Near black"></button>
-        </div>
+        <summary data-i18n="studio.more">More options</summary>
+        <div class="studio-more-grid"><button type="button" class="soft-btn" id="studioAutoFit">◎ <span data-i18n="studio.centerFit">Center / fit</span></button><button type="button" class="soft-btn" id="studioUseOriginal">↶ <span data-i18n="studio.useOriginal">Use captured original</span></button></div>
+        <div class="studio-bg-row"><span data-i18n="studio.background">Background</span><button type="button" class="studio-bg active" data-bg="transparent" data-i18n="studio.transparent">Transparent</button><button type="button" class="studio-bg" data-bg="cream" data-i18n="studio.cream">Cream</button><button type="button" class="studio-bg" data-bg="paper" data-i18n="studio.paper">Paper</button><button type="button" class="studio-bg" id="studioCustomBgBtn" data-bg="custom" data-i18n="studio.color">Color</button></div>
+        <div class="studio-bg-palette hidden" id="studioBgPalette" aria-label="Background color palette"></div>
       </details>
-      <p class="scan-status studio-status" id="studioStatus">No tool selected. Pinch with two fingers to zoom and pan the board.</p>
-      <div class="sheet-actions studio-save-actions"><button type="button" class="soft-btn" id="studioCancelBtn">Cancel</button><button type="button" class="primary" id="studioApply">Use this photo</button></div>
+      <p class="scan-status studio-status" id="studioStatus" data-i18n="studio.noTool">No tool selected. The garment is locked; drag with one finger to pan and pinch with two fingers to zoom.</p>
+      <div class="sheet-actions studio-save-actions"><button type="button" class="soft-btn" id="studioCancelBtn" data-i18n="studio.cancel">Cancel</button><button type="button" class="primary" id="studioApply" data-i18n="studio.usePhoto">Use this photo</button></div>
     </div>
   </dialog>
 

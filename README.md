@@ -103,3 +103,7 @@ Small Photo Studio polish: renames the camera action to `Take photo` and reorder
 
 ## v13.8-dev1.6
 Photo Studio bug-fix polish: Use captured original now resets the Studio in place; Color background expands a 10-step light-to-dark palette and hides for other background modes; Cutout uses the same disclosure marker as More options; canvas placement and center guides are darker, with center lines extending edge-to-edge. Service-worker cache: `audrey-closet-v13.8-dev1.6`.
+
+
+## v13.8-dev1.7
+Photo Studio final editing-engine fixes: reliable matching disclosure arrows; English localization-resource foundation for Studio strings; automatic Quick/Clean cutout now runs only from the captured source and is disabled after a cutout until the captured original is restored; legacy edited/transparency state is handled conservatively; permanent-delete typography is locked against iPhone orientation text resizing; and the background picker is a reusable four-row 40-color palette ordered Neutrals, Pastels, Colors, Brights. Service-worker cache: `audrey-closet-v13.8-dev1.7`.
