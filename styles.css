@@ -315,3 +315,8 @@ body.journal-item-preview-open{position:fixed;left:0;right:0;width:100%;overflow
 .studio-more-tools{margin:5px 12px 0;border:1px solid var(--line);border-radius:11px;background:#fffaf0;flex:0 0 auto}.studio-more-tools summary{padding:7px 10px;font-size:10px;font-weight:800;color:#756a5c;cursor:pointer}.studio-more-tools[open] summary{border-bottom:1px solid var(--line)}.studio-more-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:7px 8px 0}.studio-more-tools .studio-bg-row{padding:0 8px 8px;margin-top:7px}
 .studio-status{margin:5px 12px 2px;min-height:14px;flex:0 0 auto}.studio-save-actions{padding:6px 10px max(8px,env(safe-area-inset-bottom));margin:0;flex:0 0 auto;background:var(--paper,#fbf6eb)}
 @media(max-height:700px){.studio-v138 .studio-canvas-wrap{max-height:44dvh;min-height:190px}.studio-edge-control{display:none}.studio-context-controls{min-height:34px}.studio-action{min-height:42px}}
+
+/* v13.8-dev1.1 — Photo Studio interaction fixes */
+.studio-v138 .studio-canvas-wrap.studio-view-mode canvas{cursor:zoom-in}
+.studio-v138 .studio-canvas-wrap.studio-brush-mode canvas{cursor:crosshair}
+.studio-v138 .studio-canvas-wrap.studio-object-move-mode canvas{cursor:move}

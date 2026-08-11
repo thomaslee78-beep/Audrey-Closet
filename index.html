@@ -270,8 +270,9 @@
         <label class="studio-edge-control">Cutout sensitivity <input id="studioEdge" type="range" min="25" max="80" value="45"></label>
       </div>
       <div class="studio-context-controls">
-        <label id="studioBrushControl" class="studio-brush-control">Brush <span id="studioBrushValue">26</span><input id="studioBrush" type="range" min="6" max="70" value="26"></label>
-        <div id="studioMoveHint" class="studio-move-hint hidden">Drag to reposition. Pinch with two fingers to resize.</div>
+        <div id="studioViewHint" class="studio-move-hint">No tool selected · pinch with two fingers to zoom and pan the board.</div>
+        <label id="studioBrushControl" class="studio-brush-control hidden">Brush <span id="studioBrushValue">26</span><input id="studioBrush" type="range" min="6" max="70" value="26"></label>
+        <div id="studioMoveHint" class="studio-move-hint hidden">Drag to reposition. Pinch to resize and gently twist to rotate.</div>
       </div>
       <div class="studio-toolbar" role="toolbar" aria-label="Photo editing tools">
         <button type="button" class="studio-action brush-btn" data-brush="erase"><span>⌫</span>Erase</button>
@@ -285,7 +286,7 @@
         <div class="studio-more-grid"><button type="button" class="soft-btn" id="studioAutoFit">◎ Center / fit</button><button type="button" class="soft-btn" id="studioUseOriginal">↶ Use captured original</button></div>
         <div class="studio-bg-row"><span>Background</span><button type="button" class="studio-bg active" data-bg="transparent">Transparent</button><button type="button" class="studio-bg" data-bg="cream">Cream</button><button type="button" class="studio-bg" data-bg="paper">Paper</button></div>
       </details>
-      <p class="scan-status studio-status" id="studioStatus">Erase or restore with smooth strokes. Use two fingers to zoom the editing view.</p>
+      <p class="scan-status studio-status" id="studioStatus">No tool selected. Pinch with two fingers to zoom and pan the board.</p>
       <div class="sheet-actions studio-save-actions"><button type="button" class="soft-btn" id="studioCancelBtn">Cancel</button><button type="button" class="primary" id="studioApply">Use this photo</button></div>
     </div>
   </dialog>

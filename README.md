@@ -81,3 +81,6 @@ Photo Studio editing-engine rebuild for user testing:
 - Dedicated Move mode: drag to reposition and pinch to resize; toggle Move off to lock the garment before masking.
 - Fixed, compact primary toolbar for Erase / Restore / Undo / Redo / Move with secondary options collapsed below.
 - Photo adjustments (exposure/contrast/highlights) and improved automatic cutout quality are intentionally deferred to later v13.8 development cycles.
+
+### v13.8-dev1.1
+Photo Studio editing-engine fixes: cutouts preserve the original framing/position, no editing tool is selected by default, neutral two-finger gestures zoom/pan the board without moving the garment, Erase/Restore are exclusive one-finger edit modes, and Move mode supports drag, pinch resize, and low-sensitivity two-finger rotation.

@@ -34,7 +34,7 @@ let studioCutoutPhoto='';
 let studioMode='original';
 let studioBg='transparent';
 let studioEdge=45;
-let studioBrushMode='erase';
+let studioBrushMode=null;
 let studioDrawing=false;
 let studioBaseCanvas=null;
 let studioWorkCanvas=null;
@@ -45,6 +45,7 @@ let studioMoveMode=false;
 let studioObjectScale=1;
 let studioObjectX=0;
 let studioObjectY=0;
+let studioObjectRotation=0;
 let studioViewZoom=1;
 let studioViewX=0;
 let studioViewY=0;
@@ -143,7 +144,7 @@ async function init(){
   $('#addPortfolioFolderBtn').onclick=addPortfolioFolder;
   $('#managePortfolioBtn').onclick=()=>{renderPortfolioFolderEditor();showScreen('more')};
   $('#portfolioNewBtn').onclick=()=>{startNewOutfit();showScreen('outfits')};
-  if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js?v=13.7-dev2',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
+  if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js?v=13.8-dev1.1',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
   renderAll();
 }
 function fillSelects(){
@@ -951,65 +952,71 @@ function redoStudio(){if(!studioRedoStack.length)return;const cur=cloneStudioIma
 function studioFillBackground(ctx){if(studioBg==='cream'){ctx.fillStyle='#f4ecd9';ctx.fillRect(0,0,720,720)}else if(studioBg==='paper'){ctx.fillStyle='#e9dfc9';ctx.fillRect(0,0,720,720);ctx.globalAlpha=.15;for(let y=0;y<720;y+=24){ctx.fillStyle=y%48===0?'#8b765e':'#fff';ctx.fillRect(0,y,720,1)}ctx.globalAlpha=1}}
 async function setStudioLayer(src,{resetTransform=true}={}){
   const img=await imageFrom(src);studioBaseCanvas=newStudioCanvas();const bctx=studioBaseCanvas.getContext('2d');
-  let sx=0,sy=0,sw=img.width,sh=img.height;if(studioMode!=='original'){const b=await transparentBounds(img);sx=b.x;sy=b.y;sw=b.w;sh=b.h}
-  const fit=Math.min(650/sw,650/sh),dw=sw*fit,dh=sh*fit;bctx.drawImage(img,sx,sy,sw,sh,360-dw/2,360-dh/2,dw,dh);
+  /* Keep every source variant on the same full-image frame. Cutouts only change alpha;
+     they must not crop to transparent bounds, enlarge, or recenter the garment. */
+  const fit=Math.min(650/img.width,650/img.height),dw=img.width*fit,dh=img.height*fit;
+  bctx.drawImage(img,0,0,img.width,img.height,360-dw/2,360-dh/2,dw,dh);
   studioWorkCanvas=newStudioCanvas();studioWorkCanvas.getContext('2d').drawImage(studioBaseCanvas,0,0);
-  if(resetTransform){studioObjectScale=1;studioObjectX=0;studioObjectY=0;studioViewZoom=1;studioViewX=0;studioViewY=0}
+  if(resetTransform){studioObjectScale=1;studioObjectX=0;studioObjectY=0;studioObjectRotation=0;studioViewZoom=1;studioViewX=0;studioViewY=0}
   resetStudioHistory();updateStudioZoomLabel();await renderStudio()
 }
 async function openPhotoStudio(){
   if(!itemWorkingPhoto)return toast('Take or choose a photo first');
-  studioSourcePhoto=itemOriginalPhoto||itemWorkingPhoto;studioCutoutPhoto='';studioMode='original';studioBg='transparent';studioEdge=45;studioBrushMode='erase';studioMoveMode=false;studioDrawing=false;studioPointers.clear();studioGesture=null;
+  studioSourcePhoto=itemOriginalPhoto||itemWorkingPhoto;studioCutoutPhoto='';studioMode='original';studioBg='transparent';studioEdge=45;studioBrushMode=null;studioMoveMode=false;studioDrawing=false;studioPointers.clear();studioGesture=null;
   $('#studioEdge').value=studioEdge;$('#studioBrush').value=26;$('#studioBrushValue').textContent='26';$('#studioTemplateHint').textContent=templateHint($('#itemCategory').value);
-  $$('.studio-mode').forEach(b=>b.classList.toggle('active',b.dataset.mode==='original'));$$('.studio-bg').forEach(b=>b.classList.toggle('active',b.dataset.bg==='transparent'));$$('.brush-btn').forEach(b=>b.classList.toggle('active',b.dataset.brush==='erase'));$('#studioMoveToggle').classList.remove('active');updateStudioToolUI();
+  $$('.studio-mode').forEach(b=>b.classList.toggle('active',b.dataset.mode==='original'));$$('.studio-bg').forEach(b=>b.classList.toggle('active',b.dataset.bg==='transparent'));$$('.brush-btn').forEach(b=>b.classList.remove('active'));$('#studioMoveToggle').classList.remove('active');updateStudioToolUI();
   $('#photoStudioDialog').showModal();await setStudioLayer(studioSourcePhoto)
 }
 async function buildCutout(clean=false){
   const src=studioSourcePhoto||itemWorkingPhoto;if(!src)return src;$('#studioStatus').textContent=clean?'Building a cleaner starting cutout…':'Building a quick starting cutout…';
-  try{studioCutoutPhoto=clean?await removeAdvancedBackground(src,Number($('#studioEdge').value)||45):await removeSimpleBackground(src);studioMode=clean?'clean':'quick';$$('.studio-mode').forEach(b=>b.classList.toggle('active',b.dataset.mode===studioMode));await setStudioLayer(studioCutoutPhoto);$('#studioStatus').textContent='Cutout ready. Erase extra background or restore anything you remove by hand.';return studioCutoutPhoto}catch(e){console.error(e);$('#studioStatus').textContent='Cutout failed — original is still safe.';toast('Could not remove background')}
+  try{studioCutoutPhoto=clean?await removeAdvancedBackground(src,Number($('#studioEdge').value)||45):await removeSimpleBackground(src);studioMode=clean?'clean':'quick';$$('.studio-mode').forEach(b=>b.classList.toggle('active',b.dataset.mode===studioMode));await setStudioLayer(studioCutoutPhoto,{resetTransform:false});$('#studioStatus').textContent='Cutout ready in the same position and size. Select Erase or Restore only when you want to retouch it.';return studioCutoutPhoto}catch(e){console.error(e);$('#studioStatus').textContent='Cutout failed — original is still safe.';toast('Could not remove background')}
 }
 async function renderStudio(){
   const c=$('#studioCanvas'),ctx=c.getContext('2d');if(c.width!==720||c.height!==720){c.width=720;c.height=720}ctx.clearRect(0,0,720,720);studioFillBackground(ctx);if(!studioWorkCanvas)return;
-  ctx.save();ctx.translate(360+studioViewX,360+studioViewY);ctx.scale(studioViewZoom,studioViewZoom);ctx.translate(studioObjectX,studioObjectY);ctx.scale(studioObjectScale,studioObjectScale);ctx.drawImage(studioWorkCanvas,-360,-360);ctx.restore();
+  ctx.save();ctx.translate(360+studioViewX,360+studioViewY);ctx.scale(studioViewZoom,studioViewZoom);ctx.translate(studioObjectX,studioObjectY);ctx.rotate(studioObjectRotation*Math.PI/180);ctx.scale(studioObjectScale,studioObjectScale);ctx.drawImage(studioWorkCanvas,-360,-360);ctx.restore();
 }
 function updateStudioZoomLabel(){const b=$('#studioZoomReset');if(b)b.textContent=Math.round(studioViewZoom*100)+'%'}
 function setStudioViewZoom(next,anchor={x:360,y:360}){const old=studioViewZoom;next=Math.max(1,Math.min(4,next));if(next===old)return;const wx=(anchor.x-360-studioViewX)/old,wy=(anchor.y-360-studioViewY)/old;studioViewZoom=next;studioViewX=anchor.x-360-wx*next;studioViewY=anchor.y-360-wy*next;updateStudioZoomLabel();renderStudio()}
 function resetStudioView(){studioViewZoom=1;studioViewX=0;studioViewY=0;updateStudioZoomLabel();renderStudio()}
-function autoFitStudio(){studioObjectScale=1;studioObjectX=0;studioObjectY=0;resetStudioView();toast('Centered and fitted')}
+function autoFitStudio(){studioObjectScale=1;studioObjectX=0;studioObjectY=0;studioObjectRotation=0;resetStudioView();toast('Centered and fitted')}
 async function transparentBounds(img){const c=document.createElement('canvas'),max=360,sc=Math.min(1,max/Math.max(img.width,img.height));c.width=Math.max(1,Math.round(img.width*sc));c.height=Math.max(1,Math.round(img.height*sc));const x=c.getContext('2d');x.drawImage(img,0,0,c.width,c.height);const d=x.getImageData(0,0,c.width,c.height).data;let minX=c.width,minY=c.height,maxX=-1,maxY=-1;for(let y=0;y<c.height;y++)for(let xx=0;xx<c.width;xx++){if(d[(y*c.width+xx)*4+3]>30){if(xx<minX)minX=xx;if(xx>maxX)maxX=xx;if(y<minY)minY=y;if(y>maxY)maxY=y}}if(maxX<0)return{x:0,y:0,w:img.width,h:img.height};const pad=8;minX=Math.max(0,minX-pad);minY=Math.max(0,minY-pad);maxX=Math.min(c.width-1,maxX+pad);maxY=Math.min(c.height-1,maxY+pad);return{x:minX/sc,y:minY/sc,w:(maxX-minX+1)/sc,h:(maxY-minY+1)/sc}}
 function studioPointerDisplay(e){const c=$('#studioCanvas'),r=c.getBoundingClientRect();return{x:(e.clientX-r.left)*720/r.width,y:(e.clientY-r.top)*720/r.height}}
-function studioDisplayToWork(p){let x=(p.x-360-studioViewX)/studioViewZoom,y=(p.y-360-studioViewY)/studioViewZoom;x=(x-studioObjectX)/studioObjectScale+360;y=(y-studioObjectY)/studioObjectScale+360;return{x,y}}
+function studioDisplayToWork(p){let x=(p.x-360-studioViewX)/studioViewZoom,y=(p.y-360-studioViewY)/studioViewZoom;x-=studioObjectX;y-=studioObjectY;const a=-studioObjectRotation*Math.PI/180,rx=x*Math.cos(a)-y*Math.sin(a),ry=x*Math.sin(a)+y*Math.cos(a);return{x:rx/studioObjectScale+360,y:ry/studioObjectScale+360}}
 function studioStroke(from,to){if(!studioWorkCanvas||!studioBrushMode)return;const ctx=studioWorkCanvas.getContext('2d'),rad=(Number($('#studioBrush').value)||26)/(studioViewZoom*studioObjectScale),a=studioDisplayToWork(from),b=studioDisplayToWork(to),dot=Math.hypot(b.x-a.x,b.y-a.y)<.5;
   if(studioBrushMode==='erase'){ctx.save();ctx.globalCompositeOperation='destination-out';ctx.strokeStyle='rgba(0,0,0,1)';ctx.fillStyle='rgba(0,0,0,1)';ctx.lineWidth=rad*2;ctx.lineCap='round';ctx.lineJoin='round';if(dot){ctx.beginPath();ctx.arc(a.x,a.y,rad,0,Math.PI*2);ctx.fill()}else{ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke()}ctx.restore()}
   else if(studioBrushMode==='restore'&&studioBaseCanvas){const mask=newStudioCanvas(),m=mask.getContext('2d');m.strokeStyle='#fff';m.fillStyle='#fff';m.lineWidth=rad*2;m.lineCap='round';m.lineJoin='round';if(dot){m.beginPath();m.arc(a.x,a.y,rad,0,Math.PI*2);m.fill()}else{m.beginPath();m.moveTo(a.x,a.y);m.lineTo(b.x,b.y);m.stroke()}const patch=newStudioCanvas(),pc=patch.getContext('2d');pc.drawImage(studioBaseCanvas,0,0);pc.globalCompositeOperation='destination-in';pc.drawImage(mask,0,0);ctx.save();ctx.globalCompositeOperation='source-over';ctx.drawImage(patch,0,0);ctx.restore()}
   renderStudio()}
-function updateStudioToolUI(){const move=$('#studioMoveHint'),brush=$('#studioBrushControl');if(move)move.classList.toggle('hidden',!studioMoveMode);if(brush)brush.classList.toggle('hidden',studioMoveMode);$$('.brush-btn').forEach(b=>b.classList.toggle('active',!studioMoveMode&&b.dataset.brush===studioBrushMode));$('#studioMoveToggle')?.classList.toggle('active',studioMoveMode)}
-function toggleStudioMove(){studioMoveMode=!studioMoveMode;studioDrawing=false;studioGesture=null;studioPointers.clear();updateStudioToolUI();$('#studioStatus').textContent=studioMoveMode?'Move mode: drag the garment; pinch to resize. Tap Move again to lock it.':'Editing locked. Erase or restore with smooth strokes.'}
-function studioGestureStart(){const pts=[...studioPointers.values()];if(pts.length<2)return null;const a=pts[0],b=pts[1],mx=(a.x+b.x)/2,my=(a.y+b.y)/2,dist=Math.hypot(b.x-a.x,b.y-a.y);return{mx,my,dist,viewZoom:studioViewZoom,viewX:studioViewX,viewY:studioViewY,objScale:studioObjectScale,objX:studioObjectX,objY:studioObjectY}}
+function updateStudioToolUI(){const move=$('#studioMoveHint'),brush=$('#studioBrushControl'),view=$('#studioViewHint');if(move)move.classList.toggle('hidden',!studioMoveMode);if(brush)brush.classList.toggle('hidden',studioMoveMode||!studioBrushMode);if(view)view.classList.toggle('hidden',studioMoveMode||!!studioBrushMode);$$('.brush-btn').forEach(b=>b.classList.toggle('active',!studioMoveMode&&b.dataset.brush===studioBrushMode));$('#studioMoveToggle')?.classList.toggle('active',studioMoveMode);const wrap=$('#studioCanvas')?.closest('.studio-canvas-wrap');if(wrap){wrap.classList.toggle('studio-view-mode',!studioMoveMode&&!studioBrushMode);wrap.classList.toggle('studio-brush-mode',!!studioBrushMode&&!studioMoveMode);wrap.classList.toggle('studio-object-move-mode',studioMoveMode)}}
+function toggleStudioMove(){studioMoveMode=!studioMoveMode;studioBrushMode=null;studioDrawing=false;studioGesture=null;studioPointers.clear();updateStudioToolUI();$('#studioStatus').textContent=studioMoveMode?'Move mode: drag to reposition. Pinch to resize and gently twist to rotate. Tap Move again to lock it.':'No tool selected. The garment is locked; pinch with two fingers to zoom and pan the board.'}
+function studioGestureStart(){const pts=[...studioPointers.values()];if(pts.length<2)return null;const a=pts[0],b=pts[1],mx=(a.x+b.x)/2,my=(a.y+b.y)/2,dist=Math.hypot(b.x-a.x,b.y-a.y),angle=Math.atan2(b.y-a.y,b.x-a.x);return{mx,my,dist,angle,viewZoom:studioViewZoom,viewX:studioViewX,viewY:studioViewY,objScale:studioObjectScale,objX:studioObjectX,objY:studioObjectY,objRotation:studioObjectRotation}}
+function studioAngleDelta(a,b){let d=a-b;while(d>Math.PI)d-=Math.PI*2;while(d<-Math.PI)d+=Math.PI*2;return d}
 function handleStudioPointerDown(e){const c=$('#studioCanvas'),p=studioPointerDisplay(e);studioPointers.set(e.pointerId,p);try{c.setPointerCapture(e.pointerId)}catch{}
-  if(studioPointers.size>=2){studioDrawing=false;studioGesture=studioGestureStart();return}
-  if(studioMoveMode){studioGesture={start:p,objX:studioObjectX,objY:studioObjectY};return}
-  if(studioBrushMode){pushStudioHistory();studioDrawing=true;studioLastPoint=p;studioStroke(p,p)}
+  /* Brush mode is intentionally exclusive: one finger paints, extra fingers do not zoom/move. */
+  if(studioBrushMode){if(studioPointers.size===1){pushStudioHistory();studioDrawing=true;studioLastPoint=p;studioStroke(p,p)}else{studioDrawing=false;studioLastPoint=null}return}
+  if(studioMoveMode){if(studioPointers.size>=2){studioGesture=studioGestureStart();return}studioGesture={start:p,objX:studioObjectX,objY:studioObjectY};return}
+  /* Neutral/view mode: the object is locked. One finger does nothing; two fingers zoom/pan the board. */
+  if(studioPointers.size>=2){studioGesture=studioGestureStart();return}
 }
 function handleStudioPointerMove(e){if(!studioPointers.has(e.pointerId))return;const p=studioPointerDisplay(e);studioPointers.set(e.pointerId,p);
-  if(studioPointers.size>=2){if(!studioGesture||!studioGesture.dist)studioGesture=studioGestureStart();const pts=[...studioPointers.values()],a=pts[0],b=pts[1],mx=(a.x+b.x)/2,my=(a.y+b.y)/2,dist=Math.hypot(b.x-a.x,b.y-a.y),g=studioGesture;if(!g)return;
-    if(studioMoveMode){studioObjectScale=Math.max(.45,Math.min(2.6,g.objScale*(dist/Math.max(1,g.dist))));studioObjectX=g.objX+(mx-g.mx)/studioViewZoom;studioObjectY=g.objY+(my-g.my)/studioViewZoom}
-    else{studioViewZoom=Math.max(1,Math.min(4,g.viewZoom*(dist/Math.max(1,g.dist))));studioViewX=g.viewX+(mx-g.mx);studioViewY=g.viewY+(my-g.my);updateStudioZoomLabel()}renderStudio();return}
-  if(studioMoveMode&&studioGesture?.start){studioObjectX=studioGesture.objX+(p.x-studioGesture.start.x)/studioViewZoom;studioObjectY=studioGesture.objY+(p.y-studioGesture.start.y)/studioViewZoom;renderStudio();return}
-  if(studioDrawing&&studioLastPoint){studioStroke(studioLastPoint,p);studioLastPoint=p}
+  if(studioBrushMode){if(studioPointers.size===1&&studioDrawing&&studioLastPoint){studioStroke(studioLastPoint,p);studioLastPoint=p}return}
+  if(studioMoveMode){
+    if(studioPointers.size>=2){if(!studioGesture||!studioGesture.dist)studioGesture=studioGestureStart();const pts=[...studioPointers.values()],a=pts[0],b=pts[1],mx=(a.x+b.x)/2,my=(a.y+b.y)/2,dist=Math.hypot(b.x-a.x,b.y-a.y),angle=Math.atan2(b.y-a.y,b.x-a.x),g=studioGesture;if(!g)return;const ratio=dist/Math.max(1,g.dist);studioObjectScale=Math.max(.45,Math.min(2.6,g.objScale*ratio));studioObjectX=g.objX+(mx-g.mx)/studioViewZoom;studioObjectY=g.objY+(my-g.my)/studioViewZoom;studioObjectRotation=g.objRotation+studioAngleDelta(angle,g.angle)*(180/Math.PI)*.42;renderStudio();return}
+    if(studioGesture?.start){const sensitivity=.8;studioObjectX=studioGesture.objX+(p.x-studioGesture.start.x)/studioViewZoom*sensitivity;studioObjectY=studioGesture.objY+(p.y-studioGesture.start.y)/studioViewZoom*sensitivity;renderStudio()}return
+  }
+  if(studioPointers.size>=2){if(!studioGesture||!studioGesture.dist)studioGesture=studioGestureStart();const pts=[...studioPointers.values()],a=pts[0],b=pts[1],mx=(a.x+b.x)/2,my=(a.y+b.y)/2,dist=Math.hypot(b.x-a.x,b.y-a.y),g=studioGesture;if(!g)return;studioViewZoom=Math.max(1,Math.min(4,g.viewZoom*(dist/Math.max(1,g.dist))));studioViewX=g.viewX+(mx-g.mx);studioViewY=g.viewY+(my-g.my);updateStudioZoomLabel();renderStudio()}
 }
 function handleStudioPointerUp(e){studioPointers.delete(e.pointerId);studioDrawing=false;studioLastPoint=null;if(studioPointers.size<2)studioGesture=null;updateStudioHistoryButtons()}
-async function applyPhotoStudio(){if(!studioWorkCanvas)return;const out=newStudioCanvas(),ctx=out.getContext('2d');studioFillBackground(ctx);ctx.save();ctx.translate(360+studioObjectX,360+studioObjectY);ctx.scale(studioObjectScale,studioObjectScale);ctx.drawImage(studioWorkCanvas,-360,-360);ctx.restore();if(studioBg==='transparent')itemWorkingPhoto=out.toDataURL('image/png');else{itemWorkingPhoto=out.toDataURL('image/webp',.86);if(!itemWorkingPhoto.startsWith('data:image/webp'))itemWorkingPhoto=out.toDataURL('image/jpeg',.88)}showPhoto('#itemPhotoPreview','#photoPlaceholder',itemWorkingPhoto);updateOriginalPhotoButton();$('#photoStudioDialog').close();$('#scanStatus').textContent=studioBg==='transparent'?'Photo Studio image applied · transparency preserved.':'Photo Studio image applied · standardized square crop.';toast('Photo applied')}
+async function applyPhotoStudio(){if(!studioWorkCanvas)return;const out=newStudioCanvas(),ctx=out.getContext('2d');studioFillBackground(ctx);ctx.save();ctx.translate(360+studioObjectX,360+studioObjectY);ctx.rotate(studioObjectRotation*Math.PI/180);ctx.scale(studioObjectScale,studioObjectScale);ctx.drawImage(studioWorkCanvas,-360,-360);ctx.restore();if(studioBg==='transparent')itemWorkingPhoto=out.toDataURL('image/png');else{itemWorkingPhoto=out.toDataURL('image/webp',.86);if(!itemWorkingPhoto.startsWith('data:image/webp'))itemWorkingPhoto=out.toDataURL('image/jpeg',.88)}showPhoto('#itemPhotoPreview','#photoPlaceholder',itemWorkingPhoto);updateOriginalPhotoButton();$('#photoStudioDialog').close();$('#scanStatus').textContent=studioBg==='transparent'?'Photo Studio image applied · transparency preserved.':'Photo Studio image applied · standardized square crop.';toast('Photo applied')}
 function updateOriginalPhotoButton(){const b=$('#restoreOriginalPhotoBtn');if(!b)return;b.classList.toggle('hidden',!itemOriginalPhoto||itemWorkingPhoto===itemOriginalPhoto)}
 function restoreCapturedOriginal(closeStudio=false){if(!itemOriginalPhoto)return toast('No captured original is available');itemWorkingPhoto=itemOriginalPhoto;showPhoto('#itemPhotoPreview','#photoPlaceholder',itemWorkingPhoto);updateOriginalPhotoButton();$('#scanStatus').textContent='Restored the original captured photo.';if(closeStudio&&$('#photoStudioDialog').open)$('#photoStudioDialog').close();toast('Original photo restored')}
 function bindPhotoStudio(){
-  $$('.studio-mode').forEach(b=>b.onclick=async()=>{studioMode=b.dataset.mode;if(studioMode==='original'){$$('.studio-mode').forEach(x=>x.classList.toggle('active',x===b));await setStudioLayer(studioSourcePhoto)}else await buildCutout(studioMode==='clean')});
+  $$('.studio-mode').forEach(b=>b.onclick=async()=>{studioMode=b.dataset.mode;if(studioMode==='original'){$$('.studio-mode').forEach(x=>x.classList.toggle('active',x===b));await setStudioLayer(studioSourcePhoto,{resetTransform:false})}else await buildCutout(studioMode==='clean')});
   $$('.studio-bg').forEach(b=>b.onclick=()=>{studioBg=b.dataset.bg;$$('.studio-bg').forEach(x=>x.classList.toggle('active',x===b));renderStudio()});
   $('#studioEdge').onchange=async()=>{studioEdge=Number($('#studioEdge').value)||45;if(studioMode==='clean')await buildCutout(true)};$('#studioBrush').oninput=e=>$('#studioBrushValue').textContent=e.target.value;
   $('#studioAutoFit').onclick=autoFitStudio;$('#studioApply').onclick=applyPhotoStudio;$('#studioUseOriginal').onclick=()=>restoreCapturedOriginal(true);$('#studioUndo').onclick=undoStudio;$('#studioRedo').onclick=redoStudio;$('#studioMoveToggle').onclick=toggleStudioMove;
   $('#studioZoomIn').onclick=()=>setStudioViewZoom(studioViewZoom+.35);$('#studioZoomOut').onclick=()=>setStudioViewZoom(studioViewZoom-.35);$('#studioZoomReset').onclick=resetStudioView;
   $('#studioCloseBtn').onclick=()=>$('#photoStudioDialog').close();$('#studioCancelBtn').onclick=()=>$('#photoStudioDialog').close();
-  $$('.brush-btn').forEach(b=>b.onclick=()=>{studioMoveMode=false;studioBrushMode=b.dataset.brush;updateStudioToolUI();$('#studioStatus').textContent=studioBrushMode==='erase'?'Erase mode: draw along unwanted background. Two-finger pinch zooms the editing view.':'Restore mode: paint back only pixels removed from this starting cutout.'});
+  $$('.brush-btn').forEach(b=>b.onclick=()=>{const next=(!studioMoveMode&&studioBrushMode===b.dataset.brush)?null:b.dataset.brush;studioMoveMode=false;studioBrushMode=next;studioDrawing=false;studioGesture=null;studioPointers.clear();updateStudioToolUI();$('#studioStatus').textContent=!studioBrushMode?'No tool selected. The garment is locked; pinch with two fingers to zoom and pan the board.':studioBrushMode==='erase'?'Erase mode: one finger erases only. Tap Erase again to return to view mode.':'Restore mode: one finger restores only pixels removed from this starting cutout. Tap Restore again to return to view mode.'});
   const c=$('#studioCanvas');c.addEventListener('pointerdown',handleStudioPointerDown);c.addEventListener('pointermove',handleStudioPointerMove);c.addEventListener('pointerup',handleStudioPointerUp);c.addEventListener('pointercancel',handleStudioPointerUp);
 }
 async function removeAdvancedBackground(dataURL,edge=45){
