@@ -390,7 +390,18 @@
         </details>
       </section>
     </div>
-    <div class="sheet-actions outfit-view-actions"><button class="danger-text" id="deleteOutfitBtn">Delete</button><button class="soft-btn" id="shareViewedOutfitBtn">↗ Share</button><button class="primary" id="editViewedOutfitBtn">Edit on Board</button></div>
+    <div class="sheet-actions outfit-view-actions"><button class="danger-text" id="deleteOutfitBtn">Delete</button><button class="soft-btn" id="shareViewedOutfitBtn">↗ Share</button><button class="soft-btn" id="duplicateViewedOutfitBtn">⧉ Duplicate</button><button class="primary" id="editViewedOutfitBtn">Edit on Board</button></div>
+  </dialog>
+
+
+  <dialog id="boardConflictDialog" class="sheet-dialog board-conflict-dialog">
+    <div class="sheet-head"><div><p class="script">design board</p><h2>Keep your current board?</h2></div><button type="button" class="close-btn" id="boardConflictCloseBtn">×</button></div>
+    <p id="boardConflictMessage" class="board-conflict-message">There is already a look on the Design Board.</p>
+    <div class="board-conflict-actions">
+      <button type="button" class="primary" id="boardConflictSaveBtn">Save current & continue</button>
+      <button type="button" class="soft-btn" id="boardConflictReplaceBtn">Replace current board</button>
+      <button type="button" class="text-btn" id="boardConflictCancelBtn">Cancel</button>
+    </div>
   </dialog>
 
   <dialog id="outfitSaveDialog" class="sheet-dialog compact-save-dialog">

@@ -463,3 +463,13 @@ body.journal-item-preview-open{position:fixed;left:0;right:0;width:100%;overflow
 .outfit-view-dialog .outfit-view-actions{flex:0 0 auto;margin:0;padding:9px 12px max(10px,env(safe-area-inset-bottom));border-top:1px solid var(--line);background:var(--paper,#fbf6eb);box-shadow:0 -5px 14px rgba(70,55,40,.07);display:grid;grid-template-columns:auto 1fr 1.25fr;gap:7px;align-items:center}
 .outfit-view-dialog .outfit-view-actions .primary,.outfit-view-dialog .outfit-view-actions .soft-btn{margin:0;width:100%;min-width:0}
 @media(min-width:700px){.outfit-view-dialog .snapshot{max-width:460px}.outfit-view-dialog .outfit-view-copy{max-width:520px;margin:0 auto;width:100%}}
+
+
+/* v13.11-dev2 — safe Board switching + duplicate look */
+.outfit-view-actions{display:grid;grid-template-columns:auto 1fr 1fr 1.15fr;gap:7px;align-items:center}
+.outfit-view-actions button{min-width:0}
+.board-conflict-dialog{width:min(480px,92vw)}
+.board-conflict-message{margin:4px 18px 14px;color:#6f665a;line-height:1.45;font-size:13px}
+.board-conflict-actions{display:grid;gap:8px;padding:0 16px 16px}
+.board-conflict-actions button{width:100%;min-height:44px}
+@media(max-width:520px){.outfit-view-actions{grid-template-columns:1fr 1fr}.outfit-view-actions .danger-text{grid-column:1/2}.outfit-view-actions #editViewedOutfitBtn{grid-column:1/-1}}

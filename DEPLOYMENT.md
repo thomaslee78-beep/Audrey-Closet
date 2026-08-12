@@ -90,3 +90,7 @@ Minor layout fixes: active Photo Studio tool instructions now appear directly be
 
 ## v13.11-dev1
 Portfolio foundation and detail refresh. Adds stable per-folder portfolio ordering groundwork, a redesigned saved-look detail view with an upper-right favorite star, full notes area, collapsible unique item listing with copy counts, and a fixed bottom action bar. Existing saved looks are normalized without changing the database schema. Service-worker cache: `audrey-closet-v13.11-dev1`.
+
+
+## v13.11-dev2
+Adds Portfolio Duplicate Look and safe Design Board switching. New Look, Edit on Board, and Duplicate now detect an existing Board draft and offer Save current & continue, Replace current board, or Cancel. Duplicate loads a new unsaved copy with a fresh board-item identity and a “— Copy” title so the original saved look is preserved. Service-worker cache: `audrey-closet-v13.11-dev2`.

@@ -119,6 +119,7 @@ let studioPointers=new Map();
 let studioGesture=null;
 let wishWorkingPhoto='';
 let boardItems=[];
+let pendingBoardSwitchAction=null;
 let boardUndoStack=[];
 const BOARD_MOVE_SENSITIVITY=.72;
 const BOARD_PINCH_SCALE_SENSITIVITY=.58;
@@ -219,8 +220,8 @@ async function init(){
   $('#settingsBtn').onclick=()=>{renderPortfolioFolderEditor();showScreen('more')};
   $('#addPortfolioFolderBtn').onclick=addPortfolioFolder;
   $('#managePortfolioBtn').onclick=()=>{renderPortfolioFolderEditor();showScreen('more')};
-  $('#portfolioNewBtn').onclick=()=>{startNewOutfit();showScreen('outfits')};
-  if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js?v=13.11-dev1',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
+  $('#portfolioNewBtn').onclick=()=>guardBoardSwitch(()=>{startNewOutfit();showScreen('outfits')},'start a new look');
+  if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js?v=13.11-dev2',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
   renderAll();
 }
 function fillSelects(){
@@ -294,7 +295,7 @@ function bindDialogs(){
   $('#journalStatDialog').addEventListener('cancel',e=>{e.preventDefault();closeJournalStat()});
   $('#journalStatDialog').addEventListener('close',unlockPageForJournalStat);
   $$('.stat-action').forEach(b=>b.onclick=()=>openJournalStat(b.dataset.stat));
-  $('#deleteOutfitBtn').onclick=deleteOutfit;$('#favoriteViewedOutfitBtn').onclick=favoriteViewedOutfit;$('#editViewedOutfitBtn').onclick=editViewedOutfit;$('#shareViewedOutfitBtn').onclick=shareViewedOutfit;
+  $('#deleteOutfitBtn').onclick=deleteOutfit;$('#favoriteViewedOutfitBtn').onclick=favoriteViewedOutfit;$('#editViewedOutfitBtn').onclick=editViewedOutfit;$('#duplicateViewedOutfitBtn').onclick=duplicateViewedOutfit;$('#shareViewedOutfitBtn').onclick=shareViewedOutfit;$('#boardConflictSaveBtn').onclick=saveBoardBeforeSwitch;$('#boardConflictReplaceBtn').onclick=replaceBoardForSwitch;$('#boardConflictCancelBtn').onclick=cancelBoardSwitch;$('#boardConflictCloseBtn').onclick=cancelBoardSwitch;
 }
 function openItem(item=null,preferredCategory=''){
   itemReviewIds=item ? (catalogReviewIds.includes(item.id)?[...catalogReviewIds]:state.items.map(i=>i.id)) : [];
@@ -638,6 +639,12 @@ function bindBoard(){
   board.addEventListener('pointerdown',e=>{if(!doodleMode&&e.target===board){selectedBoardUid=null;drawBoard()}});
 }
 function renderOutfits(){populatePortfolioFolderSelect($('#outfitFolder').value);renderPieceTray()}
+function boardHasDraft(){return boardItems.length>0}
+function guardBoardSwitch(action,label='replace the current board'){if(typeof action!=='function')return;if(!boardHasDraft()){action();return}pendingBoardSwitchAction=action;const msg=$('#boardConflictMessage');if(msg)msg.textContent=`There is already a look on the Design Board. Save it before you ${label}, replace it, or cancel and keep working.`;const d=$('#boardConflictDialog');if(d&&!d.open)d.showModal()}
+async function saveCurrentBoardForSwitch(){if(!boardItems.length)return true;const name=$('#outfitName').value.trim()||'Untitled look';const board=$('#outfitBoard');ensureSettings();const prior=editingOutfitId?state.outfits.find(x=>x.id===editingOutfitId):null,priorFolder=prior?.folder||'';const snapshot={name,notes:$('#outfitNotes').value.trim(),folder:$('#outfitFolder').value||state.settings.portfolioFolders[0]||'Everyday',favorite:prior?.favorite||false,pieces:boardItems.map(x=>({...x})),boardWidth:board.clientWidth,boardHeight:board.clientHeight};let savedId=editingOutfitId;if(savedId){const existing=state.outfits.find(x=>x.id===savedId);if(existing)Object.assign(existing,snapshot,{updated:Date.now()});else savedId=null}if(!savedId){const created={id:id(),...snapshot,created:Date.now()};state.outfits.unshift(created);savedId=created.id;editingOutfitId=savedId}ensureSettings();if(priorFolder&&priorFolder!==snapshot.folder&&state.settings.portfolioOrder[priorFolder])state.settings.portfolioOrder[priorFolder]=state.settings.portfolioOrder[priorFolder].filter(x=>x!==savedId);const order=state.settings.portfolioOrder[snapshot.folder]||(state.settings.portfolioOrder[snapshot.folder]=[]);if(!order.includes(savedId))order.unshift(savedId);const ok=await saveState();if(ok===false)return false;renderSavedOutfits();return true}
+async function saveBoardBeforeSwitch(){const action=pendingBoardSwitchAction;pendingBoardSwitchAction=null;const d=$('#boardConflictDialog');if(d?.open)d.close();const ok=await saveCurrentBoardForSwitch();if(!ok){toast('Could not save the current board');return}toast('Current board saved');if(action)action()}
+function replaceBoardForSwitch(){const action=pendingBoardSwitchAction;pendingBoardSwitchAction=null;const d=$('#boardConflictDialog');if(d?.open)d.close();if(action)action()}
+function cancelBoardSwitch(){pendingBoardSwitchAction=null;const d=$('#boardConflictDialog');if(d?.open)d.close();toast('Kept the current board')}
 function startNewOutfit(){editingOutfitId=null;boardUndoStack=[];clearBoard();$('#outfitName').value='';$('#outfitNotes').value='';populatePortfolioFolderSelect(state.settings.portfolioFolders[0]||'Everyday');$('#saveOutfitBtn').textContent='Save outfit';toast('New outfit board')}
 function populatePortfolioFolderSelect(selected=''){
   ensureSettings();
@@ -833,7 +840,9 @@ function refreshViewedOutfitFavorite(o){const b=$('#favoriteViewedOutfitBtn');if
 function viewOutfit(oid){const o=state.outfits.find(x=>x.id===oid);if(!o)return;viewingOutfitId=oid;$('#viewOutfitName').textContent=o.name;refreshViewedOutfitFavorite(o);$('#viewOutfitNotes').textContent=o.notes||'No notes yet.';$('#viewOutfitFolder').textContent=o.folder||'Everyday';$('#viewOutfitItems').innerHTML=renderPortfolioItemList(o);const unique=portfolioItemDetails(o),copies=unique.reduce((n,x)=>n+x.count,0);$('#viewOutfitItemsSummary').textContent=`${unique.length} ${unique.length===1?'item':'items'}${copies>unique.length?` · ${copies} placements`:''}`;const board=$('#viewOutfitBoard');board.innerHTML='';$('#outfitViewDialog').showModal();requestAnimationFrame(()=>{const sourceW=o.boardWidth||390,sourceH=o.boardHeight||420,scaleX=(board.clientWidth||390)/sourceW,scaleY=(board.clientHeight||350)/sourceH;o.pieces.slice().sort((a,b)=>(a.z||0)-(b.z||0)).forEach(p=>renderSnapshotPiece(board,p,scaleX,scaleY))})}
 function deleteOutfit(){if(!viewingOutfitId||!confirm('Delete this saved outfit?'))return;const doomed=viewingOutfitId;state.outfits=state.outfits.filter(x=>x.id!==doomed);ensureSettings();Object.keys(state.settings.portfolioOrder||{}).forEach(f=>state.settings.portfolioOrder[f]=state.settings.portfolioOrder[f].filter(x=>x!==doomed));saveState();$('#outfitViewDialog').close();renderSavedOutfits()}
 async function favoriteViewedOutfit(){const o=state.outfits.find(x=>x.id===viewingOutfitId);if(!o)return;o.favorite=!o.favorite;await saveState();refreshViewedOutfitFavorite(o);renderSavedOutfits();toast(o.favorite?'Added to favorites':'Removed from favorites')}
-function editViewedOutfit(){const oid=viewingOutfitId;$('#outfitViewDialog').close();loadOutfitForEditing(oid)}
+function editViewedOutfit(){const oid=viewingOutfitId;if(!oid)return;$('#outfitViewDialog').close();guardBoardSwitch(()=>loadOutfitForEditing(oid),'edit this saved look')}
+function duplicateViewedOutfit(){const oid=viewingOutfitId;if(!oid)return;$('#outfitViewDialog').close();guardBoardSwitch(()=>loadOutfitAsDuplicate(oid),'duplicate this saved look')}
+function loadOutfitAsDuplicate(oid){const o=state.outfits.find(x=>x.id===oid);if(!o)return;editingOutfitId=null;boardUndoStack=[];boardItems=(o.pieces||[]).map(p=>normalizeBoardItem({...p,uid:id()}));selectedBoardUid=null;doodleMode=false;$('#drawModeBtn')?.classList.remove('active');$('#outfitBoard')?.classList.remove('drawing');$('#outfitName').value=`${o.name||'Untitled look'} — Copy`;$('#outfitNotes').value=o.notes||'';populatePortfolioFolderSelect(o.folder||state.settings.portfolioFolders[0]);$('#saveOutfitBtn').textContent='Save outfit';drawBoard();showScreen('outfits');setTimeout(()=>$('#outfitBoard').scrollIntoView({behavior:'smooth',block:'center'}),80);toast('Copy loaded as a new look — save when ready')}
 async function shareViewedOutfit(){const o=state.outfits.find(x=>x.id===viewingOutfitId);if(!o)return;$('#outfitViewDialog').close();const saved={items:boardItems,edit:editingOutfitId,name:$('#outfitName').value,notes:$('#outfitNotes').value,folder:$('#outfitFolder').value};boardItems=(o.pieces||[]).map(p=>normalizeBoardItem({...p}));editingOutfitId=o.id;$('#outfitName').value=o.name||'';$('#outfitNotes').value=o.notes||'';try{await prepareOutfitShare()}finally{boardItems=saved.items;editingOutfitId=saved.edit;$('#outfitName').value=saved.name;$('#outfitNotes').value=saved.notes;populatePortfolioFolderSelect(saved.folder)}}
 
 function renderPortfolioFolderEditor(){
