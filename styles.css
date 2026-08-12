@@ -524,3 +524,55 @@ body.portfolio-reordering{overflow-x:hidden!important;overflow-y:auto!important;
 @keyframes reorderLift{from{opacity:.72;transform:scale(.985)}to{opacity:.96}}
 @keyframes reorderTargetPulse{from{filter:saturate(.72);opacity:.45}to{filter:saturate(.9);opacity:.68}}
 @keyframes reorderDropConfirm{0%{transform:scale(.975);box-shadow:0 0 0 3px rgba(77,142,138,.55)}65%{transform:scale(1.018);box-shadow:0 0 0 4px rgba(77,142,138,.35)}100%{transform:scale(1);box-shadow:none}}
+
+
+/* v13.11-dev4.2 — reorder interaction polish */
+/* Keep drag ghosts at their finger-calculated transform. The earlier lift keyframe
+   animated transform itself, which could momentarily draw a card from the viewport origin. */
+.portfolio-drag-ghost,.closet-drag-ghost{
+  animation:reorderLiftOpacity .16s ease-out both!important;
+  transform-origin:center center;
+}
+@keyframes reorderLiftOpacity{from{opacity:.76}to{opacity:.96}}
+
+/* Portfolio: original slot stays quietly in place while the floating card lifts. */
+.portfolio-card.portfolio-drag-source{
+  opacity:.30!important;
+  filter:saturate(.72)!important;
+  outline:none!important;
+  box-shadow:none!important;
+}
+.portfolio-drag-ghost{
+  border:1px solid rgba(120,105,88,.24)!important;
+  box-shadow:0 20px 44px rgba(55,43,31,.30)!important;
+}
+
+/* Closet: match the calmer Portfolio drag language. No turquoise frame around the
+   source or floating card; the destination gets the two-layer turquoise + burgundy cue. */
+.item-card.closet-drag-source{
+  opacity:.30!important;
+  filter:saturate(.72)!important;
+  outline:none!important;
+  box-shadow:none!important;
+}
+.item-card.closet-drag-source::before{display:none!important}
+.closet-drag-ghost{
+  border:1px solid rgba(120,105,88,.24)!important;
+  box-shadow:0 20px 44px rgba(55,43,31,.30)!important;
+  opacity:.96!important;
+}
+.item-card.closet-drop-target{
+  position:relative!important;
+  z-index:2!important;
+  opacity:.60!important;
+  filter:none!important;
+  outline:none!important;
+  box-shadow:0 0 0 3px rgba(77,142,138,.62),0 8px 18px rgba(56,46,34,.12)!important;
+}
+.closet-drop-outline{
+  border:3px dashed rgba(125,53,71,.94)!important;
+  border-radius:19px!important;
+  background:rgba(255,250,240,.06)!important;
+  z-index:5600!important;
+  filter:drop-shadow(0 2px 2px rgba(255,250,240,.9))!important;
+}

@@ -166,3 +166,7 @@ Adds long-press drag-and-drop reordering for saved Portfolio looks within a sele
 
 ## v13.11-dev4.1
 Reorder interaction calibration. Portfolio drag now supports continuous edge auto-scroll and more reliable vertical movement across rows, including iPhone touch tracking outside the original card. All/Favorites show a toast after a reorder long-press reminding the user to choose a specific portfolio category. Closet reorder receives matching lift/target/drop animations for consistent feedback. Service-worker cache: `audrey-closet-v13.11-dev4.1`.
+
+
+## v13.11-dev4.2
+Polishes Portfolio and Closet reorder gestures. Portfolio cards now lift from their actual position without jumping from the top of the screen; long-press attempts in All/Favorites are suppressed from opening look details after release. Closet reorder visuals now match Portfolio: a clean lifted ghost with no source outline and a two-layer turquoise + burgundy dashed destination cue. Service-worker cache: `audrey-closet-v13.11-dev4.2`.
