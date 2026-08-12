@@ -182,3 +182,7 @@ Closet reorder calibration: the floating drag card now uses visual-viewport-awar
 
 ## v13.11-dev4.5
 Closet reorder drag mapping fix. The floating card now uses raw client coordinates inside a dedicated fixed viewport overlay, matching `getBoundingClientRect()` and avoiding page/visual-viewport offset mixing on iPhone. The ghost uses explicit left/top positioning and remains independent of document scrolling. Service-worker cache: `audrey-closet-v13.11-dev4.5`.
+
+
+## v13.11-dev5
+Portfolio folder/order refinement: All and Favorites are now protected but movable system tabs in Preferences, and saved-look detail stays locked at the top until Items in this look is expanded. Service-worker cache: `audrey-closet-v13.11-dev5`.

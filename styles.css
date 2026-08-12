@@ -490,3 +490,11 @@ body.closet-reordering .bottom-nav{pointer-events:none}
 .closet-drop-outline{position:absolute;display:none;pointer-events:none;z-index:2;border:3px dashed rgba(125,53,71,.94)!important;border-radius:19px!important;box-sizing:border-box;background:rgba(255,250,240,.06)!important;filter:drop-shadow(0 2px 2px rgba(255,250,240,.9))!important}
 .closet-drop-outline.visible{display:block}
 .closet-drop-confirm{animation:reorderDropConfirm .34s ease-out both!important}
+
+
+/* v13.11-dev5 — Portfolio folder order + detail lock */
+.system-folder-row input[readonly]{background:#f0eadf;color:#756a5c;font-weight:800}
+.system-folder-lock{width:34px;height:34px;border:1px solid var(--line);border-radius:10px;background:#f3ecdf;color:#8b7d6d;display:grid;place-items:center;font-size:13px}
+.outfit-view-scroll{overflow-y:hidden;overscroll-behavior:none}
+.outfit-view-scroll.allow-detail-scroll{overflow-y:auto;overscroll-behavior:contain}
+.outfit-view-dialog .outfit-view-actions{position:relative;z-index:5}
