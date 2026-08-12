@@ -134,3 +134,7 @@ Calibration update for cutout behavior and restore. Automatic cutout now adapts 
 
 ## v13.10-dev1
 Adds non-destructive Photo Studio adjustments for Exposure, Contrast, and Highlights. Adjustments are previewed live, persist when reopening the photo, export with the saved image, and can be reset without affecting cutout or masking work. Service-worker cache: `audrey-closet-v13.10-dev1`.
+
+
+## v13.10-dev1.1
+Refines Photo Studio layout for iPhone editing. The photo canvas remains fixed in the upper portion of the sheet while the editing menus scroll independently below, so slider and cutout changes stay visible without repeatedly scrolling back to the image. Service-worker cache: `audrey-closet-v13.10-dev1.1`.

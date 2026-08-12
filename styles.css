@@ -397,3 +397,17 @@ body.journal-item-preview-open{position:fixed;left:0;right:0;width:100%;overflow
 .studio-adjust-control input{grid-column:1/-1;width:100%;margin:0}
 .studio-adjust-actions{padding:0 8px 8px}
 .studio-adjust-actions .soft-btn{width:100%}
+
+
+/* v13.10-dev1.1 — Photo Studio layout refinement */
+.studio-v138 .studio-shell{overflow:hidden;height:min(96dvh,960px);max-height:96dvh}
+.studio-v138 .studio-head{position:relative;top:auto}
+.studio-v138 .studio-template{margin-bottom:4px}
+.studio-v138 .studio-canvas-wrap{flex:0 0 auto;position:relative;z-index:2}
+.studio-controls-scroll{flex:1 1 auto;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding-bottom:8px}
+.studio-controls-scroll .studio-toolbar{position:relative;bottom:auto;top:auto}
+.studio-v138 .studio-save-actions{position:relative;bottom:auto;box-shadow:0 -5px 14px rgba(70,55,40,.08);z-index:6}
+@media (max-height:760px){
+  .studio-v138 .studio-canvas-wrap{width:min(calc(100vw - 24px),560px)}
+  .studio-controls-scroll{padding-bottom:6px}
+}
