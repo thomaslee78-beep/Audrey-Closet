@@ -136,6 +136,11 @@ let activeDoodle=null;
 let pendingShareBlob=null;
 let pendingShareUrl='';
 let pendingShareFileName='outfit.jpg';
+let pendingShareOutfitId=null;
+let shareReturnOutfitId=null;
+let portfolioPreviewReturnOutfitId=null;
+let portfolioPreviewItemId=null;
+let portfolioPreviewItemSource='closet';
 let closetDrag={timer:null,pointerId:null,touchId:null,startX:0,startY:0,x:0,y:0,card:null,category:'',active:false,moved:false,ghost:null,dropOutline:null,placeholder:null,lastPlacement:'',raf:null,longPressed:false};
 let suppressCatalogClickUntil=0;
 let wearCategoryFilter='All';
@@ -221,7 +226,7 @@ async function init(){
   $('#addPortfolioFolderBtn').onclick=addPortfolioFolder;
   $('#managePortfolioBtn').onclick=()=>{renderPortfolioFolderEditor();showScreen('more')};
   $('#portfolioNewBtn').onclick=()=>guardBoardSwitch(()=>{startNewOutfit();showScreen('outfits')},'start a new look');
-  if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js?v=13.11-dev2',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
+  if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js?v=13.11-dev3',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
   renderAll();
 }
 function fillSelects(){
@@ -295,7 +300,7 @@ function bindDialogs(){
   $('#journalStatDialog').addEventListener('cancel',e=>{e.preventDefault();closeJournalStat()});
   $('#journalStatDialog').addEventListener('close',unlockPageForJournalStat);
   $$('.stat-action').forEach(b=>b.onclick=()=>openJournalStat(b.dataset.stat));
-  $('#deleteOutfitBtn').onclick=deleteOutfit;$('#favoriteViewedOutfitBtn').onclick=favoriteViewedOutfit;$('#editViewedOutfitBtn').onclick=editViewedOutfit;$('#duplicateViewedOutfitBtn').onclick=duplicateViewedOutfit;$('#shareViewedOutfitBtn').onclick=shareViewedOutfit;$('#boardConflictSaveBtn').onclick=saveBoardBeforeSwitch;$('#boardConflictReplaceBtn').onclick=replaceBoardForSwitch;$('#boardConflictCancelBtn').onclick=cancelBoardSwitch;$('#boardConflictCloseBtn').onclick=cancelBoardSwitch;
+  $('#deleteOutfitBtn').onclick=deleteOutfit;$('#favoriteViewedOutfitBtn').onclick=favoriteViewedOutfit;$('#editViewedOutfitBtn').onclick=editViewedOutfit;$('#duplicateViewedOutfitBtn').onclick=duplicateViewedOutfit;$('#shareViewedOutfitBtn').onclick=shareViewedOutfit;$('#boardConflictSaveBtn').onclick=saveBoardBeforeSwitch;$('#boardConflictReplaceBtn').onclick=replaceBoardForSwitch;$('#boardConflictCancelBtn').onclick=cancelBoardSwitch;$('#boardConflictCloseBtn').onclick=cancelBoardSwitch;$('#closePortfolioItemPreviewBtn').onclick=closePortfolioItemPreview;$('#backPortfolioItemPreviewBtn').onclick=closePortfolioItemPreview;$('#portfolioItemPreviewDialog').addEventListener('cancel',e=>{e.preventDefault();closePortfolioItemPreview()});$('#shareChoiceCloseBtn').onclick=cancelShareChoice;$('#shareChoiceDialog').addEventListener('cancel',e=>{e.preventDefault();cancelShareChoice()});$$('.share-choice-btn').forEach(b=>b.onclick=()=>prepareOutfitShare(b.dataset.shareMode||'look'));
 }
 function openItem(item=null,preferredCategory=''){
   itemReviewIds=item ? (catalogReviewIds.includes(item.id)?[...catalogReviewIds]:state.items.map(i=>i.id)) : [];
@@ -617,7 +622,7 @@ function renderWishlist(){$('#wishlistGrid').innerHTML=state.wishlist.map(w=>`<a
 
 function bindBoard(){
   $('#newBoardBtn').onclick=startNewOutfit;
-  $('#clearBoardBtn').onclick=clearBoard;$('#saveOutfitBtn').onclick=requestSaveOutfit;$('#shareOutfitBtn').onclick=prepareOutfitShare;
+  $('#clearBoardBtn').onclick=clearBoard;$('#saveOutfitBtn').onclick=requestSaveOutfit;$('#shareOutfitBtn').onclick=()=>requestOutfitShare(null);
   $('#confirmSaveOutfitBtn').onclick=saveOutfit;$('#cancelOutfitSaveBtn').onclick=()=>$('#outfitSaveDialog').close();$('#closeOutfitSaveBtn').onclick=()=>$('#outfitSaveDialog').close();
   $('#shareNowBtn').onclick=sharePreparedOutfit;
   $('#openShareImageBtn').onclick=openPreparedShareImage;
@@ -714,70 +719,48 @@ async function imageFromSrc(src){
 }
 function roundRectPath(ctx,x,y,w,h,r){r=Math.min(r,w/2,h/2);ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath()}
 function parseDoodlePoints(points=''){return points.trim().split(/\s+/).map(pair=>pair.split(',').map(Number)).filter(p=>p.length===2&&p.every(Number.isFinite))}
-async function makeOutfitShareBlob(){
-  if(!boardItems.length)throw new Error('empty');
-  const board=$('#outfitBoard'),sourceW=board.clientWidth||390,sourceH=board.clientHeight||420;
-  const W=1080,H=1200,pad=66,header=130,footer=82,drawW=W-pad*2,drawH=H-header-footer;
-  const sx=drawW/sourceW,sy=drawH/sourceH;
+function wrapCanvasLines(ctx,text,maxWidth,maxLines=20){const words=String(text||'').trim().split(/\s+/).filter(Boolean),lines=[];let line='';for(const word of words){const test=line?line+' '+word:word;if(ctx.measureText(test).width>maxWidth&&line){lines.push(line);line=word;if(lines.length>=maxLines)break}else line=test}if(line&&lines.length<maxLines)lines.push(line);return lines}
+function compactShareItemLabel(r){return `${r.label}${r.count>1?` ×${r.count}`:''}`}
+async function makeOutfitShareBlob({mode='look',outfit=null}={}){
+  const pieces=(outfit?.pieces||boardItems).map(x=>normalizeBoardItem({...x}));if(!pieces.length)throw new Error('empty');
+  const board=$('#outfitBoard'),sourceW=outfit?.boardWidth||board.clientWidth||390,sourceH=outfit?.boardHeight||board.clientHeight||420;
+  const title=(outfit?.name||$('#outfitName').value.trim()||'My outfit'),notes=(outfit?.notes??$('#outfitNotes').value.trim())||'';
+  const shareOutfit=outfit||{pieces},rows=portfolioItemDetails(shareOutfit),includeItems=mode==='items'||mode==='itemsNotes',includeNotes=mode==='itemsNotes';
+  const W=1080,pad=66,header=130,footer=58,drawW=W-pad*2,scale=drawW/sourceW,drawH=sourceH*scale;
+  const detailLine=56,detailHeader=52,notesGap=includeNotes&&notes?44:0,notesFont=23,maxTextW=W-pad*2;
+  const probe=document.createElement('canvas').getContext('2d');probe.font=`${notesFont}px system-ui`;const lookNoteLines=includeNotes&&notes?wrapCanvasLines(probe,notes,maxTextW,5):[];
+  const itemNoteLines=includeNotes?rows.reduce((n,r)=>{if(!r.obj?.notes)return n;probe.font='20px system-ui';return n+Math.min(2,wrapCanvasLines(probe,String(r.obj.notes),maxTextW-40,2).length)},0):0;
+  const detailsH=includeItems?(detailHeader+rows.length*detailLine+itemNoteLines*28+(includeNotes&&notes?(notesGap+lookNoteLines.length*32+42):0)+30):0;
+  const boardTop=header,H=Math.ceil(header+drawH+footer+detailsH);
   const c=document.createElement('canvas');c.width=W;c.height=H;const ctx=c.getContext('2d');
-  ctx.fillStyle='#f7f0df';ctx.fillRect(0,0,W,H);
-  ctx.fillStyle='#efe9d9';roundRectPath(ctx,pad,header,drawW,drawH,42);ctx.fill();
-  ctx.save();roundRectPath(ctx,pad,header,drawW,drawH,42);ctx.clip();
-  ctx.strokeStyle='rgba(108,81,66,.10)';ctx.lineWidth=2;const grid=24*((sx+sy)/2);
-  for(let x=pad;x<=pad+drawW;x+=grid){ctx.beginPath();ctx.moveTo(x,header);ctx.lineTo(x,header+drawH);ctx.stroke()}
-  for(let y=header;y<=header+drawH;y+=grid){ctx.beginPath();ctx.moveTo(pad,y);ctx.lineTo(pad+drawW,y);ctx.stroke()}
-  const pieces=boardItems.map(x=>normalizeBoardItem({...x})).sort((a,b)=>a.z-b.z);
-  for(const b of pieces){
-    const x=pad+b.x*sx,y=header+b.y*sy,w=b.w*sx,h=b.h*sy,cx=x+w/2,cy=y+h/2;
-    ctx.save();ctx.translate(cx,cy);ctx.rotate((b.rotation||0)*Math.PI/180);ctx.translate(-w/2,-h/2);
-    if(b.kind==='piece'){
-      const obj=(b.source==='closet'?state.items:state.wishlist).find(o=>o.id===b.id);
-      if(obj?.photo){try{const img=await imageFromSrc(obj.photo);const ar=img.naturalWidth/img.naturalHeight,box=w/h;let dw=w,dh=h,dx=0,dy=0;if(ar>box){dh=w/ar;dy=(h-dh)/2}else{dw=h*ar;dx=(w-dw)/2}ctx.drawImage(img,dx,dy,dw,dh)}catch{}}
-      else if(obj){ctx.fillStyle='#6c5142';ctx.textAlign='center';ctx.textBaseline='middle';ctx.font=`${Math.max(18,24*sx)}px Georgia`;ctx.fillText(obj.type||obj.name||'piece',w/2,h/2,w*.9)}
-    } else if(b.kind==='text'){
-      ctx.fillStyle='#7d3547';ctx.textAlign='center';ctx.textBaseline='middle';ctx.font=`italic ${Math.max(24,38*sx)}px Georgia`;wrapCanvasText(ctx,b.value||'',w/2,h/2,w*.95,Math.max(30,43*sx));
-    } else if(b.kind==='sticker'){
-      ctx.textAlign='center';ctx.textBaseline='middle';ctx.font=`${Math.max(38,72*sx)}px system-ui, Apple Color Emoji`;ctx.fillText(b.value||'✨',w/2,h/2,w);
-    } else if(b.kind==='shape'){
-      if(b.value==='circle'){ctx.strokeStyle='#4d8e8a';ctx.lineWidth=Math.max(5,8*sx);ctx.beginPath();ctx.ellipse(w/2,h/2,Math.max(2,w/2-7),Math.max(2,h/2-7),0,0,Math.PI*2);ctx.stroke()}
-      if(b.value==='line'){ctx.strokeStyle='#7d3547';ctx.lineWidth=Math.max(6,10*sx);ctx.lineCap='round';ctx.beginPath();ctx.moveTo(5,h/2);ctx.lineTo(w-5,h/2);ctx.stroke()}
-      if(b.value==='tape'){ctx.fillStyle='rgba(198,163,78,.48)';ctx.fillRect(0,h*.08,w,h*.84)}
-    } else if(b.kind==='doodle'){
-      const pts=parseDoodlePoints(b.points||'');if(pts.length){ctx.strokeStyle='#6c5142';ctx.lineWidth=Math.max(4,6*sx);ctx.lineCap='round';ctx.lineJoin='round';ctx.beginPath();pts.forEach((p,i)=>{const px=p[0]*w/b.w,py=p[1]*h/b.h;i?ctx.lineTo(px,py):ctx.moveTo(px,py)});ctx.stroke()}
-    }
-    ctx.restore();
+  ctx.fillStyle='#f7f0df';ctx.fillRect(0,0,W,H);ctx.fillStyle='#efe9d9';roundRectPath(ctx,pad,boardTop,drawW,drawH,42);ctx.fill();
+  ctx.save();roundRectPath(ctx,pad,boardTop,drawW,drawH,42);ctx.clip();ctx.strokeStyle='rgba(108,81,66,.10)';ctx.lineWidth=2;const grid=24*scale;for(let x=pad;x<=pad+drawW;x+=grid){ctx.beginPath();ctx.moveTo(x,boardTop);ctx.lineTo(x,boardTop+drawH);ctx.stroke()}for(let y=boardTop;y<=boardTop+drawH;y+=grid){ctx.beginPath();ctx.moveTo(pad,y);ctx.lineTo(pad+drawW,y);ctx.stroke()}
+  for(const b of pieces.sort((a,b)=>a.z-b.z)){
+    const x=pad+b.x*scale,y=boardTop+b.y*scale,w=b.w*scale,h=b.h*scale,cx=x+w/2,cy=y+h/2;ctx.save();ctx.translate(cx,cy);ctx.rotate((b.rotation||0)*Math.PI/180);ctx.translate(-w/2,-h/2);
+    if(b.kind==='piece'){const obj=(b.source==='closet'?state.items:state.wishlist).find(o=>o.id===b.id);if(obj?.photo){try{const img=await imageFromSrc(obj.photo),ar=img.naturalWidth/img.naturalHeight,box=w/h;let dw=w,dh=h,dx=0,dy=0;if(ar>box){dh=w/ar;dy=(h-dh)/2}else{dw=h*ar;dx=(w-dw)/2}ctx.drawImage(img,dx,dy,dw,dh)}catch{}}else if(obj){ctx.fillStyle='#6c5142';ctx.textAlign='center';ctx.textBaseline='middle';ctx.font=`${Math.max(16,18*scale)}px Georgia`;ctx.fillText(obj.type||obj.name||'piece',w/2,h/2,w*.9)}}
+    else if(b.kind==='text'){ctx.fillStyle='#7d3547';ctx.textAlign='center';ctx.textBaseline='middle';ctx.font=`${Math.max(18,28*scale)}px "Brush Script MT","Segoe Script",cursive`;wrapCanvasText(ctx,b.value||'',w/2,h/2,w*.95,Math.max(22,29.4*scale))}
+    else if(b.kind==='sticker'){ctx.textAlign='center';ctx.textBaseline='middle';ctx.font=`${Math.max(30,58*scale)}px system-ui, Apple Color Emoji`;ctx.fillText(b.value||'✨',w/2,h/2,w)}
+    else if(b.kind==='shape'){if(b.value==='circle'){ctx.strokeStyle='#4d8e8a';ctx.fillStyle='rgba(77,142,138,.08)';ctx.lineWidth=Math.max(2,6*scale);ctx.beginPath();ctx.ellipse(w/2,h/2,Math.max(2,w/2-7*scale),Math.max(2,h/2-7*scale),0,0,Math.PI*2);ctx.fill();ctx.stroke()}if(b.value==='line'){ctx.save();ctx.translate(w/2,h/2);ctx.rotate(-4*Math.PI/180);ctx.fillStyle='#7d3547';roundRectPath(ctx,-w/2,-4*scale,w,8*scale,4*scale);ctx.fill();ctx.restore()}if(b.value==='tape'){ctx.fillStyle='rgba(198,163,78,.42)';ctx.fillRect(0,h*.08,w,h*.84)}}
+    else if(b.kind==='doodle'){const pts=parseDoodlePoints(b.points||'');if(pts.length){ctx.strokeStyle='#6c5142';ctx.lineWidth=Math.max(2,4*scale);ctx.lineCap='round';ctx.lineJoin='round';ctx.beginPath();pts.forEach((p,i)=>{const px=p[0]*w/b.w,py=p[1]*h/b.h;i?ctx.lineTo(px,py):ctx.moveTo(px,py)});ctx.stroke()}}ctx.restore();
+  }ctx.restore();
+  ctx.fillStyle='#2e2a24';ctx.textAlign='left';ctx.textBaseline='alphabetic';ctx.font='600 48px Georgia';ctx.fillText(title,pad,74,W-pad*2);ctx.fillStyle='#7d3547';ctx.font='italic 27px Georgia';ctx.fillText((state.settings?.appName||DEFAULT_APP_NAME),pad,108,W-pad*2);
+  if(includeItems){let y=boardTop+drawH+42;ctx.fillStyle='#2e2a24';ctx.font='600 30px Georgia';ctx.fillText('Items in this look',pad,y);y+=30;ctx.font='22px system-ui';for(const r of rows){ctx.fillStyle='#3f3931';ctx.font='600 22px system-ui';ctx.fillText(compactShareItemLabel(r),pad,y+24,maxTextW);ctx.fillStyle='#776c5e';ctx.font='18px system-ui';ctx.fillText([r.meta,r.archived?'Archived':'',r.source==='wishlist'?'Wishlist':''].filter(Boolean).join(' · '),pad,y+48,maxTextW);y+=detailLine;if(includeNotes&&r.obj?.notes){ctx.fillStyle='#74695d';ctx.font='20px system-ui';const ls=wrapCanvasLines(ctx,String(r.obj.notes),maxTextW-28,2);for(const l of ls){ctx.fillText(l,pad+18,y+18,maxTextW-28);y+=28}}ctx.strokeStyle='rgba(108,81,66,.12)';ctx.beginPath();ctx.moveTo(pad,y+3);ctx.lineTo(W-pad,y+3);ctx.stroke()}
+    if(includeNotes&&notes){y+=notesGap;ctx.fillStyle='#2e2a24';ctx.font='600 27px Georgia';ctx.fillText('Look notes',pad,y);y+=32;ctx.fillStyle='#6c5142';ctx.font=`${notesFont}px system-ui`;for(const l of lookNoteLines){ctx.fillText(l,pad,y,maxTextW);y+=32}}
   }
-  ctx.restore();
-  ctx.fillStyle='#2e2a24';ctx.textAlign='left';ctx.textBaseline='alphabetic';ctx.font='600 48px Georgia';const title=($('#outfitName').value.trim()||'My outfit');ctx.fillText(title,pad,74,W-pad*2);
-  ctx.fillStyle='#7d3547';ctx.font='italic 27px Georgia';ctx.fillText((state.settings?.appName||DEFAULT_APP_NAME),pad,108,W-pad*2);
-  const notes=$('#outfitNotes').value.trim();if(notes){ctx.fillStyle='#6c5142';ctx.font='24px system-ui';ctx.textAlign='center';ctx.fillText(notes,W/2,H-31,W-pad*2)}
   return new Promise((resolve,reject)=>c.toBlob(b=>b?resolve(b):reject(new Error('image export failed')),'image/jpeg',.92));
 }
 function wrapCanvasText(ctx,text,x,y,maxWidth,lineHeight){const words=String(text).split(/\s+/),lines=[];let line='';for(const word of words){const test=line?line+' '+word:word;if(ctx.measureText(test).width>maxWidth&&line){lines.push(line);line=word}else line=test}if(line)lines.push(line);const start=y-(lines.length-1)*lineHeight/2;lines.slice(0,4).forEach((l,i)=>ctx.fillText(l,x,start+i*lineHeight,maxWidth))}
-async function prepareOutfitShare(){
-  if(!boardItems.length)return toast('Add something to the board first');
-  const btn=$('#shareOutfitBtn');btn.disabled=true;const old=btn.textContent;btn.textContent='Creating preview…';
-  try{
-    if(pendingShareUrl){URL.revokeObjectURL(pendingShareUrl);pendingShareUrl=''}
-    pendingShareBlob=await makeOutfitShareBlob();
-    const safe=(($('#outfitName').value.trim()||'outfit').replace(/[^a-z0-9]+/gi,'-').replace(/^-|-$/g,'').toLowerCase()||'outfit');
-    pendingShareFileName=`${safe}.jpg`;
-    pendingShareUrl=URL.createObjectURL(pendingShareBlob);
-    $('#sharePreviewImage').src=pendingShareUrl;
-    $('#sharePreviewTitle').textContent=$('#outfitName').value.trim()||'My outfit';
-    $('#sharePreviewStatus').textContent=navigator.share?'Image ready. Tap “Share now” to open the iPhone share sheet.':'Image ready. Tap “Open image” and use the browser share button.';
-    $('#shareNowBtn').classList.toggle('hidden',!navigator.share);
-    $('#sharePreviewDialog').showModal();
-  }catch(err){console.error(err);toast('Could not create the outfit image')}
-  finally{btn.disabled=false;btn.textContent=old}
-}
+async function prepareOutfitShare(mode='look'){
+  const outfit=pendingShareOutfitId?state.outfits.find(x=>x.id===pendingShareOutfitId):null;if(!outfit&&!boardItems.length)return toast('Add something to the board first');
+  const choice=$('#shareChoiceDialog');if(choice?.open)choice.close();const btn=$('#shareOutfitBtn');if(btn){btn.disabled=true;var old=btn.textContent;btn.textContent='Creating preview…'}
+  try{if(pendingShareUrl){URL.revokeObjectURL(pendingShareUrl);pendingShareUrl=''}pendingShareBlob=await makeOutfitShareBlob({mode,outfit});const title=outfit?.name||$('#outfitName').value.trim()||'My outfit';const safe=((title.replace(/[^a-z0-9]+/gi,'-').replace(/^-|-$/g,'').toLowerCase())||'outfit');pendingShareFileName=`${safe}.jpg`;pendingShareUrl=URL.createObjectURL(pendingShareBlob);$('#sharePreviewImage').src=pendingShareUrl;$('#sharePreviewTitle').textContent=title;$('#sharePreviewStatus').textContent=navigator.share?'Image ready. Tap “Share now” to open the iPhone share sheet.':'Image ready. Tap “Open image” and use the browser share button.';$('#shareNowBtn').classList.toggle('hidden',!navigator.share);$('#sharePreviewDialog').showModal()}catch(err){console.error(err);toast('Could not create the outfit image');const returnId=shareReturnOutfitId;pendingShareOutfitId=null;shareReturnOutfitId=null;if(returnId)viewOutfit(returnId)}finally{if(btn){btn.disabled=false;btn.textContent=old}}}
 async function sharePreparedOutfit(){
   if(!pendingShareBlob)return toast('Create the preview again');
   const btn=$('#shareNowBtn');btn.disabled=true;const old=btn.textContent;btn.textContent='Opening share…';
   try{
     const file=new File([pendingShareBlob],pendingShareFileName,{type:'image/jpeg'});
     if(navigator.canShare&&!navigator.canShare({files:[file]}))throw new Error('file sharing unsupported');
-    await navigator.share({title:$('#outfitName').value.trim()||'Outfit',text:'Check out this outfit board!',files:[file]});
+    await navigator.share({title:$('#sharePreviewTitle').textContent||'Outfit',text:'Check out this outfit board!',files:[file]});
   }catch(err){
     if(err?.name!=='AbortError'){
       console.warn('Native file share failed',err);
@@ -795,12 +778,7 @@ function openPreparedShareImage(){
   }
   $('#sharePreviewStatus').textContent='The image should open by itself. Use the iPhone Share button there, or touch and hold the image to save/copy it.';
 }
-function closeSharePreview(){
-  $('#sharePreviewDialog').close();
-  // Keep the object URL alive while the dialog is open only; the blob itself remains cached for another share attempt.
-  if(pendingShareUrl){URL.revokeObjectURL(pendingShareUrl);pendingShareUrl='';}
-  $('#sharePreviewImage').removeAttribute('src');
-}
+function closeSharePreview(){const returnId=shareReturnOutfitId;$('#sharePreviewDialog').close();if(pendingShareUrl){URL.revokeObjectURL(pendingShareUrl);pendingShareUrl=''}$('#sharePreviewImage').removeAttribute('src');pendingShareOutfitId=null;shareReturnOutfitId=null;if(returnId&&state.outfits.some(o=>o.id===returnId))viewOutfit(returnId)}
 
 
 function requestSaveOutfit(){if(!boardItems.length)return toast('Add at least one piece');ensureSettings();const existing=editingOutfitId?state.outfits.find(x=>x.id===editingOutfitId):null;populatePortfolioFolderSelect(existing?.folder||state.settings.portfolioFolders[0]||'Everyday');$('#confirmSaveOutfitBtn').textContent=editingOutfitId?'Update here':'Save here';$('#outfitSaveDialog').showModal()}
@@ -810,7 +788,7 @@ function renderMiniPiece(p,o){
   const left=Math.max(-10,Math.min(100,(p.x/sw)*100)),top=Math.max(-10,Math.min(100,(p.y/sh)*100));
   const width=Math.max(8,Math.min(70,(p.w/sw)*100)),height=Math.max(8,Math.min(70,(p.h/sh)*100));
   const style=`left:${left}%;top:${top}%;width:${width}%;height:${height}%;z-index:${p.z||1};transform:rotate(${p.rotation||0}deg)`;
-  if(p.kind==='piece'){const obj=(p.source==='closet'?state.items:state.wishlist).find(x=>x.id===p.id);return obj?.photo?`<img class="portfolio-piece" src="${obj.photo}" style="${style}">`:''}
+  if(p.kind==='piece'){const obj=(p.source==='closet'?state.items:state.wishlist).find(x=>x.id===p.id);return obj?.photo?`<img class="portfolio-piece" src="${obj.photo}" style="${style}" draggable="false">`:''}
   if(p.kind==='text')return `<span class="portfolio-deco mini-deco" style="${style}">${esc(p.value)}</span>`;
   if(p.kind==='sticker')return `<span class="portfolio-deco mini-sticker" style="${style}">${esc(p.value)}</span>`;
   if(p.kind==='shape')return `<span class="portfolio-shape shape-${esc(p.value)}" style="${style}"></span>`;
@@ -818,7 +796,7 @@ function renderMiniPiece(p,o){
 }
 function orderedOutfitsForFolder(folder){ensureSettings();const rows=state.outfits.filter(o=>(o.folder||'Everyday')===folder),order=state.settings.portfolioOrder[folder]||[],rank=new Map(order.map((id,i)=>[id,i]));return rows.slice().sort((a,b)=>(rank.get(a.id)??999999)-(rank.get(b.id)??999999)||((b.updated||b.created||0)-(a.updated||a.created||0)))}
 function portfolioItemDetails(outfit){const counts=new Map();for(const p of outfit?.pieces||[]){const b=normalizeBoardItem({...p});if(b.kind!=='piece'||!b.id)continue;const key=`${b.source||'closet'}:${b.id}`,row=counts.get(key)||{source:b.source||'closet',id:b.id,count:0};row.count++;counts.set(key,row)}return [...counts.values()].map(row=>{const pool=row.source==='wishlist'?state.wishlist:state.items,obj=pool.find(x=>x.id===row.id);const label=obj?(obj.type||obj.name||obj.category||'Closet piece'):'Removed item';const meta=obj?[obj.color,obj.brand].filter(Boolean).join(' · '):'No longer in closet';return {...row,obj,label,meta,archived:obj&&isArchived(obj)}})}
-function renderPortfolioItemList(outfit){const rows=portfolioItemDetails(outfit);if(!rows.length)return '<p class="portfolio-items-empty">No closet pieces are linked to this look.</p>';return rows.map(r=>`<div class="portfolio-item-row">${r.obj?.photo?`<img src="${r.obj.photo}" alt="">`:'<div class="portfolio-item-placeholder">✣</div>'}<div><strong>${esc(r.label)}${r.count>1?` <span class="portfolio-item-count">×${r.count}</span>`:''}</strong><small>${esc(r.meta)}${r.archived?' · Archived':''}${r.source==='wishlist'?' · Wishlist':''}</small></div></div>`).join('')}
+function renderPortfolioItemList(outfit){const rows=portfolioItemDetails(outfit);if(!rows.length)return '<p class="portfolio-items-empty">No closet pieces are linked to this look.</p>';return rows.map(r=>`<button type="button" class="portfolio-item-row" data-item-id="${esc(r.id)}" data-item-source="${esc(r.source)}">${r.obj?.photo?`<img src="${r.obj.photo}" alt="" draggable="false">`:'<div class="portfolio-item-placeholder">✣</div>'}<div><strong>${esc(r.label)}${r.count>1?` <span class="portfolio-item-count">×${r.count}</span>`:''}</strong><small>${esc(r.meta)}${r.archived?' · Archived':''}${r.source==='wishlist'?' · Wishlist':''}</small></div><span class="portfolio-item-chevron" aria-hidden="true">›</span></button>`).join('')}
 function renderSavedOutfits(){
   ensureSettings();
   const known=new Set(state.settings.portfolioFolders);
@@ -832,18 +810,23 @@ function renderSavedOutfits(){
   $('#outfitCount').textContent=`${shown.length} ${shown.length===1?'look':'looks'}`;
   $('#savedOutfits').innerHTML=shown.map(o=>`<article class="outfit-card portfolio-card" data-id="${o.id}"><button class="favorite-outfit ${o.favorite?'active':''}" data-fav="${o.id}" aria-label="Favorite">${o.favorite?'★':'☆'}</button><div class="folder-label">${esc(o.folder||'Everyday')}</div><div class="outfit-mini">${o.pieces.slice().sort((a,b)=>(a.z||0)-(b.z||0)).map(p=>renderMiniPiece(p,o)).join('')}</div><h4>${esc(o.name)}</h4><p>${o.pieces.filter(p=>(p.kind||'piece')==='piece').length} pieces · ${new Date(o.updated||o.created).toLocaleDateString()}</p></article>`).join('')||'<div class="portfolio-empty">No looks in this folder yet. Create one on the Board.</div>';
   $$('.outfit-card').forEach(c=>c.onclick=e=>{if(e.target.closest('.favorite-outfit'))return;viewOutfit(c.dataset.id)});
-  $$('.favorite-outfit').forEach(b=>b.onclick=async e=>{e.stopPropagation();const o=state.outfits.find(x=>x.id===b.dataset.fav);if(!o)return;o.favorite=!o.favorite;await saveState();renderSavedOutfits();toast(o.favorite?'Added to favorites':'Removed from favorites')});
+  $$('.favorite-outfit').forEach(b=>b.onclick=async e=>{e.stopPropagation();const o=state.outfits.find(x=>x.id===b.dataset.fav);if(!o)return;o.favorite=!o.favorite;await saveState();renderSavedOutfits();toast(o.favorite?'Added to favorites':'Removed from favorites')});const gallery=$('#savedOutfits');gallery.oncontextmenu=e=>{if(e.target.closest('img'))e.preventDefault()};gallery.querySelectorAll('img').forEach(img=>{img.draggable=false;img.ondragstart=e=>e.preventDefault()});
 }
 function loadOutfitForEditing(oid){const o=state.outfits.find(x=>x.id===oid);if(!o)return;editingOutfitId=oid;boardUndoStack=[];boardItems=(o.pieces||[]).map(p=>normalizeBoardItem({...p,uid:p.uid||id()}));selectedBoardUid=null;doodleMode=false;$('#drawModeBtn')?.classList.remove('active');$('#outfitBoard')?.classList.remove('drawing');$('#outfitName').value=o.name||'';$('#outfitNotes').value=o.notes||'';populatePortfolioFolderSelect(o.folder||state.settings.portfolioFolders[0]);$('#saveOutfitBtn').textContent='Update outfit';drawBoard();showScreen('outfits');setTimeout(()=>$('#outfitBoard').scrollIntoView({behavior:'smooth',block:'center'}),80);toast('Outfit loaded — keep editing')}
-function renderSnapshotPiece(board,p,scaleX,scaleY){p=normalizeBoardItem({...p});const el=document.createElement('div');el.className='snapshot-piece kind-'+p.kind;el.style.left=(p.x*scaleX)+'px';el.style.top=(p.y*scaleY)+'px';el.style.width=(p.w*scaleX)+'px';el.style.height=(p.h*scaleY)+'px';el.style.zIndex=p.z;el.style.transform=`rotate(${p.rotation}deg)`;el.innerHTML=boardItemContent(p);board.appendChild(el)}
+function renderSnapshotPiece(board,p,scaleX,scaleY,offsetX=0,offsetY=0){p=normalizeBoardItem({...p});const el=document.createElement('div');el.className='snapshot-piece kind-'+p.kind;el.style.left=(offsetX+p.x*scaleX)+'px';el.style.top=(offsetY+p.y*scaleY)+'px';el.style.width=(p.w*scaleX)+'px';el.style.height=(p.h*scaleY)+'px';el.style.zIndex=p.z;el.style.transform=`rotate(${p.rotation}deg)`;el.innerHTML=boardItemContent(p);el.querySelectorAll('img').forEach(img=>{img.draggable=false;img.ondragstart=e=>e.preventDefault()});board.appendChild(el)}
 function refreshViewedOutfitFavorite(o){const b=$('#favoriteViewedOutfitBtn');if(!b||!o)return;b.textContent=o.favorite?'★':'☆';b.classList.toggle('active',!!o.favorite);b.setAttribute('aria-label',o.favorite?'Remove from favorites':'Add to favorites');b.setAttribute('aria-pressed',o.favorite?'true':'false')}
-function viewOutfit(oid){const o=state.outfits.find(x=>x.id===oid);if(!o)return;viewingOutfitId=oid;$('#viewOutfitName').textContent=o.name;refreshViewedOutfitFavorite(o);$('#viewOutfitNotes').textContent=o.notes||'No notes yet.';$('#viewOutfitFolder').textContent=o.folder||'Everyday';$('#viewOutfitItems').innerHTML=renderPortfolioItemList(o);const unique=portfolioItemDetails(o),copies=unique.reduce((n,x)=>n+x.count,0);$('#viewOutfitItemsSummary').textContent=`${unique.length} ${unique.length===1?'item':'items'}${copies>unique.length?` · ${copies} placements`:''}`;const board=$('#viewOutfitBoard');board.innerHTML='';$('#outfitViewDialog').showModal();requestAnimationFrame(()=>{const sourceW=o.boardWidth||390,sourceH=o.boardHeight||420,scaleX=(board.clientWidth||390)/sourceW,scaleY=(board.clientHeight||350)/sourceH;o.pieces.slice().sort((a,b)=>(a.z||0)-(b.z||0)).forEach(p=>renderSnapshotPiece(board,p,scaleX,scaleY))})}
+function viewOutfit(oid){const o=state.outfits.find(x=>x.id===oid);if(!o)return;viewingOutfitId=oid;$('#viewOutfitName').textContent=o.name;refreshViewedOutfitFavorite(o);$('#viewOutfitNotes').textContent=o.notes||'No notes yet.';$('#viewOutfitFolder').textContent=o.folder||'Everyday';$('#viewOutfitItems').innerHTML=renderPortfolioItemList(o);const unique=portfolioItemDetails(o),copies=unique.reduce((n,x)=>n+x.count,0);$('#viewOutfitItemsSummary').textContent=`${unique.length} ${unique.length===1?'item':'items'}${copies>unique.length?` · ${copies} placements`:''}`;$$('#viewOutfitItems .portfolio-item-row').forEach(row=>row.onclick=()=>openPortfolioItemPreview(row.dataset.itemSource,row.dataset.itemId));const board=$('#viewOutfitBoard');board.innerHTML='';board.oncontextmenu=e=>{if(e.target.closest('img'))e.preventDefault()};$('#outfitViewDialog').showModal();requestAnimationFrame(()=>{const sourceW=o.boardWidth||390,sourceH=o.boardHeight||420,bw=board.clientWidth||390,bh=board.clientHeight||350,scale=Math.min(bw/sourceW,bh/sourceH),offsetX=(bw-sourceW*scale)/2,offsetY=(bh-sourceH*scale)/2;o.pieces.slice().sort((a,b)=>(a.z||0)-(b.z||0)).forEach(p=>renderSnapshotPiece(board,p,scale,scale,offsetX,offsetY))})}
+function portfolioItemDetailRows(item,source='closet'){const rows=source==='wishlist'?[['Category',item.category],['Item',item.name||item.type],['Brand',item.brand],['Color',item.color],['Price',item.price],['Notes',item.notes]]:[['Category',item.category],['Type',item.type],['Brand',item.brand],['Color',item.color],['Size',item.size],['Pattern',item.pattern],['Season',item.season],['Acquired',item.acquired],['Wears',Number(item.wears||0)||0],['Status',isArchived(item)?'Archived':'Active'],['Notes',item.notes]];return rows.filter(([,value])=>value!==undefined&&value!==null&&String(value).trim()!=='').map(([label,value])=>`<div class="journal-preview-detail-row"><span>${esc(label)}</span><strong>${esc(value)}</strong></div>`).join('')}
+function openPortfolioItemPreview(source,itemId){const pool=source==='wishlist'?state.wishlist:state.items,item=pool.find(x=>x.id===itemId);if(!item)return toast('This item is no longer available');portfolioPreviewReturnOutfitId=viewingOutfitId;portfolioPreviewItemId=item.id;portfolioPreviewItemSource=source==='wishlist'?'wishlist':'closet';const d=$('#outfitViewDialog');if(d.open)d.close();$('#portfolioItemPreviewTitle').textContent=item.type||item.name||item.category||'Piece details';$('#portfolioItemPreviewKicker').textContent=portfolioPreviewItemSource==='wishlist'?'wishlist piece':'portfolio piece';$('#portfolioItemPreviewPhoto').innerHTML=item.photo?`<img src="${item.photo}" alt="${esc(item.type||item.name||item.category||'Piece')}" draggable="false">`:'<div class="journal-preview-placeholder">✣</div>';$('#portfolioItemPreviewDetails').innerHTML=portfolioItemDetailRows(item,portfolioPreviewItemSource);$('#portfolioItemPreviewDialog').showModal()}
+function closePortfolioItemPreview(){const returnId=portfolioPreviewReturnOutfitId,d=$('#portfolioItemPreviewDialog');if(d.open)d.close();portfolioPreviewReturnOutfitId=null;portfolioPreviewItemId=null;portfolioPreviewItemSource='closet';if(returnId&&state.outfits.some(o=>o.id===returnId))viewOutfit(returnId)}
 function deleteOutfit(){if(!viewingOutfitId||!confirm('Delete this saved outfit?'))return;const doomed=viewingOutfitId;state.outfits=state.outfits.filter(x=>x.id!==doomed);ensureSettings();Object.keys(state.settings.portfolioOrder||{}).forEach(f=>state.settings.portfolioOrder[f]=state.settings.portfolioOrder[f].filter(x=>x!==doomed));saveState();$('#outfitViewDialog').close();renderSavedOutfits()}
 async function favoriteViewedOutfit(){const o=state.outfits.find(x=>x.id===viewingOutfitId);if(!o)return;o.favorite=!o.favorite;await saveState();refreshViewedOutfitFavorite(o);renderSavedOutfits();toast(o.favorite?'Added to favorites':'Removed from favorites')}
 function editViewedOutfit(){const oid=viewingOutfitId;if(!oid)return;$('#outfitViewDialog').close();guardBoardSwitch(()=>loadOutfitForEditing(oid),'edit this saved look')}
 function duplicateViewedOutfit(){const oid=viewingOutfitId;if(!oid)return;$('#outfitViewDialog').close();guardBoardSwitch(()=>loadOutfitAsDuplicate(oid),'duplicate this saved look')}
 function loadOutfitAsDuplicate(oid){const o=state.outfits.find(x=>x.id===oid);if(!o)return;editingOutfitId=null;boardUndoStack=[];boardItems=(o.pieces||[]).map(p=>normalizeBoardItem({...p,uid:id()}));selectedBoardUid=null;doodleMode=false;$('#drawModeBtn')?.classList.remove('active');$('#outfitBoard')?.classList.remove('drawing');$('#outfitName').value=`${o.name||'Untitled look'} — Copy`;$('#outfitNotes').value=o.notes||'';populatePortfolioFolderSelect(o.folder||state.settings.portfolioFolders[0]);$('#saveOutfitBtn').textContent='Save outfit';drawBoard();showScreen('outfits');setTimeout(()=>$('#outfitBoard').scrollIntoView({behavior:'smooth',block:'center'}),80);toast('Copy loaded as a new look — save when ready')}
-async function shareViewedOutfit(){const o=state.outfits.find(x=>x.id===viewingOutfitId);if(!o)return;$('#outfitViewDialog').close();const saved={items:boardItems,edit:editingOutfitId,name:$('#outfitName').value,notes:$('#outfitNotes').value,folder:$('#outfitFolder').value};boardItems=(o.pieces||[]).map(p=>normalizeBoardItem({...p}));editingOutfitId=o.id;$('#outfitName').value=o.name||'';$('#outfitNotes').value=o.notes||'';try{await prepareOutfitShare()}finally{boardItems=saved.items;editingOutfitId=saved.edit;$('#outfitName').value=saved.name;$('#outfitNotes').value=saved.notes;populatePortfolioFolderSelect(saved.folder)}}
+function requestOutfitShare(outfitId=null){if(outfitId){const o=state.outfits.find(x=>x.id===outfitId);if(!o)return;pendingShareOutfitId=outfitId;shareReturnOutfitId=outfitId}else{if(!boardItems.length)return toast('Add something to the board first');pendingShareOutfitId=null;shareReturnOutfitId=null}const d=$('#shareChoiceDialog');if(d&&!d.open)d.showModal()}
+function cancelShareChoice(){const returnId=shareReturnOutfitId;pendingShareOutfitId=null;shareReturnOutfitId=null;const d=$('#shareChoiceDialog');if(d?.open)d.close();if(returnId&&state.outfits.some(o=>o.id===returnId))viewOutfit(returnId)}
+function shareViewedOutfit(){const o=state.outfits.find(x=>x.id===viewingOutfitId);if(!o)return;const oid=o.id;const d=$('#outfitViewDialog');if(d.open)d.close();requestOutfitShare(oid)}
 
 function renderPortfolioFolderEditor(){
   ensureSettings();

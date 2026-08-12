@@ -394,6 +394,25 @@
   </dialog>
 
 
+  <dialog id="portfolioItemPreviewDialog" class="sheet-dialog portfolio-item-preview-dialog">
+    <div class="portfolio-item-preview-scroll">
+      <div class="sheet-head"><div><p class="script" id="portfolioItemPreviewKicker">portfolio piece</p><h2 id="portfolioItemPreviewTitle">Piece details</h2></div><button type="button" class="close-btn" id="closePortfolioItemPreviewBtn">×</button></div>
+      <div class="portfolio-item-preview-photo" id="portfolioItemPreviewPhoto"></div>
+      <div class="journal-item-preview-details" id="portfolioItemPreviewDetails"></div>
+    </div>
+    <div class="sheet-actions portfolio-item-preview-actions"><button type="button" class="primary" id="backPortfolioItemPreviewBtn">Back to look</button></div>
+  </dialog>
+
+  <dialog id="shareChoiceDialog" class="sheet-dialog share-choice-dialog">
+    <div class="sheet-head"><div><p class="script">share your look</p><h2>What should the image include?</h2></div><button type="button" class="close-btn" id="shareChoiceCloseBtn">×</button></div>
+    <p class="share-choice-copy">Choose a clean lookbook image or add the wardrobe details underneath it.</p>
+    <div class="share-choice-list">
+      <button type="button" class="share-choice-btn" data-share-mode="look"><strong>Look only</strong><small>Design board and title</small></button>
+      <button type="button" class="share-choice-btn" data-share-mode="items"><strong>Look + item details</strong><small>Add a compact list of the unique pieces in the look</small></button>
+      <button type="button" class="share-choice-btn" data-share-mode="itemsNotes"><strong>Look + items + notes</strong><small>Include item details, available item notes, and saved look notes</small></button>
+    </div>
+  </dialog>
+
   <dialog id="boardConflictDialog" class="sheet-dialog board-conflict-dialog">
     <div class="sheet-head"><div><p class="script">design board</p><h2>Keep your current board?</h2></div><button type="button" class="close-btn" id="boardConflictCloseBtn">×</button></div>
     <p id="boardConflictMessage" class="board-conflict-message">There is already a look on the Design Board.</p>

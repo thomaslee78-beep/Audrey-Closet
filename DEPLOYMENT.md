@@ -94,3 +94,7 @@ Portfolio foundation and detail refresh. Adds stable per-folder portfolio orderi
 
 ## v13.11-dev2
 Adds Portfolio Duplicate Look and safe Design Board switching. New Look, Edit on Board, and Duplicate now detect an existing Board draft and offer Save current & continue, Replace current board, or Cancel. Duplicate loads a new unsaved copy with a fresh board-item identity and a “— Copy” title so the original saved look is preserved. Service-worker cache: `audrey-closet-v13.11-dev2`.
+
+
+## v13.11-dev3
+Portfolio interaction and sharing refinements. Portfolio preview images are protected from native image actions, item rows open a read-only garment detail view, saved-look share rendering now uses uniform board geometry for more faithful text/graphic sizing, and Share offers Look only, Look + item details, or Look + items + notes. Service-worker cache: `audrey-closet-v13.11-dev3`.
