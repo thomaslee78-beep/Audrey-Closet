@@ -66,3 +66,7 @@ Calibration update for the first cutout-quality pass. Quick and Clean are tuned 
 
 ## v13.9-dev2
 Second incremental cutout-quality pass. Keeps the v13.9-dev1.1 background-detection calibration while improving edge/detail handling: fine foreground details adjacent to the main mask can be rescued, only genuinely tiny isolated mask fragments are removed (instead of broad component pruning), enclosed garment regions are preserved again after cleanup, and boundary alpha is tightened to reduce fuzzy halos without changing cutout sensitivity behavior. Service-worker cache: `audrey-closet-v13.9-dev2`.
+
+
+## v13.9-dev2.1
+Calibration update for cutout behavior and restore. Automatic cutout now adapts to overall subject/background contrast: low-contrast items are treated more conservatively, while medium/high-contrast items remove obvious outer background more aggressively. Restore now paints back pixels from the captured original photo, so clothing details can be recovered even when the cutout removed them completely. Service-worker cache: `audrey-closet-v13.9-dev2.1`.
