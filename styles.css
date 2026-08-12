@@ -411,3 +411,10 @@ body.journal-item-preview-open{position:fixed;left:0;right:0;width:100%;overflow
   .studio-v138 .studio-canvas-wrap{width:min(calc(100vw - 24px),560px)}
   .studio-controls-scroll{padding-bottom:6px}
 }
+
+
+/* v13.10-dev1.2 — fixed primary toolbar below photo */
+.studio-v138 .studio-toolbar-fixed{flex:0 0 auto;position:relative;z-index:5;margin:0;background:rgba(251,246,235,.99);box-shadow:0 3px 10px rgba(70,55,40,.05)}
+.studio-controls-scroll{border-top:1px solid rgba(120,105,88,.12)}
+.studio-controls-scroll .studio-context-controls{margin-top:7px}
+.studio-controls-scroll .studio-cutout-tools{margin-top:5px}

@@ -263,18 +263,18 @@
           <button type="button" id="studioZoomOut" title="Zoom out">−</button><button type="button" id="studioZoomReset" title="Reset zoom">100%</button><button type="button" id="studioZoomIn" title="Zoom in">＋</button>
         </div>
       </div>
-      <div class="studio-controls-scroll">
-      <div class="studio-context-controls">
-        <div id="studioViewHint" class="studio-move-hint" data-i18n="studio.noTool">No tool selected. The garment is locked; drag with one finger to pan and pinch with two fingers to zoom.</div>
-        <label id="studioBrushControl" class="studio-brush-control hidden">Brush <span id="studioBrushValue">26</span><input id="studioBrush" type="range" min="6" max="70" value="26"></label>
-        <div id="studioMoveHint" class="studio-move-hint hidden">Drag to reposition. Pinch to resize and gently twist to rotate.</div>
-      </div>
-      <div class="studio-toolbar" role="toolbar" aria-label="Photo editing tools">
+      <div class="studio-toolbar studio-toolbar-fixed" role="toolbar" aria-label="Photo editing tools">
         <button type="button" class="studio-action studio-move-toggle" id="studioMoveToggle"><span>✥</span><span data-i18n="studio.adjust">Adjust</span></button>
         <button type="button" class="studio-action" id="studioUndo" disabled><span>↶</span><span data-i18n="studio.undo">Undo</span></button>
         <button type="button" class="studio-action" id="studioRedo" disabled><span>↷</span><span data-i18n="studio.redo">Redo</span></button>
         <button type="button" class="studio-action brush-btn" data-brush="restore"><span>↶</span><span data-i18n="studio.restore">Restore</span></button>
         <button type="button" class="studio-action brush-btn" data-brush="erase"><span>⌫</span><span data-i18n="studio.erase">Erase</span></button>
+      </div>
+      <div class="studio-controls-scroll">
+      <div class="studio-context-controls">
+        <div id="studioViewHint" class="studio-move-hint" data-i18n="studio.noTool">No tool selected. The garment is locked; drag with one finger to pan and pinch with two fingers to zoom.</div>
+        <label id="studioBrushControl" class="studio-brush-control hidden">Brush <span id="studioBrushValue">26</span><input id="studioBrush" type="range" min="6" max="70" value="26"></label>
+        <div id="studioMoveHint" class="studio-move-hint hidden">Drag to reposition. Pinch to resize and gently twist to rotate.</div>
       </div>
       <details class="studio-cutout-tools" open>
         <summary><span data-i18n="studio.cutout">Cutout</span><small data-i18n="studio.cutoutHelp">Quick background removal</small></summary>

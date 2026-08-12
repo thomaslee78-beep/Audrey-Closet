@@ -78,3 +78,7 @@ Adds non-destructive Photo Studio adjustments for Exposure, Contrast, and Highli
 
 ## v13.10-dev1.1
 Refines Photo Studio layout for iPhone editing. The photo canvas remains fixed in the upper portion of the sheet while the editing menus scroll independently below, so slider and cutout changes stay visible without repeatedly scrolling back to the image. Service-worker cache: `audrey-closet-v13.10-dev1.1`.
+
+
+## v13.10-dev1.2
+Photo Studio layout refinement: the primary Adjust / Undo / Redo / Restore / Erase toolbar now stays fixed directly below the photo canvas. Tool guidance, brush controls, Cutout, Adjustments, More options, and status messaging remain in the independently scrollable controls area. Service-worker cache: `audrey-closet-v13.10-dev1.2`.
