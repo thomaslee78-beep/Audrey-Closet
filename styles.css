@@ -433,3 +433,33 @@ body.journal-item-preview-open{position:fixed;left:0;right:0;width:100%;overflow
 @media(min-width:680px){
   .bottom-nav{left:50%!important;right:auto!important;width:min(680px,calc(100vw - 32px));max-width:calc(100vw - 32px);transform:translate3d(-50%,0,0)!important;-webkit-transform:translate3d(-50%,0,0)!important}
 }
+
+/* v13.11-dev1 — Portfolio foundation + detail */
+.outfit-view-dialog{padding:0;overflow:hidden;max-height:92dvh;width:min(620px,94vw);display:none;flex-direction:column}
+.outfit-view-dialog[open]{display:flex}
+.outfit-view-scroll{min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:16px 16px 6px}
+.outfit-view-head{margin-bottom:10px;align-items:flex-start}
+.outfit-view-head>div:first-child{min-width:0}
+.outfit-view-head h2{margin-bottom:1px;overflow-wrap:anywhere}
+.outfit-view-folder{display:block;color:#8b7d6d;font-size:10px;font-weight:750;letter-spacing:.04em;text-transform:uppercase}
+.outfit-view-head-actions{display:flex;align-items:center;gap:7px;flex:0 0 auto}
+.outfit-view-favorite{width:38px;height:38px;border-radius:50%;border:1px solid rgba(125,53,71,.28);background:#fffaf0;color:var(--burgundy);font-size:24px;line-height:1;display:grid;place-items:center;padding:0;cursor:pointer}
+.outfit-view-favorite.active{background:#f5e8b8;color:#8a6330;border-color:#d4b55e}
+.outfit-view-dialog .snapshot{width:100%;height:auto;aspect-ratio:390/420;min-height:0;max-height:none;margin:0 auto;border-radius:18px;overflow:hidden}
+.outfit-view-copy{padding:2px 1px 10px}
+.outfit-view-dialog .outfit-note{white-space:pre-wrap;overflow-wrap:anywhere;margin:10px 2px 9px;max-height:none;display:block}
+.outfit-items-panel{border:1px solid var(--line);background:#fffaf0;border-radius:14px;overflow:hidden;margin-top:9px}
+.outfit-items-panel summary{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;cursor:pointer;color:#685d51;font-size:11px;font-weight:800}
+.outfit-items-panel summary small{font-size:9px;color:#938573;font-weight:650;text-align:right}
+.outfit-items-panel[open] summary{border-bottom:1px solid var(--line)}
+.portfolio-item-list{display:grid;gap:5px;padding:7px}
+.portfolio-item-row{display:grid;grid-template-columns:48px minmax(0,1fr);gap:9px;align-items:center;padding:6px;border-radius:11px;background:#f5ecdc}
+.portfolio-item-row img,.portfolio-item-placeholder{width:48px;height:48px;border-radius:9px;object-fit:contain;background:#fffdf8;border:1px solid rgba(108,81,66,.11)}
+.portfolio-item-placeholder{display:grid;place-items:center;color:#9a8c79;font-family:var(--serif)}
+.portfolio-item-row strong{display:block;font-family:var(--serif);font-size:13px;font-weight:600;color:var(--ink);overflow-wrap:anywhere}
+.portfolio-item-row small{display:block;margin-top:2px;font-size:9px;color:#817565;overflow-wrap:anywhere}
+.portfolio-item-count{font-family:var(--sans);font-size:9px;color:var(--burgundy);font-weight:800}
+.portfolio-items-empty{font-size:10px;color:#817565;margin:5px;padding:8px}
+.outfit-view-dialog .outfit-view-actions{flex:0 0 auto;margin:0;padding:9px 12px max(10px,env(safe-area-inset-bottom));border-top:1px solid var(--line);background:var(--paper,#fbf6eb);box-shadow:0 -5px 14px rgba(70,55,40,.07);display:grid;grid-template-columns:auto 1fr 1.25fr;gap:7px;align-items:center}
+.outfit-view-dialog .outfit-view-actions .primary,.outfit-view-dialog .outfit-view-actions .soft-btn{margin:0;width:100%;min-width:0}
+@media(min-width:700px){.outfit-view-dialog .snapshot{max-width:460px}.outfit-view-dialog .outfit-view-copy{max-width:520px;margin:0 auto;width:100%}}

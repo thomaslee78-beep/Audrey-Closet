@@ -86,3 +86,7 @@ Photo Studio layout refinement: the primary Adjust / Undo / Redo / Restore / Era
 
 ## v13.10-dev1.3
 Minor layout fixes: active Photo Studio tool instructions now appear directly beneath the active tool controls; Today's Look journal rows are contained within their card; and the bottom navigation is explicitly centered on tablet-width screens. Service-worker cache: `audrey-closet-v13.10-dev1.3`.
+
+
+## v13.11-dev1
+Portfolio foundation and detail refresh. Adds stable per-folder portfolio ordering groundwork, a redesigned saved-look detail view with an upper-right favorite star, full notes area, collapsible unique item listing with copy counts, and a fixed bottom action bar. Existing saved looks are normalized without changing the database schema. Service-worker cache: `audrey-closet-v13.11-dev1`.
