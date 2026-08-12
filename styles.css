@@ -496,3 +496,18 @@ body.journal-item-preview-open{position:fixed;left:0;right:0;width:100%;overflow
 .share-choice-btn:active{background:#eee4d0}
 .share-preview-frame{max-height:66dvh;overflow:auto;-webkit-overflow-scrolling:touch}
 .share-preview-frame img{aspect-ratio:auto;height:auto;max-height:none;object-fit:contain}
+
+
+/* v13.11-dev4 — Portfolio drag reorder + share emoji rendering */
+.portfolio-reorder-hint{margin:-3px 3px 8px;font-size:9px;color:#8a7d6b;min-height:12px}
+.portfolio-card.portfolio-drag-source{opacity:.28;filter:saturate(.65)}
+.portfolio-drag-ghost{background:#fffaf0;border:1px solid var(--line);border-radius:18px;overflow:hidden;box-shadow:0 18px 42px rgba(55,43,31,.28);opacity:.95;-webkit-touch-callout:none;user-select:none;transition:none!important}
+.portfolio-drag-ghost img{pointer-events:none;-webkit-user-drag:none}
+body.portfolio-reordering{touch-action:none;overflow-x:hidden!important}
+body.portfolio-reordering .bottom-nav{pointer-events:none}
+.portfolio-card.portfolio-drop-target{position:relative;z-index:2;opacity:.6;box-shadow:0 0 0 3px rgba(77,142,138,.62),0 8px 18px rgba(56,46,34,.12)!important}
+.portfolio-card.portfolio-drop-target:after{content:'DROP HERE';position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);padding:6px 8px;border-radius:11px;background:rgba(54,91,88,.91);color:#fff;font-size:9px;font-weight:800;letter-spacing:.06em;pointer-events:none;white-space:nowrap;z-index:10}
+.portfolio-card.portfolio-drop-target.drop-before:before,.portfolio-card.portfolio-drop-target.drop-after:before{content:'';position:absolute;background:var(--turq);border-radius:5px;z-index:11;pointer-events:none;top:5%;bottom:5%;width:4px}
+.portfolio-card.portfolio-drop-target.drop-before:before{left:-5px}.portfolio-card.portfolio-drop-target.drop-after:before{right:-5px}
+.portfolio-drop-outline{position:fixed;display:none;pointer-events:none;z-index:4998;border:3px dashed rgba(77,142,138,.78);border-radius:18px;background:rgba(77,142,138,.06);box-sizing:border-box}
+.portfolio-drop-outline.visible{display:block}

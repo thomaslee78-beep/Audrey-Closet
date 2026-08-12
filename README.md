@@ -158,3 +158,7 @@ Adds Portfolio Duplicate Look and safe Design Board switching. New Look, Edit on
 
 ## v13.11-dev3
 Portfolio interaction and sharing refinements. Portfolio preview images are protected from native image actions, item rows open a read-only garment detail view, saved-look share rendering now uses uniform board geometry for more faithful text/graphic sizing, and Share offers Look only, Look + item details, or Look + items + notes. Service-worker cache: `audrey-closet-v13.11-dev3`.
+
+
+## v13.11-dev4
+Adds long-press drag-and-drop reordering for saved Portfolio looks within a selected folder, using the same stable ghost/drop-cue interaction style as Closet reordering. All/Favorites remain read-only aggregate views for order. Also improves Portfolio share rendering for emoji/stickers by prioritizing native color-emoji fonts and explicit emoji presentation, preventing dark emoji from incorrectly exporting as white where supported. Service-worker cache: `audrey-closet-v13.11-dev4`.
