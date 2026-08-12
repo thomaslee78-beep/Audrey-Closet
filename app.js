@@ -228,7 +228,7 @@ async function init(){
   $('#addPortfolioFolderBtn').onclick=addPortfolioFolder;
   $('#managePortfolioBtn').onclick=()=>{renderPortfolioFolderEditor();showScreen('more')};
   $('#portfolioNewBtn').onclick=()=>guardBoardSwitch(()=>{startNewOutfit();showScreen('outfits')},'start a new look');
-  if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js?v=13.11-dev4.2',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
+  if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js?v=13.11-dev4.4',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
   renderAll();
 }
 function fillSelects(){
@@ -433,21 +433,21 @@ function bindCatalogReorder(activeCategory){
     card.onpointerdown=e=>{
       if(e.pointerType==='touch')return;
       if(e.pointerType==='mouse'&&e.button!==0)return;
-      beginCatalogPress(card,activeCategory,e.pointerId,e.clientX,e.clientY,null);
+      const p=catalogViewportPoint(e);beginCatalogPress(card,activeCategory,e.pointerId,p.x,p.y,null);
     };
-    card.onpointermove=e=>{if(e.pointerType!=='touch')moveCatalogDrag(e.clientX,e.clientY,e.pointerId,null,e)};
+    card.onpointermove=e=>{if(e.pointerType!=='touch'){const p=catalogViewportPoint(e);moveCatalogDrag(p.x,p.y,e.pointerId,null,e)}};
     card.onpointerup=e=>{if(e.pointerType!=='touch')finishCatalogDrag(e.pointerId,null,false,e)};
     card.onpointercancel=e=>{if(e.pointerType!=='touch')finishCatalogDrag(e.pointerId,null,true,e)};
     card.ontouchstart=e=>{
       if(e.touches.length!==1)return;
       const t=e.changedTouches[0];
-      beginCatalogPress(card,activeCategory,null,t.clientX,t.clientY,t.identifier);
+      const p=catalogViewportPoint(t);beginCatalogPress(card,activeCategory,null,p.x,p.y,t.identifier);
     };
     card.ontouchmove=e=>{
       const d=closetDrag;if(d.touchId==null||d.active)return;
       const t=[...e.changedTouches].find(x=>x.identifier===d.touchId)||[...e.touches].find(x=>x.identifier===d.touchId);
       if(!t)return;
-      moveCatalogDrag(t.clientX,t.clientY,null,d.touchId,e);
+      const p=catalogViewportPoint(t);moveCatalogDrag(p.x,p.y,null,d.touchId,e);
     };
     card.ontouchend=e=>{
       const d=closetDrag;if(d.touchId==null||d.active)return;
@@ -461,6 +461,15 @@ function bindCatalogReorder(activeCategory){
     card.oncontextmenu=e=>{if(closetDrag.active||closetDrag.timer)e.preventDefault()};
   });
 }
+function catalogViewportPoint(point){
+  const vv=window.visualViewport;
+  const pageLeft=vv?.pageLeft ?? window.scrollX ?? 0;
+  const pageTop=vv?.pageTop ?? window.scrollY ?? 0;
+  const px=Number.isFinite(point?.pageX)?point.pageX:(Number(point?.clientX)||0)+(window.scrollX||0);
+  const py=Number.isFinite(point?.pageY)?point.pageY:(Number(point?.clientY)||0)+(window.scrollY||0);
+  return {x:px-pageLeft,y:py-pageTop};
+}
+function catalogViewportHeight(){return window.visualViewport?.height||window.innerHeight}
 function beginCatalogPress(card,activeCategory,pointerId,x,y,touchId){
   clearTimeout(closetDrag.timer);cleanupCatalogGhost();
   closetDrag={timer:null,pointerId,touchId,startX:x,startY:y,x,y,card,category:activeCategory||'',active:false,moved:false,ghost:null,dropOutline:null,placeholder:null,lastPlacement:'',raf:null,scrollRaf:null,longPressed:false};
@@ -471,7 +480,7 @@ function handleActiveCatalogTouchMove(e){
   const d=closetDrag;if(!d?.active||d.touchId==null)return;
   const t=[...e.changedTouches].find(x=>x.identifier===d.touchId)||[...e.touches].find(x=>x.identifier===d.touchId);
   if(!t)return;
-  moveCatalogDrag(t.clientX,t.clientY,null,d.touchId,e);
+  const p=catalogViewportPoint(t);moveCatalogDrag(p.x,p.y,null,d.touchId,e);
 }
 function handleActiveCatalogTouchEnd(e){
   const d=closetDrag;if(!d?.active||d.touchId==null)return;
@@ -509,7 +518,7 @@ function startCatalogDrag(){
 
   const ghost=d.card.cloneNode(true);ghost.classList.add('closet-drag-ghost');ghost.removeAttribute('data-id');ghost.removeAttribute('style');
   ghost.querySelectorAll('img').forEach(img=>{img.draggable=false});
-  Object.assign(ghost.style,{position:'fixed',left:'0',top:'0',width:rect.width+'px',height:rect.height+'px',margin:'0',pointerEvents:'none',zIndex:'5000',willChange:'transform'});
+  Object.assign(ghost.style,{position:'fixed',left:'0',top:'0',width:rect.width+'px',height:rect.height+'px',margin:'0',pointerEvents:'none',zIndex:'5000',willChange:'transform',transformOrigin:'top left'});
   document.body.appendChild(ghost);d.ghost=ghost;d.ghostOffsetX=d.x-rect.left;d.ghostOffsetY=d.y-rect.top;
   const dropOutline=document.createElement('div');dropOutline.className='closet-drop-outline';dropOutline.setAttribute('aria-hidden','true');document.body.appendChild(dropOutline);d.dropOutline=dropOutline;
   document.body.classList.add('closet-reordering');$('#catalogGrid')?.classList.add('closet-grid-reordering');
@@ -544,9 +553,9 @@ function moveCatalogDrag(x,y,pointerId,touchId,e){
   if(!d.raf)d.raf=requestAnimationFrame(()=>{d.raf=null;autoScrollCatalogDrag(d.pendingY);updateCatalogDropTarget(d.pendingX,d.pendingY)});
 }
 function autoScrollCatalogDrag(y){
-  const edge=Math.min(130,window.innerHeight*.18),maxSpeed=16;let delta=0;
+  const vh=catalogViewportHeight(),edge=Math.min(130,vh*.18),maxSpeed=16;let delta=0;
   if(y<edge)delta=-maxSpeed*(1-y/edge);
-  else if(y>window.innerHeight-edge)delta=maxSpeed*(1-(window.innerHeight-y)/edge);
+  else if(y>vh-edge)delta=maxSpeed*(1-(vh-y)/edge);
   if(Math.abs(delta)>.25)window.scrollBy(0,delta);
 }
 function startCatalogAutoScroll(){

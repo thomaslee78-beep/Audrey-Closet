@@ -174,3 +174,7 @@ Polishes Portfolio and Closet reorder gestures. Portfolio cards now lift from th
 
 ## v13.11-dev4.3
 Polishes Closet reordering with continuous finger-follow/edge auto-scroll behavior and saves newly created Portfolio looks at the front of their selected category. Existing saved looks keep their manually chosen order when edited in place. Service-worker cache: `audrey-closet-v13.11-dev4.3`.
+
+
+## v13.11-dev4.4
+Closet reorder calibration: the floating drag card now uses visual-viewport-aware touch coordinates so it stays under the finger on iPhone/PWA while scrolling and auto-scrolling. Consolidated older Closet drag CSS into one canonical rule set to remove conflicting legacy source/ghost/drop-target styles. Service-worker cache: `audrey-closet-v13.11-dev4.4`.

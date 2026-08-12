@@ -82,30 +82,16 @@ body.item-dialog-open{position:fixed;left:0;right:0;width:100%;overflow:hidden;o
 
 /* v12.4 — closet preference ordering + iPhone form zoom stabilization */
 .item-card{touch-action:pan-y;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;transition:transform .16s ease,box-shadow .16s ease,opacity .16s ease}
-.item-card.closet-dragging{z-index:40;transform:scale(1.035);box-shadow:0 15px 30px rgba(55,43,31,.22);opacity:.93;touch-action:none;cursor:grabbing}
-.item-card.closet-dragging .thumb img{pointer-events:none}
+
+
 @media(max-width:768px){#itemDialog input,#itemDialog textarea,#itemDialog select{font-size:16px!important;line-height:1.3}#itemDialog input,#itemDialog select{min-height:44px}#itemDialog textarea{min-height:88px}}
 
 /* v12.5: iPhone-safe long-press closet reordering */
 .item-card{-webkit-touch-callout:none}
-.item-card.closet-drag-placeholder{opacity:.28;outline:2px dashed rgba(125,53,71,.38);outline-offset:-3px;transform:scale(.98)}
-.closet-drag-ghost{background:#fffaf0;border:1px solid var(--line);border-radius:19px;overflow:hidden;box-shadow:0 20px 40px rgba(55,43,31,.28);transform:scale(1.035);opacity:.97}
-body.closet-reordering{overflow:hidden!important;touch-action:none}
-body.closet-reordering .bottom-nav{pointer-events:none}
 
 
 /* v12.6 — smoother closet sorting */
 .item-card img{-webkit-user-drag:none!important;user-drag:none!important;-webkit-touch-callout:none!important;user-select:none!important;pointer-events:none}
-.closet-drop-slot{position:relative!important;min-height:180px;background:rgba(77,142,138,.10)!important;border:2px solid rgba(77,142,138,.82)!important;box-shadow:inset 0 0 0 3px rgba(255,255,255,.48)!important;overflow:hidden;animation:closetSlotPulse 1.15s ease-in-out infinite alternate}
-.closet-drop-slot:after{content:'DROP HERE';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:850;letter-spacing:.16em;color:var(--olive-dark);background:repeating-linear-gradient(135deg,rgba(77,142,138,.05) 0 9px,transparent 9px 18px)}
-.closet-drag-ghost{left:0!important;top:0!important;opacity:.94!important;box-shadow:0 18px 42px rgba(55,43,31,.26)!important;transition:none!important;-webkit-touch-callout:none!important;user-select:none!important}
-.closet-drag-ghost img{pointer-events:none!important;-webkit-user-drag:none!important}
-.closet-grid-reordering .item-card[data-id]{will-change:transform}
-body.closet-reordering{touch-action:none}
-@keyframes closetSlotPulse{from{border-color:rgba(77,142,138,.55);background:rgba(77,142,138,.07)}to{border-color:rgba(77,142,138,.95);background:rgba(77,142,138,.14)}}
-
-body.closet-reordering{overflow-x:hidden!important;overflow-y:auto!important}
-
 
 /* v12.7 — usability polish */
 .board-remove-handle{display:none;position:absolute;right:-12px;top:-12px;width:31px;height:31px;border-radius:50%;border:2px solid #fffaf0;background:var(--burgundy);color:#fff;font-size:20px;line-height:1;align-items:center;justify-content:center;box-shadow:0 2px 7px rgba(0,0,0,.18);touch-action:none;z-index:5;padding:0}
@@ -115,14 +101,11 @@ body.closet-reordering{overflow-x:hidden!important;overflow-y:auto!important}
 #itemDialog .form-grid select{font-family:var(--sans)}
 
 /* v12.8: calm, no-reflow closet reorder preview */
-.closet-grid-reordering .item-card{transition:none!important;animation:none!important}
-.item-card.closet-drag-source{opacity:.32;filter:saturate(.75);outline:2px dashed rgba(77,142,138,.5);outline-offset:-3px}
-.item-card.closet-drop-target{position:relative;z-index:2;box-shadow:0 0 0 3px rgba(77,142,138,.68),0 8px 18px rgba(56,46,34,.12)!important}
-.item-card.closet-drop-target:after{content:"DROP HERE";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);padding:6px 8px;border-radius:11px;background:rgba(54,91,88,.9);color:#fff;font-size:9px;font-weight:800;letter-spacing:.06em;pointer-events:none;white-space:nowrap}
+
+
 .item-card.closet-drop-target.drop-before:before,.item-card.closet-drop-target.drop-after:before{content:"";position:absolute;background:var(--turq);border-radius:5px;z-index:3;pointer-events:none}
-.item-card.closet-drop-target.drop-before:before{left:-5px;top:7%;bottom:7%;width:4px}
-.item-card.closet-drop-target.drop-after:before{right:-5px;top:7%;bottom:7%;width:4px}
-.closet-drag-ghost{opacity:.92!important;box-shadow:0 15px 36px rgba(42,34,26,.28)!important}
+
+
 #undoBoardBtn:disabled{opacity:.35!important}
 #undoBoardBtn.undo-ready{border-color:rgba(77,142,138,.65);background:#e8f0e8}
 .board-editbar button{min-height:38px}
@@ -130,16 +113,8 @@ body.closet-reordering{overflow-x:hidden!important;overflow-y:auto!important}
 
 
 /* v12.9 — clearer closet reorder states + persistent board controls */
-.item-card.closet-drag-source{
-  opacity:.78!important;filter:none!important;
-  outline:3px solid rgba(77,142,138,.92)!important;outline-offset:-3px!important;
-  box-shadow:0 0 0 2px rgba(255,250,240,.95),0 9px 20px rgba(56,46,34,.14)!important;
-}
-.item-card.closet-drop-target{
-  outline:3px dashed rgba(125,53,71,.72)!important;outline-offset:-4px!important;
-  box-shadow:0 5px 14px rgba(56,46,34,.08)!important;
-}
-.item-card.closet-drop-target:after{background:rgba(125,53,71,.86)!important}
+
+
 .item-card.closet-drop-target.drop-before:before,.item-card.closet-drop-target.drop-after:before{background:var(--burgundy)!important}
 .board-editbar{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-top:8px;opacity:1!important}
 .board-editbar.hidden{display:grid!important}
@@ -149,62 +124,9 @@ body.closet-reordering{overflow-x:hidden!important;overflow-y:auto!important}
 
 
 /* v12.10 — long-press tap guard, full-card reorder outlines, gentler board pinch */
-.item-card.closet-drag-source{
-  outline:none!important;
-  box-shadow:inset 0 0 0 3px rgba(77,142,138,.96),0 9px 20px rgba(56,46,34,.14)!important;
-}
-.closet-drag-ghost{
-  border:0!important;
-  box-shadow:inset 0 0 0 3px rgba(77,142,138,.98),0 18px 42px rgba(55,43,31,.28)!important;
-}
-.item-card.closet-drop-target{outline:none!important;box-shadow:0 5px 14px rgba(56,46,34,.08)!important}
-.closet-drop-outline{
-  position:fixed;display:none;pointer-events:none;z-index:5200;
-  border:3px dashed rgba(125,53,71,.9);border-radius:19px;
-  box-sizing:border-box;background:transparent;
-  filter:drop-shadow(0 2px 2px rgba(255,250,240,.9));
-}
-.closet-drop-outline.visible{display:block}
 
 
 /* v12.11 — clearer, calmer Closet reorder targeting */
-.item-card.closet-drag-source{
-  position:relative!important;
-  opacity:.62!important;
-  filter:saturate(.82)!important;
-  outline:none!important;
-  box-shadow:0 8px 18px rgba(56,46,34,.10)!important;
-}
-.item-card.closet-drag-source::before{
-  content:""!important;
-  position:absolute!important;
-  inset:0!important;
-  z-index:30!important;
-  pointer-events:none!important;
-  border:3px solid rgba(77,142,138,.98)!important;
-  border-radius:inherit!important;
-  box-sizing:border-box!important;
-  background:transparent!important;
-}
-.closet-drag-ghost{
-  position:fixed!important;
-  opacity:.96!important;
-  border:3px solid rgba(77,142,138,.98)!important;
-  box-sizing:border-box!important;
-  box-shadow:0 18px 42px rgba(55,43,31,.30)!important;
-}
-.item-card.closet-drop-target{
-  opacity:.42!important;
-  filter:saturate(.72)!important;
-  transition:opacity .12s ease!important;
-}
-.closet-drop-outline{
-  border:3px dashed rgba(125,53,71,.94)!important;
-  z-index:5600!important;
-  border-radius:19px!important;
-  box-sizing:border-box!important;
-  background:rgba(255,250,240,.07)!important;
-}
 
 /* v13 Journal / Logbook */
 .journal-toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:4px 0 10px;padding:10px 12px;background:#efe6d5;border:1px solid var(--line);border-radius:16px}.journal-toolbar>div{display:flex;flex-direction:column}.wear-log-toggle{display:flex;align-items:center;gap:10px;min-width:0;border:0;background:transparent;padding:0;font:inherit;color:inherit;text-align:left;cursor:pointer}.wear-log-toggle>span:first-child{display:flex;flex-direction:column;min-width:0}.wear-log-toggle-icon{font-size:20px;line-height:1;color:var(--burgundy);font-weight:700}.journal-toolbar strong{font-family:var(--serif);font-size:19px;font-weight:600}.journal-toolbar small{font-size:10px;color:#7b7065}.journal-toolbar select{max-width:145px;border:1px solid var(--line);border-radius:12px;padding:8px;background:#fffaf0;font:inherit;font-size:12px}.journal-row-button{width:100%;font:inherit;color:inherit;text-align:left;cursor:pointer}.journal-row{min-height:92px;padding:10px 11px}.journal-row-main{display:flex;align-items:center;gap:10px;min-width:0;flex:1}.journal-thumbs{flex:0 0 auto;max-width:156px}.journal-thumbs img{width:58px;height:58px;border-radius:11px;margin-left:-12px}.journal-row-copy{display:flex;flex-direction:column;min-width:0;gap:4px}.journal-row-copy strong{font-family:var(--serif);font-size:15px;font-weight:600}.journal-row-copy small{font-size:10px;color:#786d61;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:145px}.journal-chevron{font-size:26px;color:#9b8d7d}.stat-action{border:1px solid var(--line);font:inherit;color:inherit;text-align:left;cursor:pointer}.journal-insights-more{margin-top:10px}.journal-insights-more>summary{list-style:none;background:#efe6d5;border:1px solid var(--line);border-radius:14px;padding:10px 12px;font-family:var(--serif);font-size:16px;cursor:pointer}.journal-insights-more>summary::-webkit-details-marker{display:none}.journal-insights-more>summary:after{content:'＋';float:right;color:var(--burgundy)}.journal-insights-more[open]>summary:after{content:'−'}.wear-category-tabs{display:flex;gap:6px;overflow-x:auto;padding:8px 0 6px;scrollbar-width:none}.wear-category-tabs::-webkit-scrollbar{display:none}.wear-category-tabs button{flex:0 0 auto;border:1px solid var(--line);background:#fffaf0;border-radius:18px;padding:7px 11px;font:inherit;font-size:11px}.wear-category-tabs button.active{background:var(--coffee);color:white;border-color:var(--coffee)}.wear-selection-summary{display:flex;align-items:center;justify-content:space-between;padding:2px 2px 4px;color:#756a5d;font-size:11px}.wear-picker{max-height:46dvh;grid-template-columns:repeat(3,1fr);gap:8px}.wear-option{min-height:142px;display:flex;flex-direction:column;align-items:stretch;text-align:left;overflow:hidden}.wear-option img,.wear-placeholder{height:102px;width:100%;object-fit:contain;background:#f3ebdc;border-radius:10px}.wear-placeholder{display:flex;align-items:center;justify-content:center;font-size:28px;color:#9c8e7a}.wear-option strong{font-family:var(--serif);font-size:12px;font-weight:600;margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.wear-option small{font-size:9px;text-align:left}.journal-feedback-row{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:end;margin-top:9px}.journal-feedback-row label{font-size:10px;font-weight:650;color:#756a5c}.journal-feedback-row select{display:block;margin-top:4px;width:100%;border:1px solid var(--line);border-radius:12px;padding:9px;background:#fffaf0;font:inherit;font-size:16px}.favorite-toggle{display:flex!important;align-items:center;gap:5px;background:#fffaf0;border:1px solid var(--line);border-radius:12px;padding:9px 10px;white-space:nowrap}.favorite-toggle input{width:18px;height:18px}.journal-edit-actions{justify-content:space-between}.journal-detail-feedback{display:inline-flex;background:#efe6d5;border-radius:16px;padding:7px 10px;font-size:11px;color:var(--burgundy);margin-bottom:10px}.journal-detail-items{display:grid;gap:8px}.journal-detail-item{width:100%;display:grid;grid-template-columns:92px 1fr;gap:11px;align-items:center;background:#fffaf0;border:1px solid var(--line);border-radius:15px;padding:8px;font:inherit;color:inherit;text-align:left}.journal-detail-item img,.journal-detail-item>.wear-placeholder{width:92px;height:100px;object-fit:contain;background:#eee5d5;border-radius:11px}.journal-detail-item div{min-width:0;display:flex;flex-direction:column;gap:4px}.journal-detail-item strong{font-family:var(--serif);font-size:16px;font-weight:600}.journal-detail-item small{font-size:10px;color:#786d61}.stat-detail-item{cursor:default}.wear-dialog{overscroll-behavior:contain}
@@ -518,9 +440,9 @@ body.portfolio-reordering .bottom-nav{pointer-events:none}
 body.portfolio-reordering{overflow-x:hidden!important;overflow-y:auto!important;touch-action:none!important}
 .portfolio-drop-outline{position:fixed;display:none;pointer-events:none;z-index:5600;border:3px dashed rgba(125,53,71,.94);border-radius:18px;box-sizing:border-box;background:rgba(255,250,240,.06);filter:drop-shadow(0 2px 2px rgba(255,250,240,.9))}
 .portfolio-drop-outline.visible{display:block}
-.portfolio-drag-ghost,.closet-drag-ghost{animation:reorderLift .16s ease-out both}
-.portfolio-card.portfolio-drop-target,.item-card.closet-drop-target{animation:reorderTargetPulse .72s ease-in-out infinite alternate}
-.portfolio-drop-confirm,.closet-drop-confirm{animation:reorderDropConfirm .34s ease-out both!important}
+.portfolio-drag-ghost{animation:reorderLift .16s ease-out both}
+.portfolio-card.portfolio-drop-target{animation:reorderTargetPulse .72s ease-in-out infinite alternate}
+.portfolio-drop-confirm{animation:reorderDropConfirm .34s ease-out both!important}
 @keyframes reorderLift{from{opacity:.72;transform:scale(.985)}to{opacity:.96}}
 @keyframes reorderTargetPulse{from{filter:saturate(.72);opacity:.45}to{filter:saturate(.9);opacity:.68}}
 @keyframes reorderDropConfirm{0%{transform:scale(.975);box-shadow:0 0 0 3px rgba(77,142,138,.55)}65%{transform:scale(1.018);box-shadow:0 0 0 4px rgba(77,142,138,.35)}100%{transform:scale(1);box-shadow:none}}
@@ -529,7 +451,7 @@ body.portfolio-reordering{overflow-x:hidden!important;overflow-y:auto!important;
 /* v13.11-dev4.2 — reorder interaction polish */
 /* Keep drag ghosts at their finger-calculated transform. The earlier lift keyframe
    animated transform itself, which could momentarily draw a card from the viewport origin. */
-.portfolio-drag-ghost,.closet-drag-ghost{
+.portfolio-drag-ghost{
   animation:reorderLiftOpacity .16s ease-out both!important;
   transform-origin:center center;
 }
@@ -549,30 +471,22 @@ body.portfolio-reordering{overflow-x:hidden!important;overflow-y:auto!important;
 
 /* Closet: match the calmer Portfolio drag language. No turquoise frame around the
    source or floating card; the destination gets the two-layer turquoise + burgundy cue. */
-.item-card.closet-drag-source{
-  opacity:.30!important;
-  filter:saturate(.72)!important;
-  outline:none!important;
-  box-shadow:none!important;
-}
+
+
+
+/* v13.11-dev4.4 — canonical Closet reorder styles + viewport-aware drag ghost */
+.item-card{touch-action:pan-y;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+.item-card img{-webkit-user-drag:none!important;user-drag:none!important;-webkit-touch-callout:none!important;user-select:none!important;pointer-events:none}
+body.closet-reordering{overflow-x:hidden!important;overflow-y:auto!important;touch-action:none!important}
+body.closet-reordering .bottom-nav{pointer-events:none}
+.closet-grid-reordering .item-card{transition:none!important;animation:none!important}
+.item-card.closet-drag-source{position:relative!important;opacity:.30!important;filter:saturate(.72)!important;outline:none!important;box-shadow:none!important}
 .item-card.closet-drag-source::before{display:none!important}
-.closet-drag-ghost{
-  border:1px solid rgba(120,105,88,.24)!important;
-  box-shadow:0 20px 44px rgba(55,43,31,.30)!important;
-  opacity:.96!important;
-}
-.item-card.closet-drop-target{
-  position:relative!important;
-  z-index:2!important;
-  opacity:.60!important;
-  filter:none!important;
-  outline:none!important;
-  box-shadow:0 0 0 3px rgba(77,142,138,.62),0 8px 18px rgba(56,46,34,.12)!important;
-}
-.closet-drop-outline{
-  border:3px dashed rgba(125,53,71,.94)!important;
-  border-radius:19px!important;
-  background:rgba(255,250,240,.06)!important;
-  z-index:5600!important;
-  filter:drop-shadow(0 2px 2px rgba(255,250,240,.9))!important;
-}
+.closet-drag-ghost{position:fixed!important;left:0!important;top:0!important;background:#fffaf0;border:1px solid rgba(120,105,88,.24)!important;border-radius:19px;overflow:hidden;box-sizing:border-box!important;opacity:.96!important;box-shadow:0 20px 44px rgba(55,43,31,.30)!important;transition:none!important;animation:reorderLiftOpacity .16s ease-out both!important;transform-origin:top left!important;-webkit-touch-callout:none!important;user-select:none!important}
+.closet-drag-ghost img{pointer-events:none!important;-webkit-user-drag:none!important}
+.item-card.closet-drop-target{position:relative!important;z-index:2!important;opacity:.60!important;filter:none!important;outline:none!important;box-shadow:0 0 0 3px rgba(77,142,138,.62),0 8px 18px rgba(56,46,34,.12)!important;animation:reorderTargetPulse .72s ease-in-out infinite alternate}
+.item-card.closet-drop-target::after{display:none!important}
+.item-card.closet-drop-target.drop-before::before,.item-card.closet-drop-target.drop-after::before{display:none!important}
+.closet-drop-outline{position:fixed;display:none;pointer-events:none;z-index:5600;border:3px dashed rgba(125,53,71,.94)!important;border-radius:19px!important;box-sizing:border-box;background:rgba(255,250,240,.06)!important;filter:drop-shadow(0 2px 2px rgba(255,250,240,.9))!important}
+.closet-drop-outline.visible{display:block}
+.closet-drop-confirm{animation:reorderDropConfirm .34s ease-out both!important}
