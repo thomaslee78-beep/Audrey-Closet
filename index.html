@@ -282,6 +282,15 @@
           <label class="studio-edge-control"><span data-i18n="studio.sensitivity">Sensitivity</span> <input id="studioEdge" type="range" min="25" max="80" value="45"></label>
         </div>
       </details>
+      <details class="studio-adjust-tools">
+        <summary><span data-i18n="studio.adjustments">Adjustments</span><small data-i18n="studio.adjustmentsHelp">Tone and detail</small></summary>
+        <div class="studio-adjust-grid">
+          <label class="studio-adjust-control"><span data-i18n="studio.exposure">Exposure</span><strong id="studioExposureValue">0</strong><input id="studioExposure" type="range" min="-40" max="40" value="0"></label>
+          <label class="studio-adjust-control"><span data-i18n="studio.contrast">Contrast</span><strong id="studioContrastValue">0</strong><input id="studioContrast" type="range" min="-40" max="40" value="0"></label>
+          <label class="studio-adjust-control"><span data-i18n="studio.highlights">Highlights</span><strong id="studioHighlightsValue">0</strong><input id="studioHighlights" type="range" min="-50" max="50" value="0"></label>
+        </div>
+        <div class="studio-adjust-actions"><button type="button" class="soft-btn" id="studioResetAdjustments"><span data-i18n="studio.resetAdjustments">Reset adjustments</span></button></div>
+      </details>
       <details class="studio-more-tools">
         <summary data-i18n="studio.more">More options</summary>
         <div class="studio-more-grid"><button type="button" class="soft-btn" id="studioCenter">◎ <span data-i18n="studio.center">Center</span></button><button type="button" class="soft-btn" id="studioFit">↔ <span data-i18n="studio.fit">Fit</span></button><button type="button" class="soft-btn" id="studioResetAll">↺ <span data-i18n="studio.resetAll">Reset all photo edits</span></button></div>

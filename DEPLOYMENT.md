@@ -70,3 +70,7 @@ Second incremental cutout-quality pass. Keeps the v13.9-dev1.1 background-detect
 
 ## v13.9-dev2.1
 Calibration update for cutout behavior and restore. Automatic cutout now adapts to overall subject/background contrast: low-contrast items are treated more conservatively, while medium/high-contrast items remove obvious outer background more aggressively. Restore now paints back pixels from the captured original photo, so clothing details can be recovered even when the cutout removed them completely. Service-worker cache: `audrey-closet-v13.9-dev2.1`.
+
+
+## v13.10-dev1
+Adds non-destructive Photo Studio adjustments for Exposure, Contrast, and Highlights. Adjustments are previewed live, persist when reopening the photo, export with the saved image, and can be reset without affecting cutout or masking work. Service-worker cache: `audrey-closet-v13.10-dev1`.
