@@ -498,3 +498,12 @@ body.closet-reordering .bottom-nav{pointer-events:none}
 .outfit-view-scroll{overflow-y:hidden;overscroll-behavior:none}
 .outfit-view-scroll.allow-detail-scroll{overflow-y:auto;overscroll-behavior:contain}
 .outfit-view-dialog .outfit-view-actions{position:relative;z-index:5}
+
+
+/* v13.11-dev5.1 — Portfolio modal background lock + expandable cue */
+body.portfolio-modal-open{position:fixed;left:0;right:0;width:100%;overflow:hidden;overscroll-behavior:none;touch-action:none}
+#outfitViewDialog,#portfolioItemPreviewDialog{overscroll-behavior:contain}
+.outfit-items-panel>summary{list-style:none;position:relative;padding-left:30px}
+.outfit-items-panel>summary::-webkit-details-marker{display:none}
+.outfit-items-panel>summary::before{content:'▸';position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--burgundy);font-size:12px;line-height:1;transition:transform .14s ease}
+.outfit-items-panel[open]>summary::before{transform:translateY(-50%) rotate(90deg)}
