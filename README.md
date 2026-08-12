@@ -178,3 +178,7 @@ Polishes Closet reordering with continuous finger-follow/edge auto-scroll behavi
 
 ## v13.11-dev4.4
 Closet reorder calibration: the floating drag card now uses visual-viewport-aware touch coordinates so it stays under the finger on iPhone/PWA while scrolling and auto-scrolling. Consolidated older Closet drag CSS into one canonical rule set to remove conflicting legacy source/ghost/drop-target styles. Service-worker cache: `audrey-closet-v13.11-dev4.4`.
+
+
+## v13.11-dev4.5
+Closet reorder drag mapping fix. The floating card now uses raw client coordinates inside a dedicated fixed viewport overlay, matching `getBoundingClientRect()` and avoiding page/visual-viewport offset mixing on iPhone. The ghost uses explicit left/top positioning and remains independent of document scrolling. Service-worker cache: `audrey-closet-v13.11-dev4.5`.

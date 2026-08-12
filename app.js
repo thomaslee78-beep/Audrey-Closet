@@ -228,7 +228,7 @@ async function init(){
   $('#addPortfolioFolderBtn').onclick=addPortfolioFolder;
   $('#managePortfolioBtn').onclick=()=>{renderPortfolioFolderEditor();showScreen('more')};
   $('#portfolioNewBtn').onclick=()=>guardBoardSwitch(()=>{startNewOutfit();showScreen('outfits')},'start a new look');
-  if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js?v=13.11-dev4.4',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
+  if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js?v=13.11-dev4.5',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
   renderAll();
 }
 function fillSelects(){
@@ -462,14 +462,12 @@ function bindCatalogReorder(activeCategory){
   });
 }
 function catalogViewportPoint(point){
-  const vv=window.visualViewport;
-  const pageLeft=vv?.pageLeft ?? window.scrollX ?? 0;
-  const pageTop=vv?.pageTop ?? window.scrollY ?? 0;
-  const px=Number.isFinite(point?.pageX)?point.pageX:(Number(point?.clientX)||0)+(window.scrollX||0);
-  const py=Number.isFinite(point?.pageY)?point.pageY:(Number(point?.clientY)||0)+(window.scrollY||0);
-  return {x:px-pageLeft,y:py-pageTop};
+  // The drag ghost lives in a fixed viewport overlay, so use the same coordinate
+  // system as getBoundingClientRect(): raw client coordinates. Mixing page/visual
+  // viewport offsets caused the ghost to drift off-screen on iPhone while scrolling.
+  return {x:Number(point?.clientX)||0,y:Number(point?.clientY)||0};
 }
-function catalogViewportHeight(){return window.visualViewport?.height||window.innerHeight}
+function catalogViewportHeight(){return window.innerHeight||document.documentElement.clientHeight||0}
 function beginCatalogPress(card,activeCategory,pointerId,x,y,touchId){
   clearTimeout(closetDrag.timer);cleanupCatalogGhost();
   closetDrag={timer:null,pointerId,touchId,startX:x,startY:y,x,y,card,category:activeCategory||'',active:false,moved:false,ghost:null,dropOutline:null,placeholder:null,lastPlacement:'',raf:null,scrollRaf:null,longPressed:false};
@@ -502,6 +500,11 @@ function unbindActiveCatalogTouchTracking(){
   window.removeEventListener('touchcancel',handleActiveCatalogTouchCancel,true);
 }
 
+function ensureClosetDragOverlay(){
+  let overlay=document.getElementById('closetDragOverlay');
+  if(!overlay){overlay=document.createElement('div');overlay.id='closetDragOverlay';overlay.className='closet-drag-overlay';overlay.setAttribute('aria-hidden','true');document.body.appendChild(overlay)}
+  return overlay;
+}
 function startCatalogDrag(){
   const d=closetDrag;if(!d.card)return;
   if(!d.category){d.timer=null;d.longPressed=true;suppressCatalogClickUntil=Date.now()+1100;navigator.vibrate?.(12);toast('Choose a clothing category first, then press & hold to reorder.');return}
@@ -516,11 +519,12 @@ function startCatalogDrag(){
   d.targetId=d.originalId;
   d.targetAfter=false;
 
+  const overlay=ensureClosetDragOverlay();d.overlay=overlay;
   const ghost=d.card.cloneNode(true);ghost.classList.add('closet-drag-ghost');ghost.removeAttribute('data-id');ghost.removeAttribute('style');
   ghost.querySelectorAll('img').forEach(img=>{img.draggable=false});
-  Object.assign(ghost.style,{position:'fixed',left:'0',top:'0',width:rect.width+'px',height:rect.height+'px',margin:'0',pointerEvents:'none',zIndex:'5000',willChange:'transform',transformOrigin:'top left'});
-  document.body.appendChild(ghost);d.ghost=ghost;d.ghostOffsetX=d.x-rect.left;d.ghostOffsetY=d.y-rect.top;
-  const dropOutline=document.createElement('div');dropOutline.className='closet-drop-outline';dropOutline.setAttribute('aria-hidden','true');document.body.appendChild(dropOutline);d.dropOutline=dropOutline;
+  Object.assign(ghost.style,{position:'absolute',left:'0',top:'0',width:rect.width+'px',height:rect.height+'px',margin:'0',pointerEvents:'none',willChange:'left, top, transform',transformOrigin:'top left'});
+  overlay.appendChild(ghost);d.ghost=ghost;d.ghostOffsetX=d.x-rect.left;d.ghostOffsetY=d.y-rect.top;
+  const dropOutline=document.createElement('div');dropOutline.className='closet-drop-outline';dropOutline.setAttribute('aria-hidden','true');overlay.appendChild(dropOutline);d.dropOutline=dropOutline;
   document.body.classList.add('closet-reordering');$('#catalogGrid')?.classList.add('closet-grid-reordering');
   if(d.touchId!=null)bindActiveCatalogTouchTracking();
   navigator.vibrate?.(18);positionCatalogGhost(d.x,d.y);startCatalogAutoScroll();
@@ -531,7 +535,7 @@ function startCatalogDrag(){
 function positionCatalogGhost(x,y){
   const d=closetDrag;if(!d.ghost)return;
   const left=x-(d.ghostOffsetX||0),top=y-(d.ghostOffsetY||0);
-  d.ghost.style.transform=`translate3d(${left}px,${top}px,0) scale(1.018)`;
+  d.ghost.style.left=left+'px';d.ghost.style.top=top+'px';d.ghost.style.transform='scale(1.018)';
 }
 function moveCatalogDrag(x,y,pointerId,touchId,e){
   const d=closetDrag;if(!d.card)return;
@@ -597,6 +601,7 @@ function cleanupCatalogGhost(){
   if(d?.scrollRaf){cancelAnimationFrame(d.scrollRaf);d.scrollRaf=null}
   if(d?.ghost){try{d.ghost.remove()}catch{}}
   if(d?.dropOutline){try{d.dropOutline.remove()}catch{}}
+  if(d?.overlay){try{d.overlay.remove()}catch{}}
   clearCatalogDropTarget();
   $('#catalogGrid')?.classList.remove('closet-grid-reordering');
   document.body.classList.remove('closet-reordering');
