@@ -511,3 +511,16 @@ body.portfolio-reordering .bottom-nav{pointer-events:none}
 .portfolio-card.portfolio-drop-target.drop-before:before{left:-5px}.portfolio-card.portfolio-drop-target.drop-after:before{right:-5px}
 .portfolio-drop-outline{position:fixed;display:none;pointer-events:none;z-index:4998;border:3px dashed rgba(77,142,138,.78);border-radius:18px;background:rgba(77,142,138,.06);box-sizing:border-box}
 .portfolio-drop-outline.visible{display:block}
+
+
+/* v13.11-dev4.1 — reorder interaction polish */
+.portfolio-card{-webkit-touch-callout:none;user-select:none;touch-action:pan-y}
+body.portfolio-reordering{overflow-x:hidden!important;overflow-y:auto!important;touch-action:none!important}
+.portfolio-drop-outline{position:fixed;display:none;pointer-events:none;z-index:5600;border:3px dashed rgba(125,53,71,.94);border-radius:18px;box-sizing:border-box;background:rgba(255,250,240,.06);filter:drop-shadow(0 2px 2px rgba(255,250,240,.9))}
+.portfolio-drop-outline.visible{display:block}
+.portfolio-drag-ghost,.closet-drag-ghost{animation:reorderLift .16s ease-out both}
+.portfolio-card.portfolio-drop-target,.item-card.closet-drop-target{animation:reorderTargetPulse .72s ease-in-out infinite alternate}
+.portfolio-drop-confirm,.closet-drop-confirm{animation:reorderDropConfirm .34s ease-out both!important}
+@keyframes reorderLift{from{opacity:.72;transform:scale(.985)}to{opacity:.96}}
+@keyframes reorderTargetPulse{from{filter:saturate(.72);opacity:.45}to{filter:saturate(.9);opacity:.68}}
+@keyframes reorderDropConfirm{0%{transform:scale(.975);box-shadow:0 0 0 3px rgba(77,142,138,.55)}65%{transform:scale(1.018);box-shadow:0 0 0 4px rgba(77,142,138,.35)}100%{transform:scale(1);box-shadow:none}}
