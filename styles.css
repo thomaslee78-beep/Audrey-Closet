@@ -418,3 +418,18 @@ body.journal-item-preview-open{position:fixed;left:0;right:0;width:100%;overflow
 .studio-controls-scroll{border-top:1px solid rgba(120,105,88,.12)}
 .studio-controls-scroll .studio-context-controls{margin-top:7px}
 .studio-controls-scroll .studio-cutout-tools{margin-top:5px}
+
+
+/* v13.10-dev1.3 — Studio instructions + Journal/iPad layout fixes */
+.studio-context-controls{flex-wrap:wrap}
+.studio-tool-instruction{width:100%;margin-top:5px;padding:6px 9px;border-radius:9px;background:#f7f0e2;border:1px solid rgba(108,81,66,.12);color:#74695d;font-size:9px;line-height:1.35;text-align:left}
+.studio-brush-control + .studio-tool-instruction,.studio-move-hint + .studio-tool-instruction{margin-top:5px}
+.today-journal-list{width:100%;min-width:0;overflow:hidden}
+.today-journal-list .journal-row{width:100%;max-width:100%;min-width:0;overflow:hidden;margin:0}
+.today-journal-list .journal-row-main{min-width:0;max-width:100%;overflow:hidden}
+.today-journal-list .journal-thumbs{min-width:0;max-width:44%;overflow:hidden}
+.today-journal-list .journal-row-copy{min-width:0;overflow:hidden}
+.today-journal-list .journal-chevron{flex:0 0 auto}
+@media(min-width:680px){
+  .bottom-nav{left:50%!important;right:auto!important;width:min(680px,calc(100vw - 32px));max-width:calc(100vw - 32px);transform:translate3d(-50%,0,0)!important;-webkit-transform:translate3d(-50%,0,0)!important}
+}
