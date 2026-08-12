@@ -170,3 +170,7 @@ Reorder interaction calibration. Portfolio drag now supports continuous edge aut
 
 ## v13.11-dev4.2
 Polishes Portfolio and Closet reorder gestures. Portfolio cards now lift from their actual position without jumping from the top of the screen; long-press attempts in All/Favorites are suppressed from opening look details after release. Closet reorder visuals now match Portfolio: a clean lifted ghost with no source outline and a two-layer turquoise + burgundy dashed destination cue. Service-worker cache: `audrey-closet-v13.11-dev4.2`.
+
+
+## v13.11-dev4.3
+Polishes Closet reordering with continuous finger-follow/edge auto-scroll behavior and saves newly created Portfolio looks at the front of their selected category. Existing saved looks keep their manually chosen order when edited in place. Service-worker cache: `audrey-closet-v13.11-dev4.3`.

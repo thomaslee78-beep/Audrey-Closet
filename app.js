@@ -141,7 +141,7 @@ let shareReturnOutfitId=null;
 let portfolioPreviewReturnOutfitId=null;
 let portfolioPreviewItemId=null;
 let portfolioPreviewItemSource='closet';
-let closetDrag={timer:null,pointerId:null,touchId:null,startX:0,startY:0,x:0,y:0,card:null,category:'',active:false,moved:false,ghost:null,dropOutline:null,placeholder:null,lastPlacement:'',raf:null,longPressed:false};
+let closetDrag={timer:null,pointerId:null,touchId:null,startX:0,startY:0,x:0,y:0,card:null,category:'',active:false,moved:false,ghost:null,dropOutline:null,placeholder:null,lastPlacement:'',raf:null,scrollRaf:null,longPressed:false};
 let suppressCatalogClickUntil=0;
 let portfolioDrag={timer:null,pointerId:null,touchId:null,startX:0,startY:0,x:0,y:0,card:null,folder:'',active:false,moved:false,ghost:null,dropOutline:null,targetId:null,targetAfter:false,originalId:null,raf:null,scrollRaf:null,aggregate:false,aggregateLongPress:false};
 let suppressPortfolioClickUntil=0;
@@ -463,7 +463,7 @@ function bindCatalogReorder(activeCategory){
 }
 function beginCatalogPress(card,activeCategory,pointerId,x,y,touchId){
   clearTimeout(closetDrag.timer);cleanupCatalogGhost();
-  closetDrag={timer:null,pointerId,touchId,startX:x,startY:y,x,y,card,category:activeCategory||'',active:false,moved:false,ghost:null,dropOutline:null,placeholder:null,lastPlacement:'',raf:null,longPressed:false};
+  closetDrag={timer:null,pointerId,touchId,startX:x,startY:y,x,y,card,category:activeCategory||'',active:false,moved:false,ghost:null,dropOutline:null,placeholder:null,lastPlacement:'',raf:null,scrollRaf:null,longPressed:false};
   closetDrag.timer=setTimeout(()=>startCatalogDrag(),430);
 }
 
@@ -514,7 +514,7 @@ function startCatalogDrag(){
   const dropOutline=document.createElement('div');dropOutline.className='closet-drop-outline';dropOutline.setAttribute('aria-hidden','true');document.body.appendChild(dropOutline);d.dropOutline=dropOutline;
   document.body.classList.add('closet-reordering');$('#catalogGrid')?.classList.add('closet-grid-reordering');
   if(d.touchId!=null)bindActiveCatalogTouchTracking();
-  navigator.vibrate?.(18);positionCatalogGhost(d.x,d.y);
+  navigator.vibrate?.(18);positionCatalogGhost(d.x,d.y);startCatalogAutoScroll();
   // Do not choose a destination until the user actually starts dragging.
   clearCatalogDropTarget();d.targetId=null;d.targetAfter=false;
   toast('Reorder mode — drag to a new slot, then release');
@@ -544,9 +544,14 @@ function moveCatalogDrag(x,y,pointerId,touchId,e){
   if(!d.raf)d.raf=requestAnimationFrame(()=>{d.raf=null;autoScrollCatalogDrag(d.pendingY);updateCatalogDropTarget(d.pendingX,d.pendingY)});
 }
 function autoScrollCatalogDrag(y){
-  const edge=105,speed=10;
-  if(y<edge)window.scrollBy(0,-speed);
-  else if(y>window.innerHeight-edge)window.scrollBy(0,speed);
+  const edge=Math.min(130,window.innerHeight*.18),maxSpeed=16;let delta=0;
+  if(y<edge)delta=-maxSpeed*(1-y/edge);
+  else if(y>window.innerHeight-edge)delta=maxSpeed*(1-(window.innerHeight-y)/edge);
+  if(Math.abs(delta)>.25)window.scrollBy(0,delta);
+}
+function startCatalogAutoScroll(){
+  const tick=()=>{const d=closetDrag;if(!d?.active){if(d)d.scrollRaf=null;return}const before=window.scrollY;autoScrollCatalogDrag(d.y);if(window.scrollY!==before){positionCatalogGhost(d.x,d.y);updateCatalogDropTarget(d.x,d.y)}d.scrollRaf=requestAnimationFrame(tick)};
+  if(!closetDrag.scrollRaf)closetDrag.scrollRaf=requestAnimationFrame(tick);
 }
 function clearCatalogDropTarget(){
   $$('#catalogGrid .closet-drop-target').forEach(el=>el.classList.remove('closet-drop-target','drop-before','drop-after'));
@@ -580,6 +585,7 @@ function cleanupCatalogGhost(){
   unbindActiveCatalogTouchTracking();
   const d=closetDrag;
   if(d?.raf){cancelAnimationFrame(d.raf);d.raf=null}
+  if(d?.scrollRaf){cancelAnimationFrame(d.scrollRaf);d.scrollRaf=null}
   if(d?.ghost){try{d.ghost.remove()}catch{}}
   if(d?.dropOutline){try{d.dropOutline.remove()}catch{}}
   clearCatalogDropTarget();
@@ -649,7 +655,7 @@ function bindBoard(){
 function renderOutfits(){populatePortfolioFolderSelect($('#outfitFolder').value);renderPieceTray()}
 function boardHasDraft(){return boardItems.length>0}
 function guardBoardSwitch(action,label='replace the current board'){if(typeof action!=='function')return;if(!boardHasDraft()){action();return}pendingBoardSwitchAction=action;const msg=$('#boardConflictMessage');if(msg)msg.textContent=`There is already a look on the Design Board. Save it before you ${label}, replace it, or cancel and keep working.`;const d=$('#boardConflictDialog');if(d&&!d.open)d.showModal()}
-async function saveCurrentBoardForSwitch(){if(!boardItems.length)return true;const name=$('#outfitName').value.trim()||'Untitled look';const board=$('#outfitBoard');ensureSettings();const prior=editingOutfitId?state.outfits.find(x=>x.id===editingOutfitId):null,priorFolder=prior?.folder||'';const snapshot={name,notes:$('#outfitNotes').value.trim(),folder:$('#outfitFolder').value||state.settings.portfolioFolders[0]||'Everyday',favorite:prior?.favorite||false,pieces:boardItems.map(x=>({...x})),boardWidth:board.clientWidth,boardHeight:board.clientHeight};let savedId=editingOutfitId;if(savedId){const existing=state.outfits.find(x=>x.id===savedId);if(existing)Object.assign(existing,snapshot,{updated:Date.now()});else savedId=null}if(!savedId){const created={id:id(),...snapshot,created:Date.now()};state.outfits.unshift(created);savedId=created.id;editingOutfitId=savedId}ensureSettings();if(priorFolder&&priorFolder!==snapshot.folder&&state.settings.portfolioOrder[priorFolder])state.settings.portfolioOrder[priorFolder]=state.settings.portfolioOrder[priorFolder].filter(x=>x!==savedId);const order=state.settings.portfolioOrder[snapshot.folder]||(state.settings.portfolioOrder[snapshot.folder]=[]);if(!order.includes(savedId))order.unshift(savedId);const ok=await saveState();if(ok===false)return false;renderSavedOutfits();return true}
+async function saveCurrentBoardForSwitch(){if(!boardItems.length)return true;const name=$('#outfitName').value.trim()||'Untitled look';const board=$('#outfitBoard');ensureSettings();const prior=editingOutfitId?state.outfits.find(x=>x.id===editingOutfitId):null,priorFolder=prior?.folder||'';const snapshot={name,notes:$('#outfitNotes').value.trim(),folder:$('#outfitFolder').value||state.settings.portfolioFolders[0]||'Everyday',favorite:prior?.favorite||false,pieces:boardItems.map(x=>({...x})),boardWidth:board.clientWidth,boardHeight:board.clientHeight};let savedId=editingOutfitId;if(savedId){const existing=state.outfits.find(x=>x.id===savedId);if(existing)Object.assign(existing,snapshot,{updated:Date.now()});else savedId=null}if(!savedId){const created={id:id(),...snapshot,created:Date.now()};state.outfits.unshift(created);savedId=created.id;editingOutfitId=savedId}ensureSettings();if(priorFolder&&priorFolder!==snapshot.folder&&state.settings.portfolioOrder[priorFolder])state.settings.portfolioOrder[priorFolder]=state.settings.portfolioOrder[priorFolder].filter(x=>x!==savedId);let order=state.settings.portfolioOrder[snapshot.folder]||(state.settings.portfolioOrder[snapshot.folder]=[]);if(!prior||priorFolder!==snapshot.folder){order=order.filter(x=>x!==savedId);order.unshift(savedId);state.settings.portfolioOrder[snapshot.folder]=order}else if(!order.includes(savedId))order.unshift(savedId);const ok=await saveState();if(ok===false)return false;renderSavedOutfits();return true}
 async function saveBoardBeforeSwitch(){const action=pendingBoardSwitchAction;pendingBoardSwitchAction=null;const d=$('#boardConflictDialog');if(d?.open)d.close();const ok=await saveCurrentBoardForSwitch();if(!ok){toast('Could not save the current board');return}toast('Current board saved');if(action)action()}
 function replaceBoardForSwitch(){const action=pendingBoardSwitchAction;pendingBoardSwitchAction=null;const d=$('#boardConflictDialog');if(d?.open)d.close();if(action)action()}
 function cancelBoardSwitch(){pendingBoardSwitchAction=null;const d=$('#boardConflictDialog');if(d?.open)d.close();toast('Kept the current board')}
@@ -786,7 +792,7 @@ function closeSharePreview(){const returnId=shareReturnOutfitId;$('#sharePreview
 
 
 function requestSaveOutfit(){if(!boardItems.length)return toast('Add at least one piece');ensureSettings();const existing=editingOutfitId?state.outfits.find(x=>x.id===editingOutfitId):null;populatePortfolioFolderSelect(existing?.folder||state.settings.portfolioFolders[0]||'Everyday');$('#confirmSaveOutfitBtn').textContent=editingOutfitId?'Update here':'Save here';$('#outfitSaveDialog').showModal()}
-async function saveOutfit(){if(!boardItems.length){$('#outfitSaveDialog').close();return toast('Add at least one piece')}const name=$('#outfitName').value.trim()||'Untitled look';const board=$('#outfitBoard');ensureSettings();const prior=editingOutfitId?state.outfits.find(x=>x.id===editingOutfitId):null,priorFolder=prior?.folder||'';const snapshot={name,notes:$('#outfitNotes').value.trim(),folder:$('#outfitFolder').value||state.settings.portfolioFolders[0]||'Everyday',favorite:prior?.favorite||false,pieces:boardItems.map(x=>({...x})),boardWidth:board.clientWidth,boardHeight:board.clientHeight};if(editingOutfitId){const existing=state.outfits.find(x=>x.id===editingOutfitId);if(existing){Object.assign(existing,snapshot,{updated:Date.now()})}else editingOutfitId=null}if(!editingOutfitId){const created={id:id(),...snapshot,created:Date.now()};state.outfits.unshift(created);editingOutfitId=created.id}ensureSettings();if(priorFolder&&priorFolder!==snapshot.folder&&state.settings.portfolioOrder[priorFolder])state.settings.portfolioOrder[priorFolder]=state.settings.portfolioOrder[priorFolder].filter(x=>x!==editingOutfitId);const order=state.settings.portfolioOrder[snapshot.folder]||(state.settings.portfolioOrder[snapshot.folder]=[]);if(!order.includes(editingOutfitId))order.unshift(editingOutfitId);const ok=await saveState();if(ok===false)return toast('Could not save — please try again');$('#outfitSaveDialog').close();renderSavedOutfits();$('#saveOutfitBtn').textContent='Update outfit';toast('Outfit saved to '+snapshot.folder)}
+async function saveOutfit(){if(!boardItems.length){$('#outfitSaveDialog').close();return toast('Add at least one piece')}const name=$('#outfitName').value.trim()||'Untitled look';const board=$('#outfitBoard');ensureSettings();const prior=editingOutfitId?state.outfits.find(x=>x.id===editingOutfitId):null,priorFolder=prior?.folder||'',wasNew=!prior;const snapshot={name,notes:$('#outfitNotes').value.trim(),folder:$('#outfitFolder').value||state.settings.portfolioFolders[0]||'Everyday',favorite:prior?.favorite||false,pieces:boardItems.map(x=>({...x})),boardWidth:board.clientWidth,boardHeight:board.clientHeight};if(editingOutfitId){const existing=state.outfits.find(x=>x.id===editingOutfitId);if(existing){Object.assign(existing,snapshot,{updated:Date.now()})}else editingOutfitId=null}if(!editingOutfitId){const created={id:id(),...snapshot,created:Date.now()};state.outfits.unshift(created);editingOutfitId=created.id}ensureSettings();if(priorFolder&&priorFolder!==snapshot.folder&&state.settings.portfolioOrder[priorFolder])state.settings.portfolioOrder[priorFolder]=state.settings.portfolioOrder[priorFolder].filter(x=>x!==editingOutfitId);let order=state.settings.portfolioOrder[snapshot.folder]||(state.settings.portfolioOrder[snapshot.folder]=[]);if(wasNew||priorFolder!==snapshot.folder){order=order.filter(x=>x!==editingOutfitId);order.unshift(editingOutfitId);state.settings.portfolioOrder[snapshot.folder]=order}else if(!order.includes(editingOutfitId))order.unshift(editingOutfitId);const ok=await saveState();if(ok===false)return toast('Could not save — please try again');$('#outfitSaveDialog').close();renderSavedOutfits();$('#saveOutfitBtn').textContent='Update outfit';toast('Outfit saved to '+snapshot.folder)}
 function renderMiniPiece(p,o){
   p=normalizeBoardItem({...p});const sw=o.boardWidth||390,sh=o.boardHeight||420;
   const left=Math.max(-10,Math.min(100,(p.x/sw)*100)),top=Math.max(-10,Math.min(100,(p.y/sh)*100));
