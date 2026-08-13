@@ -142,3 +142,7 @@ Portfolio saved-look layout refinement based strictly on v13.11-dev6. The saved-
 
 ## v13.11-dev6.1a.1
 Saved-look polish: returning from a read-only portfolio item preview preserves the expanded Items in this look panel. Bottom actions are simplified to Copy, Edit, and Share, with Delete saved look moved to a smaller destructive text action beneath them. Service-worker cache: `audrey-closet-v13.11-dev6.1a.1`.
+
+
+## v13.11-dev6.1b
+Portfolio search-field refinement only. The search input uses an iPhone-safe 16px font to prevent Safari form zoom, and pressing Search/Enter dismisses the keyboard while preserving the active search term and filtered results. Built from v13.11-dev6.1a.1. Service-worker cache: `audrey-closet-v13.11-dev6.1b`.

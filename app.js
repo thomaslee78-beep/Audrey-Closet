@@ -237,8 +237,8 @@ async function init(){
   $('#addPortfolioFolderBtn').onclick=addPortfolioFolder;
   $('#managePortfolioBtn').onclick=()=>{renderPortfolioFolderEditor();showScreen('more')};
   $('#portfolioNewBtn').onclick=()=>guardBoardSwitch(()=>{startNewOutfit();showScreen('outfits')},'start a new look');
-  $('#portfolioSearch').oninput=e=>{portfolioSearchQuery=e.target.value||'';renderSavedOutfits()};$('#portfolioItemFilterBtn').onclick=()=>{portfolioItemPickerOpen=!portfolioItemPickerOpen;renderPortfolioDiscovery()};$('#portfolioClearFilters').onclick=clearPortfolioDiscovery;
-  if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js?v=13.11-dev6.1a.1',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
+  $('#portfolioSearch').oninput=e=>{portfolioSearchQuery=e.target.value||'';renderSavedOutfits()};$('#portfolioSearch').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();e.currentTarget.blur()}});$('#portfolioItemFilterBtn').onclick=()=>{portfolioItemPickerOpen=!portfolioItemPickerOpen;renderPortfolioDiscovery()};$('#portfolioClearFilters').onclick=clearPortfolioDiscovery;
+  if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js?v=13.11-dev6.1b',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
   renderAll();
 }
 function fillSelects(){
