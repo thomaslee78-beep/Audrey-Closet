@@ -214,3 +214,7 @@ Portfolio discovery polish: renames the Closet Items action to Filter, moves Cle
 
 ## v13.11-dev6.1c.1
 Portfolio discovery polish: removes the redundant Manage folders shortcut from Portfolio, locks filter thumbnails against native image actions, preserves the closet-item picker scroll position while selecting filters, and adds light clothing-term normalization so common plurals such as jackets/shoes/sweaters match their singular catalog types. Service-worker cache: `audrey-closet-v13.11-dev6.1c.1`.
+
+
+## v13.11-dev6.1d
+Adds direct long-press drag reordering for Portfolio folder tabs, including All and Favorites. Tab labels are protected from text selection and the iOS touch-callout while interacting with them. Service-worker cache: `audrey-closet-v13.11-dev6.1d`.

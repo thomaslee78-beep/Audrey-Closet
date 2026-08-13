@@ -540,3 +540,12 @@ body.portfolio-modal-open{position:fixed;left:0;right:0;width:100%;overflow:hidd
 .portfolio-filter-item img,.portfolio-filter-chip img{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;pointer-events:none}
 .portfolio-filter-item,.portfolio-filter-chip{-webkit-touch-callout:none}
 .portfolio-summary{justify-content:flex-start}
+
+
+/* v13.11-dev6.1d — direct Portfolio tab reordering */
+#portfolioTabs,.portfolio-tab{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.portfolio-tab{touch-action:pan-x pan-y}
+.portfolio-tab-drag-source{opacity:.38;transform:translateY(-2px) scale(.985)}
+.portfolio-tab-drag-ghost{opacity:.96!important;box-shadow:0 12px 24px rgba(73,57,38,.22)!important;transform:translateY(-3px) scale(1.025)!important;transition:none!important}
+.portfolio-tab-drop-target{outline:2px dashed var(--turq)!important;outline-offset:3px;box-shadow:0 0 0 2px rgba(138,75,88,.42),0 5px 12px rgba(73,57,38,.10)!important}
+.portfolio-tab-reordering #portfolioTabs{cursor:grabbing}
