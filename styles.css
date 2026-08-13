@@ -518,16 +518,3 @@ body.portfolio-modal-open{position:fixed;left:0;right:0;width:100%;overflow:hidd
 .portfolio-item-filter-panel{margin:4px 0 9px;border:1px solid var(--line);border-radius:14px;background:#fffaf0;padding:9px}.portfolio-item-filter-panel.hidden{display:none}.portfolio-filter-picker-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:8px}.portfolio-filter-picker-head strong{font:700 12px var(--serif);color:var(--coffee)}.portfolio-filter-picker-head small{font-size:9px;color:#887b6b;text-align:right}
 .portfolio-filter-item-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;max-height:270px;overflow:auto;overscroll-behavior:contain}.portfolio-filter-item{position:relative;display:flex;flex-direction:column;gap:3px;min-width:0;border:1px solid var(--line);background:#fff;border-radius:11px;padding:5px;color:#655b50;text-align:left}.portfolio-filter-item.selected{border-color:var(--turq);box-shadow:0 0 0 2px rgba(82,130,126,.28);background:#eef5f2}.portfolio-filter-item img,.portfolio-filter-placeholder{width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:8px;background:#eee6d8;display:flex;align-items:center;justify-content:center}.portfolio-filter-item>span:not(.portfolio-filter-placeholder){font-size:9px;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.portfolio-filter-item small{font-size:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#8b7d6e}.portfolio-filter-empty{grid-column:1/-1;text-align:center;color:#887b6b;font-size:11px;padding:12px}
 @media(max-width:560px){.portfolio-discovery-bar{grid-template-columns:minmax(0,1fr) auto}.portfolio-discovery-bar>#portfolioClearFilters{grid-column:1/-1;justify-self:end;margin-top:-3px}.portfolio-filter-item-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.portfolio-filter-picker-head{display:block}.portfolio-filter-picker-head small{display:block;text-align:left;margin-top:2px}}
-
-
-/* v13.11-dev6.1 — Portfolio discovery/detail polish + tab reordering */
-.outfit-view-dialog .outfit-view-head{position:sticky;top:-16px;z-index:8;background:var(--paper,#fbf6eb);margin:-16px -16px 10px;padding:16px 16px 10px;border-bottom:1px solid rgba(120,105,88,.12)}
-.outfit-view-scroll.allow-detail-scroll .outfit-view-head{box-shadow:0 5px 12px rgba(70,55,40,.05)}
-@media(max-width:600px){.portfolio-search-wrap input{font-size:16px;line-height:1.2;padding:8px 0}}
-.portfolio-item-filter-btn[aria-expanded="true"]{background:#e5eee9;border-color:rgba(82,130,126,.45)}
-.portfolio-filter-picker-head{align-items:center}.portfolio-filter-picker-head>div{min-width:0}.portfolio-filter-close{flex:0 0 auto}
-.portfolio-tab-order-hint{font-size:9px;color:#938777;text-align:right}
-.portfolio-tab-drag-source{opacity:.32!important}
-.portfolio-tab-drag-ghost{opacity:.96;box-shadow:0 13px 25px rgba(55,43,31,.23)!important;transform:translateY(-3px) scale(1.025);transition:none!important}
-.portfolio-tab-drop-target{box-shadow:0 0 0 2px var(--turq),0 0 0 5px rgba(125,53,71,.42)!important;border-style:dashed!important}
-body.portfolio-tab-reordering .portfolio-tabs{overflow-x:hidden;touch-action:none}
