@@ -190,3 +190,7 @@ Portfolio folder/order refinement: All and Favorites are now protected but movab
 
 ## v13.11-dev5.1
 Locks the page behind Portfolio look detail and read-only item preview dialogs so edge swipes cannot scroll the underlying app. Adds the same caret-style expandable indicator used elsewhere to the Items in this look section. Service-worker cache: `audrey-closet-v13.11-dev5.1`.
+
+
+## v13.11-dev6
+Adds Portfolio discovery: keyword search across looks and closet-item metadata, a thumbnail-based closet item filter with multi-select AND matching, selected-item filter chips, and clear-filter controls. Reordering is temporarily disabled while discovery filters are active to protect manual folder order. Service-worker cache: `audrey-closet-v13.11-dev6`.
