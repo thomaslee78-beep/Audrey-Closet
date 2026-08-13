@@ -158,3 +158,7 @@ Portfolio discovery polish: removes the redundant Manage folders shortcut from P
 
 ## v13.11-dev6.1d
 Adds direct long-press drag reordering for Portfolio folder tabs, including All and Favorites. Tab labels are protected from text selection and the iOS touch-callout while interacting with them. Service-worker cache: `audrey-closet-v13.11-dev6.1d`.
+
+
+## v13.11-dev7
+Portfolio visual-polish build. Folder tabs now visually connect to a folder-like Portfolio body, the active folder comes forward, and drag/drop cues remain prominent. The component is driven by semantic `--portfolio-folder-*` CSS tokens and palette slots so future themes (vintage, pastel, high-fashion, etc.) can restyle colors, borders, radii, shadows, and typography without changing Portfolio behavior. No database or Portfolio ordering logic changes. Service-worker cache: `audrey-closet-v13.11-dev7`.
