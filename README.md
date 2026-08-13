@@ -206,3 +206,7 @@ Saved-look polish: returning from a read-only portfolio item preview preserves t
 
 ## v13.11-dev6.1b
 Portfolio search-field refinement only. The search input uses an iPhone-safe 16px font to prevent Safari form zoom, and pressing Search/Enter dismisses the keyboard while preserving the active search term and filtered results. Built from v13.11-dev6.1a.1. Service-worker cache: `audrey-closet-v13.11-dev6.1b`.
+
+
+## v13.11-dev6.1c
+Portfolio discovery polish: renames the Closet Items action to Filter, moves Clear into the Filter by closet items panel header, and aligns the Portfolio search field more closely with the Closet search control to reduce iPhone focus zoom.
