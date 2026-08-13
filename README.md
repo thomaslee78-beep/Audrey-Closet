@@ -210,3 +210,7 @@ Portfolio search-field refinement only. The search input uses an iPhone-safe 16p
 
 ## v13.11-dev6.1c
 Portfolio discovery polish: renames the Closet Items action to Filter, moves Clear into the Filter by closet items panel header, and aligns the Portfolio search field more closely with the Closet search control to reduce iPhone focus zoom.
+
+
+## v13.11-dev6.1c.1
+Portfolio discovery polish: removes the redundant Manage folders shortcut from Portfolio, locks filter thumbnails against native image actions, preserves the closet-item picker scroll position while selecting filters, and adds light clothing-term normalization so common plurals such as jackets/shoes/sweaters match their singular catalog types. Service-worker cache: `audrey-closet-v13.11-dev6.1c.1`.

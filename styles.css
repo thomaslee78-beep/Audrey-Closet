@@ -534,3 +534,9 @@ body.portfolio-modal-open{position:fixed;left:0;right:0;width:100%;overflow:hidd
 .outfit-view-dialog .outfit-view-actions .soft-btn{width:100%;min-width:0;margin:0;min-height:42px}
 .outfit-view-dialog .outfit-delete-link{display:block;margin:7px auto 0;padding:2px 8px;border:0;background:transparent;font-size:9px;line-height:1.2;color:var(--burgundy);text-decoration:underline;text-underline-offset:2px;opacity:.82}
 @media(max-width:520px){.outfit-view-dialog .outfit-view-actions{grid-template-columns:repeat(3,minmax(0,1fr))!important}.outfit-view-dialog .outfit-view-actions #editViewedOutfitBtn{grid-column:auto!important}}
+
+
+/* v13.11-dev6.1c.1 — Portfolio discovery polish */
+.portfolio-filter-item img,.portfolio-filter-chip img{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;pointer-events:none}
+.portfolio-filter-item,.portfolio-filter-chip{-webkit-touch-callout:none}
+.portfolio-summary{justify-content:flex-start}
