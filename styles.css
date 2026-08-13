@@ -527,3 +527,11 @@ body.portfolio-modal-open{position:fixed;left:0;right:0;width:100%;overflow:hidd
 .outfit-view-dialog .outfit-view-scroll.allow-detail-scroll{overflow-y:auto;overscroll-behavior:none;-webkit-overflow-scrolling:touch}
 .outfit-view-dialog .outfit-view-actions{flex:0 0 auto;position:relative;z-index:8;background:var(--paper,#fbf6eb)}
 @media(max-height:700px){.outfit-view-dialog{height:94dvh;max-height:94dvh}.outfit-view-dialog .outfit-view-head{padding-top:10px;padding-bottom:8px}.outfit-view-dialog .outfit-view-scroll{padding-top:9px}}
+
+
+/* v13.11-dev6.1a.1 — saved-look return state + action polish */
+.outfit-view-dialog .outfit-view-footer{flex:0 0 auto;position:relative;z-index:8;background:var(--paper,#fbf6eb);border-top:1px solid var(--line);box-shadow:0 -5px 14px rgba(70,55,40,.07);padding:8px 12px max(9px,env(safe-area-inset-bottom))}
+.outfit-view-dialog .outfit-view-actions{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:7px!important;margin:0!important;padding:0!important;border:0!important;box-shadow:none!important;background:transparent!important}
+.outfit-view-dialog .outfit-view-actions .soft-btn{width:100%;min-width:0;margin:0;min-height:42px}
+.outfit-view-dialog .outfit-delete-link{display:block;margin:7px auto 0;padding:2px 8px;border:0;background:transparent;font-size:9px;line-height:1.2;color:var(--burgundy);text-decoration:underline;text-underline-offset:2px;opacity:.82}
+@media(max-width:520px){.outfit-view-dialog .outfit-view-actions{grid-template-columns:repeat(3,minmax(0,1fr))!important}.outfit-view-dialog .outfit-view-actions #editViewedOutfitBtn{grid-column:auto!important}}

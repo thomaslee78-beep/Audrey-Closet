@@ -138,3 +138,7 @@ Adds Portfolio discovery: keyword search across looks and closet-item metadata, 
 
 ## v13.11-dev6.1a
 Portfolio saved-look layout refinement based strictly on v13.11-dev6. The saved-look title, folder, favorite star, and close control are fixed outside the scrollable region. Only the board/notes/items middle region can scroll when expanded content requires it, with overscroll containment to prevent the modal background from pulling into view. Service-worker cache: `audrey-closet-v13.11-dev6.1a`.
+
+
+## v13.11-dev6.1a.1
+Saved-look polish: returning from a read-only portfolio item preview preserves the expanded Items in this look panel. Bottom actions are simplified to Copy, Edit, and Share, with Delete saved look moved to a smaller destructive text action beneath them. Service-worker cache: `audrey-closet-v13.11-dev6.1a.1`.
