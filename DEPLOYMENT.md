@@ -134,3 +134,7 @@ Locks the page behind Portfolio look detail and read-only item preview dialogs s
 
 ## v13.11-dev6
 Adds Portfolio discovery: keyword search across looks and closet-item metadata, a thumbnail-based closet item filter with multi-select AND matching, selected-item filter chips, and clear-filter controls. Reordering is temporarily disabled while discovery filters are active to protect manual folder order. Service-worker cache: `audrey-closet-v13.11-dev6`.
+
+
+## v13.11-dev6.1
+Portfolio discovery/detail polish: sticky saved-look header, iPhone-safe search input sizing and Enter-to-dismiss keyboard behavior, collapsible Closet item picker with visible Close control, Portfolio-screen folder management shortcut removed, and long-press folder-tab reordering added. Service-worker cache: `audrey-closet-v13.11-dev6.1`.
