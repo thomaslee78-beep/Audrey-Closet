@@ -142,3 +142,7 @@ Closet review UI refinement. Existing saved pieces now use compact upper-right C
 
 ## v13.12-dev1.1
 Closet review UI polish: camera and Smart Scan controls now sit on the upper-right of the closet card rather than beside the close button; photo-picker cancellation/return is hardened so the item editor stays open; Photo Studio is hidden for a new item until a photo exists; restoring the original photo now requires confirmation before discarding current photo edits. Service-worker cache: `audrey-closet-v13.12-dev1.1`.
+
+
+## v13.12-dev1.2
+Moves the saved-piece Camera and Smart Scan controls directly onto the upper-right of the photo. Hardens iPhone camera/library picker return behavior so canceling or returning from the native picker preserves and restores the current Add/Review Piece dialog instead of dropping back to Closet. Service-worker cache: `audrey-closet-v13.12-dev1.2`.

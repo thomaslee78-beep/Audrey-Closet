@@ -46,7 +46,7 @@
 .item-review-kicker{margin:0 0 1px;font-size:8px;letter-spacing:.16em;text-transform:uppercase;font-weight:850;color:var(--burgundy)}
 .item-review-summary h3{margin:0;font-family:var(--serif);font-weight:600;font-size:25px;line-height:1.05;color:var(--ink)}
 .item-review-summary p:last-child{margin:5px 0 0;font-size:11px;color:#71675c}
-.item-photo-stage{margin-bottom:13px}.item-photo-large{width:100%;aspect-ratio:1/1;max-height:440px;border-style:solid;border-radius:20px;background:linear-gradient(140deg,#e7dfcd,#fbf7ee)}
+.item-photo-stage{margin-bottom:13px;position:relative}.item-photo-large{width:100%;aspect-ratio:1/1;max-height:440px;border-style:solid;border-radius:20px;background:linear-gradient(140deg,#e7dfcd,#fbf7ee)}
 .item-photo-large img{padding:8px}
 .photo-edit-panel{margin-top:13px;padding:11px;border:1px solid var(--line);border-radius:17px;background:rgba(239,230,213,.68)}
 .photo-edit-heading{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:8px}.photo-edit-heading strong{font-family:var(--serif);font-size:17px;font-weight:600}.photo-edit-heading span{font-size:8px;color:#817565;text-align:right}
@@ -557,3 +557,10 @@ body.portfolio-modal-open{position:fixed;left:0;right:0;width:100%;overflow:hidd
 #itemDialog.picker-returning{visibility:visible!important;opacity:1!important}
 #photoStudioBtn:disabled,#reviewStudioBtn:disabled{opacity:.4;pointer-events:none}
 @media(max-width:410px){.item-card-utility-actions{top:7px;right:7px;gap:5px}.item-card-icon{width:36px;height:36px;min-width:36px}.item-card-utility-actions .review-photo-menu{right:0}}
+
+
+/* v13.12-dev1.2 — photo overlay controls + native picker return hardening */
+#itemDialog .item-photo-stage .item-card-utility-actions{top:12px;right:12px;z-index:18}
+#itemDialog .item-photo-stage .review-photo-menu{z-index:40}
+#itemDialog .item-photo-stage .item-card-icon{background:rgba(255,250,240,.9);box-shadow:0 4px 14px rgba(55,45,34,.18)}
+@media(max-width:410px){#itemDialog .item-photo-stage .item-card-utility-actions{top:10px;right:10px}}

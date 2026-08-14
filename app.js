@@ -238,7 +238,7 @@ async function init(){
   $('#managePortfolioBtn').onclick=()=>{renderPortfolioFolderEditor();showScreen('more')};
   $('#portfolioNewBtn').onclick=()=>guardBoardSwitch(()=>{startNewOutfit();showScreen('outfits')},'start a new look');
   $('#portfolioSearch').oninput=e=>{portfolioSearchQuery=e.target.value||'';renderSavedOutfits()};$('#portfolioItemFilterBtn').onclick=()=>{portfolioItemPickerOpen=!portfolioItemPickerOpen;renderPortfolioDiscovery()};$('#portfolioClearFilters').onclick=clearPortfolioDiscovery;
-  if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js?v=13.12-dev1.1',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
+  if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js?v=13.12-dev1.2.2',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
   renderAll();
 }
 function fillSelects(){
@@ -268,7 +268,7 @@ function bindDialogs(){
   $('#itemPhotoLibrary').onchange=e=>handleItemPhotoSelection(e,'library');
   $('#reviewItemPhoto').onchange=e=>handleItemPhotoSelection(e,'camera');
   $('#reviewItemPhotoLibrary').onchange=e=>handleItemPhotoSelection(e,'library');
-  ['itemPhoto','itemPhotoLibrary','reviewItemPhoto','reviewItemPhotoLibrary'].forEach(inputId=>{const input=$('#'+inputId);input.addEventListener('click',()=>{itemPhotoPickerActive=true;closeReviewPhotoMenu();ensureItemDialogVisible()})});
+  ['itemPhoto','itemPhotoLibrary','reviewItemPhoto','reviewItemPhotoLibrary'].forEach(inputId=>{const input=$('#'+inputId);input.addEventListener('click',()=>{itemPhotoPickerActive=true;closeReviewPhotoMenu();ensureItemDialogVisible();document.body.classList.add('item-photo-picker-active')})});
   const restoreAfterPhotoPicker=()=>{if(!itemPhotoPickerActive)return;[80,260,650].forEach(ms=>setTimeout(restoreItemDialogAfterPicker,ms))};
   window.addEventListener('focus',restoreAfterPhotoPicker);
   window.addEventListener('pageshow',restoreAfterPhotoPicker);
@@ -286,7 +286,8 @@ function bindDialogs(){
   $('#itemForm').onsubmit=e=>{e.preventDefault();saveItem()};
   $('#cancelItemBtn').onclick=closeItemWithoutSaving;
   $('#closeItemDialogBtn').onclick=closeItemWithoutSaving;
-  $('#itemDialog').addEventListener('cancel',e=>{e.preventDefault();closeItemWithoutSaving()});
+  $('#itemDialog').addEventListener('cancel',e=>{e.preventDefault();if(itemPhotoPickerActive){restoreItemDialogAfterPicker();return}closeItemWithoutSaving()});
+  $('#itemDialog').addEventListener('close',()=>{if(itemPhotoPickerActive){[60,180,420].forEach(ms=>setTimeout(restoreItemDialogAfterPicker,ms));return}unlockPageForItemDialog()});
   document.addEventListener('click',e=>{if(!e.target.closest('#reviewPhotoMenuWrap'))closeReviewPhotoMenu()});
   ['itemCategory','itemType','itemBrand','itemColor'].forEach(id=>$('#'+id).addEventListener('input',updateItemReviewSummary));
   $('#deleteItemBtn').onclick=toggleItemArchived;
@@ -350,14 +351,14 @@ function navigateReviewItem(delta){
 }
 function closeItemWithoutSaving(){
   // Form fields and photo edits are working copies only. Closing never mutates state.
-  itemWorkingPhoto='';itemOriginalPhoto='';itemCutoutApplied=false;itemStudioState=null;itemPhotoPickerActive=false;pendingSmartScanResult=null;closeReviewPhotoMenu();$('#itemPhoto').value='';$('#itemPhotoLibrary').value='';$('#reviewItemPhoto').value='';$('#reviewItemPhotoLibrary').value='';$('#scanStatus').textContent='';
+  itemWorkingPhoto='';itemOriginalPhoto='';itemCutoutApplied=false;itemStudioState=null;itemPhotoPickerActive=false;document.body.classList.remove('item-photo-picker-active');pendingSmartScanResult=null;closeReviewPhotoMenu();$('#itemPhoto').value='';$('#itemPhotoLibrary').value='';$('#reviewItemPhoto').value='';$('#reviewItemPhotoLibrary').value='';$('#scanStatus').textContent='';
   if($('#itemDialog').open)$('#itemDialog').close('cancel');
   unlockPageForItemDialog();
 }
 async function handleItemPhotoSelection(e,source='camera'){
   const f=e.target.files&&e.target.files[0];
   ensureItemDialogVisible();
-  if(!f){$('#scanStatus').textContent=source==='library'?'No photo selected — your piece is still open.':'Camera canceled — your piece is still open.';setTimeout(()=>{itemPhotoPickerActive=false},500);return}
+  if(!f){$('#scanStatus').textContent=source==='library'?'No photo selected — your piece is still open.':'Camera canceled — your piece is still open.';setTimeout(()=>{itemPhotoPickerActive=false;document.body.classList.remove('item-photo-picker-active');ensureItemDialogVisible()},500);return}
   setPhotoBusy(true,source==='library'?'Importing photo…':'Optimizing photo…');
   try{
     itemOriginalPhoto=await fileToDataURL(f,1100,.78);
@@ -366,7 +367,7 @@ async function handleItemPhotoSelection(e,source='camera'){
     const scan=await analyzeImage(itemWorkingPhoto);
     $('#scanStatus').textContent=`${source==='library'?'Imported':'Photo ready'} · likely ${scan.color} · ${scan.pattern}. Tap Smart Scan to review detected details.`;
   }catch(err){console.error(err);$('#scanStatus').textContent='Photo could not be processed. Try another photo.';toast('Could not process that photo')}
-  finally{setPhotoBusy(false);e.target.value='';updateReviewPhotoMenuState();updatePhotoToolAvailability();setTimeout(()=>{itemPhotoPickerActive=false},500)}
+  finally{setPhotoBusy(false);e.target.value='';updateReviewPhotoMenuState();updatePhotoToolAvailability();setTimeout(()=>{itemPhotoPickerActive=false;document.body.classList.remove('item-photo-picker-active');ensureItemDialogVisible()},500)}
 }
 function ensureItemDialogVisible(){
   const d=$('#itemDialog');
@@ -375,6 +376,7 @@ function ensureItemDialogVisible(){
 function restoreItemDialogAfterPicker(){
   if(!itemPhotoPickerActive)return;
   ensureItemDialogVisible();
+  if(!document.body.classList.contains('item-dialog-open'))lockPageForItemDialog();
   const d=$('#itemDialog');if(d?.open){d.classList.add('picker-returning');setTimeout(()=>d.classList.remove('picker-returning'),220)}
 }
 function lockPageForItemDialog(){

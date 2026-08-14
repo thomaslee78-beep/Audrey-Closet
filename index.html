@@ -219,10 +219,6 @@
       <div class="sheet-head item-head"><div><p class="script">closet piece</p><h2 id="itemDialogTitle">Add a piece</h2></div><button type="button" id="closeItemDialogBtn" class="close-btn" aria-label="Close">×</button></div>
       <input type="hidden" id="itemId" />
       <div id="itemSwipeZone" class="item-swipe-zone">
-        <div id="itemCardUtilityActions" class="item-card-utility-actions hidden">
-          <button type="button" id="smartScanIconBtn" class="item-card-icon hidden" aria-label="Smart scan photo" title="Smart scan"><span class="scan-corners">⌗</span><span class="scan-sparkle">✦</span></button>
-          <div id="reviewPhotoMenuWrap" class="review-photo-menu-wrap hidden"><button type="button" id="reviewPhotoMenuBtn" class="item-card-icon" aria-label="Photo tools" title="Photo tools">📷</button><div id="reviewPhotoMenu" class="review-photo-menu hidden" role="menu"><button type="button" id="reviewStudioBtn" role="menuitem">Edit in Photo Studio</button><label role="menuitem">Take new photo<input type="file" id="reviewItemPhoto" accept="image/*" capture="environment" /></label><label role="menuitem">Choose from library<input type="file" id="reviewItemPhotoLibrary" accept="image/*" /></label><button type="button" id="reviewRestoreOriginalBtn" class="hidden" role="menuitem">Restore original photo</button></div></div>
-        </div>
         <div id="itemReviewSummary" class="item-review-summary hidden">
           <p class="item-review-kicker">closet card</p>
           <h3 id="itemReviewTitle">Clothing item</h3>
@@ -230,6 +226,10 @@
         </div>
         <div class="item-photo-stage">
           <div class="photo-preview-wrap item-photo-large"><img id="itemPhotoPreview" alt="Item preview" /><div class="photo-placeholder" id="photoPlaceholder">photo</div></div>
+          <div id="itemCardUtilityActions" class="item-card-utility-actions hidden">
+            <button type="button" id="smartScanIconBtn" class="item-card-icon hidden" aria-label="Smart scan photo" title="Smart scan"><span class="scan-corners">⌗</span><span class="scan-sparkle">✦</span></button>
+            <div id="reviewPhotoMenuWrap" class="review-photo-menu-wrap hidden"><button type="button" id="reviewPhotoMenuBtn" class="item-card-icon" aria-label="Photo tools" title="Photo tools">📷</button><div id="reviewPhotoMenu" class="review-photo-menu hidden" role="menu"><button type="button" id="reviewStudioBtn" role="menuitem">Edit in Photo Studio</button><label role="menuitem">Take new photo<input type="file" id="reviewItemPhoto" accept="image/*" capture="environment" /></label><label role="menuitem">Choose from library<input type="file" id="reviewItemPhotoLibrary" accept="image/*" /></label><button type="button" id="reviewRestoreOriginalBtn" class="hidden" role="menuitem">Restore original photo</button></div></div>
+          </div>
         </div>
         <div id="itemSwipeHint" class="item-swipe-hint hidden"><span>‹</span> Swipe photo to browse your closet <span>›</span></div>
       </div>
