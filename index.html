@@ -116,13 +116,12 @@
       <p class="portfolio-intro">Browse saved outfits like a lookbook. Favorites stay together automatically.</p>
       <div class="portfolio-tabs" id="portfolioTabs"></div>
       <div class="portfolio-discovery-bar">
-        <label class="portfolio-search-wrap"><span>⌕</span><input id="portfolioSearch" type="search" placeholder="Search looks, jeans, orange, Nike…" autocomplete="off"></label>
-        <button type="button" class="soft-btn portfolio-item-filter-btn" id="portfolioItemFilterBtn">▦ Closet items</button>
-        <button type="button" class="text-btn hidden" id="portfolioClearFilters">Clear</button>
+        <label class="searchbox portfolio-search-wrap"><span>⌕</span><input id="portfolioSearch" type="text" inputmode="search" placeholder="Search looks, jeans, orange, Nike…" autocomplete="off" enterkeyhint="search"></label>
+        <button type="button" class="soft-btn portfolio-item-filter-btn" id="portfolioItemFilterBtn">Filter</button>
       </div>
       <div class="portfolio-selected-filters hidden" id="portfolioSelectedFilters"></div>
       <div class="portfolio-item-filter-panel hidden" id="portfolioItemFilterPanel"></div>
-      <div class="portfolio-summary"><span id="outfitCount">0 looks</span><button class="text-btn" id="managePortfolioBtn">Manage folders</button></div><p class="portfolio-reorder-hint" id="portfolioReorderHint">Choose a portfolio folder to reorder looks.</p>
+      <div class="portfolio-summary"><span id="outfitCount">0 looks</span></div><p class="portfolio-reorder-hint" id="portfolioReorderHint">Choose a portfolio folder to reorder looks.</p>
       <div class="saved-outfits portfolio-gallery" id="savedOutfits"></div>
     </section>
 

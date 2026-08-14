@@ -166,3 +166,7 @@ Closet review polish: the existing-piece photo area now uses a transparent, shad
 
 ## v13.12-dev1.7
 Moves the Camera and Smart Scan controls from the photo overlay to the upper-right of the Closet card summary when reviewing an existing piece, and reduces those two icons by about 10% for a more balanced header treatment. Swipe arrows remain on the photo. Service-worker cache: `audrey-closet-v13.12-dev1.7`.
+
+
+## v13.12-dev1.8
+Portfolio reconciliation build. Restores the known-good Portfolio discovery and folder-tab improvements onto the v13.12 Closet review baseline: direct tab reordering, removal of the redundant Manage folders link, iPhone-safe search input, Filter panel with internal Clear action, preserved filter scroll position, locked filter thumbnails, and simple clothing-term plural normalization. No manila-folder styling is included. Service-worker cache: `audrey-closet-v13.12-dev1.8`.
