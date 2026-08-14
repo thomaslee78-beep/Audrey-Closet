@@ -234,19 +234,15 @@
         </div>
         <div id="itemSwipeHint" class="item-swipe-hint hidden"><span>‹</span> Swipe photo to browse your closet <span>›</span></div>
       </div>
-      <details class="photo-tools-disclosure">
-        <summary><span>✂ Photo tools</span><small>edit, scan or retake</small></summary>
-        <div class="photo-tools-body">
-          <p>Optional — photo changes are only kept when you tap Save piece.</p>
-          <div class="photo-actions photo-actions-bottom">
-            <label class="primary file-label" id="takePhotoLabel">Take photo<input type="file" id="itemPhoto" accept="image/*" capture="environment" /></label>
-            <label class="soft-btn file-label" id="uploadPhotoLabel">Upload photo<input type="file" id="itemPhotoLibrary" accept="image/*" /></label>
-            <button type="button" class="soft-btn" id="photoStudioBtn">✂ Photo Studio</button>
-            <button type="button" class="soft-btn hidden" id="restoreOriginalPhotoBtn">↶ Original photo</button>
-          </div>
-          <div class="scan-status" id="scanStatus"></div>
-        </div>
-      </details>
+      <div id="newPiecePhotoActions" class="new-piece-photo-actions">
+        <label class="primary file-label" id="takePhotoLabel">Take photo<input type="file" id="itemPhoto" accept="image/*" capture="environment" /></label>
+        <label class="soft-btn file-label" id="uploadPhotoLabel">Upload photo<input type="file" id="itemPhotoLibrary" accept="image/*" /></label>
+      </div>
+      <div class="scan-status item-photo-status" id="scanStatus"></div>
+      <div class="hidden" aria-hidden="true">
+        <button type="button" id="photoStudioBtn" tabindex="-1">Photo Studio</button>
+        <button type="button" id="restoreOriginalPhotoBtn" tabindex="-1">Original photo</button>
+      </div>
       <div class="form-grid">
         <label>Category<select id="itemCategory" required></select></label>
         <label>Type<select id="itemType" required></select></label>

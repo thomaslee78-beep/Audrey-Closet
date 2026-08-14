@@ -174,3 +174,7 @@ Portfolio reconciliation build. Restores the known-good Portfolio discovery and 
 
 ## v13.12-dev2
 Journal workflow refinement: Review actions are Cancel / Delete / Edit; editing existing past or today's wear log locks the date while still allowing additional closet pieces; future planned looks can be moved to another date with an explicit choice to carry the current item selection or navigate to the selected day's existing/blank log. Service-worker cache: `audrey-closet-v13.12-dev2`.
+
+
+## v13.12-dev2.1
+Closet UI polish: new pieces now show Take photo and Upload photo directly beneath the photo placeholder only until a photo exists; after a photo is available, Smart Scan and the camera/Photo Studio menu become the primary photo controls. Portfolio look-card favorite stars now use a circular treatment consistent with saved-look detail. Service-worker cache: `audrey-closet-v13.12-dev2.1`.
