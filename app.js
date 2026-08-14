@@ -242,7 +242,7 @@ async function init(){
   $('#settingsBtn').onclick=()=>{renderPortfolioFolderEditor();showScreen('more')};
   $('#addPortfolioFolderBtn').onclick=addPortfolioFolder;
   $('#portfolioNewBtn').onclick=()=>guardBoardSwitch(()=>{startNewOutfit();showScreen('outfits')},'start a new look');  $('#portfolioSearch').oninput=e=>{portfolioSearchQuery=e.target.value||'';renderSavedOutfits()};$('#portfolioSearch').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();e.currentTarget.blur()}});$('#portfolioItemFilterBtn').onclick=()=>{portfolioItemPickerOpen=!portfolioItemPickerOpen;renderPortfolioDiscovery()};
-  if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js?v=13.12-dev2.2',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
+  if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js?v=13.12-dev2.3',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
   renderAll();
 }
 function fillSelects(){
@@ -607,7 +607,7 @@ function updateCatalogDropTarget(x,y){
   if(!cards.length){d.targetId=d.originalId;d.targetAfter=false;return}
 
   // Use the floating card's actual overlap instead of waiting for the finger/card center
-  // to cross the destination midpoint. About one-third overlap is enough to select a slot.
+  // to cross the destination midpoint. A light overlap is enough to select a slot so the visual cue and swap feel immediate.
   const sourceRect=d.card.getBoundingClientRect(),ghostLeft=x-(d.ghostOffsetX||0),ghostTop=y-(d.ghostOffsetY||0);
   const ghostRight=ghostLeft+sourceRect.width,ghostBottom=ghostTop+sourceRect.height;
   let target=null,bestOverlap=0;
@@ -618,7 +618,7 @@ function updateCatalogDropTarget(x,y){
     const overlap=(overlapW*overlapH)/Math.max(1,r.width*r.height);
     if(overlap>bestOverlap){bestOverlap=overlap;target=c}
   }
-  if(!target||bestOverlap<.30){d.targetId=null;d.targetAfter=false;return}
+  if(!target||bestOverlap<.10){d.targetId=null;d.targetAfter=false;return}
 
   const sourceIndex=allCards.indexOf(d.card),targetIndex=allCards.indexOf(target);
   const after=targetIndex>sourceIndex;

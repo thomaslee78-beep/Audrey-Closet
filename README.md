@@ -242,3 +242,7 @@ Closet UI polish: new pieces now show Take photo and Upload photo directly benea
 
 ## v13.12-dev2.2
 Minor Closet UI polish: rounds the item review bottom action tray and makes Closet reorder targeting respond once the dragged card overlaps roughly one-third of a destination card instead of waiting for the midpoint. Service-worker cache: `audrey-closet-v13.12-dev2.2`.
+
+
+## v13.12-dev2.3
+Closet polish: the review action tray now floats slightly above the bottom of the item card so its rounded corners are visible, and Closet reorder targeting activates at roughly 10% card overlap for a quicker drop cue. Service-worker cache: `audrey-closet-v13.12-dev2.3`.

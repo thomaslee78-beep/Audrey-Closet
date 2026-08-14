@@ -668,3 +668,25 @@ body.portfolio-modal-open{position:fixed;left:0;right:0;width:100%;overflow:hidd
 /* v13.12-dev2.2 — Closet review footer + reorder threshold polish */
 #itemDialog .item-sheet-actions{border-radius:0 0 20px 20px;overflow:hidden}
 @media(max-width:410px){#itemDialog .item-sheet-actions{border-radius:0 0 18px 18px}}
+
+
+/* v13.12-dev2.3 — floating Closet review actions + earlier reorder target */
+#itemDialog .item-sheet-actions{
+  bottom:10px;
+  margin:18px 0 8px;
+  padding:10px 10px max(10px,env(safe-area-inset-bottom));
+  border:1px solid rgba(108,81,66,.14);
+  border-radius:18px;
+  box-shadow:0 8px 22px rgba(64,52,38,.12),0 -3px 12px rgba(64,52,38,.05);
+  background:rgba(247,240,223,.98);
+  backdrop-filter:blur(12px);
+}
+@media(max-width:410px){
+  #itemDialog .item-sheet-actions{
+    bottom:8px;
+    margin:16px 0 8px;
+    padding-left:9px;
+    padding-right:9px;
+    border-radius:16px;
+  }
+}
