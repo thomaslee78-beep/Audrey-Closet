@@ -663,3 +663,8 @@ body.portfolio-modal-open{position:fixed;left:0;right:0;width:100%;overflow:hidd
 .favorite-outfit.active{background:#f5e8b8;color:#9b742a;border-color:#d4b55e}
 .favorite-outfit:active{transform:scale(.96)}
 @media(max-width:410px){.new-piece-photo-actions{gap:7px}.favorite-outfit{width:31px;height:31px;font-size:19px}}
+
+
+/* v13.12-dev2.2 — Closet review footer + reorder threshold polish */
+#itemDialog .item-sheet-actions{border-radius:0 0 20px 20px;overflow:hidden}
+@media(max-width:410px){#itemDialog .item-sheet-actions{border-radius:0 0 18px 18px}}

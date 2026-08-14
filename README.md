@@ -238,3 +238,7 @@ Journal workflow refinement: Review actions are Cancel / Delete / Edit; editing 
 
 ## v13.12-dev2.1
 Closet UI polish: new pieces now show Take photo and Upload photo directly beneath the photo placeholder only until a photo exists; after a photo is available, Smart Scan and the camera/Photo Studio menu become the primary photo controls. Portfolio look-card favorite stars now use a circular treatment consistent with saved-look detail. Service-worker cache: `audrey-closet-v13.12-dev2.1`.
+
+
+## v13.12-dev2.2
+Minor Closet UI polish: rounds the item review bottom action tray and makes Closet reorder targeting respond once the dragged card overlaps roughly one-third of a destination card instead of waiting for the midpoint. Service-worker cache: `audrey-closet-v13.12-dev2.2`.

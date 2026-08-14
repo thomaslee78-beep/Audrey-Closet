@@ -242,7 +242,7 @@ async function init(){
   $('#settingsBtn').onclick=()=>{renderPortfolioFolderEditor();showScreen('more')};
   $('#addPortfolioFolderBtn').onclick=addPortfolioFolder;
   $('#portfolioNewBtn').onclick=()=>guardBoardSwitch(()=>{startNewOutfit();showScreen('outfits')},'start a new look');  $('#portfolioSearch').oninput=e=>{portfolioSearchQuery=e.target.value||'';renderSavedOutfits()};$('#portfolioSearch').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();e.currentTarget.blur()}});$('#portfolioItemFilterBtn').onclick=()=>{portfolioItemPickerOpen=!portfolioItemPickerOpen;renderPortfolioDiscovery()};
-  if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js?v=13.12-dev2.1',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
+  if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js?v=13.12-dev2.2',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
   renderAll();
 }
 function fillSelects(){
@@ -602,23 +602,26 @@ function clearCatalogDropTarget(){
 }
 function updateCatalogDropTarget(x,y){
   const d=closetDrag,grid=$('#catalogGrid');if(!grid||!d.card)return;
-  const cards=[...grid.querySelectorAll('.item-card[data-id]')].filter(c=>c!==d.card);
+  const allCards=[...grid.querySelectorAll('.item-card[data-id]')],cards=allCards.filter(c=>c!==d.card);
   clearCatalogDropTarget();
   if(!cards.length){d.targetId=d.originalId;d.targetAfter=false;return}
 
-  // Pick the closest card center. This works consistently across rows/columns without
-  // reflowing the grid during the gesture.
-  let target=null,best=Infinity;
+  // Use the floating card's actual overlap instead of waiting for the finger/card center
+  // to cross the destination midpoint. About one-third overlap is enough to select a slot.
+  const sourceRect=d.card.getBoundingClientRect(),ghostLeft=x-(d.ghostOffsetX||0),ghostTop=y-(d.ghostOffsetY||0);
+  const ghostRight=ghostLeft+sourceRect.width,ghostBottom=ghostTop+sourceRect.height;
+  let target=null,bestOverlap=0;
   for(const c of cards){
     const r=c.getBoundingClientRect();
-    const cx=r.left+r.width/2,cy=r.top+r.height/2;
-    const dist=Math.hypot(x-cx,y-cy);
-    if(dist<best){best=dist;target=c}
+    const overlapW=Math.max(0,Math.min(ghostRight,r.right)-Math.max(ghostLeft,r.left));
+    const overlapH=Math.max(0,Math.min(ghostBottom,r.bottom)-Math.max(ghostTop,r.top));
+    const overlap=(overlapW*overlapH)/Math.max(1,r.width*r.height);
+    if(overlap>bestOverlap){bestOverlap=overlap;target=c}
   }
-  if(!target)return;
-  const r=target.getBoundingClientRect();
-  const sameRow=y>=r.top-r.height*.22&&y<=r.bottom+r.height*.22;
-  const after=sameRow ? x>r.left+r.width/2 : y>r.top+r.height/2;
+  if(!target||bestOverlap<.30){d.targetId=null;d.targetAfter=false;return}
+
+  const sourceIndex=allCards.indexOf(d.card),targetIndex=allCards.indexOf(target);
+  const after=targetIndex>sourceIndex;
   d.targetId=target.dataset.id;d.targetAfter=after;
   target.classList.add('closet-drop-target',after?'drop-after':'drop-before');
   if(d.dropOutline){const tr=target.getBoundingClientRect();Object.assign(d.dropOutline.style,{left:tr.left+'px',top:tr.top+'px',width:tr.width+'px',height:tr.height+'px'});d.dropOutline.classList.add('visible')}
