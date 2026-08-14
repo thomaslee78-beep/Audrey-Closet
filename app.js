@@ -238,7 +238,7 @@ async function init(){
   $('#managePortfolioBtn').onclick=()=>{renderPortfolioFolderEditor();showScreen('more')};
   $('#portfolioNewBtn').onclick=()=>guardBoardSwitch(()=>{startNewOutfit();showScreen('outfits')},'start a new look');
   $('#portfolioSearch').oninput=e=>{portfolioSearchQuery=e.target.value||'';renderSavedOutfits()};$('#portfolioItemFilterBtn').onclick=()=>{portfolioItemPickerOpen=!portfolioItemPickerOpen;renderPortfolioDiscovery()};$('#portfolioClearFilters').onclick=clearPortfolioDiscovery;
-  if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js?v=13.12-dev1.4.2',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
+  if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js?v=13.12-dev1.5.2',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
   renderAll();
 }
 function fillSelects(){
@@ -338,11 +338,12 @@ function loadItemIntoEditor(item=null,preferredCategory=''){
   showPhoto('#itemPhotoPreview','#photoPlaceholder',itemWorkingPhoto);updateOriginalPhotoButton();const category=item?.category||preferredCategory||selectedCategory||$('#filterCategory').value||'Tops';$('#itemCategory').value=category;populateTypeOptions(category,item?.type||'');populateSizeOptions(category,item?.size||'');$('#itemBrand').value=item?.brand||'';$('#itemColor').value=item?.color||'';$('#itemPattern').value=item?.pattern||'Solid';$('#itemAcquired').value=item?.acquired||'Bought new';$('#itemSeason').value=item?.season||'All-season';$('#itemNotes').value=item?.notes||'';$('#scanStatus').textContent='';const archived=!!item&&isArchived(item);$('#deleteItemBtn').classList.toggle('hidden',!item);$('#deleteItemBtn').textContent=archived?'Reactivate':'Remove from Closet';$('#deleteItemBtn').classList.toggle('reactivate-item',archived);$('#permanentDeleteItemBtn').classList.toggle('hidden',!item);$('#itemArchiveNotice').classList.toggle('hidden',!archived);$('#itemPhoto').value='';$('#itemPhotoLibrary').value='';
   const tools=$('.photo-tools-disclosure');if(tools)tools.open=!isEdit;
   $('#itemCardUtilityActions').classList.toggle('hidden',!isEdit&&!itemWorkingPhoto);$('#reviewPhotoMenuWrap').classList.toggle('hidden',!isEdit);$('#smartScanIconBtn').classList.toggle('hidden',!itemWorkingPhoto);closeReviewPhotoMenu();updateReviewPhotoMenuState();updatePhotoToolAvailability();
-  $('#itemReviewSummary').classList.toggle('hidden',!isEdit);$('#itemSwipeHint').classList.add('hidden');updateItemReviewSummary();
+  $('#itemReviewSummary').classList.toggle('hidden',!isEdit);$('#itemSwipeHint').classList.add('hidden');updateItemReviewSummary();updateItemSwipeArrows();
   if($('#itemDialog').open)$('#itemDialog').scrollTop=0;
 }
+function updateItemSwipeArrows(){const prev=$('#itemSwipePrevBtn'),next=$('#itemSwipeNextBtn'),current=$('#itemId').value;if(!prev||!next)return;const idx=current?itemReviewIds.indexOf(current):-1,canPrev=idx>0,canNext=idx>=0&&idx<itemReviewIds.length-1;prev.classList.toggle('hidden',!canPrev);next.classList.toggle('hidden',!canNext)}
 function bindItemSwipe(){
-  const zone=$('#itemSwipeZone');if(!zone)return;
+  const zone=$('#itemSwipeZone');if(!zone)return;$('#itemSwipePrevBtn')?.addEventListener('click',()=>navigateReviewItem(-1));$('#itemSwipeNextBtn')?.addEventListener('click',()=>navigateReviewItem(1));
   zone.addEventListener('touchstart',e=>{if(!$('#itemId').value||e.touches.length!==1||e.target.closest('button,label,input,.review-photo-menu'))return;const t=e.touches[0];itemSwipeStart={x:t.clientX,y:t.clientY,time:Date.now(),axis:null}},{passive:true});
   zone.addEventListener('touchmove',e=>{if(!itemSwipeStart||!$('#itemId').value||e.touches.length!==1)return;const t=e.touches[0],dx=t.clientX-itemSwipeStart.x,dy=t.clientY-itemSwipeStart.y;if(!itemSwipeStart.axis&&Math.hypot(dx,dy)>10){if(Math.abs(dx)>Math.abs(dy)*1.15)itemSwipeStart.axis='x';else if(Math.abs(dy)>Math.abs(dx)*1.05)itemSwipeStart.axis='y'}if(itemSwipeStart.axis==='x')e.preventDefault()},{passive:false});
   zone.addEventListener('touchend',e=>{if(!itemSwipeStart||!$('#itemId').value)return;const start=itemSwipeStart,t=e.changedTouches[0],dx=t.clientX-start.x,dy=t.clientY-start.y,elapsed=Date.now()-start.time;itemSwipeStart=null;if(start.axis!=='x'||elapsed>850||Math.abs(dx)<55||Math.abs(dx)<Math.abs(dy)*1.15)return;navigateReviewItem(dx<0?1:-1)});

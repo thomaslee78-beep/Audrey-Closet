@@ -154,3 +154,7 @@ Closet review swipe polish: saved-piece review styling is more borderless/floati
 
 ## v13.12-dev1.4
 Keeps the borderless Closet review, hidden swipe hint, and horizontal gesture locking from dev1.3, but removes the two-stage outgoing/incoming transition that could look like a flash. Restores the earlier simple single-step swipe transition after the gesture completes. Service-worker cache: `audrey-closet-v13.12-dev1.4`.
+
+
+## v13.12-dev1.5
+Closet review polish: photo background now matches the review card surface and subtle previous/next arrows appear at the lower corners only when another item exists in that direction. Existing horizontal swipe locking and simple swipe transition are preserved. Service-worker cache: `audrey-closet-v13.12-dev1.5`.

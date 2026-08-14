@@ -571,3 +571,13 @@ body.portfolio-modal-open{position:fixed;left:0;right:0;width:100%;overflow:hidd
 #itemDialog.editing-existing .item-photo-large{border:0;box-shadow:0 10px 24px rgba(61,49,35,.10);background:linear-gradient(140deg,rgba(231,223,205,.86),rgba(251,247,238,.94))}
 #itemDialog.editing-existing .item-swipe-zone{overflow:visible}
 @media (prefers-reduced-motion:reduce){.item-swipe-zone.swipe-next,.item-swipe-zone.swipe-prev{animation-duration:.01ms!important}}
+
+
+/* v13.12-dev1.5 — Closet review background + subtle queue arrows */
+#itemDialog.editing-existing .item-photo-large{background:#f7f0df}
+#itemDialog .item-photo-stage{position:relative}
+.item-swipe-arrow{position:absolute;bottom:10px;z-index:17;width:34px;height:34px;border-radius:50%;border:1px solid rgba(108,81,66,.18);background:rgba(247,240,223,.74);color:rgba(108,81,66,.72);font:500 25px/1 var(--serif);display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(61,49,35,.08);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);padding:0;opacity:.82;-webkit-touch-callout:none;user-select:none;-webkit-user-select:none}
+.item-swipe-arrow:active{transform:scale(.94);opacity:1}
+.item-swipe-arrow-left{left:10px}.item-swipe-arrow-right{right:10px}
+.item-swipe-arrow.hidden{display:none}
+@media(max-width:410px){.item-swipe-arrow{width:32px;height:32px;bottom:8px}.item-swipe-arrow-left{left:8px}.item-swipe-arrow-right{right:8px}}
