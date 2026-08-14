@@ -146,3 +146,7 @@ Closet review UI polish: camera and Smart Scan controls now sit on the upper-rig
 
 ## v13.12-dev1.2
 Moves the saved-piece Camera and Smart Scan controls directly onto the upper-right of the photo. Hardens iPhone camera/library picker return behavior so canceling or returning from the native picker preserves and restores the current Add/Review Piece dialog instead of dropping back to Closet. Service-worker cache: `audrey-closet-v13.12-dev1.2`.
+
+
+## v13.12-dev1.3
+Closet review swipe polish: saved-piece review styling is more borderless/floating, the swipe hint text is removed, horizontal gestures direction-lock to avoid vertical jitter, and a lightweight outgoing/incoming transform animation gives clearer movement between closet pieces. Service-worker cache: `audrey-closet-v13.12-dev1.3`.
