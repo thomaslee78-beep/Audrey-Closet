@@ -210,3 +210,7 @@ Moves the saved-piece Camera and Smart Scan controls directly onto the upper-rig
 
 ## v13.12-dev1.3
 Closet review swipe polish: saved-piece review styling is more borderless/floating, the swipe hint text is removed, horizontal gestures direction-lock to avoid vertical jitter, and a lightweight outgoing/incoming transform animation gives clearer movement between closet pieces. Service-worker cache: `audrey-closet-v13.12-dev1.3`.
+
+
+## v13.12-dev1.4
+Keeps the borderless Closet review, hidden swipe hint, and horizontal gesture locking from dev1.3, but removes the two-stage outgoing/incoming transition that could look like a flash. Restores the earlier simple single-step swipe transition after the gesture completes. Service-worker cache: `audrey-closet-v13.12-dev1.4`.
