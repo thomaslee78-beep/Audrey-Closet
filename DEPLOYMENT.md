@@ -162,3 +162,7 @@ Closet review polish: photo background now matches the review card surface and s
 
 ## v13.12-dev1.6
 Closet review polish: the existing-piece photo area now uses a transparent, shadow-free surface so it blends directly into the review card instead of reading like a separate panel. Camera, Smart Scan, and previous/next review controls are approximately 25% larger for easier touch interaction. Service-worker cache: `audrey-closet-v13.12-dev1.6`.
+
+
+## v13.12-dev1.7
+Moves the Camera and Smart Scan controls from the photo overlay to the upper-right of the Closet card summary when reviewing an existing piece, and reduces those two icons by about 10% for a more balanced header treatment. Swipe arrows remain on the photo. Service-worker cache: `audrey-closet-v13.12-dev1.7`.

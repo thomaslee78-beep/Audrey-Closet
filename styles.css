@@ -610,3 +610,32 @@ body.portfolio-modal-open{position:fixed;left:0;right:0;width:100%;overflow:hidd
   #itemDialog .item-photo-stage .item-card-icon{width:45px;height:45px;min-width:45px}
   .item-swipe-arrow{width:40px;height:40px;font-size:29px;bottom:8px}
 }
+
+
+/* v13.12-dev1.7 — review-card utility placement */
+#itemDialog.editing-existing .item-review-summary{position:relative;padding-right:104px}
+#itemDialog.editing-existing .item-card-utility-actions{
+  position:absolute;
+  top:8px;
+  right:8px;
+  z-index:22;
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+#itemDialog.editing-existing .item-card-icon{
+  width:43px;
+  height:43px;
+  min-width:43px;
+  font-size:21px;
+  border-radius:14px;
+}
+#itemDialog.editing-existing #smartScanIconBtn .scan-corners{font-size:22px}
+#itemDialog.editing-existing #smartScanIconBtn .scan-sparkle{font-size:12px;right:6px;top:5px}
+#itemDialog.editing-existing .item-card-utility-actions .review-photo-menu{right:0;top:47px}
+#itemDialog:not(.editing-existing) .item-card-utility-actions{position:absolute;top:8px;right:8px;z-index:22}
+@media(max-width:410px){
+  #itemDialog.editing-existing .item-review-summary{padding-right:94px}
+  #itemDialog.editing-existing .item-card-icon{width:41px;height:41px;min-width:41px;font-size:20px}
+  #itemDialog.editing-existing .item-card-utility-actions{top:7px;right:6px;gap:5px}
+}
