@@ -581,3 +581,32 @@ body.portfolio-modal-open{position:fixed;left:0;right:0;width:100%;overflow:hidd
 .item-swipe-arrow-left{left:10px}.item-swipe-arrow-right{right:10px}
 .item-swipe-arrow.hidden{display:none}
 @media(max-width:410px){.item-swipe-arrow{width:32px;height:32px;bottom:8px}.item-swipe-arrow-left{left:8px}.item-swipe-arrow-right{right:8px}}
+
+
+/* v13.12-dev1.6 — seamless Closet photo surface + larger review controls */
+#itemDialog.editing-existing .item-photo-large{
+  background:transparent;
+  box-shadow:none;
+}
+#itemDialog.editing-existing .item-photo-stage{
+  background:transparent;
+}
+#itemDialog .item-photo-stage .item-card-icon{
+  width:48px;
+  height:48px;
+  min-width:48px;
+  font-size:23px;
+  border-radius:15px;
+}
+#smartScanIconBtn .scan-corners{font-size:24px}
+#smartScanIconBtn .scan-sparkle{font-size:13px;right:6px;top:5px}
+.item-swipe-arrow{
+  width:43px;
+  height:43px;
+  font-size:31px;
+  bottom:10px;
+}
+@media(max-width:410px){
+  #itemDialog .item-photo-stage .item-card-icon{width:45px;height:45px;min-width:45px}
+  .item-swipe-arrow{width:40px;height:40px;font-size:29px;bottom:8px}
+}

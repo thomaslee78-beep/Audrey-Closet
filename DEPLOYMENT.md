@@ -158,3 +158,7 @@ Keeps the borderless Closet review, hidden swipe hint, and horizontal gesture lo
 
 ## v13.12-dev1.5
 Closet review polish: photo background now matches the review card surface and subtle previous/next arrows appear at the lower corners only when another item exists in that direction. Existing horizontal swipe locking and simple swipe transition are preserved. Service-worker cache: `audrey-closet-v13.12-dev1.5`.
+
+
+## v13.12-dev1.6
+Closet review polish: the existing-piece photo area now uses a transparent, shadow-free surface so it blends directly into the review card instead of reading like a separate panel. Camera, Smart Scan, and previous/next review controls are approximately 25% larger for easier touch interaction. Service-worker cache: `audrey-closet-v13.12-dev1.6`.
