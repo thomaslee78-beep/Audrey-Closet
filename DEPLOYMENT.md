@@ -138,3 +138,7 @@ Adds Portfolio discovery: keyword search across looks and closet-item metadata, 
 
 ## v13.12-dev1
 Closet review UI refinement. Existing saved pieces now use compact upper-right Camera and Smart Scan controls; new pieces retain the full Photo Tools disclosure. Smart Scan is separated from photo tools and presents detected attributes for confirmation before applying them. Service-worker cache: `audrey-closet-v13.12-dev1`.
+
+
+## v13.12-dev1.1
+Closet review UI polish: camera and Smart Scan controls now sit on the upper-right of the closet card rather than beside the close button; photo-picker cancellation/return is hardened so the item editor stays open; Photo Studio is hidden for a new item until a photo exists; restoring the original photo now requires confirmation before discarding current photo edits. Service-worker cache: `audrey-closet-v13.12-dev1.1`.
