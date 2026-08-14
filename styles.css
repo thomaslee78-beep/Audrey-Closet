@@ -137,7 +137,7 @@ body.journal-detail-open{position:fixed;left:0;right:0;width:100%;overflow:hidde
 #journalDetailDialog::backdrop{background:rgba(45,38,31,.46);touch-action:none;overscroll-behavior:none}
 #journalDetailDialog{overflow:hidden;padding:0;max-height:94vh;max-height:94dvh;overscroll-behavior:contain;touch-action:none}
 #journalDetailDialog .journal-detail-scroll{max-height:calc(94dvh - 72px);overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-y;padding:17px 17px 24px;scroll-padding-bottom:88px}
-#journalDetailDialog .journal-detail-actions{position:sticky;bottom:0;z-index:20;display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0;padding:11px 17px max(11px,env(safe-area-inset-bottom));background:#f7f0df;border-top:1px solid rgba(108,81,66,.15);box-shadow:0 -7px 18px rgba(64,52,38,.07)}
+#journalDetailDialog .journal-detail-actions{position:sticky;bottom:0;z-index:20;display:grid;grid-template-columns:1fr .8fr 1fr;gap:8px;margin:0;padding:11px 17px max(11px,env(safe-area-inset-bottom));background:#f7f0df;border-top:1px solid rgba(108,81,66,.15);box-shadow:0 -7px 18px rgba(64,52,38,.07)}
 #journalDetailDialog .journal-detail-actions button{width:100%;min-height:44px;display:flex;align-items:center;justify-content:center}
 .journal-detail-rating{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;align-items:start;margin:2px 0 10px;padding:11px 12px;background:#efe6d5;border:1px solid var(--line);border-radius:16px}
 .journal-rating-control{min-width:0}.journal-rating-label{display:block;font-size:10px;font-weight:700;color:#756a5c;margin-bottom:5px}.journal-rating-stars{display:flex;align-items:center;gap:3px;min-height:34px}.journal-rating-star{appearance:none;-webkit-appearance:none;border:0;background:transparent;padding:0 1px;font:inherit;font-size:27px;line-height:1;color:#9f927d;cursor:pointer;touch-action:manipulation}.journal-rating-star.active{color:#a97922}.journal-rating-text{display:block;margin-top:5px;font-size:10px;color:#756a5c;min-height:14px}.journal-favorite-control{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;min-width:54px}.journal-favorite-control .journal-star-btn{margin-top:0}
@@ -646,3 +646,8 @@ body.portfolio-modal-open{position:fixed;left:0;right:0;width:100%;overflow:hidd
 .portfolio-tab-drop-target{outline:2px dashed var(--turq)!important;outline-offset:3px;box-shadow:0 0 0 2px rgba(138,75,88,.42),0 5px 12px rgba(73,57,38,.10)!important}
 .portfolio-tab-reordering #portfolioTabs{cursor:grabbing}
 .portfolio-tab{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+
+/* v13.12-dev2 — Journal edit/date safety */
+#wearDialog .wear-date-label.wear-date-locked{opacity:.78}
+#wearDialog #wearDate.date-locked{background:#eee7da;color:#756a5c;border-style:dashed}
+#journalDetailDialog #deleteJournalDetailBtn{font-size:12px}

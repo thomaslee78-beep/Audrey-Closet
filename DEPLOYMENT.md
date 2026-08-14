@@ -170,3 +170,7 @@ Moves the Camera and Smart Scan controls from the photo overlay to the upper-rig
 
 ## v13.12-dev1.8
 Portfolio reconciliation build. Restores the known-good Portfolio discovery and folder-tab improvements onto the v13.12 Closet review baseline: direct tab reordering, removal of the redundant Manage folders link, iPhone-safe search input, Filter panel with internal Clear action, preserved filter scroll position, locked filter thumbnails, and simple clothing-term plural normalization. No manila-folder styling is included. Service-worker cache: `audrey-closet-v13.12-dev1.8`.
+
+
+## v13.12-dev2
+Journal workflow refinement: Review actions are Cancel / Delete / Edit; editing existing past or today's wear log locks the date while still allowing additional closet pieces; future planned looks can be moved to another date with an explicit choice to carry the current item selection or navigate to the selected day's existing/blank log. Service-worker cache: `audrey-closet-v13.12-dev2`.

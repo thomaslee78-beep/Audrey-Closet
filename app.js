@@ -163,6 +163,10 @@ let journalRangeFilter='all';
 let plannedJournalExpanded=false;
 let wearLogExpanded=localStorage.getItem('audreyWearLogExpanded')!=='false';
 let wearDraftIds=new Set();
+let wearOriginalDate='';
+let wearDateLocked=false;
+let wearMoveOverrideTarget=false;
+let wearMoveSourceId=null;
 let journalItemPreviewId=null;
 let journalItemPreviewSnapshot=null;
 let journalItemReturnId=null;
@@ -238,7 +242,7 @@ async function init(){
   $('#settingsBtn').onclick=()=>{renderPortfolioFolderEditor();showScreen('more')};
   $('#addPortfolioFolderBtn').onclick=addPortfolioFolder;
   $('#portfolioNewBtn').onclick=()=>guardBoardSwitch(()=>{startNewOutfit();showScreen('outfits')},'start a new look');  $('#portfolioSearch').oninput=e=>{portfolioSearchQuery=e.target.value||'';renderSavedOutfits()};$('#portfolioSearch').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();e.currentTarget.blur()}});$('#portfolioItemFilterBtn').onclick=()=>{portfolioItemPickerOpen=!portfolioItemPickerOpen;renderPortfolioDiscovery()};
-  if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js?v=13.12-dev1.8',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
+  if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js?v=13.12-dev2',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
   renderAll();
 }
 function fillSelects(){
@@ -301,13 +305,14 @@ function bindDialogs(){
   $('#cancelWearBtn').onclick=closeWearWithoutSaving;
   $('#wearDialog').addEventListener('cancel',e=>{e.preventDefault();closeWearWithoutSaving()});
   $('#wearDialog').addEventListener('close',unlockPageForWearDialog);
-  $('#wearDate').addEventListener('change',()=>loadWearDate($('#wearDate').value));
+  $('#wearDate').addEventListener('change',handleWearDateChange);
   $('#clearWearSelectionBtn').onclick=()=>{wearDraftIds.clear();$$('.wear-option.selected').forEach(b=>b.classList.remove('selected'));updateWearSelectedCount()};
   $('#deleteWearBtn').onclick=deleteWearEntry;
   $('#journalRange').onchange=e=>{journalRangeFilter=e.target.value;renderJournal()};
   $('#plannedJournalToggle').onclick=()=>{plannedJournalExpanded=!plannedJournalExpanded;renderPlannedJournalVisibility()};
   $('#wearLogToggle').onclick=()=>{wearLogExpanded=!wearLogExpanded;localStorage.setItem('audreyWearLogExpanded',wearLogExpanded?'true':'false');renderWearLogVisibility()};
   $('#closeJournalDetailBtn').onclick=closeJournalDetail;
+  $('#cancelJournalDetailBtn').onclick=closeJournalDetail;
   $('#journalDetailDialog').addEventListener('cancel',e=>{e.preventDefault();closeJournalDetail()});
   $('#closeJournalItemPreviewBtn').onclick=closeJournalItemPreviewToDay;
   $('#backJournalItemPreviewBtn').onclick=closeJournalItemPreviewToDay;
@@ -946,14 +951,52 @@ function renderWearPicker(){
   renderWearCategoryTabs();updateWearSelectedCount();
 }
 function updateWearSelectedCount(){const n=wearDraftIds.size;$('#wearSelectedCount').textContent=`${n} selected`}
-function loadWearDate(date){
+function setWearDateLock(locked){
+  wearDateLocked=!!locked;
+  const input=$('#wearDate');if(!input)return;
+  input.disabled=wearDateLocked;
+  input.classList.toggle('date-locked',wearDateLocked);
+  input.setAttribute('aria-disabled',wearDateLocked?'true':'false');
+  const label=input.closest('.wear-date-label');if(label)label.classList.toggle('wear-date-locked',wearDateLocked);
+}
+function loadWearDate(date,{lockDate=null}={}){
   const existing=state.journal.find(j=>j.date===date);
   editingWearId=existing?.id||null;
   wearDraftIds=new Set(existing?.itemIds||[]);
+  wearOriginalDate=date;
+  wearMoveOverrideTarget=false;
+  wearMoveSourceId=existing?.id||null;
+  $('#wearDate').value=date;
   $('#wearDialogTitle').textContent=existing?'Edit what you wore':'Log what you wore';
   $('#deleteWearBtn').classList.toggle('hidden',!existing);
+  const shouldLock=lockDate===null?!!existing&&date<=localTodayISO():!!lockDate;
+  setWearDateLock(shouldLock);
   wearCategoryFilter='All';
   renderWearPicker();
+}
+function handleWearDateChange(){
+  const input=$('#wearDate'),next=input.value,previous=wearOriginalDate||localTodayISO();
+  if(!next||next===previous)return;
+  if(wearDateLocked){input.value=previous;return}
+  const source=wearMoveSourceId?state.journal.find(j=>j.id===wearMoveSourceId):null;
+  // Existing past/today entries are locked. An existing future/planned entry can be moved.
+  if(source&&String(source.date||'')>localTodayISO()){
+    const keepCurrent=confirm(`Move this planned look to ${formatJournalDate(next)} and use these selected items for that day?
+
+OK = move these items to the new day
+Cancel = open the selected day instead`);
+    if(keepCurrent){
+      wearMoveOverrideTarget=true;
+      input.value=next;
+      // Keep the source selection visible so the user can review/add pieces before saving.
+      renderWearPicker();
+      return;
+    }
+    loadWearDate(next,{lockDate:!!state.journal.find(j=>j.date===next)&&next<=localTodayISO()});
+    return;
+  }
+  // New unsaved looks can navigate between current/future dates normally.
+  loadWearDate(next,{lockDate:false});
 }
 function lockPageForWearDialog(){
   if(document.body.classList.contains('wear-dialog-open'))return;
@@ -971,23 +1014,35 @@ function openWear(date=''){
   const target=date||localTodayISO();
   const existing=state.journal.find(j=>j.date===target);
   if(!existing&&!state.items.some(i=>!isArchived(i)))return toast('Add or reactivate a closet piece first');
-  $('#wearDate').value=target;
-  loadWearDate(target);
+  loadWearDate(target,{lockDate:!!existing&&target<=localTodayISO()});
   if(!$('#wearDialog').open){lockPageForWearDialog();$('#wearDialog').showModal();}
 }
-function closeWearWithoutSaving(){editingWearId=null;wearCategoryFilter='All';wearDraftIds=new Set();if($('#wearDialog').open)$('#wearDialog').close('cancel');else unlockPageForWearDialog()}
+function closeWearWithoutSaving(){editingWearId=null;wearCategoryFilter='All';wearDraftIds=new Set();wearOriginalDate='';wearDateLocked=false;wearMoveOverrideTarget=false;wearMoveSourceId=null;if($('#wearDialog').open)$('#wearDialog').close('cancel');else unlockPageForWearDialog()}
 function recalcWears(){const today=localTodayISO();state.items.forEach(i=>i.wears=state.journal.filter(j=>String(j.date||'')<=today).reduce((n,j)=>n+(j.itemIds||[]).filter(x=>x===i.id).length,0))}
 async function saveWear(){
   const ids=[...wearDraftIds];
   if(!ids.length)return toast('Select at least one item');
   const date=$('#wearDate').value;if(!date)return toast('Choose a date');
-  let existing=editingWearId?state.journal.find(j=>j.id===editingWearId):state.journal.find(j=>j.date===date);
-  const payload={date,itemIds:[...new Set(ids)],notes:existing?.notes||'',updated:Date.now()};
-  if(existing)Object.assign(existing,payload);else state.journal.unshift({id:id(),created:Date.now(),feel:'',favorite:false,...payload});
-  // One entry per day. If an older duplicate exists, merge its items before removing it.
-  const sameDay=state.journal.filter(j=>j.date===date);
-  if(sameDay.length>1){const keeper=existing||sameDay[0];keeper.itemIds=[...new Set(sameDay.flatMap(j=>j.itemIds||[]))];state.journal=state.journal.filter(j=>j.date!==date||j.id===keeper.id)}
-  recalcWears();await saveState();editingWearId=null;$('#wearDialog').close();unlockPageForWearDialog();renderJournal();toast(date>localTodayISO()?'Planned look saved':'Journal updated')
+  const source=wearMoveSourceId?state.journal.find(j=>j.id===wearMoveSourceId):null;
+  if(source&&wearMoveOverrideTarget&&source.date!==date){
+    // Moving a planned look: replace the destination day's item selection, then remove the old planned day.
+    const target=state.journal.find(j=>j.date===date&&j.id!==source.id);
+    const payload={date,itemIds:[...new Set(ids)],notes:source.notes||target?.notes||'',updated:Date.now()};
+    if(target){
+      Object.assign(target,payload);
+      // Keep destination feedback/history when replacing its items.
+      state.journal=state.journal.filter(j=>j.id!==source.id);
+      editingWearId=target.id;
+    }else Object.assign(source,payload);
+  }else{
+    let existing=editingWearId?state.journal.find(j=>j.id===editingWearId):state.journal.find(j=>j.date===date);
+    const payload={date,itemIds:[...new Set(ids)],notes:existing?.notes||'',updated:Date.now()};
+    if(existing)Object.assign(existing,payload);else state.journal.unshift({id:id(),created:Date.now(),feel:'',favorite:false,...payload});
+    // One entry per day. Merge only unexpected legacy duplicates.
+    const sameDay=state.journal.filter(j=>j.date===date);
+    if(sameDay.length>1){const keeper=existing||sameDay[0];keeper.itemIds=[...new Set(sameDay.flatMap(j=>j.itemIds||[]))];state.journal=state.journal.filter(j=>j.date!==date||j.id===keeper.id)}
+  }
+  recalcWears();await saveState();editingWearId=null;wearOriginalDate='';wearDateLocked=false;wearMoveOverrideTarget=false;wearMoveSourceId=null;$('#wearDialog').close();unlockPageForWearDialog();renderJournal();toast(date>localTodayISO()?'Planned look saved':'Journal updated')
 }
 async function deleteWearEntry(){if(!editingWearId)return;await deleteJournalEntryById(editingWearId,false)}
 async function deleteJournalEntryById(jid,fromDetail=false){
