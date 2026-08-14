@@ -116,12 +116,13 @@
       <p class="portfolio-intro">Browse saved outfits like a lookbook. Favorites stay together automatically.</p>
       <div class="portfolio-tabs" id="portfolioTabs"></div>
       <div class="portfolio-discovery-bar">
-        <label class="searchbox portfolio-search-wrap"><span>⌕</span><input id="portfolioSearch" type="text" inputmode="search" placeholder="Search looks, jeans, orange, Nike…" autocomplete="off" enterkeyhint="search"></label>
-        <button type="button" class="soft-btn portfolio-item-filter-btn" id="portfolioItemFilterBtn">Filter</button>
+        <label class="portfolio-search-wrap"><span>⌕</span><input id="portfolioSearch" type="search" placeholder="Search looks, jeans, orange, Nike…" autocomplete="off"></label>
+        <button type="button" class="soft-btn portfolio-item-filter-btn" id="portfolioItemFilterBtn">▦ Closet items</button>
+        <button type="button" class="text-btn hidden" id="portfolioClearFilters">Clear</button>
       </div>
       <div class="portfolio-selected-filters hidden" id="portfolioSelectedFilters"></div>
       <div class="portfolio-item-filter-panel hidden" id="portfolioItemFilterPanel"></div>
-      <div class="portfolio-summary"><span id="outfitCount">0 looks</span></div><p class="portfolio-reorder-hint" id="portfolioReorderHint">Choose a portfolio folder to reorder looks.</p>
+      <div class="portfolio-summary"><span id="outfitCount">0 looks</span><button class="text-btn" id="managePortfolioBtn">Manage folders</button></div><p class="portfolio-reorder-hint" id="portfolioReorderHint">Choose a portfolio folder to reorder looks.</p>
       <div class="saved-outfits portfolio-gallery" id="savedOutfits"></div>
     </section>
 
@@ -215,7 +216,7 @@
 
   <dialog id="itemDialog" class="sheet-dialog">
     <form method="dialog" id="itemForm">
-      <div class="sheet-head"><div><p class="script">closet piece</p><h2 id="itemDialogTitle">Add a piece</h2></div><button type="button" id="closeItemDialogBtn" class="close-btn" aria-label="Close">×</button></div>
+      <div class="sheet-head item-head"><div><p class="script">closet piece</p><h2 id="itemDialogTitle">Add a piece</h2></div><div class="item-head-actions"><button type="button" id="smartScanIconBtn" class="item-head-icon hidden" aria-label="Smart scan photo" title="Smart scan"><span class="scan-corners">⌗</span><span class="scan-sparkle">✦</span></button><div id="reviewPhotoMenuWrap" class="review-photo-menu-wrap hidden"><button type="button" id="reviewPhotoMenuBtn" class="item-head-icon" aria-label="Photo tools" title="Photo tools">📷</button><div id="reviewPhotoMenu" class="review-photo-menu hidden" role="menu"><button type="button" id="reviewStudioBtn" role="menuitem">Edit in Photo Studio</button><label role="menuitem">Take new photo<input type="file" id="reviewItemPhoto" accept="image/*" capture="environment" /></label><label role="menuitem">Choose from library<input type="file" id="reviewItemPhotoLibrary" accept="image/*" /></label><button type="button" id="reviewRestoreOriginalBtn" class="hidden" role="menuitem">Restore original photo</button></div></div><button type="button" id="closeItemDialogBtn" class="close-btn" aria-label="Close">×</button></div></div>
       <input type="hidden" id="itemId" />
       <div id="itemSwipeZone" class="item-swipe-zone">
         <div id="itemReviewSummary" class="item-review-summary hidden">
@@ -237,10 +238,8 @@
             <label class="soft-btn file-label" id="uploadPhotoLabel">Upload photo<input type="file" id="itemPhotoLibrary" accept="image/*" /></label>
             <button type="button" class="soft-btn" id="photoStudioBtn">✂ Photo Studio</button>
             <button type="button" class="soft-btn hidden" id="restoreOriginalPhotoBtn">↶ Original photo</button>
-            <button type="button" class="soft-btn" id="smartScanBtn">Smart scan</button>
           </div>
           <div class="scan-status" id="scanStatus"></div>
-          <button type="button" id="permanentDeleteItemBtn" class="permanent-delete-btn hidden">Permanently delete…</button>
         </div>
       </details>
       <div class="form-grid">
@@ -255,8 +254,18 @@
       </div>
       <label class="full-label">Notes<textarea id="itemNotes" placeholder="Fit, styling notes, sentimental story…"></textarea></label>
       <div id="itemArchiveNotice" class="item-archive-notice hidden"><strong>Archived piece</strong><span>Hidden from the normal Closet, but preserved in Journal history and saved outfits.</span></div>
+      <button type="button" id="permanentDeleteItemBtn" class="permanent-delete-btn item-permanent-delete hidden">Permanently delete…</button>
       <div class="sheet-actions item-sheet-actions"><button type="button" id="cancelItemBtn" class="soft-btn">Cancel</button><button type="button" class="danger-text hidden" id="deleteItemBtn">Remove from Closet</button><button type="submit" value="default" class="primary" id="saveItemBtn">Save piece</button></div>
     </form>
+  </dialog>
+
+  <dialog id="smartScanReviewDialog" class="sheet-dialog smart-scan-review-dialog">
+    <div class="smart-scan-review-shell">
+      <div class="sheet-head"><div><p class="script">smart scan</p><h2>Apply detected details?</h2></div><button type="button" id="closeSmartScanReviewBtn" class="close-btn" aria-label="Close">×</button></div>
+      <p class="smart-scan-review-intro">Choose which detected attributes you want to apply. Existing catalog details are never changed unless you select them here.</p>
+      <div id="smartScanReviewFields" class="smart-scan-review-fields"></div>
+      <div class="sheet-actions smart-scan-review-actions"><button type="button" class="soft-btn" id="cancelSmartScanReviewBtn">Cancel</button><button type="button" class="primary" id="applySmartScanReviewBtn">Apply selected</button></div>
+    </div>
   </dialog>
 
   <dialog id="photoStudioDialog" class="sheet-dialog studio-dialog studio-v138">
@@ -385,8 +394,8 @@
   </dialog>
 
   <dialog id="outfitViewDialog" class="sheet-dialog outfit-view-dialog">
-    <div class="sheet-head outfit-view-head"><div><p class="script">saved look</p><h2 id="viewOutfitName"></h2><small id="viewOutfitFolder" class="outfit-view-folder"></small></div><div class="outfit-view-head-actions"><button type="button" class="outfit-view-favorite" id="favoriteViewedOutfitBtn" aria-label="Add to favorites" aria-pressed="false">☆</button><button type="button" class="close-btn" id="closeViewedOutfitBtn">×</button></div></div>
     <div class="outfit-view-scroll">
+      <div class="sheet-head outfit-view-head"><div><p class="script">saved look</p><h2 id="viewOutfitName"></h2><small id="viewOutfitFolder" class="outfit-view-folder"></small></div><div class="outfit-view-head-actions"><button type="button" class="outfit-view-favorite" id="favoriteViewedOutfitBtn" aria-label="Add to favorites" aria-pressed="false">☆</button><button type="button" class="close-btn" id="closeViewedOutfitBtn">×</button></div></div>
       <div id="viewOutfitBoard" class="board snapshot"></div>
       <section class="outfit-view-copy">
         <p id="viewOutfitNotes" class="outfit-note"></p>
@@ -396,10 +405,7 @@
         </details>
       </section>
     </div>
-    <div class="outfit-view-footer">
-      <div class="sheet-actions outfit-view-actions"><button class="soft-btn" id="duplicateViewedOutfitBtn">⧉ Copy</button><button class="soft-btn" id="editViewedOutfitBtn">✎ Edit</button><button class="soft-btn" id="shareViewedOutfitBtn">↗ Share</button></div>
-      <button class="danger-text outfit-delete-link" id="deleteOutfitBtn">Delete saved look</button>
-    </div>
+    <div class="sheet-actions outfit-view-actions"><button class="danger-text" id="deleteOutfitBtn">Delete</button><button class="soft-btn" id="shareViewedOutfitBtn">↗ Share</button><button class="soft-btn" id="duplicateViewedOutfitBtn">⧉ Duplicate</button><button class="primary" id="editViewedOutfitBtn">Edit on Board</button></div>
   </dialog>
 
 

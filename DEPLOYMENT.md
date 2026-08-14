@@ -136,25 +136,5 @@ Locks the page behind Portfolio look detail and read-only item preview dialogs s
 Adds Portfolio discovery: keyword search across looks and closet-item metadata, a thumbnail-based closet item filter with multi-select AND matching, selected-item filter chips, and clear-filter controls. Reordering is temporarily disabled while discovery filters are active to protect manual folder order. Service-worker cache: `audrey-closet-v13.11-dev6`.
 
 
-## v13.11-dev6.1a
-Portfolio saved-look layout refinement based strictly on v13.11-dev6. The saved-look title, folder, favorite star, and close control are fixed outside the scrollable region. Only the board/notes/items middle region can scroll when expanded content requires it, with overscroll containment to prevent the modal background from pulling into view. Service-worker cache: `audrey-closet-v13.11-dev6.1a`.
-
-
-## v13.11-dev6.1a.1
-Saved-look polish: returning from a read-only portfolio item preview preserves the expanded Items in this look panel. Bottom actions are simplified to Copy, Edit, and Share, with Delete saved look moved to a smaller destructive text action beneath them. Service-worker cache: `audrey-closet-v13.11-dev6.1a.1`.
-
-
-## v13.11-dev6.1b
-Portfolio search-field refinement only. The search input uses an iPhone-safe 16px font to prevent Safari form zoom, and pressing Search/Enter dismisses the keyboard while preserving the active search term and filtered results. Built from v13.11-dev6.1a.1. Service-worker cache: `audrey-closet-v13.11-dev6.1b`.
-
-
-## v13.11-dev6.1c
-Portfolio discovery polish: renames the Closet Items action to Filter, moves Clear into the Filter by closet items panel header, and aligns the Portfolio search field more closely with the Closet search control to reduce iPhone focus zoom.
-
-
-## v13.11-dev6.1c.1
-Portfolio discovery polish: removes the redundant Manage folders shortcut from Portfolio, locks filter thumbnails against native image actions, preserves the closet-item picker scroll position while selecting filters, and adds light clothing-term normalization so common plurals such as jackets/shoes/sweaters match their singular catalog types. Service-worker cache: `audrey-closet-v13.11-dev6.1c.1`.
-
-
-## v13.11-dev6.1d
-Adds direct long-press drag reordering for Portfolio folder tabs, including All and Favorites. Tab labels are protected from text selection and the iOS touch-callout while interacting with them. Service-worker cache: `audrey-closet-v13.11-dev6.1d`.
+## v13.12-dev1
+Closet review UI refinement. Existing saved pieces now use compact upper-right Camera and Smart Scan controls; new pieces retain the full Photo Tools disclosure. Smart Scan is separated from photo tools and presents detected attributes for confirmation before applying them. Service-worker cache: `audrey-closet-v13.12-dev1`.
