@@ -328,7 +328,6 @@ function bindDialogs(){
   $('#wearDateConflictCancel').onclick=()=>resolveWearDateConflict('cancel');
   $('#clearWearSelectionBtn').onclick=()=>{wearDraftIds.clear();$$('.wear-option.selected').forEach(b=>b.classList.remove('selected'));updateWearSelectedCount()};
   $('#deleteWearBtn').onclick=deleteWearEntry;
-  $('#journalFilterBtn').onclick=toggleJournalFilterPanel;
   $('#journalRange').onchange=e=>handleJournalRangeFilterChange(e.target.value);
   $('#journalClearFiltersBtn').onclick=clearJournalFilters;
   $('#closeJournalRangeBtn').onclick=closeJournalRangeDialog;
@@ -1190,18 +1189,15 @@ function formatJournalRangeCompact(start,end){
   return `${monthDay(a)}, ${ay} – ${monthDay(b)}, ${by}`;
 }
 function updateJournalFilterUI(){
-  const summary=$('#journalRangeSummary'),btn=$('#journalFilterBtn'),clear=$('#journalClearFiltersBtn');if(!summary||!btn)return;
+  const summary=$('#journalRangeSummary'),clear=$('#journalClearFiltersBtn'),select=$('#journalRange');if(!summary)return;
   const custom=journalRangeFilter==='custom'&&journalRangeStart&&journalRangeEnd;
   summary.textContent=custom?formatJournalRangeCompact(journalRangeStart,journalRangeEnd):'';
   summary.classList.toggle('hidden',!custom);
-  const active=journalRangeFilter!=='all';btn.classList.toggle('active-filter',active);
-  if(clear)clear.disabled=!active;
+  const active=journalRangeFilter!=='all';
+  if(clear)clear.classList.toggle('hidden',!active);
+  if(select)select.classList.toggle('active-filter',active);
 }
-function toggleJournalFilterPanel(){
-  const panel=$('#journalFilterPanel'),btn=$('#journalFilterBtn');if(!panel||!btn)return;
-  const opening=panel.classList.contains('hidden');panel.classList.toggle('hidden',!opening);btn.setAttribute('aria-expanded',opening?'true':'false');
-}
-function closeJournalFilterPanel(){const panel=$('#journalFilterPanel'),btn=$('#journalFilterBtn');if(panel)panel.classList.add('hidden');if(btn)btn.setAttribute('aria-expanded','false')}
+function closeJournalFilterPanel(){}
 function handleJournalRangeFilterChange(value){
   if(value==='custom'){openJournalRangeDialog();return}
   journalRangeFilter=value;journalRangeStart='';journalRangeEnd='';closeJournalFilterPanel();renderJournal();

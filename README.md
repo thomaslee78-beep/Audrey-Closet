@@ -292,5 +292,10 @@ Fixes planned-look date editing: when changing the date of an existing planned l
 - Wear Log filters now include a Clear control that returns the view to All dates.
 - Custom range uses a single in-app range calendar: tap a start date and then an end date, with the selected range highlighted.
 - An active custom range is shown compactly to the left of Filter; current-year ranges omit the year, past same-year ranges show one year, and cross-year ranges show both years.
-- Service-worker cache: `audrey-closet-v13.12-dev4.2.1`.
+- Service-worker cache: `audrey-closet-v13.12-dev4.2.2`.
 
+
+### v13.12-dev4.2.2
+- Wear Log date filter is always visible instead of hidden behind a Filter button.
+- Clear appears only when a non-default filter is active.
+- Scroll-limited Wear Log and Planned Looks lists reserve more right-side space so row borders are not obscured by the vertical scroller.

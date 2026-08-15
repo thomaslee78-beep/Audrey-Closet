@@ -150,20 +150,17 @@
         <div id="wearLogContent" class="wear-log-content">
           <div class="wear-log-filter-row">
             <span id="journalRangeSummary" class="journal-range-summary hidden" aria-live="polite"></span>
-            <button type="button" class="soft-btn journal-filter-btn" id="journalFilterBtn" aria-expanded="false" aria-controls="journalFilterPanel">Filter</button>
-            <div id="journalFilterPanel" class="journal-filter-panel hidden">
-              <select id="journalRange" aria-label="Journal date range">
-                <option value="all">All dates</option>
-                <option value="7">Last 7 days</option>
-                <option value="30">Last 30 days</option>
-                <option value="90">Last 90 days</option>
-                <option value="season">This season</option>
-                <option value="year">This year</option>
-                <option value="favorites">Favorites</option>
-                <option value="custom">Custom range</option>
-              </select>
-              <button type="button" class="text-btn journal-clear-filter-btn" id="journalClearFiltersBtn">Clear</button>
-            </div>
+            <select id="journalRange" class="journal-range-select" aria-label="Wear log date filter">
+              <option value="all">All dates</option>
+              <option value="7">Last 7 days</option>
+              <option value="30">Last 30 days</option>
+              <option value="90">Last 90 days</option>
+              <option value="season">This season</option>
+              <option value="year">This year</option>
+              <option value="favorites">Favorites</option>
+              <option value="custom">Custom range</option>
+            </select>
+            <button type="button" class="text-btn journal-clear-filter-btn hidden" id="journalClearFiltersBtn">Clear</button>
           </div>
           <div class="journal-list" id="journalList"></div>
         </div>
