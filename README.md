@@ -270,4 +270,10 @@ Adds safer Journal date-collision handling for new outfit logs. Selecting a date
 - Existing journal entries still use separate edit behavior; occupied dates continue to use the Open existing / Replace / Cancel safeguard.
 
 ## v13.12-dev4.0.3
-Fixes planned-look date editing: when changing the date of an existing planned look, **Cancel** now cancels the move, restores the previously selected date, and keeps the current planned-look selections/context unchanged. Only **OK** proceeds with moving the planned look to the new date. Service-worker cache: `audrey-closet-v13.12-dev4.0.3`.
+Fixes planned-look date editing: when changing the date of an existing planned look, **Cancel** now cancels the move, restores the previously selected date, and keeps the current planned-look selections/context unchanged. Only **OK** proceeds with moving the planned look to the new date. Service-worker cache: `audrey-closet-v13.12-dev4.1`.
+
+
+## v13.12-dev4.1 — Journal section UI
+- Today’s Look and Wear Insights are collapsible.
+- Journal section open/closed choices persist locally, including Planned looks and Wear log.
+- Stable `data-journal-section` identifiers are in place for future section reordering.

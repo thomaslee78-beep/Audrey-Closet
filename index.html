@@ -127,45 +127,57 @@
 
     <section class="screen" data-screen="journal">
       <div class="page-head"><div><p class="script">the story of what you wear</p><h2>Journal</h2></div><button class="primary" id="logWearBtn">Log outfit</button></div>
-      <section id="todayJournalSection" class="today-journal-section hidden">
-        <div class="today-section-title"><strong>Today’s Look</strong><small id="todayJournalMeta">today</small></div>
-        <div class="journal-list today-journal-list" id="todayJournalList"></div>
+      <section id="todayJournalSection" class="today-journal-section hidden" data-journal-section="today">
+        <button type="button" id="todayJournalToggle" class="today-section-toggle" aria-expanded="true" aria-controls="todayJournalContent">
+          <span><strong>Today’s Look</strong><small id="todayJournalMeta">today</small></span><span class="today-toggle-icon">−</span>
+        </button>
+        <div id="todayJournalContent" class="today-journal-content">
+          <div class="journal-list today-journal-list" id="todayJournalList"></div>
+        </div>
       </section>
-      <section id="plannedJournalSection" class="planned-journal-section hidden">
+      <section id="plannedJournalSection" class="planned-journal-section hidden" data-journal-section="planned">
         <button type="button" id="plannedJournalToggle" class="planned-section-toggle" aria-expanded="false">
           <span><strong>Planned looks</strong><small id="plannedJournalCount">future dates</small></span><span class="planned-toggle-icon">＋</span>
         </button>
         <div class="journal-list planned-journal-list hidden" id="plannedJournalList"></div>
       </section>
-      <div class="journal-toolbar wear-log-header">
-        <button type="button" id="wearLogToggle" class="wear-log-toggle" aria-expanded="true" aria-controls="wearLogContent">
-          <span><strong>Wear log</strong><small id="journalCount">0 days</small></span><span class="wear-log-toggle-icon">−</span>
-        </button>
-      </div>
-      <div id="wearLogContent" class="wear-log-content">
-        <div class="wear-log-filter-row">
-          <select id="journalRange" aria-label="Journal date range">
-            <option value="all">All dates</option>
-            <option value="30">Last 30 days</option>
-            <option value="90">Last 90 days</option>
-            <option value="season">This season</option>
-            <option value="favorites">Favorites</option>
-          </select>
+      <section id="wearLogSection" class="journal-section-block" data-journal-section="wearLog">
+        <div class="journal-toolbar wear-log-header">
+          <button type="button" id="wearLogToggle" class="wear-log-toggle" aria-expanded="true" aria-controls="wearLogContent">
+            <span><strong>Wear log</strong><small id="journalCount">0 days</small></span><span class="wear-log-toggle-icon">−</span>
+          </button>
         </div>
-        <div class="journal-list" id="journalList"></div>
-      </div>
-      <div class="section-title"><h3>Wear insights</h3><span>tap cards for detail</span></div>
-      <div class="stats-grid">
-        <button class="stat-card stat-action" data-stat="most"><span>Most worn</span><strong id="mostWorn">—</strong><small id="mostWornMeta">No wear data yet</small></button>
-        <button class="stat-card stat-action" data-stat="color"><span>Favorite color</span><strong id="favColor">—</strong><small id="favColorMeta">No wear data yet</small></button>
-        <button class="stat-card stat-action" data-stat="total"><span>Closet wears</span><strong id="totalWears">0</strong><small>journaled item-wears</small></button>
-        <button class="stat-card stat-action" data-stat="season"><span>This season</span><strong id="seasonWears">0</strong><small id="seasonName">—</small></button>
-      </div>
-      <details class="journal-insights-more">
-        <summary>Charts & trends</summary>
-        <div class="chart-card"><div class="section-title"><h3>Color story</h3><span>by wears</span></div><canvas id="colorChart" width="640" height="270"></canvas></div>
-        <div class="chart-card"><div class="section-title"><h3>Season rhythm</h3><span>journal entries</span></div><canvas id="seasonChart" width="640" height="240"></canvas></div>
-      </details>
+        <div id="wearLogContent" class="wear-log-content">
+          <div class="wear-log-filter-row">
+            <select id="journalRange" aria-label="Journal date range">
+              <option value="all">All dates</option>
+              <option value="30">Last 30 days</option>
+              <option value="90">Last 90 days</option>
+              <option value="season">This season</option>
+              <option value="favorites">Favorites</option>
+            </select>
+          </div>
+          <div class="journal-list" id="journalList"></div>
+        </div>
+      </section>
+      <section id="wearInsightsSection" class="wear-insights-section" data-journal-section="insights">
+        <button type="button" id="wearInsightsToggle" class="wear-insights-toggle" aria-expanded="true" aria-controls="wearInsightsContent">
+          <span><strong>Wear insights</strong><small>tap cards for detail</small></span><span class="wear-insights-toggle-icon">−</span>
+        </button>
+        <div id="wearInsightsContent" class="wear-insights-content">
+          <div class="stats-grid">
+            <button class="stat-card stat-action" data-stat="most"><span>Most worn</span><strong id="mostWorn">—</strong><small id="mostWornMeta">No wear data yet</small></button>
+            <button class="stat-card stat-action" data-stat="color"><span>Favorite color</span><strong id="favColor">—</strong><small id="favColorMeta">No wear data yet</small></button>
+            <button class="stat-card stat-action" data-stat="total"><span>Closet wears</span><strong id="totalWears">0</strong><small>journaled item-wears</small></button>
+            <button class="stat-card stat-action" data-stat="season"><span>This season</span><strong id="seasonWears">0</strong><small id="seasonName">—</small></button>
+          </div>
+          <details class="journal-insights-more">
+            <summary>Charts & trends</summary>
+            <div class="chart-card"><div class="section-title"><h3>Color story</h3><span>by wears</span></div><canvas id="colorChart" width="640" height="270"></canvas></div>
+            <div class="chart-card"><div class="section-title"><h3>Season rhythm</h3><span>journal entries</span></div><canvas id="seasonChart" width="640" height="240"></canvas></div>
+          </details>
+        </div>
+      </section>
     </section>
 
     <section class="screen" data-screen="wishlist">

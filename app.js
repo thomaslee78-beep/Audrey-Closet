@@ -160,8 +160,11 @@ let journalDetailScrollY=0;
 let wearDialogScrollY=0;
 let journalStatScrollY=0;
 let journalRangeFilter='all';
-let plannedJournalExpanded=false;
+let todayJournalExpanded=localStorage.getItem('audreyTodayJournalExpanded')!=='false';
+let plannedJournalExpanded=localStorage.getItem('audreyPlannedJournalExpanded')==='true';
 let wearLogExpanded=localStorage.getItem('audreyWearLogExpanded')!=='false';
+let wearInsightsExpanded=localStorage.getItem('audreyWearInsightsExpanded')!=='false';
+const JOURNAL_SECTION_ORDER=['today','planned','wearLog','insights'];
 let wearDraftIds=new Set();
 let wearOriginalDate='';
 let wearDateLocked=false;
@@ -321,8 +324,10 @@ function bindDialogs(){
   $('#clearWearSelectionBtn').onclick=()=>{wearDraftIds.clear();$$('.wear-option.selected').forEach(b=>b.classList.remove('selected'));updateWearSelectedCount()};
   $('#deleteWearBtn').onclick=deleteWearEntry;
   $('#journalRange').onchange=e=>{journalRangeFilter=e.target.value;renderJournal()};
-  $('#plannedJournalToggle').onclick=()=>{plannedJournalExpanded=!plannedJournalExpanded;renderPlannedJournalVisibility()};
+  $('#todayJournalToggle').onclick=()=>{todayJournalExpanded=!todayJournalExpanded;localStorage.setItem('audreyTodayJournalExpanded',todayJournalExpanded?'true':'false');renderTodayJournalVisibility()};
+  $('#plannedJournalToggle').onclick=()=>{plannedJournalExpanded=!plannedJournalExpanded;localStorage.setItem('audreyPlannedJournalExpanded',plannedJournalExpanded?'true':'false');renderPlannedJournalVisibility()};
   $('#wearLogToggle').onclick=()=>{wearLogExpanded=!wearLogExpanded;localStorage.setItem('audreyWearLogExpanded',wearLogExpanded?'true':'false');renderWearLogVisibility()};
+  $('#wearInsightsToggle').onclick=()=>{wearInsightsExpanded=!wearInsightsExpanded;localStorage.setItem('audreyWearInsightsExpanded',wearInsightsExpanded?'true':'false');renderWearInsightsVisibility()};
   $('#closeJournalDetailBtn').onclick=closeJournalDetail;
   $('#cancelJournalDetailBtn').onclick=closeJournalDetail;
   $('#journalDetailDialog').addEventListener('cancel',e=>{e.preventDefault();closeJournalDetail()});
@@ -1170,10 +1175,16 @@ function renderJournal(){
   const today=localTodayISO(),todayEntry=state.journal.find(j=>String(j.date||'')===today);
   $('#todayJournalSection').classList.toggle('hidden',!todayEntry);
   $('#todayJournalList').innerHTML=todayEntry?journalRow(todayEntry,false):'';
-  $('#todayJournalMeta').textContent=todayEntry?`${(todayEntry.itemIds||[]).length} ${(todayEntry.itemIds||[]).length===1?'piece':'pieces'}`:'today';
+  $('#todayJournalMeta').textContent=todayEntry?`${(todayEntry.itemIds||[]).length} ${(todayEntry.itemIds||[]).length===1?'piece':'pieces'}`:'today';renderTodayJournalVisibility();
   const planned=state.journal.filter(isFutureJournal).sort((a,b)=>a.date.localeCompare(b.date));$('#plannedJournalSection').classList.toggle('hidden',!planned.length);$('#plannedJournalList').innerHTML=planned.map(j=>journalRow(j,true)).join('');$('#plannedJournalCount').textContent=`${planned.length} ${planned.length===1?'planned day':'planned days'}`;renderPlannedJournalVisibility();
   const rows=journalEntriesForRange().filter(j=>String(j.date||'')!==today);$('#journalRange').value=journalRangeFilter;$('#journalCount').textContent=`${rows.length} ${rows.length===1?'day':'days'}`;$('#journalList').innerHTML=rows.map(j=>journalRow(j,false)).join('')||'<div class="empty-state compact"><p>No journal entries in this view.</p></div>';$$('.journal-row-button').forEach(b=>b.onclick=()=>openJournalDetail(b.dataset.journalId));renderWearLogVisibility();
-  drawDonut($('#colorChart'),colorCounts);const seasonCounts={Winter:0,Spring:0,Summer:0,Fall:0};pastJournal.forEach(j=>seasonCounts[seasonForDate(new Date(j.date+'T12:00:00'))]++);drawBars($('#seasonChart'),seasonCounts)
+  renderWearInsightsVisibility();drawDonut($('#colorChart'),colorCounts);const seasonCounts={Winter:0,Spring:0,Summer:0,Fall:0};pastJournal.forEach(j=>seasonCounts[seasonForDate(new Date(j.date+'T12:00:00'))]++);drawBars($('#seasonChart'),seasonCounts)
+}
+
+
+function renderTodayJournalVisibility(){
+  const content=$('#todayJournalContent'),toggle=$('#todayJournalToggle');if(!content||!toggle)return;
+  content.classList.toggle('hidden',!todayJournalExpanded);toggle.setAttribute('aria-expanded',todayJournalExpanded?'true':'false');const icon=toggle.querySelector('.today-toggle-icon');if(icon)icon.textContent=todayJournalExpanded?'−':'＋';
 }
 
 function renderWearLogVisibility(){
@@ -1186,6 +1197,11 @@ function renderWearLogVisibility(){
 function renderPlannedJournalVisibility(){
   const list=$('#plannedJournalList'),toggle=$('#plannedJournalToggle');if(!list||!toggle)return;
   list.classList.toggle('hidden',!plannedJournalExpanded);toggle.setAttribute('aria-expanded',plannedJournalExpanded?'true':'false');const icon=toggle.querySelector('.planned-toggle-icon');if(icon)icon.textContent=plannedJournalExpanded?'−':'＋';
+}
+
+function renderWearInsightsVisibility(){
+  const content=$('#wearInsightsContent'),toggle=$('#wearInsightsToggle');if(!content||!toggle)return;
+  content.classList.toggle('hidden',!wearInsightsExpanded);toggle.setAttribute('aria-expanded',wearInsightsExpanded?'true':'false');const icon=toggle.querySelector('.wear-insights-toggle-icon');if(icon)icon.textContent=wearInsightsExpanded?'−':'＋';
 }
 function lockPageForJournalDetail(){
   if(document.body.classList.contains('journal-detail-open'))return;
