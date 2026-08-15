@@ -831,3 +831,19 @@ body.portfolio-modal-open{position:fixed;left:0;right:0;width:100%;overflow:hidd
 .journal-list.journal-scroll-limited{padding-right:11px!important;width:100%;min-width:0;box-sizing:border-box}
 .journal-list.journal-scroll-limited>.journal-row{width:100%;max-width:100%;min-width:0}
 @media(max-width:390px){.journal-range-select{max-width:150px}.journal-range-summary{font-size:10px}}
+
+
+/* v13.12-dev4.2.3 — custom range interaction polish */
+.journal-range-dialog{max-width:410px;overflow:auto}
+.journal-range-dialog .journal-range-calendar,
+.journal-range-dialog .journal-calendar-head,
+.journal-range-dialog .journal-calendar-weekdays,
+.journal-range-dialog .journal-calendar-grid,
+.journal-range-dialog .journal-calendar-day{touch-action:manipulation;-webkit-user-select:none;user-select:none}
+.journal-range-dialog .journal-calendar-day{-webkit-tap-highlight-color:transparent}
+.journal-range-dialog .journal-range-actions{position:static!important;bottom:auto!important;z-index:auto!important;margin:14px 0 0!important;padding:0!important;background:transparent!important;border-top:0!important;box-shadow:none!important}
+.journal-range-dialog .journal-range-draft-summary{margin-top:12px;margin-bottom:0}
+@media(max-width:410px){
+  .journal-range-dialog{width:calc(100% - 12px);padding:15px 15px 12px;max-height:94dvh}
+  .journal-range-dialog .journal-range-actions{margin-top:15px!important;margin-bottom:0!important}
+}

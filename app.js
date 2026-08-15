@@ -329,6 +329,7 @@ function bindDialogs(){
   $('#clearWearSelectionBtn').onclick=()=>{wearDraftIds.clear();$$('.wear-option.selected').forEach(b=>b.classList.remove('selected'));updateWearSelectedCount()};
   $('#deleteWearBtn').onclick=deleteWearEntry;
   $('#journalRange').onchange=e=>handleJournalRangeFilterChange(e.target.value);
+  const journalCalendar=$('#journalRangeDialog');if(journalCalendar)journalCalendar.addEventListener('dblclick',e=>e.preventDefault());
   $('#journalClearFiltersBtn').onclick=clearJournalFilters;
   $('#closeJournalRangeBtn').onclick=closeJournalRangeDialog;
   $('#cancelJournalRangeBtn').onclick=closeJournalRangeDialog;
@@ -1195,11 +1196,12 @@ function updateJournalFilterUI(){
   summary.classList.toggle('hidden',!custom);
   const active=journalRangeFilter!=='all';
   if(clear)clear.classList.toggle('hidden',!active);
-  if(select)select.classList.toggle('active-filter',active);
+  if(select){select.value=custom?'custom-current':journalRangeFilter;select.classList.toggle('active-filter',active)}
 }
 function closeJournalFilterPanel(){}
 function handleJournalRangeFilterChange(value){
-  if(value==='custom'){openJournalRangeDialog();return}
+  const select=$('#journalRange');if(select)select.blur();
+  if(value==='custom'||value==='custom-current'){requestAnimationFrame(openJournalRangeDialog);return}
   journalRangeFilter=value;journalRangeStart='';journalRangeEnd='';closeJournalFilterPanel();renderJournal();
 }
 function clearJournalFilters(){
@@ -1212,7 +1214,7 @@ function openJournalRangeDialog(){
 }
 function closeJournalRangeDialog(){
   const d=$('#journalRangeDialog');if(d?.open)d.close();
-  $('#journalRange').value=journalRangeFilter;
+  const select=$('#journalRange');if(select){select.value=(journalRangeFilter==='custom'&&journalRangeStart&&journalRangeEnd)?'custom-current':journalRangeFilter;select.blur()}
 }
 function shiftJournalCalendarMonth(delta){
   const base=new Date((journalCalendarMonth||localTodayISO().slice(0,7)+'-01')+'T12:00:00');base.setMonth(base.getMonth()+delta);journalCalendarMonth=`${base.getFullYear()}-${String(base.getMonth()+1).padStart(2,'0')}-01`;renderJournalRangeCalendar();
@@ -1245,7 +1247,9 @@ function renderJournalRangeCalendar(){
 function applyJournalCustomRange(){
   if(!journalRangeDraftStart||!journalRangeDraftEnd)return;
   journalRangeStart=journalRangeDraftStart;journalRangeEnd=journalRangeDraftEnd;journalRangeFilter='custom';
+  const select=$('#journalRange');if(select)select.blur();
   const d=$('#journalRangeDialog');if(d?.open)d.close();closeJournalFilterPanel();renderJournal();
+  requestAnimationFrame(()=>{const current=$('#journalRange');if(current){current.value='custom-current';current.blur()}});
 }
 
 function applyJournalListScrollLimit(list,count,limit=7){
@@ -1276,7 +1280,7 @@ function renderJournal(){
   $('#todayJournalList').innerHTML=todayEntry?journalRow(todayEntry,false):'';
   $('#todayJournalMeta').textContent=todayEntry?`${(todayEntry.itemIds||[]).length} ${(todayEntry.itemIds||[]).length===1?'piece':'pieces'}`:'today';renderTodayJournalVisibility();
   const planned=state.journal.filter(isFutureJournal).sort((a,b)=>a.date.localeCompare(b.date));$('#plannedJournalSection').classList.toggle('hidden',!planned.length);$('#plannedJournalList').innerHTML=planned.map(j=>journalRow(j,true)).join('');$('#plannedJournalCount').textContent=`${planned.length} ${planned.length===1?'planned day':'planned days'}`;renderPlannedJournalVisibility();applyJournalListScrollLimit($('#plannedJournalList'),planned.length);
-  const rows=journalEntriesForRange().filter(j=>String(j.date||'')!==today);$('#journalRange').value=journalRangeFilter;updateJournalFilterUI();$('#journalCount').textContent=`${rows.length} ${rows.length===1?'day':'days'}`;$('#journalList').innerHTML=rows.map(j=>journalRow(j,false)).join('')||'<div class="empty-state compact"><p>No journal entries in this view.</p></div>';applyJournalListScrollLimit($('#journalList'),rows.length);$$('.journal-row-button').forEach(b=>b.onclick=()=>openJournalDetail(b.dataset.journalId));renderWearLogVisibility();
+  const rows=journalEntriesForRange().filter(j=>String(j.date||'')!==today);updateJournalFilterUI();$('#journalCount').textContent=`${rows.length} ${rows.length===1?'day':'days'}`;$('#journalList').innerHTML=rows.map(j=>journalRow(j,false)).join('')||'<div class="empty-state compact"><p>No journal entries in this view.</p></div>';applyJournalListScrollLimit($('#journalList'),rows.length);$$('.journal-row-button').forEach(b=>b.onclick=()=>openJournalDetail(b.dataset.journalId));renderWearLogVisibility();
   renderWearInsightsVisibility();drawDonut($('#colorChart'),colorCounts);const seasonCounts={Winter:0,Spring:0,Summer:0,Fall:0};pastJournal.forEach(j=>seasonCounts[seasonForDate(new Date(j.date+'T12:00:00'))]++);drawBars($('#seasonChart'),seasonCounts)
 }
 

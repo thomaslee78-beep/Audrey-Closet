@@ -236,3 +236,11 @@ Fixes planned-look date editing: when changing the date of an existing planned l
 
 
 v13.12-dev4.2.2: Wear Log filter controls are directly visible; Clear is conditional; scrollable Journal lists reserve right-side space for the scrollbar.
+
+
+## v13.12-dev4.2.3 — Custom range interaction fixes
+- Applying a custom Wear Log range now closes the calendar cleanly and leaves the filter displaying Custom range rather than reopening the native filter menu.
+- An active Custom range can be selected again directly to reopen the calendar and revise the dates without first clearing the filter.
+- The range calendar suppresses double-tap zoom behavior on its interactive calendar area.
+- Calendar actions are no longer sticky/overlaid on small screens; Clear, Cancel, and Apply sit below the selected-date summary with tighter bottom spacing so calendar dates remain visible.
+- Service-worker cache: `audrey-closet-v13.12-dev4.2.3`.
