@@ -247,7 +247,7 @@
       <div class="form-grid">
         <label>Category<select id="itemCategory" required></select></label>
         <label>Type<select id="itemType" required></select></label>
-        <label>Brand<input id="itemBrand" placeholder="Brand" /></label>
+        <label class="brand-field-label">Brand<input id="itemBrand" placeholder="Brand" autocomplete="off" aria-autocomplete="list" aria-controls="brandSuggestions" /><div id="brandSuggestions" class="brand-suggestions hidden" role="listbox" aria-label="Brand suggestions"></div></label>
         <label>Size<select id="itemSize"></select></label>
         <label>Color<select id="itemColor"></select></label>
         <label>Pattern<select id="itemPattern"><option>Solid</option><option>Stripe</option><option>Plaid</option><option>Floral/Print</option><option>Graphic</option><option>Colorblock</option><option>Other</option></select></label>

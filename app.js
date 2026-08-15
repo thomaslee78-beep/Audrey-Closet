@@ -187,6 +187,12 @@ function ensureSettings(){
   state.settings.boardRecent.wishlist=Array.isArray(state.settings.boardRecent.wishlist)?state.settings.boardRecent.wishlist:[];
   state.settings.closetOrder=state.settings.closetOrder&&typeof state.settings.closetOrder==='object'?state.settings.closetOrder:{};
   state.settings.portfolioOrder=state.settings.portfolioOrder&&typeof state.settings.portfolioOrder==='object'?state.settings.portfolioOrder:{};
+  state.settings.brandSuggestions=Array.isArray(state.settings.brandSuggestions)?state.settings.brandSuggestions:[];
+  const brandMap=new Map();
+  const rememberSeed=(name,count=1,lastUsed=0)=>{name=String(name||'').trim();if(!name)return;const key=name.toLocaleLowerCase();const prev=brandMap.get(key);if(!prev)brandMap.set(key,{name,count:Math.max(1,Number(count)||1),lastUsed:Number(lastUsed)||0});else{prev.count=Math.max(prev.count,Number(count)||1);prev.lastUsed=Math.max(prev.lastUsed,Number(lastUsed)||0)}};
+  state.settings.brandSuggestions.forEach(b=>typeof b==='string'?rememberSeed(b):rememberSeed(b?.name,b?.count,b?.lastUsed));
+  (state.items||[]).forEach(i=>rememberSeed(i.brand,1,i.created||0));
+  state.settings.brandSuggestions=[...brandMap.values()].sort((a,b)=>(b.lastUsed-a.lastUsed)||(b.count-a.count)||a.name.localeCompare(b.name)).slice(0,150);
   const outfitIds=new Set((state.outfits||[]).map(o=>o.id).filter(Boolean));
   (state.outfits||[]).forEach(o=>{if(!o.id)o.id=id()});
   state.settings.portfolioFolders.forEach(folder=>{
@@ -242,7 +248,7 @@ async function init(){
   $('#settingsBtn').onclick=()=>{renderPortfolioFolderEditor();showScreen('more')};
   $('#addPortfolioFolderBtn').onclick=addPortfolioFolder;
   $('#portfolioNewBtn').onclick=()=>guardBoardSwitch(()=>{startNewOutfit();showScreen('outfits')},'start a new look');  $('#portfolioSearch').oninput=e=>{portfolioSearchQuery=e.target.value||'';renderSavedOutfits()};$('#portfolioSearch').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();e.currentTarget.blur()}});$('#portfolioItemFilterBtn').onclick=()=>{portfolioItemPickerOpen=!portfolioItemPickerOpen;renderPortfolioDiscovery()};
-  if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js?v=13.12-dev2.4',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
+  if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js?v=13.12-dev3.1',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
   renderAll();
 }
 function fillSelects(){
@@ -294,6 +300,7 @@ function bindDialogs(){
   $('#itemDialog').addEventListener('close',()=>{if(itemPhotoPickerActive){[60,180,420].forEach(ms=>setTimeout(restoreItemDialogAfterPicker,ms));return}unlockPageForItemDialog()});
   document.addEventListener('click',e=>{if(!e.target.closest('#reviewPhotoMenuWrap'))closeReviewPhotoMenu()});
   ['itemCategory','itemType','itemBrand','itemColor'].forEach(id=>$('#'+id).addEventListener('input',updateItemReviewSummary));
+  bindBrandSuggestions();
   $('#deleteItemBtn').onclick=toggleItemArchived;
   $('#permanentDeleteItemBtn').onclick=permanentDeleteItem;
   bindItemSwipe();
@@ -340,10 +347,10 @@ function loadItemIntoEditor(item=null,preferredCategory=''){
   const isEdit=!!item;
   $('#itemDialog').classList.toggle('editing-existing',isEdit);
   $('#itemDialogTitle').textContent=isEdit?'Review piece':'Add a piece';$('#itemId').value=item?.id||'';itemWorkingPhoto=item?.photo||'';itemOriginalPhoto=item?.originalPhoto||item?.photo||'';itemCutoutApplied=item?.photoStudioCutoutApplied ?? (!!item?.photo&&!!item?.originalPhoto&&item.photo!==item.originalPhoto);itemStudioState=item?.photoStudioState?JSON.parse(JSON.stringify(item.photoStudioState)):null;
-  showPhoto('#itemPhotoPreview','#photoPlaceholder',itemWorkingPhoto);updateOriginalPhotoButton();const category=item?.category||preferredCategory||selectedCategory||$('#filterCategory').value||'Tops';$('#itemCategory').value=category;populateTypeOptions(category,item?.type||'');populateSizeOptions(category,item?.size||'');$('#itemBrand').value=item?.brand||'';$('#itemColor').value=item?.color||'';$('#itemPattern').value=item?.pattern||'Solid';$('#itemAcquired').value=item?.acquired||'Bought new';$('#itemSeason').value=item?.season||'All-season';$('#itemNotes').value=item?.notes||'';$('#scanStatus').textContent='';const archived=!!item&&isArchived(item);$('#deleteItemBtn').classList.toggle('hidden',!item);$('#deleteItemBtn').textContent=archived?'Reactivate':'Remove from Closet';$('#deleteItemBtn').classList.toggle('reactivate-item',archived);$('#permanentDeleteItemBtn').classList.toggle('hidden',!item);$('#itemArchiveNotice').classList.toggle('hidden',!archived);$('#itemPhoto').value='';$('#itemPhotoLibrary').value='';
+  showPhoto('#itemPhotoPreview','#photoPlaceholder',itemWorkingPhoto);updateOriginalPhotoButton();const category=item?.category||preferredCategory||selectedCategory||$('#filterCategory').value||'Tops';$('#itemCategory').value=category;populateTypeOptions(category,item?.type||'');populateSizeOptions(category,item?.size||'');$('#itemBrand').value=item?.brand||'';closeBrandSuggestions();$('#itemColor').value=item?.color||'';$('#itemPattern').value=item?.pattern||'Solid';$('#itemAcquired').value=item?.acquired||'Bought new';$('#itemSeason').value=item?.season||'All-season';$('#itemNotes').value=item?.notes||'';$('#scanStatus').textContent='';const archived=!!item&&isArchived(item);$('#deleteItemBtn').classList.toggle('hidden',!item);$('#deleteItemBtn').textContent=archived?'Reactivate':'Remove from Closet';$('#deleteItemBtn').classList.toggle('reactivate-item',archived);$('#permanentDeleteItemBtn').classList.toggle('hidden',!item);$('#itemArchiveNotice').classList.toggle('hidden',!archived);$('#itemPhoto').value='';$('#itemPhotoLibrary').value='';
   $('#itemCardUtilityActions').classList.toggle('hidden',!isEdit&&!itemWorkingPhoto);$('#reviewPhotoMenuWrap').classList.toggle('hidden',!isEdit&&!itemWorkingPhoto);$('#smartScanIconBtn').classList.toggle('hidden',!itemWorkingPhoto);closeReviewPhotoMenu();updateReviewPhotoMenuState();updatePhotoToolAvailability();
   $('#itemReviewSummary').classList.toggle('hidden',!isEdit);$('#itemSwipeHint').classList.add('hidden');updateItemReviewSummary();updateItemSwipeArrows();
-  if($('#itemDialog').open)$('#itemDialog').scrollTop=0;
+  if($('#itemDialog').open){const s=$('#itemDialog .item-detail-scroll');if(s)s.scrollTop=0;else $('#itemDialog').scrollTop=0;}
 }
 function updateItemSwipeArrows(){const prev=$('#itemSwipePrevBtn'),next=$('#itemSwipeNextBtn'),current=$('#itemId').value;if(!prev||!next)return;const idx=current?itemReviewIds.indexOf(current):-1,canPrev=idx>0,canNext=idx>=0&&idx<itemReviewIds.length-1;prev.classList.toggle('hidden',!canPrev);next.classList.toggle('hidden',!canNext)}
 function bindItemSwipe(){
@@ -398,6 +405,29 @@ function unlockPageForItemDialog(){
   window.scrollTo(0,itemDialogScrollY||0);
 }
 
+function normalizeBrandKey(name=''){return String(name).trim().toLocaleLowerCase()}
+function rememberBrandSuggestion(name){
+  name=String(name||'').trim();if(!name)return;
+  ensureSettings();const key=normalizeBrandKey(name),now=Date.now();let found=state.settings.brandSuggestions.find(b=>normalizeBrandKey(typeof b==='string'?b:b?.name)===key);
+  if(typeof found==='string'){const idx=state.settings.brandSuggestions.indexOf(found);found={name:found,count:1,lastUsed:0};state.settings.brandSuggestions[idx]=found}
+  if(found){found.name=found.name||name;found.count=(Number(found.count)||0)+1;found.lastUsed=now}else state.settings.brandSuggestions.push({name,count:1,lastUsed:now});
+  state.settings.brandSuggestions.sort((a,b)=>(Number(b.lastUsed)||0)-(Number(a.lastUsed)||0)||(Number(b.count)||0)-(Number(a.count)||0)||String(a.name).localeCompare(String(b.name)));
+  state.settings.brandSuggestions=state.settings.brandSuggestions.slice(0,150)
+}
+function matchingBrandSuggestions(query=''){
+  ensureSettings();const q=normalizeBrandKey(query);if(!q)return[];
+  return state.settings.brandSuggestions.filter(b=>normalizeBrandKey(b?.name).startsWith(q)&&normalizeBrandKey(b?.name)!==q).sort((a,b)=>(Number(b.count)||0)-(Number(a.count)||0)||(Number(b.lastUsed)||0)-(Number(a.lastUsed)||0)).slice(0,5)
+}
+function renderBrandSuggestions(){
+  const box=$('#brandSuggestions'),input=$('#itemBrand');if(!box||!input)return;const matches=matchingBrandSuggestions(input.value);
+  box.innerHTML=matches.map(b=>`<button type="button" class="brand-suggestion" data-brand="${esc(b.name)}"><span>${esc(b.name)}</span></button>`).join('');box.classList.toggle('hidden',!matches.length);
+  $$('#brandSuggestions .brand-suggestion').forEach(btn=>{btn.onpointerdown=e=>e.preventDefault();btn.onclick=()=>{input.value=btn.dataset.brand||'';closeBrandSuggestions();updateItemReviewSummary();input.focus()}})
+}
+function closeBrandSuggestions(){const box=$('#brandSuggestions');if(box){box.classList.add('hidden');box.innerHTML=''}}
+function bindBrandSuggestions(){
+  const input=$('#itemBrand');if(!input||input.dataset.brandSuggestionsBound)return;input.dataset.brandSuggestionsBound='true';
+  input.addEventListener('input',renderBrandSuggestions);input.addEventListener('focus',renderBrandSuggestions);input.addEventListener('keydown',e=>{if(e.key==='Escape')closeBrandSuggestions()});input.addEventListener('blur',()=>setTimeout(closeBrandSuggestions,120));
+}
 function updateItemReviewSummary(){
   const isEdit=!!$('#itemId').value;$('#itemReviewSummary').classList.toggle('hidden',!isEdit);if(!isEdit)return;
   const type=$('#itemType').value||$('#itemCategory').value||'Clothing item',color=$('#itemColor').value||'Color not set',brand=$('#itemBrand').value.trim()||'No brand';
@@ -405,7 +435,7 @@ function updateItemReviewSummary(){
 }
 async function saveItem(){
   const iid=$('#itemId').value;const old=state.items.find(x=>x.id===iid);const obj={id:iid||id(),photo:itemWorkingPhoto,originalPhoto:itemOriginalPhoto||itemWorkingPhoto,photoStudioCutoutApplied:!!itemCutoutApplied,photoStudioState:itemStudioState||null,category:$('#itemCategory').value,type:$('#itemType').value,brand:$('#itemBrand').value.trim(),size:$('#itemSize').value,color:$('#itemColor').value,pattern:$('#itemPattern').value,acquired:$('#itemAcquired').value,season:$('#itemSeason').value,notes:$('#itemNotes').value.trim(),created:old?.created||Date.now(),wears:old?.wears||0,status:old?.status||'active',statusDate:old?.statusDate||''};
-  const previous=state.items;if(iid)state.items=state.items.map(x=>x.id===iid?obj:x);else{state.items=[obj,...state.items];ensureSettings();const order=state.settings.closetOrder[obj.category]||[];state.settings.closetOrder[obj.category]=[obj.id,...order.filter(x=>x!==obj.id)];}
+  const previous=state.items;rememberBrandSuggestion(obj.brand);if(iid)state.items=state.items.map(x=>x.id===iid?obj:x);else{state.items=[obj,...state.items];ensureSettings();const order=state.settings.closetOrder[obj.category]||[];state.settings.closetOrder[obj.category]=[obj.id,...order.filter(x=>x!==obj.id)];}
   const btn=$('#saveItemBtn');btn.disabled=true;btn.textContent='Saving…';$('#scanStatus').textContent='Saving securely on this device…';
   const ok=await saveState();btn.disabled=false;btn.textContent='Save piece';
   if(ok){$('#itemDialog').close();unlockPageForItemDialog();toast(iid?'Piece updated':'Added to closet')}else{state.items=previous;$('#scanStatus').textContent='Save failed. Your entry is still open so you can try again.'}

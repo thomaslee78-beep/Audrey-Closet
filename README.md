@@ -248,5 +248,9 @@ Minor Closet UI polish: rounds the item review bottom action tray and makes Clos
 Closet polish: the review action tray now floats slightly above the bottom of the item card so its rounded corners are visible, and Closet reorder targeting activates at roughly 10% card overlap for a quicker drop cue. Service-worker cache: `audrey-closet-v13.12-dev2.3`.
 
 
-## v13.12-dev2.4
-Integrates the Closet item detail panel and bottom actions into a single rounded card. The detail content scrolls independently while Cancel / Remove / Save remain fixed to the bottom of the panel, matching the saved Portfolio detail interaction more closely. Service-worker cache: `audrey-closet-v13.12-dev2.4`.
+## v13.12-dev3
+Adds local Brand suggestions for faster Closet entry. Previously saved brands are learned from the existing catalog and future saves, matched from the first typed letters, deduplicated case-insensitively, and ranked by frequency/recency. No IndexedDB schema change. Service-worker cache: `audrey-closet-v13.12-dev3`.
+
+
+## v13.12-dev3.1
+Reconciles Brand Suggestions with the v13.12-dev2.4 Closet detail layout. The item editor is a single rounded card: detail content scrolls independently while Cancel / Remove / Save remain fixed at the bottom of the panel. Brand autocomplete remains enabled without changing the IndexedDB schema. Service-worker cache: `audrey-closet-v13.12-dev3.1`.

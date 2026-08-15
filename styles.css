@@ -692,12 +692,22 @@ body.portfolio-modal-open{position:fixed;left:0;right:0;width:100%;overflow:hidd
 }
 
 
-/* v13.12-dev2.4 — integrated Closet detail panel + fixed action tray */
+/* v13.12-dev3 — local Brand suggestions */
+.brand-field-label{position:relative;overflow:visible}
+.brand-suggestions{position:absolute;left:0;right:0;top:calc(100% - 2px);z-index:30;background:#fffaf0;border:1px solid var(--line);border-radius:0 0 12px 12px;box-shadow:0 8px 18px rgba(70,55,40,.14);overflow:hidden}
+.brand-suggestions.hidden{display:none}
+.brand-suggestion{display:flex;width:100%;min-height:38px;align-items:center;text-align:left;padding:8px 11px;border:0;border-bottom:1px solid rgba(120,105,88,.12);background:transparent;color:var(--coffee);font:650 14px var(--sans)}
+.brand-suggestion:last-child{border-bottom:0}
+.brand-suggestion:active,.brand-suggestion:focus-visible{background:rgba(77,142,138,.10);outline:none}
+
+
+/* v13.12-dev2.4 / v13.12-dev3.1 — integrated Closet item detail card */
 #itemDialog{
   padding:0;
   overflow:hidden;
-  background:transparent;
-  border-radius:24px;
+  border-radius:22px;
+  background:#fbf6eb;
+  max-height:94dvh;
 }
 #itemDialog #itemForm{
   display:flex;
@@ -706,9 +716,8 @@ body.portfolio-modal-open{position:fixed;left:0;right:0;width:100%;overflow:hidd
   max-height:94dvh;
   overflow:hidden;
   padding:0;
-  border-radius:24px;
-  background:#f7f0df;
-  box-shadow:0 22px 70px rgba(36,30,22,.3);
+  border-radius:22px;
+  background:#fbf6eb;
 }
 #itemDialog .item-detail-scroll{
   flex:1 1 auto;
@@ -716,32 +725,33 @@ body.portfolio-modal-open{position:fixed;left:0;right:0;width:100%;overflow:hidd
   overflow-y:auto;
   -webkit-overflow-scrolling:touch;
   overscroll-behavior:contain;
+  touch-action:pan-y;
   padding:17px 17px 14px;
-  scroll-padding-bottom:24px;
-  background:#f7f0df;
+  scroll-padding-bottom:18px;
 }
 #itemDialog .item-sheet-actions{
   position:relative;
-  bottom:auto;
+  inset:auto;
   flex:0 0 auto;
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  align-items:center;
+  gap:10px;
   margin:0;
   padding:11px 17px max(11px,env(safe-area-inset-bottom));
   border:0;
   border-top:1px solid rgba(108,81,66,.15);
-  border-radius:0 0 24px 24px;
+  border-radius:0 0 22px 22px;
   box-shadow:0 -7px 18px rgba(64,52,38,.07);
   background:#f7f0df;
   backdrop-filter:none;
   overflow:hidden;
+  z-index:12;
 }
+#itemDialog .item-sheet-actions button{margin:0;width:100%;min-height:44px}
 @media(max-width:410px){
-  #itemDialog{width:calc(100% - 8px);border-radius:22px}
-  #itemDialog #itemForm{border-radius:22px;max-height:calc(100dvh - 8px)}
+  #itemDialog{width:calc(100% - 8px);border-radius:20px}
+  #itemDialog #itemForm{border-radius:20px}
   #itemDialog .item-detail-scroll{padding:14px 14px 12px}
-  #itemDialog .item-sheet-actions{
-    margin:0;
-    padding:10px 14px max(10px,env(safe-area-inset-bottom));
-    border-radius:0 0 22px 22px;
-    gap:7px;
-  }
+  #itemDialog .item-sheet-actions{padding:10px 14px max(10px,env(safe-area-inset-bottom));gap:7px;border-radius:0 0 20px 20px}
 }
