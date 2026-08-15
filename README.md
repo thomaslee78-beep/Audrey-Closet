@@ -312,3 +312,12 @@ Fixes planned-look date editing: when changing the date of an existing planned l
 - Removed the duplicate hidden `Custom range` option from the Wear Log filter.
 - Preserved the ability to reselect an already-active Custom range by priming the native select in JavaScript before its picker opens.
 - Service-worker cache: `audrey-closet-v13.12-dev4.2.4`.
+
+
+## v13.12-dev4.3 — Journal section reordering
+- Added three-line drag handles to Today’s Look, Planned looks, Wear log, and Wear insights.
+- Brief hold on the handle starts a vertical list reorder; a floating section label and insertion line show placement.
+- Journal header text and handles suppress iPhone text selection / touch callouts during reorder.
+- Reordered section preference is saved locally and restored when Journal opens.
+- Section expand/collapse state remains independent of section order.
+- Service-worker cache: `audrey-closet-v13.12-dev4.3`.

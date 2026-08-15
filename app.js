@@ -170,6 +170,8 @@ let plannedJournalExpanded=localStorage.getItem('audreyPlannedJournalExpanded')=
 let wearLogExpanded=localStorage.getItem('audreyWearLogExpanded')!=='false';
 let wearInsightsExpanded=localStorage.getItem('audreyWearInsightsExpanded')!=='false';
 const JOURNAL_SECTION_ORDER=['today','planned','wearLog','insights'];
+const JOURNAL_SECTION_ORDER_KEY='audreyJournalSectionOrder';
+let journalSectionDrag={timer:null,pointerId:null,handle:null,section:null,startX:0,startY:0,x:0,y:0,active:false,ghost:null,marker:null,scrollRaf:null};
 let wearDraftIds=new Set();
 let wearOriginalDate='';
 let wearDateLocked=false;
@@ -181,6 +183,88 @@ let journalItemPreviewId=null;
 let journalItemPreviewSnapshot=null;
 let journalItemReturnId=null;
 let journalItemPreviewScrollY=0;
+
+
+function getJournalSectionOrder(){
+  let saved=[];
+  try{saved=JSON.parse(localStorage.getItem(JOURNAL_SECTION_ORDER_KEY)||'[]')}catch{}
+  return [...saved.filter(x=>JOURNAL_SECTION_ORDER.includes(x)),...JOURNAL_SECTION_ORDER.filter(x=>!saved.includes(x))];
+}
+function applyJournalSectionOrder(){
+  const screen=document.querySelector('.screen[data-screen="journal"]');if(!screen)return;
+  getJournalSectionOrder().forEach(key=>{const section=screen.querySelector(`[data-journal-section="${key}"]`);if(section)screen.appendChild(section)});
+}
+function saveJournalSectionOrder(){
+  const screen=document.querySelector('.screen[data-screen="journal"]');if(!screen)return;
+  const order=[...screen.querySelectorAll(':scope > [data-journal-section]')].map(s=>s.dataset.journalSection).filter(x=>JOURNAL_SECTION_ORDER.includes(x));
+  localStorage.setItem(JOURNAL_SECTION_ORDER_KEY,JSON.stringify([...order,...JOURNAL_SECTION_ORDER.filter(x=>!order.includes(x))]));
+}
+function stopJournalSectionAutoScroll(){if(journalSectionDrag.scrollRaf){cancelAnimationFrame(journalSectionDrag.scrollRaf);journalSectionDrag.scrollRaf=null}}
+function journalSectionAutoScroll(){
+  stopJournalSectionAutoScroll();
+  const step=()=>{
+    if(!journalSectionDrag.active)return;
+    const edge=78,y=journalSectionDrag.y||0,h=window.innerHeight;let dy=0;
+    if(y<edge)dy=-Math.max(2,(edge-y)/8);else if(y>h-edge)dy=Math.max(2,(y-(h-edge))/8);
+    if(dy)window.scrollBy(0,Math.max(-10,Math.min(10,dy)));
+    journalSectionDrag.scrollRaf=requestAnimationFrame(step);
+  };
+  journalSectionDrag.scrollRaf=requestAnimationFrame(step);
+}
+function positionJournalDragGhost(){
+  const d=journalSectionDrag;if(!d.active||!d.ghost)return;
+  const top=Math.max(8,Math.min(window.innerHeight-d.ghost.offsetHeight-8,d.y-24));
+  d.ghost.style.transform=`translate3d(0,${top}px,0)`;
+}
+function updateJournalDropMarker(){
+  const d=journalSectionDrag,screen=document.querySelector('.screen[data-screen="journal"]');if(!d.active||!d.marker||!screen)return;
+  const sections=[...screen.querySelectorAll(':scope > [data-journal-section]')].filter(s=>s!==d.section&&!s.classList.contains('hidden'));
+  if(!sections.length){screen.appendChild(d.marker);return}
+  const first=sections[0],firstRect=first.getBoundingClientRect();
+  if(d.y<firstRect.top+firstRect.height/2){
+    const firstAny=screen.querySelector(':scope > [data-journal-section]');screen.insertBefore(d.marker,firstAny||null);return;
+  }
+  for(let i=1;i<sections.length;i++){const r=sections[i].getBoundingClientRect();if(d.y<r.top+r.height/2){screen.insertBefore(d.marker,sections[i]);return}}
+  const all=[...screen.querySelectorAll(':scope > [data-journal-section]')].filter(s=>s!==d.section);
+  const last=all[all.length-1];if(last)last.after(d.marker);else screen.appendChild(d.marker);
+}
+function activateJournalSectionDrag(){
+  const d=journalSectionDrag;if(!d.section||!d.handle||d.active)return;d.active=true;
+  document.body.classList.add('journal-section-reordering');d.section.classList.add('journal-section-dragging');d.handle.classList.add('active');
+  const header=d.section.querySelector('.journal-reorder-header'),label=d.section.querySelector('.journal-section-label strong')?.textContent?.trim()||'Journal section';
+  const rect=(header||d.section).getBoundingClientRect();
+  d.ghost=document.createElement('div');d.ghost.className='journal-drag-ghost';d.ghost.style.left=`${Math.max(10,rect.left)}px`;d.ghost.style.width=`${Math.min(rect.width,window.innerWidth-20)}px`;d.ghost.innerHTML=`<strong>${esc(label)}</strong><span class="journal-drag-ghost-lines"><i></i><i></i><i></i></span>`;document.body.appendChild(d.ghost);
+  d.marker=document.createElement('div');d.marker.className='journal-drop-marker';d.section.after(d.marker);
+  positionJournalDragGhost();updateJournalDropMarker();journalSectionAutoScroll();
+  if(navigator.vibrate)try{navigator.vibrate(8)}catch{}
+}
+function cleanupJournalSectionDrag(save=false){
+  const d=journalSectionDrag;clearTimeout(d.timer);stopJournalSectionAutoScroll();
+  if(d.active&&save&&d.section&&d.marker){d.marker.before(d.section);saveJournalSectionOrder()}
+  d.section?.classList.remove('journal-section-dragging');d.handle?.classList.remove('active');d.ghost?.remove();d.marker?.remove();document.body.classList.remove('journal-section-reordering');
+  journalSectionDrag={timer:null,pointerId:null,handle:null,section:null,startX:0,startY:0,x:0,y:0,active:false,ghost:null,marker:null,scrollRaf:null};
+}
+function setupJournalSectionReorder(){
+  applyJournalSectionOrder();
+  document.querySelectorAll('[data-journal-drag-handle]').forEach(handle=>{
+    handle.addEventListener('contextmenu',e=>e.preventDefault());
+    handle.addEventListener('pointerdown',e=>{
+      if(e.pointerType==='mouse'&&e.button!==0)return;cleanupJournalSectionDrag(false);
+      const section=handle.closest('[data-journal-section]');if(!section)return;
+      journalSectionDrag.handle=handle;journalSectionDrag.section=section;journalSectionDrag.pointerId=e.pointerId;journalSectionDrag.startX=journalSectionDrag.x=e.clientX;journalSectionDrag.startY=journalSectionDrag.y=e.clientY;
+      try{handle.setPointerCapture(e.pointerId)}catch{}
+      journalSectionDrag.timer=setTimeout(activateJournalSectionDrag,140);
+    });
+    handle.addEventListener('pointermove',e=>{
+      const d=journalSectionDrag;if(d.pointerId!==e.pointerId||d.handle!==handle)return;d.x=e.clientX;d.y=e.clientY;
+      if(!d.active){if(Math.hypot(d.x-d.startX,d.y-d.startY)>9)cleanupJournalSectionDrag(false);return}
+      e.preventDefault();positionJournalDragGhost();updateJournalDropMarker();
+    });
+    const finish=e=>{const d=journalSectionDrag;if(d.pointerId!==e.pointerId||d.handle!==handle)return;if(d.active)e.preventDefault();cleanupJournalSectionDrag(d.active)};
+    handle.addEventListener('pointerup',finish);handle.addEventListener('pointercancel',()=>cleanupJournalSectionDrag(false));
+  });
+  document.querySelectorAll('.journal-reorder-header').forEach(header=>{header.addEventListener('contextmenu',e=>e.preventDefault())});
+}
 
 function emptyState(){return {items:[],outfits:[],journal:[],wishlist:[],settings:{appName:DEFAULT_APP_NAME,portfolioFolders:[...DEFAULT_PORTFOLIO_FOLDERS],portfolioTabOrder:[...SYSTEM_PORTFOLIO_TABS,...DEFAULT_PORTFOLIO_FOLDERS],boardRecent:{closet:[],wishlist:[]}}}}
 function ensureSettings(){
@@ -246,7 +330,7 @@ async function init(){
   state=await loadState();
   ensureSettings();
   renderStudioBackgroundPalette();applyLocalizedStrings();
-  fillSelects(); bindNav(); bindDialogs(); bindBoard(); bindPhotoStudio();
+  fillSelects(); bindNav(); bindDialogs(); bindBoard(); bindPhotoStudio(); setupJournalSectionReorder();
   $('#catalogSearch').addEventListener('input',renderCatalog);
   $('#filterBtn').onclick=()=>$('#filterPanel').classList.toggle('hidden');
   $('#clearFilters').onclick=()=>{selectedCategory='';$('#filterCategory').value='';$('#filterSeason').value='';$('#filterColor').value='';renderCatalog();renderCategories()};
@@ -258,7 +342,7 @@ async function init(){
   $('#settingsBtn').onclick=()=>{renderPortfolioFolderEditor();showScreen('more')};
   $('#addPortfolioFolderBtn').onclick=addPortfolioFolder;
   $('#portfolioNewBtn').onclick=()=>guardBoardSwitch(()=>{startNewOutfit();showScreen('outfits')},'start a new look');  $('#portfolioSearch').oninput=e=>{portfolioSearchQuery=e.target.value||'';renderSavedOutfits()};$('#portfolioSearch').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();e.currentTarget.blur()}});$('#portfolioItemFilterBtn').onclick=()=>{portfolioItemPickerOpen=!portfolioItemPickerOpen;renderPortfolioDiscovery()};
-  if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js?v=13.12-dev4.0.2',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
+  if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js?v=13.12-dev4.3',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
   renderAll();
 }
 function fillSelects(){
@@ -1287,6 +1371,7 @@ function journalRow(j,planned=false){
   return `<button type="button" class="journal-row journal-row-button ${planned?'journal-row-planned':''}" data-journal-id="${j.id}"><div class="journal-date ${planned?'journal-date-planned':''}"><small>${d.toLocaleString('en',{month:'short'}).toUpperCase()}</small><strong>${d.getDate()}</strong></div><div class="journal-row-main"><div class="journal-thumbs">${pics}</div><div class="journal-row-copy"><strong>${j.favorite?'★ ':''}${items.length} ${items.length===1?'piece':'pieces'}${planned?' <span class="planned-badge">PLANNED</span>':''}</strong><small>${esc(sub)}</small></div></div><span class="journal-chevron">›</span></button>`;
 }
 function renderJournal(){
+  applyJournalSectionOrder();
   const pastJournal=state.journal.filter(j=>!isFutureJournal(j));
   const wears=state.items.map(i=>({...i,w:pastJournal.reduce((n,j)=>n+(j.itemIds||[]).filter(x=>x===i.id).length,0)})).sort((a,b)=>b.w-a.w),total=wears.reduce((n,i)=>n+i.w,0);$('#totalWears').textContent=total;const mw=wears[0]?.w?wears[0]:null;$('#mostWorn').textContent=mw?(mw.type||mw.category):'—';$('#mostWornMeta').textContent=mw?`${mw.w} wears · ${mw.color||'color not set'}`:'No wear data yet';
   const colorCounts={};pastJournal.forEach(j=>(j.itemIds||[]).forEach(x=>{const i=state.items.find(z=>z.id===x);if(i?.color)colorCounts[i.color]=(colorCounts[i.color]||0)+1}));const fav=Object.entries(colorCounts).sort((a,b)=>b[1]-a[1])[0];$('#favColor').textContent=fav?.[0]||'—';$('#favColorMeta').textContent=fav?`${fav[1]} item-wears`:'No wear data yet';const sn=seasonForDate();$('#seasonName').textContent=sn;$('#seasonWears').textContent=pastJournal.filter(j=>seasonForDate(new Date(j.date+'T12:00:00'))===sn).reduce((n,j)=>n+(j.itemIds||[]).length,0);
