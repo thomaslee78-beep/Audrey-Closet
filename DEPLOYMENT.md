@@ -251,10 +251,5 @@ v13.12-dev4.2.2: Wear Log filter controls are directly visible; Clear is conditi
 - Service-worker cache: `audrey-closet-v13.12-dev4.2.4`.
 
 
-## v13.12-dev4.3 — Journal section reordering
-- Added three-line drag handles to Today’s Look, Planned looks, Wear log, and Wear insights.
-- Brief hold on the handle starts a vertical list reorder; a floating section label and insertion line show placement.
-- Journal header text and handles suppress iPhone text selection / touch callouts during reorder.
-- Reordered section preference is saved locally and restored when Journal opens.
-- Section expand/collapse state remains independent of section order.
-- Service-worker cache: `audrey-closet-v13.12-dev4.3`.
+## v13.12-dev4.3.1
+Journal section drag handles were removed in favor of a Preferences > Journal layout editor. The four Journal sections can be reordered with up/down controls and the order is saved in app settings. Expand/collapse controls remain on the right, Journal section spacing is normalized, and header text selection/callouts are suppressed on iPhone.

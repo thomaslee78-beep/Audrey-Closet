@@ -128,31 +128,24 @@
     <section class="screen" data-screen="journal">
       <div class="page-head"><div><p class="script">the story of what you wear</p><h2>Journal</h2></div><button class="primary" id="logWearBtn">Log outfit</button></div>
       <section id="todayJournalSection" class="today-journal-section hidden" data-journal-section="today">
-        <div class="journal-reorder-header">
-          <button type="button" id="todayJournalToggle" class="today-section-toggle journal-section-toggle" aria-expanded="true" aria-controls="todayJournalContent">
-            <span class="today-toggle-icon journal-section-toggle-icon">−</span><span class="journal-section-label"><strong>Today’s Look</strong><small id="todayJournalMeta">today</small></span>
-          </button>
-          <button type="button" class="journal-drag-handle" data-journal-drag-handle aria-label="Reorder Today’s Look" title="Drag to reorder"><span></span><span></span><span></span></button>
-        </div>
+        <button type="button" id="todayJournalToggle" class="today-section-toggle" aria-expanded="true" aria-controls="todayJournalContent">
+          <span><strong>Today’s Look</strong><small id="todayJournalMeta">today</small></span><span class="today-toggle-icon">−</span>
+        </button>
         <div id="todayJournalContent" class="today-journal-content">
           <div class="journal-list today-journal-list" id="todayJournalList"></div>
         </div>
       </section>
       <section id="plannedJournalSection" class="planned-journal-section hidden" data-journal-section="planned">
-        <div class="journal-reorder-header">
-          <button type="button" id="plannedJournalToggle" class="planned-section-toggle journal-section-toggle" aria-expanded="false">
-            <span class="planned-toggle-icon journal-section-toggle-icon">＋</span><span class="journal-section-label"><strong>Planned looks</strong><small id="plannedJournalCount">future dates</small></span>
-          </button>
-          <button type="button" class="journal-drag-handle" data-journal-drag-handle aria-label="Reorder Planned looks" title="Drag to reorder"><span></span><span></span><span></span></button>
-        </div>
+        <button type="button" id="plannedJournalToggle" class="planned-section-toggle" aria-expanded="false">
+          <span><strong>Planned looks</strong><small id="plannedJournalCount">future dates</small></span><span class="planned-toggle-icon">＋</span>
+        </button>
         <div class="journal-list planned-journal-list hidden" id="plannedJournalList"></div>
       </section>
       <section id="wearLogSection" class="journal-section-block" data-journal-section="wearLog">
-        <div class="journal-toolbar wear-log-header journal-reorder-header">
-          <button type="button" id="wearLogToggle" class="wear-log-toggle journal-section-toggle" aria-expanded="true" aria-controls="wearLogContent">
-            <span class="wear-log-toggle-icon journal-section-toggle-icon">−</span><span class="journal-section-label"><strong>Wear log</strong><small id="journalCount">0 days</small></span>
+        <div class="journal-toolbar wear-log-header">
+          <button type="button" id="wearLogToggle" class="wear-log-toggle" aria-expanded="true" aria-controls="wearLogContent">
+            <span><strong>Wear log</strong><small id="journalCount">0 days</small></span><span class="wear-log-toggle-icon">−</span>
           </button>
-          <button type="button" class="journal-drag-handle" data-journal-drag-handle aria-label="Reorder Wear log" title="Drag to reorder"><span></span><span></span><span></span></button>
         </div>
         <div id="wearLogContent" class="wear-log-content">
           <div class="wear-log-filter-row">
@@ -173,12 +166,9 @@
         </div>
       </section>
       <section id="wearInsightsSection" class="wear-insights-section" data-journal-section="insights">
-        <div class="journal-reorder-header wear-insights-reorder-header">
-          <button type="button" id="wearInsightsToggle" class="wear-insights-toggle journal-section-toggle" aria-expanded="true" aria-controls="wearInsightsContent">
-            <span class="wear-insights-toggle-icon journal-section-toggle-icon">−</span><span class="journal-section-label"><strong>Wear insights</strong><small>tap cards for detail</small></span>
-          </button>
-          <button type="button" class="journal-drag-handle" data-journal-drag-handle aria-label="Reorder Wear insights" title="Drag to reorder"><span></span><span></span><span></span></button>
-        </div>
+        <button type="button" id="wearInsightsToggle" class="wear-insights-toggle" aria-expanded="true" aria-controls="wearInsightsContent">
+          <span><strong>Wear insights</strong><small>tap cards for detail</small></span><span class="wear-insights-toggle-icon">−</span>
+        </button>
         <div id="wearInsightsContent" class="wear-insights-content">
           <div class="stats-grid">
             <button class="stat-card stat-action" data-stat="most"><span>Most worn</span><strong id="mostWorn">—</strong><small id="mostWornMeta">No wear data yet</small></button>
@@ -216,6 +206,11 @@
         <p>Reorder all Portfolio tabs here. All and Favorites are protected system tabs, so they can be moved but not renamed or deleted.</p>
         <div id="portfolioFolderEditor" class="folder-editor"></div>
         <div class="folder-add-row"><input id="newPortfolioFolder" maxlength="24" placeholder="New folder name"><button class="soft-btn" type="button" id="addPortfolioFolderBtn">＋ Add</button></div>
+      </div>
+      <div class="settings-card journal-order-settings-card">
+        <h3>Journal layout</h3>
+        <p>Choose the order of the four main Journal sections. Your preferred order is saved with this closet.</p>
+        <div id="journalOrderEditor" class="journal-order-editor"></div>
       </div>
       <div class="settings-card">
         <h3>Data</h3>

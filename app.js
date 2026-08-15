@@ -170,8 +170,7 @@ let plannedJournalExpanded=localStorage.getItem('audreyPlannedJournalExpanded')=
 let wearLogExpanded=localStorage.getItem('audreyWearLogExpanded')!=='false';
 let wearInsightsExpanded=localStorage.getItem('audreyWearInsightsExpanded')!=='false';
 const JOURNAL_SECTION_ORDER=['today','planned','wearLog','insights'];
-const JOURNAL_SECTION_ORDER_KEY='audreyJournalSectionOrder';
-let journalSectionDrag={timer:null,pointerId:null,handle:null,section:null,startX:0,startY:0,x:0,y:0,active:false,ghost:null,marker:null,scrollRaf:null};
+const JOURNAL_SECTION_LABELS={today:'Today\'s Look',planned:'Planned looks',wearLog:'Wear Log',insights:'Wear Insights'};
 let wearDraftIds=new Set();
 let wearOriginalDate='';
 let wearDateLocked=false;
@@ -183,88 +182,6 @@ let journalItemPreviewId=null;
 let journalItemPreviewSnapshot=null;
 let journalItemReturnId=null;
 let journalItemPreviewScrollY=0;
-
-
-function getJournalSectionOrder(){
-  let saved=[];
-  try{saved=JSON.parse(localStorage.getItem(JOURNAL_SECTION_ORDER_KEY)||'[]')}catch{}
-  return [...saved.filter(x=>JOURNAL_SECTION_ORDER.includes(x)),...JOURNAL_SECTION_ORDER.filter(x=>!saved.includes(x))];
-}
-function applyJournalSectionOrder(){
-  const screen=document.querySelector('.screen[data-screen="journal"]');if(!screen)return;
-  getJournalSectionOrder().forEach(key=>{const section=screen.querySelector(`[data-journal-section="${key}"]`);if(section)screen.appendChild(section)});
-}
-function saveJournalSectionOrder(){
-  const screen=document.querySelector('.screen[data-screen="journal"]');if(!screen)return;
-  const order=[...screen.querySelectorAll(':scope > [data-journal-section]')].map(s=>s.dataset.journalSection).filter(x=>JOURNAL_SECTION_ORDER.includes(x));
-  localStorage.setItem(JOURNAL_SECTION_ORDER_KEY,JSON.stringify([...order,...JOURNAL_SECTION_ORDER.filter(x=>!order.includes(x))]));
-}
-function stopJournalSectionAutoScroll(){if(journalSectionDrag.scrollRaf){cancelAnimationFrame(journalSectionDrag.scrollRaf);journalSectionDrag.scrollRaf=null}}
-function journalSectionAutoScroll(){
-  stopJournalSectionAutoScroll();
-  const step=()=>{
-    if(!journalSectionDrag.active)return;
-    const edge=78,y=journalSectionDrag.y||0,h=window.innerHeight;let dy=0;
-    if(y<edge)dy=-Math.max(2,(edge-y)/8);else if(y>h-edge)dy=Math.max(2,(y-(h-edge))/8);
-    if(dy)window.scrollBy(0,Math.max(-10,Math.min(10,dy)));
-    journalSectionDrag.scrollRaf=requestAnimationFrame(step);
-  };
-  journalSectionDrag.scrollRaf=requestAnimationFrame(step);
-}
-function positionJournalDragGhost(){
-  const d=journalSectionDrag;if(!d.active||!d.ghost)return;
-  const top=Math.max(8,Math.min(window.innerHeight-d.ghost.offsetHeight-8,d.y-24));
-  d.ghost.style.transform=`translate3d(0,${top}px,0)`;
-}
-function updateJournalDropMarker(){
-  const d=journalSectionDrag,screen=document.querySelector('.screen[data-screen="journal"]');if(!d.active||!d.marker||!screen)return;
-  const sections=[...screen.querySelectorAll(':scope > [data-journal-section]')].filter(s=>s!==d.section&&!s.classList.contains('hidden'));
-  if(!sections.length){screen.appendChild(d.marker);return}
-  const first=sections[0],firstRect=first.getBoundingClientRect();
-  if(d.y<firstRect.top+firstRect.height/2){
-    const firstAny=screen.querySelector(':scope > [data-journal-section]');screen.insertBefore(d.marker,firstAny||null);return;
-  }
-  for(let i=1;i<sections.length;i++){const r=sections[i].getBoundingClientRect();if(d.y<r.top+r.height/2){screen.insertBefore(d.marker,sections[i]);return}}
-  const all=[...screen.querySelectorAll(':scope > [data-journal-section]')].filter(s=>s!==d.section);
-  const last=all[all.length-1];if(last)last.after(d.marker);else screen.appendChild(d.marker);
-}
-function activateJournalSectionDrag(){
-  const d=journalSectionDrag;if(!d.section||!d.handle||d.active)return;d.active=true;
-  document.body.classList.add('journal-section-reordering');d.section.classList.add('journal-section-dragging');d.handle.classList.add('active');
-  const header=d.section.querySelector('.journal-reorder-header'),label=d.section.querySelector('.journal-section-label strong')?.textContent?.trim()||'Journal section';
-  const rect=(header||d.section).getBoundingClientRect();
-  d.ghost=document.createElement('div');d.ghost.className='journal-drag-ghost';d.ghost.style.left=`${Math.max(10,rect.left)}px`;d.ghost.style.width=`${Math.min(rect.width,window.innerWidth-20)}px`;d.ghost.innerHTML=`<strong>${esc(label)}</strong><span class="journal-drag-ghost-lines"><i></i><i></i><i></i></span>`;document.body.appendChild(d.ghost);
-  d.marker=document.createElement('div');d.marker.className='journal-drop-marker';d.section.after(d.marker);
-  positionJournalDragGhost();updateJournalDropMarker();journalSectionAutoScroll();
-  if(navigator.vibrate)try{navigator.vibrate(8)}catch{}
-}
-function cleanupJournalSectionDrag(save=false){
-  const d=journalSectionDrag;clearTimeout(d.timer);stopJournalSectionAutoScroll();
-  if(d.active&&save&&d.section&&d.marker){d.marker.before(d.section);saveJournalSectionOrder()}
-  d.section?.classList.remove('journal-section-dragging');d.handle?.classList.remove('active');d.ghost?.remove();d.marker?.remove();document.body.classList.remove('journal-section-reordering');
-  journalSectionDrag={timer:null,pointerId:null,handle:null,section:null,startX:0,startY:0,x:0,y:0,active:false,ghost:null,marker:null,scrollRaf:null};
-}
-function setupJournalSectionReorder(){
-  applyJournalSectionOrder();
-  document.querySelectorAll('[data-journal-drag-handle]').forEach(handle=>{
-    handle.addEventListener('contextmenu',e=>e.preventDefault());
-    handle.addEventListener('pointerdown',e=>{
-      if(e.pointerType==='mouse'&&e.button!==0)return;cleanupJournalSectionDrag(false);
-      const section=handle.closest('[data-journal-section]');if(!section)return;
-      journalSectionDrag.handle=handle;journalSectionDrag.section=section;journalSectionDrag.pointerId=e.pointerId;journalSectionDrag.startX=journalSectionDrag.x=e.clientX;journalSectionDrag.startY=journalSectionDrag.y=e.clientY;
-      try{handle.setPointerCapture(e.pointerId)}catch{}
-      journalSectionDrag.timer=setTimeout(activateJournalSectionDrag,140);
-    });
-    handle.addEventListener('pointermove',e=>{
-      const d=journalSectionDrag;if(d.pointerId!==e.pointerId||d.handle!==handle)return;d.x=e.clientX;d.y=e.clientY;
-      if(!d.active){if(Math.hypot(d.x-d.startX,d.y-d.startY)>9)cleanupJournalSectionDrag(false);return}
-      e.preventDefault();positionJournalDragGhost();updateJournalDropMarker();
-    });
-    const finish=e=>{const d=journalSectionDrag;if(d.pointerId!==e.pointerId||d.handle!==handle)return;if(d.active)e.preventDefault();cleanupJournalSectionDrag(d.active)};
-    handle.addEventListener('pointerup',finish);handle.addEventListener('pointercancel',()=>cleanupJournalSectionDrag(false));
-  });
-  document.querySelectorAll('.journal-reorder-header').forEach(header=>{header.addEventListener('contextmenu',e=>e.preventDefault())});
-}
 
 function emptyState(){return {items:[],outfits:[],journal:[],wishlist:[],settings:{appName:DEFAULT_APP_NAME,portfolioFolders:[...DEFAULT_PORTFOLIO_FOLDERS],portfolioTabOrder:[...SYSTEM_PORTFOLIO_TABS,...DEFAULT_PORTFOLIO_FOLDERS],boardRecent:{closet:[],wishlist:[]}}}}
 function ensureSettings(){
@@ -281,6 +198,8 @@ function ensureSettings(){
   state.settings.boardRecent.wishlist=Array.isArray(state.settings.boardRecent.wishlist)?state.settings.boardRecent.wishlist:[];
   state.settings.closetOrder=state.settings.closetOrder&&typeof state.settings.closetOrder==='object'?state.settings.closetOrder:{};
   state.settings.portfolioOrder=state.settings.portfolioOrder&&typeof state.settings.portfolioOrder==='object'?state.settings.portfolioOrder:{};
+  const savedJournalOrder=Array.isArray(state.settings.journalSectionOrder)?state.settings.journalSectionOrder:[];
+  state.settings.journalSectionOrder=[...savedJournalOrder.filter(x=>JOURNAL_SECTION_ORDER.includes(x)),...JOURNAL_SECTION_ORDER.filter(x=>!savedJournalOrder.includes(x))];
   state.settings.brandSuggestions=Array.isArray(state.settings.brandSuggestions)?state.settings.brandSuggestions:[];
   const brandMap=new Map();
   const rememberSeed=(name,count=1,lastUsed=0)=>{name=String(name||'').trim();if(!name)return;const key=name.toLocaleLowerCase();const prev=brandMap.get(key);if(!prev)brandMap.set(key,{name,count:Math.max(1,Number(count)||1),lastUsed:Number(lastUsed)||0});else{prev.count=Math.max(prev.count,Number(count)||1);prev.lastUsed=Math.max(prev.lastUsed,Number(lastUsed)||0)}};
@@ -330,7 +249,7 @@ async function init(){
   state=await loadState();
   ensureSettings();
   renderStudioBackgroundPalette();applyLocalizedStrings();
-  fillSelects(); bindNav(); bindDialogs(); bindBoard(); bindPhotoStudio(); setupJournalSectionReorder();
+  fillSelects(); bindNav(); bindDialogs(); bindBoard(); bindPhotoStudio();
   $('#catalogSearch').addEventListener('input',renderCatalog);
   $('#filterBtn').onclick=()=>$('#filterPanel').classList.toggle('hidden');
   $('#clearFilters').onclick=()=>{selectedCategory='';$('#filterCategory').value='';$('#filterSeason').value='';$('#filterColor').value='';renderCatalog();renderCategories()};
@@ -339,10 +258,10 @@ async function init(){
   $('#includeArchivedCloset').addEventListener('change',e=>{includeArchivedCloset=!!e.target.checked;localStorage.setItem('audreyIncludeArchivedCloset',includeArchivedCloset?'true':'false');renderCategories();renderCatalog()});
   $('#exportBtn').onclick=exportData;$('#importFile').onchange=importData;$('#resetBtn').onclick=resetData;
   $('#saveAppNameBtn').onclick=saveAppName;$('#resetAppNameBtn').onclick=resetAppName;
-  $('#settingsBtn').onclick=()=>{renderPortfolioFolderEditor();showScreen('more')};
+  $('#settingsBtn').onclick=()=>{renderPortfolioFolderEditor();renderJournalOrderEditor();showScreen('more')};
   $('#addPortfolioFolderBtn').onclick=addPortfolioFolder;
   $('#portfolioNewBtn').onclick=()=>guardBoardSwitch(()=>{startNewOutfit();showScreen('outfits')},'start a new look');  $('#portfolioSearch').oninput=e=>{portfolioSearchQuery=e.target.value||'';renderSavedOutfits()};$('#portfolioSearch').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();e.currentTarget.blur()}});$('#portfolioItemFilterBtn').onclick=()=>{portfolioItemPickerOpen=!portfolioItemPickerOpen;renderPortfolioDiscovery()};
-  if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js?v=13.12-dev4.3',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
+  if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js?v=13.12-dev4.3.1',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
   renderAll();
 }
 function fillSelects(){
@@ -365,7 +284,7 @@ function bindNav(){
   $('#addWishBtn').onclick=()=>openWish();
   $('#logWearBtn').onclick=()=>openWear();
 }
-function showScreen(name){$$('.screen').forEach(s=>s.classList.toggle('active',s.dataset.screen===name));$$('.bottom-nav button').forEach(b=>b.classList.toggle('active',b.dataset.nav===name));scrollTo({top:0,behavior:'smooth'});if(name==='journal')renderJournal();if(name==='outfits')renderOutfits();if(name==='portfolio')renderSavedOutfits();if(name==='more')renderPortfolioFolderEditor()}
+function showScreen(name){$$('.screen').forEach(s=>s.classList.toggle('active',s.dataset.screen===name));$$('.bottom-nav button').forEach(b=>b.classList.toggle('active',b.dataset.nav===name));scrollTo({top:0,behavior:'smooth'});if(name==='journal')renderJournal();if(name==='outfits')renderOutfits();if(name==='portfolio')renderSavedOutfits();if(name==='more'){renderPortfolioFolderEditor();renderJournalOrderEditor()}}
 
 function bindDialogs(){
   $('#itemPhoto').onchange=e=>handleItemPhotoSelection(e,'camera');
@@ -591,7 +510,7 @@ async function permanentDeleteItem(){
   $('#itemDialog').close();unlockPageForItemDialog();drawBoard();toast('Piece permanently deleted');
 }
 
-function renderAll(){ensureSettings();applyAppName();renderCategories();renderCatalog();renderOutfits();renderSavedOutfits();renderWishlist();renderJournal();renderPortfolioFolderEditor()}
+function renderAll(){ensureSettings();applyAppName();renderCategories();renderCatalog();renderOutfits();renderSavedOutfits();renderWishlist();renderJournal();renderPortfolioFolderEditor();renderJournalOrderEditor()}
 function renderCategories(){const host=$('#categoryStrip');host.innerHTML=CATEGORIES.map(c=>{const n=state.items.filter(i=>i.category===c&&(includeArchivedCloset||!isArchived(i))).length;return`<button class="category-chip ${selectedCategory===c?'active':''}" data-cat="${c}"><strong>${c}</strong><span>${n} ${n===1?'piece':'pieces'}</span></button>`}).join('');$$('.category-chip').forEach(b=>b.onclick=()=>{selectedCategory=selectedCategory===b.dataset.cat?'':b.dataset.cat;renderCategories();renderCatalog()})}
 function renderCatalog(){
   ensureSettings();
@@ -1093,6 +1012,25 @@ async function renamePortfolioFolderByName(old,name){if(SYSTEM_PORTFOLIO_TABS.in
 async function movePortfolioTab(index,dir){ensureSettings();const order=state.settings.portfolioTabOrder,j=index+dir;if(j<0||j>=order.length)return;[order[index],order[j]]=[order[j],order[index]];await saveState();renderPortfolioFolderEditor();renderSavedOutfits()}
 async function deletePortfolioFolderByName(old){if(SYSTEM_PORTFOLIO_TABS.includes(old))return;const index=state.settings.portfolioFolders.indexOf(old);if(index<0)return;if(state.settings.portfolioFolders.length<=1)return;const replacement=state.settings.portfolioFolders.find(x=>x!==old)||'Everyday';if(!confirm(`Remove “${old}”? Saved looks in it will move to “${replacement}”.`))return;const moved=(state.settings.portfolioOrder[old]||[]).slice();state.settings.portfolioFolders.splice(index,1);state.settings.portfolioTabOrder=state.settings.portfolioTabOrder.filter(x=>x!==old);state.outfits.forEach(o=>{if((o.folder||'Everyday')===old)o.folder=replacement});state.settings.portfolioOrder[replacement]=[...(state.settings.portfolioOrder[replacement]||[]),...moved.filter(x=>!(state.settings.portfolioOrder[replacement]||[]).includes(x))];delete state.settings.portfolioOrder[old];if(portfolioFilter===old)portfolioFilter='All';await saveState();populatePortfolioFolderSelect(replacement);renderPortfolioFolderEditor();renderSavedOutfits();toast('Folder removed')}
 async function addPortfolioFolder(){ensureSettings();const input=$('#newPortfolioFolder'),name=input.value.trim();if(!name)return toast('Enter a folder name');if(state.settings.portfolioFolders.length>=12)return toast('Up to 12 folders');if(SYSTEM_PORTFOLIO_TABS.includes(name)||state.settings.portfolioFolders.some(x=>x.toLowerCase()===name.toLowerCase()))return toast('That folder already exists');state.settings.portfolioFolders.push(name);state.settings.portfolioTabOrder.push(name);input.value='';await saveState();populatePortfolioFolderSelect(name);renderPortfolioFolderEditor();toast('Folder added')}
+
+function applyJournalSectionOrder(){
+  ensureSettings();
+  const screen=document.querySelector('.screen[data-screen="journal"]');if(!screen)return;
+  state.settings.journalSectionOrder.forEach(key=>{const section=screen.querySelector(`[data-journal-section="${key}"]`);if(section)screen.appendChild(section)});
+}
+function renderJournalOrderEditor(){
+  ensureSettings();
+  const box=$('#journalOrderEditor');if(!box)return;
+  const order=state.settings.journalSectionOrder;
+  box.innerHTML=order.map((key,i)=>`<div class="journal-order-row" data-index="${i}" data-journal-key="${key}"><span class="journal-order-name">${esc(JOURNAL_SECTION_LABELS[key]||key)}</span><div class="journal-order-actions"><button type="button" class="journal-order-up" aria-label="Move ${esc(JOURNAL_SECTION_LABELS[key]||key)} up" ${i===0?'disabled':''}>↑</button><button type="button" class="journal-order-down" aria-label="Move ${esc(JOURNAL_SECTION_LABELS[key]||key)} down" ${i===order.length-1?'disabled':''}>↓</button></div></div>`).join('');
+  $$('.journal-order-up').forEach(b=>b.onclick=()=>moveJournalSection(Number(b.closest('.journal-order-row').dataset.index),-1));
+  $$('.journal-order-down').forEach(b=>b.onclick=()=>moveJournalSection(Number(b.closest('.journal-order-row').dataset.index),1));
+}
+async function moveJournalSection(index,dir){
+  ensureSettings();const order=state.settings.journalSectionOrder,j=index+dir;if(j<0||j>=order.length)return;
+  [order[index],order[j]]=[order[j],order[index]];
+  await saveState();applyJournalSectionOrder();renderJournalOrderEditor();toast('Journal layout saved');
+}
 
 function renderWearCategoryTabs(){
   const tabs=['All',...CATEGORIES];
