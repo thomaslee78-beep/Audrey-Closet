@@ -254,3 +254,11 @@ Adds local Brand suggestions for faster Closet entry. Previously saved brands ar
 
 ## v13.12-dev3.1
 Reconciles Brand Suggestions with the v13.12-dev2.4 Closet detail layout. The item editor is a single rounded card: detail content scrolls independently while Cancel / Remove / Save remain fixed at the bottom of the panel. Brand autocomplete remains enabled without changing the IndexedDB schema. Service-worker cache: `audrey-closet-v13.12-dev3.1`.
+
+
+## v13.12-dev4
+Journal logging behavior update: renames the Journal action to **Log outfit**; new outfit logs default to today while allowing the date to be changed; existing past/today entries keep their date locked; selecting a past date for a new log locks that historical date; future/planned entries retain the existing move/override confirmation workflow. Service-worker cache: `audrey-closet-v13.12-dev4`.
+
+
+## v13.12-dev4.0.1
+Adds safer Journal date-collision handling for new outfit logs. Selecting a date that already has a Wear Log now offers Open existing day, Replace with current selection, or Cancel instead of navigating or overwriting implicitly. Service-worker cache: `audrey-closet-v13.12-dev4.0.1`.

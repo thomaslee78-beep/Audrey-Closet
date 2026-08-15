@@ -126,7 +126,7 @@
     </section>
 
     <section class="screen" data-screen="journal">
-      <div class="page-head"><div><p class="script">the story of what you wear</p><h2>Journal</h2></div><button class="primary" id="logWearBtn">Log today</button></div>
+      <div class="page-head"><div><p class="script">the story of what you wear</p><h2>Journal</h2></div><button class="primary" id="logWearBtn">Log outfit</button></div>
       <section id="todayJournalSection" class="today-journal-section hidden">
         <div class="today-section-title"><strong>Today’s Look</strong><small id="todayJournalMeta">today</small></div>
         <div class="journal-list today-journal-list" id="todayJournalList"></div>
@@ -341,6 +341,16 @@
       <div class="wear-category-tabs" id="wearCategoryTabs"></div>
       <div class="wear-selection-summary"><span id="wearSelectedCount">0 selected</span><button type="button" class="text-btn" id="clearWearSelectionBtn">Clear</button></div>
       <div class="wear-picker" id="wearPicker"></div>
+      <div id="wearDateConflict" class="wear-date-conflict hidden" role="alertdialog" aria-modal="true" aria-labelledby="wearDateConflictTitle">
+        <div class="wear-date-conflict-card">
+          <p class="script">already logged</p>
+          <h3 id="wearDateConflictTitle">This day already has an outfit</h3>
+          <p><span id="wearDateConflictDate"></span> already contains a Wear Log. What would you like to do?</p>
+          <button type="button" class="soft-btn" id="wearDateConflictOpen">Open existing day</button>
+          <button type="button" class="primary" id="wearDateConflictReplace">Replace with current selection</button>
+          <button type="button" class="text-btn" id="wearDateConflictCancel">Cancel</button>
+        </div>
+      </div>
       <div class="sheet-actions journal-edit-actions"><button type="button" class="soft-btn" id="cancelWearBtn">Cancel</button><button type="button" class="danger-text hidden" id="deleteWearBtn">Delete day</button><button type="submit" class="primary">Save journal</button></div>
     </form>
   </dialog>
