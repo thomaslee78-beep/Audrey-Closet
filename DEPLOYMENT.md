@@ -202,3 +202,9 @@ Journal logging behavior update: renames the Journal action to **Log outfit**; n
 
 ## v13.12-dev4.0.1
 Adds safer Journal date-collision handling for new outfit logs. Selecting a date that already has a Wear Log now offers Open existing day, Replace with current selection, or Cancel instead of navigating or overwriting implicitly. Service-worker cache: `audrey-closet-v13.12-dev4.0.1`.
+
+
+## v13.12-dev4.0.2
+- Journal Log outfit now always opens as a new, date-flexible entry, even when today already has a saved outfit.
+- Changing an unused past or future date preserves the current clothing selections and keeps the date editable until Save.
+- Existing journal entries still use separate edit behavior; occupied dates continue to use the Open existing / Replace / Cancel safeguard.
