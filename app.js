@@ -1058,7 +1058,7 @@ function handleWearDateChange(){
     const keepCurrent=confirm(`Move this planned look to ${formatJournalDate(next)} and use these selected items for that day?
 
 OK = move these items to the new day
-Cancel = open the selected day instead`);
+Cancel = keep this planned look on ${formatJournalDate(previous)}`);
     if(keepCurrent){
       wearMoveOverrideTarget=true;
       input.value=next;
@@ -1066,7 +1066,10 @@ Cancel = open the selected day instead`);
       renderWearPicker();
       return;
     }
-    loadWearDate(next,{lockDate:!!state.journal.find(j=>j.date===next)&&next<=localTodayISO()});
+    // Cancel means cancel the date move itself. Stay in the same planned-look edit
+    // session, preserve its selected pieces, and restore the prior date.
+    input.value=previous;
+    wearMoveOverrideTarget=false;
     return;
   }
   const target=state.journal.find(j=>j.date===next);

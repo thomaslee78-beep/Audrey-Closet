@@ -268,3 +268,6 @@ Adds safer Journal date-collision handling for new outfit logs. Selecting a date
 - Journal Log outfit now always opens as a new, date-flexible entry, even when today already has a saved outfit.
 - Changing an unused past or future date preserves the current clothing selections and keeps the date editable until Save.
 - Existing journal entries still use separate edit behavior; occupied dates continue to use the Open existing / Replace / Cancel safeguard.
+
+## v13.12-dev4.0.3
+Fixes planned-look date editing: when changing the date of an existing planned look, **Cancel** now cancels the move, restores the previously selected date, and keeps the current planned-look selections/context unchanged. Only **OK** proceeds with moving the planned look to the new date. Service-worker cache: `audrey-closet-v13.12-dev4.0.3`.
