@@ -149,19 +149,20 @@
         </div>
         <div id="wearLogContent" class="wear-log-content">
           <div class="wear-log-filter-row">
-            <select id="journalRange" aria-label="Journal date range">
-              <option value="all">All dates</option>
-              <option value="7">Last 7 days</option>
-              <option value="30">Last 30 days</option>
-              <option value="90">Last 90 days</option>
-              <option value="season">This season</option>
-              <option value="year">This year</option>
-              <option value="favorites">Favorites</option>
-              <option value="custom">Custom range</option>
-            </select>
-            <div id="journalCustomRange" class="journal-custom-range hidden" aria-label="Custom journal date range">
-              <label>From<input type="date" id="journalRangeStart"></label>
-              <label>To<input type="date" id="journalRangeEnd"></label>
+            <span id="journalRangeSummary" class="journal-range-summary hidden" aria-live="polite"></span>
+            <button type="button" class="soft-btn journal-filter-btn" id="journalFilterBtn" aria-expanded="false" aria-controls="journalFilterPanel">Filter</button>
+            <div id="journalFilterPanel" class="journal-filter-panel hidden">
+              <select id="journalRange" aria-label="Journal date range">
+                <option value="all">All dates</option>
+                <option value="7">Last 7 days</option>
+                <option value="30">Last 30 days</option>
+                <option value="90">Last 90 days</option>
+                <option value="season">This season</option>
+                <option value="year">This year</option>
+                <option value="favorites">Favorites</option>
+                <option value="custom">Custom range</option>
+              </select>
+              <button type="button" class="text-btn journal-clear-filter-btn" id="journalClearFiltersBtn">Clear</button>
             </div>
           </div>
           <div class="journal-list" id="journalList"></div>
@@ -415,6 +416,22 @@
       <div class="journal-item-preview-details" id="journalItemPreviewDetails"></div>
     </div>
     <div class="sheet-actions journal-item-preview-actions"><button type="button" class="soft-btn" id="backJournalItemPreviewBtn">Back to day</button><button type="button" class="primary" id="editJournalItemPreviewBtn">Edit</button></div>
+  </dialog>
+
+  <dialog id="journalRangeDialog" class="sheet-dialog journal-range-dialog">
+    <div class="sheet-head"><div><p class="script">wear log range</p><h2>Choose dates</h2></div><button type="button" class="close-btn" id="closeJournalRangeBtn">×</button></div>
+    <p class="journal-range-help">Tap a start date, then an end date. Tap an earlier day to restart the range.</p>
+    <div class="journal-range-calendar">
+      <div class="journal-calendar-head">
+        <button type="button" class="soft-btn journal-calendar-nav" id="journalCalendarPrev" aria-label="Previous month">‹</button>
+        <strong id="journalCalendarMonthLabel"></strong>
+        <button type="button" class="soft-btn journal-calendar-nav" id="journalCalendarNext" aria-label="Next month">›</button>
+      </div>
+      <div class="journal-calendar-weekdays" aria-hidden="true"><span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span></div>
+      <div id="journalCalendarGrid" class="journal-calendar-grid"></div>
+    </div>
+    <div id="journalRangeDraftSummary" class="journal-range-draft-summary">Choose a start date</div>
+    <div class="sheet-actions journal-range-actions"><button type="button" class="text-btn" id="clearJournalRangeBtn">Clear</button><button type="button" class="soft-btn" id="cancelJournalRangeBtn">Cancel</button><button type="button" class="primary" id="applyJournalRangeBtn" disabled>Apply</button></div>
   </dialog>
 
   <dialog id="journalStatDialog" class="sheet-dialog journal-detail-dialog journal-stat-dialog">

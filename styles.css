@@ -790,3 +790,35 @@ body.portfolio-modal-open{position:fixed;left:0;right:0;width:100%;overflow:hidd
 .journal-list.journal-scroll-limited{max-height:var(--journal-scroll-height,920px);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding-right:3px;scrollbar-gutter:stable}
 .planned-journal-list.journal-scroll-limited{padding-bottom:2px}
 @media(max-width:520px){.journal-custom-range{width:100%;justify-content:flex-end}.journal-custom-range input{min-width:125px}}
+
+/* v13.12-dev4.2.1 — Journal range calendar + 7-entry vertical scroll limits */
+.wear-log-filter-row{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap;min-width:0}
+.journal-range-summary{margin-right:auto;min-width:0;font-size:11px;font-weight:750;color:#6d6257;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.journal-filter-btn{padding:7px 12px;font-size:12px;flex:0 0 auto}
+.journal-filter-btn.active-filter{border-color:rgba(77,142,138,.55);box-shadow:0 0 0 2px rgba(77,142,138,.10) inset}
+.journal-filter-panel{width:100%;display:flex;justify-content:flex-end;align-items:center;gap:8px;min-width:0}
+.journal-filter-panel select{max-width:180px;border:1px solid var(--line);border-radius:12px;padding:8px;background:#fffaf0;font:inherit;font-size:12px;color:var(--ink)}
+.journal-clear-filter-btn{font-size:11px;padding:6px 4px;white-space:nowrap}
+.journal-clear-filter-btn:disabled{opacity:.4;pointer-events:none}
+.journal-list.journal-scroll-limited{max-height:var(--journal-scroll-height,720px);overflow-y:auto!important;overflow-x:hidden!important;overscroll-behavior-y:contain;overscroll-behavior-x:none;touch-action:pan-y;-webkit-overflow-scrolling:touch;padding-right:3px;scrollbar-gutter:stable;max-width:100%}
+.journal-list.journal-scroll-limited>*{max-width:100%;box-sizing:border-box}
+.planned-journal-list.journal-scroll-limited{padding-bottom:2px}
+.journal-range-dialog{max-width:390px}
+.journal-range-help{margin:-2px 0 12px;color:#756a5c;font-size:11px;line-height:1.4}
+.journal-range-calendar{border:1px solid var(--line);border-radius:16px;background:#fffaf0;padding:10px}
+.journal-calendar-head{display:grid;grid-template-columns:42px 1fr 42px;align-items:center;gap:6px;margin-bottom:8px;text-align:center}
+.journal-calendar-head strong{font-family:var(--serif);font-size:17px;font-weight:600}
+.journal-calendar-nav{width:38px;height:34px;padding:0;border-radius:10px;font-size:22px;line-height:1}
+.journal-calendar-nav:disabled{opacity:.35}
+.journal-calendar-weekdays,.journal-calendar-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px}
+.journal-calendar-weekdays{margin-bottom:4px}
+.journal-calendar-weekdays span{text-align:center;font-size:8px;font-weight:800;color:#8c8174;text-transform:uppercase;letter-spacing:.04em}
+.journal-calendar-blank{aspect-ratio:1}
+.journal-calendar-day{appearance:none;border:0;background:transparent;border-radius:10px;aspect-ratio:1;min-width:0;padding:0;font:inherit;font-size:12px;color:var(--ink);position:relative}
+.journal-calendar-day.today{box-shadow:0 0 0 1px rgba(115,47,69,.36) inset}
+.journal-calendar-day.in-range{background:rgba(77,142,138,.14);border-radius:5px}
+.journal-calendar-day.range-start,.journal-calendar-day.range-end{background:var(--turq);color:white;font-weight:800}
+.journal-calendar-day:disabled{opacity:.22}
+.journal-range-draft-summary{min-height:20px;margin:10px 2px 2px;text-align:center;font-size:11px;font-weight:700;color:#6d6257}
+.journal-range-actions{margin-top:8px}
+@media(max-width:380px){.journal-range-summary{font-size:10px}.journal-filter-panel select{max-width:155px}.journal-calendar-day{font-size:11px}}

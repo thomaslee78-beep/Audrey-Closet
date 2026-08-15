@@ -162,6 +162,9 @@ let journalStatScrollY=0;
 let journalRangeFilter='all';
 let journalRangeStart='';
 let journalRangeEnd='';
+let journalRangeDraftStart='';
+let journalRangeDraftEnd='';
+let journalCalendarMonth='';
 let todayJournalExpanded=localStorage.getItem('audreyTodayJournalExpanded')!=='false';
 let plannedJournalExpanded=localStorage.getItem('audreyPlannedJournalExpanded')==='true';
 let wearLogExpanded=localStorage.getItem('audreyWearLogExpanded')!=='false';
@@ -325,9 +328,16 @@ function bindDialogs(){
   $('#wearDateConflictCancel').onclick=()=>resolveWearDateConflict('cancel');
   $('#clearWearSelectionBtn').onclick=()=>{wearDraftIds.clear();$$('.wear-option.selected').forEach(b=>b.classList.remove('selected'));updateWearSelectedCount()};
   $('#deleteWearBtn').onclick=deleteWearEntry;
-  $('#journalRange').onchange=e=>{journalRangeFilter=e.target.value;renderJournal()};
-  $('#journalRangeStart').onchange=e=>{journalRangeStart=e.target.value;renderJournal()};
-  $('#journalRangeEnd').onchange=e=>{journalRangeEnd=e.target.value;renderJournal()};
+  $('#journalFilterBtn').onclick=toggleJournalFilterPanel;
+  $('#journalRange').onchange=e=>handleJournalRangeFilterChange(e.target.value);
+  $('#journalClearFiltersBtn').onclick=clearJournalFilters;
+  $('#closeJournalRangeBtn').onclick=closeJournalRangeDialog;
+  $('#cancelJournalRangeBtn').onclick=closeJournalRangeDialog;
+  $('#clearJournalRangeBtn').onclick=()=>{journalRangeDraftStart='';journalRangeDraftEnd='';renderJournalRangeCalendar()};
+  $('#applyJournalRangeBtn').onclick=applyJournalCustomRange;
+  $('#journalCalendarPrev').onclick=()=>shiftJournalCalendarMonth(-1);
+  $('#journalCalendarNext').onclick=()=>shiftJournalCalendarMonth(1);
+  $('#journalRangeDialog').addEventListener('cancel',e=>{e.preventDefault();closeJournalRangeDialog()});
   $('#todayJournalToggle').onclick=()=>{todayJournalExpanded=!todayJournalExpanded;localStorage.setItem('audreyTodayJournalExpanded',todayJournalExpanded?'true':'false');renderTodayJournalVisibility()};
   $('#plannedJournalToggle').onclick=()=>{plannedJournalExpanded=!plannedJournalExpanded;localStorage.setItem('audreyPlannedJournalExpanded',plannedJournalExpanded?'true':'false');renderPlannedJournalVisibility()};
   $('#wearLogToggle').onclick=()=>{wearLogExpanded=!wearLogExpanded;localStorage.setItem('audreyWearLogExpanded',wearLogExpanded?'true':'false');renderWearLogVisibility()};
@@ -1171,11 +1181,82 @@ function journalEntriesForRange(){
   }
   return rows.sort((a,b)=>b.date.localeCompare(a.date));
 }
-function applyJournalListScrollLimit(list,count,limit=10){
+function formatJournalRangeCompact(start,end){
+  if(!start||!end)return '';
+  const a=new Date(start+'T12:00:00'),b=new Date(end+'T12:00:00'),now=new Date(),currentYear=now.getFullYear(),ay=a.getFullYear(),by=b.getFullYear();
+  const monthDay=d=>d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+  if(ay===currentYear&&by===currentYear)return `${monthDay(a)} – ${monthDay(b)}`;
+  if(ay===by)return `${monthDay(a)} – ${monthDay(b)}, ${ay}`;
+  return `${monthDay(a)}, ${ay} – ${monthDay(b)}, ${by}`;
+}
+function updateJournalFilterUI(){
+  const summary=$('#journalRangeSummary'),btn=$('#journalFilterBtn'),clear=$('#journalClearFiltersBtn');if(!summary||!btn)return;
+  const custom=journalRangeFilter==='custom'&&journalRangeStart&&journalRangeEnd;
+  summary.textContent=custom?formatJournalRangeCompact(journalRangeStart,journalRangeEnd):'';
+  summary.classList.toggle('hidden',!custom);
+  const active=journalRangeFilter!=='all';btn.classList.toggle('active-filter',active);
+  if(clear)clear.disabled=!active;
+}
+function toggleJournalFilterPanel(){
+  const panel=$('#journalFilterPanel'),btn=$('#journalFilterBtn');if(!panel||!btn)return;
+  const opening=panel.classList.contains('hidden');panel.classList.toggle('hidden',!opening);btn.setAttribute('aria-expanded',opening?'true':'false');
+}
+function closeJournalFilterPanel(){const panel=$('#journalFilterPanel'),btn=$('#journalFilterBtn');if(panel)panel.classList.add('hidden');if(btn)btn.setAttribute('aria-expanded','false')}
+function handleJournalRangeFilterChange(value){
+  if(value==='custom'){openJournalRangeDialog();return}
+  journalRangeFilter=value;journalRangeStart='';journalRangeEnd='';closeJournalFilterPanel();renderJournal();
+}
+function clearJournalFilters(){
+  journalRangeFilter='all';journalRangeStart='';journalRangeEnd='';journalRangeDraftStart='';journalRangeDraftEnd='';closeJournalFilterPanel();renderJournal();
+}
+function openJournalRangeDialog(){
+  journalRangeDraftStart=journalRangeStart;journalRangeDraftEnd=journalRangeEnd;
+  const seed=journalRangeDraftStart||localTodayISO();journalCalendarMonth=seed.slice(0,7)+'-01';renderJournalRangeCalendar();
+  const d=$('#journalRangeDialog');if(d&&!d.open)d.showModal();
+}
+function closeJournalRangeDialog(){
+  const d=$('#journalRangeDialog');if(d?.open)d.close();
+  $('#journalRange').value=journalRangeFilter;
+}
+function shiftJournalCalendarMonth(delta){
+  const base=new Date((journalCalendarMonth||localTodayISO().slice(0,7)+'-01')+'T12:00:00');base.setMonth(base.getMonth()+delta);journalCalendarMonth=`${base.getFullYear()}-${String(base.getMonth()+1).padStart(2,'0')}-01`;renderJournalRangeCalendar();
+}
+function journalRangeDayClick(date){
+  if(!journalRangeDraftStart||(journalRangeDraftStart&&journalRangeDraftEnd)){journalRangeDraftStart=date;journalRangeDraftEnd=''}
+  else if(date<journalRangeDraftStart){journalRangeDraftStart=date;journalRangeDraftEnd=''}
+  else journalRangeDraftEnd=date;
+  renderJournalRangeCalendar();
+}
+function renderJournalRangeCalendar(){
+  const grid=$('#journalCalendarGrid'),label=$('#journalCalendarMonthLabel'),summary=$('#journalRangeDraftSummary'),apply=$('#applyJournalRangeBtn');if(!grid||!label)return;
+  const base=new Date((journalCalendarMonth||localTodayISO().slice(0,7)+'-01')+'T12:00:00');const y=base.getFullYear(),m=base.getMonth();
+  label.textContent=base.toLocaleDateString('en-US',{month:'long',year:'numeric'});
+  const first=new Date(y,m,1,12),days=new Date(y,m+1,0,12).getDate(),offset=first.getDay(),today=localTodayISO();let html='';
+  for(let i=0;i<offset;i++)html+='<span class="journal-calendar-blank"></span>';
+  for(let day=1;day<=days;day++){
+    const date=`${y}-${String(m+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+    const start=date===journalRangeDraftStart,end=date===journalRangeDraftEnd,inRange=journalRangeDraftStart&&journalRangeDraftEnd&&date>journalRangeDraftStart&&date<journalRangeDraftEnd;
+    const future=date>today,cls=['journal-calendar-day',start?'range-start':'',end?'range-end':'',inRange?'in-range':'',date===today?'today':''].filter(Boolean).join(' ');
+    html+=`<button type="button" class="${cls}" data-date="${date}" ${future?'disabled':''}>${day}</button>`;
+  }
+  grid.innerHTML=html;$$('#journalCalendarGrid .journal-calendar-day:not(:disabled)').forEach(b=>b.onclick=()=>journalRangeDayClick(b.dataset.date));
+  if(!journalRangeDraftStart)summary.textContent='Choose a start date';
+  else if(!journalRangeDraftEnd)summary.textContent=`Start: ${new Date(journalRangeDraftStart+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})} · choose an end date`;
+  else summary.textContent=formatJournalRangeCompact(journalRangeDraftStart,journalRangeDraftEnd);
+  apply.disabled=!(journalRangeDraftStart&&journalRangeDraftEnd);
+  const next=$('#journalCalendarNext');if(next){const thisMonth=localTodayISO().slice(0,7);next.disabled=`${y}-${String(m+1).padStart(2,'0')}`>=thisMonth}
+}
+function applyJournalCustomRange(){
+  if(!journalRangeDraftStart||!journalRangeDraftEnd)return;
+  journalRangeStart=journalRangeDraftStart;journalRangeEnd=journalRangeDraftEnd;journalRangeFilter='custom';
+  const d=$('#journalRangeDialog');if(d?.open)d.close();closeJournalFilterPanel();renderJournal();
+}
+
+function applyJournalListScrollLimit(list,count,limit=7){
   if(!list)return;
   list.classList.toggle('journal-scroll-limited',count>limit);
   list.style.removeProperty('--journal-scroll-height');
-  if(count<=limit)return;
+  if(count<=limit||list.offsetParent===null)return;
   requestAnimationFrame(()=>{
     const rows=[...list.children].slice(0,limit);
     if(!rows.length)return;
@@ -1199,7 +1280,7 @@ function renderJournal(){
   $('#todayJournalList').innerHTML=todayEntry?journalRow(todayEntry,false):'';
   $('#todayJournalMeta').textContent=todayEntry?`${(todayEntry.itemIds||[]).length} ${(todayEntry.itemIds||[]).length===1?'piece':'pieces'}`:'today';renderTodayJournalVisibility();
   const planned=state.journal.filter(isFutureJournal).sort((a,b)=>a.date.localeCompare(b.date));$('#plannedJournalSection').classList.toggle('hidden',!planned.length);$('#plannedJournalList').innerHTML=planned.map(j=>journalRow(j,true)).join('');$('#plannedJournalCount').textContent=`${planned.length} ${planned.length===1?'planned day':'planned days'}`;renderPlannedJournalVisibility();applyJournalListScrollLimit($('#plannedJournalList'),planned.length);
-  const rows=journalEntriesForRange().filter(j=>String(j.date||'')!==today);$('#journalRange').value=journalRangeFilter;$('#journalCustomRange').classList.toggle('hidden',journalRangeFilter!=='custom');$('#journalRangeStart').value=journalRangeStart;$('#journalRangeEnd').value=journalRangeEnd;$('#journalCount').textContent=`${rows.length} ${rows.length===1?'day':'days'}`;$('#journalList').innerHTML=rows.map(j=>journalRow(j,false)).join('')||'<div class="empty-state compact"><p>No journal entries in this view.</p></div>';applyJournalListScrollLimit($('#journalList'),rows.length);$$('.journal-row-button').forEach(b=>b.onclick=()=>openJournalDetail(b.dataset.journalId));renderWearLogVisibility();
+  const rows=journalEntriesForRange().filter(j=>String(j.date||'')!==today);$('#journalRange').value=journalRangeFilter;updateJournalFilterUI();$('#journalCount').textContent=`${rows.length} ${rows.length===1?'day':'days'}`;$('#journalList').innerHTML=rows.map(j=>journalRow(j,false)).join('')||'<div class="empty-state compact"><p>No journal entries in this view.</p></div>';applyJournalListScrollLimit($('#journalList'),rows.length);$$('.journal-row-button').forEach(b=>b.onclick=()=>openJournalDetail(b.dataset.journalId));renderWearLogVisibility();
   renderWearInsightsVisibility();drawDonut($('#colorChart'),colorCounts);const seasonCounts={Winter:0,Spring:0,Summer:0,Fall:0};pastJournal.forEach(j=>seasonCounts[seasonForDate(new Date(j.date+'T12:00:00'))]++);drawBars($('#seasonChart'),seasonCounts)
 }
 
@@ -1214,11 +1295,13 @@ function renderWearLogVisibility(){
   content.classList.toggle('hidden',!wearLogExpanded);
   toggle.setAttribute('aria-expanded',wearLogExpanded?'true':'false');
   const icon=toggle.querySelector('.wear-log-toggle-icon');if(icon)icon.textContent=wearLogExpanded?'−':'＋';
+  if(wearLogExpanded){const list=$('#journalList');applyJournalListScrollLimit(list,list?list.querySelectorAll('.journal-row-button').length:0)}
 }
 
 function renderPlannedJournalVisibility(){
   const list=$('#plannedJournalList'),toggle=$('#plannedJournalToggle');if(!list||!toggle)return;
   list.classList.toggle('hidden',!plannedJournalExpanded);toggle.setAttribute('aria-expanded',plannedJournalExpanded?'true':'false');const icon=toggle.querySelector('.planned-toggle-icon');if(icon)icon.textContent=plannedJournalExpanded?'−':'＋';
+  if(plannedJournalExpanded)applyJournalListScrollLimit(list,list.querySelectorAll('.journal-row-button').length);
 }
 
 function renderWearInsightsVisibility(){
