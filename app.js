@@ -328,7 +328,22 @@ function bindDialogs(){
   $('#wearDateConflictCancel').onclick=()=>resolveWearDateConflict('cancel');
   $('#clearWearSelectionBtn').onclick=()=>{wearDraftIds.clear();$$('.wear-option.selected').forEach(b=>b.classList.remove('selected'));updateWearSelectedCount()};
   $('#deleteWearBtn').onclick=deleteWearEntry;
-  $('#journalRange').onchange=e=>handleJournalRangeFilterChange(e.target.value);
+  const journalRangeSelect=$('#journalRange');
+  if(journalRangeSelect){
+    journalRangeSelect.onchange=e=>handleJournalRangeFilterChange(e.target.value);
+    const primeCustomRangeReselect=()=>{
+      // A native <select> does not fire change when the user chooses the already-selected option.
+      // Clear the transient UI selection before opening the picker so Custom range can be chosen again
+      // without adding a duplicate option to the list. The persisted filter state is left untouched.
+      if(journalRangeFilter==='custom'&&journalRangeSelect.value==='custom')journalRangeSelect.selectedIndex=-1;
+    };
+    journalRangeSelect.addEventListener('pointerdown',primeCustomRangeReselect);
+    journalRangeSelect.addEventListener('touchstart',primeCustomRangeReselect,{passive:true});
+    journalRangeSelect.addEventListener('mousedown',primeCustomRangeReselect);
+    journalRangeSelect.addEventListener('blur',()=>{
+      if(!journalRangeSelect.value)journalRangeSelect.value=journalRangeFilter;
+    });
+  }
   const journalCalendar=$('#journalRangeDialog');if(journalCalendar)journalCalendar.addEventListener('dblclick',e=>e.preventDefault());
   $('#journalClearFiltersBtn').onclick=clearJournalFilters;
   $('#closeJournalRangeBtn').onclick=closeJournalRangeDialog;
@@ -1196,12 +1211,12 @@ function updateJournalFilterUI(){
   summary.classList.toggle('hidden',!custom);
   const active=journalRangeFilter!=='all';
   if(clear)clear.classList.toggle('hidden',!active);
-  if(select){select.value=custom?'custom-current':journalRangeFilter;select.classList.toggle('active-filter',active)}
+  if(select){select.value=journalRangeFilter;select.classList.toggle('active-filter',active)}
 }
 function closeJournalFilterPanel(){}
 function handleJournalRangeFilterChange(value){
   const select=$('#journalRange');if(select)select.blur();
-  if(value==='custom'||value==='custom-current'){requestAnimationFrame(openJournalRangeDialog);return}
+  if(value==='custom'){requestAnimationFrame(openJournalRangeDialog);return}
   journalRangeFilter=value;journalRangeStart='';journalRangeEnd='';closeJournalFilterPanel();renderJournal();
 }
 function clearJournalFilters(){
@@ -1214,7 +1229,7 @@ function openJournalRangeDialog(){
 }
 function closeJournalRangeDialog(){
   const d=$('#journalRangeDialog');if(d?.open)d.close();
-  const select=$('#journalRange');if(select){select.value=(journalRangeFilter==='custom'&&journalRangeStart&&journalRangeEnd)?'custom-current':journalRangeFilter;select.blur()}
+  const select=$('#journalRange');if(select){select.value=journalRangeFilter;select.blur()}
 }
 function shiftJournalCalendarMonth(delta){
   const base=new Date((journalCalendarMonth||localTodayISO().slice(0,7)+'-01')+'T12:00:00');base.setMonth(base.getMonth()+delta);journalCalendarMonth=`${base.getFullYear()}-${String(base.getMonth()+1).padStart(2,'0')}-01`;renderJournalRangeCalendar();
@@ -1249,7 +1264,7 @@ function applyJournalCustomRange(){
   journalRangeStart=journalRangeDraftStart;journalRangeEnd=journalRangeDraftEnd;journalRangeFilter='custom';
   const select=$('#journalRange');if(select)select.blur();
   const d=$('#journalRangeDialog');if(d?.open)d.close();closeJournalFilterPanel();renderJournal();
-  requestAnimationFrame(()=>{const current=$('#journalRange');if(current){current.value='custom-current';current.blur()}});
+  requestAnimationFrame(()=>{const current=$('#journalRange');if(current){current.value='custom';current.blur()}});
 }
 
 function applyJournalListScrollLimit(list,count,limit=7){

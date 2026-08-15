@@ -244,3 +244,8 @@ v13.12-dev4.2.2: Wear Log filter controls are directly visible; Clear is conditi
 - The range calendar suppresses double-tap zoom behavior on its interactive calendar area.
 - Calendar actions are no longer sticky/overlaid on small screens; Clear, Cancel, and Apply sit below the selected-date summary with tighter bottom spacing so calendar dates remain visible.
 - Service-worker cache: `audrey-closet-v13.12-dev4.2.3`.
+
+## v13.12-dev4.2.4 — Custom range duplicate fix
+- Removed the duplicate hidden `Custom range` option from the Wear Log filter.
+- Preserved the ability to reselect an already-active Custom range by priming the native select in JavaScript before its picker opens.
+- Service-worker cache: `audrey-closet-v13.12-dev4.2.4`.
