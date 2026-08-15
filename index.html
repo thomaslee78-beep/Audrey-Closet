@@ -151,11 +151,18 @@
           <div class="wear-log-filter-row">
             <select id="journalRange" aria-label="Journal date range">
               <option value="all">All dates</option>
+              <option value="7">Last 7 days</option>
               <option value="30">Last 30 days</option>
               <option value="90">Last 90 days</option>
               <option value="season">This season</option>
+              <option value="year">This year</option>
               <option value="favorites">Favorites</option>
+              <option value="custom">Custom range</option>
             </select>
+            <div id="journalCustomRange" class="journal-custom-range hidden" aria-label="Custom journal date range">
+              <label>From<input type="date" id="journalRangeStart"></label>
+              <label>To<input type="date" id="journalRangeEnd"></label>
+            </div>
           </div>
           <div class="journal-list" id="journalList"></div>
         </div>

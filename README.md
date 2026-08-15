@@ -277,3 +277,12 @@ Fixes planned-look date editing: when changing the date of an existing planned l
 - Today’s Look and Wear Insights are collapsible.
 - Journal section open/closed choices persist locally, including Planned looks and Wear log.
 - Stable `data-journal-section` identifiers are in place for future section reordering.
+
+
+## v13.12-dev4.2 — Journal history controls
+- Wear Log filters now include Last 7 days, Last 30 days, Last 90 days, This season, This year, Favorites, All dates, and a Custom range.
+- Custom range provides From/To date fields and filters saved wear-log entries inclusively.
+- Wear Log remains full-height through 10 entries; above 10 entries, the list becomes internally scrollable.
+- Planned looks use the same 10-entry threshold and become internally scrollable above 10 entries.
+- Existing Journal logging/edit behavior from v13.12-dev4.1 is unchanged.
+- Service-worker cache: `audrey-closet-v13.12-dev4.2`.

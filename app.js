@@ -160,6 +160,8 @@ let journalDetailScrollY=0;
 let wearDialogScrollY=0;
 let journalStatScrollY=0;
 let journalRangeFilter='all';
+let journalRangeStart='';
+let journalRangeEnd='';
 let todayJournalExpanded=localStorage.getItem('audreyTodayJournalExpanded')!=='false';
 let plannedJournalExpanded=localStorage.getItem('audreyPlannedJournalExpanded')==='true';
 let wearLogExpanded=localStorage.getItem('audreyWearLogExpanded')!=='false';
@@ -324,6 +326,8 @@ function bindDialogs(){
   $('#clearWearSelectionBtn').onclick=()=>{wearDraftIds.clear();$$('.wear-option.selected').forEach(b=>b.classList.remove('selected'));updateWearSelectedCount()};
   $('#deleteWearBtn').onclick=deleteWearEntry;
   $('#journalRange').onchange=e=>{journalRangeFilter=e.target.value;renderJournal()};
+  $('#journalRangeStart').onchange=e=>{journalRangeStart=e.target.value;renderJournal()};
+  $('#journalRangeEnd').onchange=e=>{journalRangeEnd=e.target.value;renderJournal()};
   $('#todayJournalToggle').onclick=()=>{todayJournalExpanded=!todayJournalExpanded;localStorage.setItem('audreyTodayJournalExpanded',todayJournalExpanded?'true':'false');renderTodayJournalVisibility()};
   $('#plannedJournalToggle').onclick=()=>{plannedJournalExpanded=!plannedJournalExpanded;localStorage.setItem('audreyPlannedJournalExpanded',plannedJournalExpanded?'true':'false');renderPlannedJournalVisibility()};
   $('#wearLogToggle').onclick=()=>{wearLogExpanded=!wearLogExpanded;localStorage.setItem('audreyWearLogExpanded',wearLogExpanded?'true':'false');renderWearLogVisibility()};
@@ -1159,8 +1163,26 @@ function journalEntriesForRange(){
   let rows=state.journal.filter(j=>!isFutureJournal(j));const now=new Date();
   if(journalRangeFilter==='favorites')rows=rows.filter(j=>j.favorite);
   else if(journalRangeFilter==='season'){const sn=seasonForDate(now);rows=rows.filter(j=>seasonForDate(new Date(j.date+'T12:00:00'))===sn)}
-  else if(journalRangeFilter==='30'||journalRangeFilter==='90'){const cutoff=new Date(now);cutoff.setDate(cutoff.getDate()-Number(journalRangeFilter));rows=rows.filter(j=>new Date(j.date+'T12:00:00')>=cutoff)}
+  else if(journalRangeFilter==='year'){const year=now.getFullYear();rows=rows.filter(j=>new Date(j.date+'T12:00:00').getFullYear()===year)}
+  else if(['7','30','90'].includes(journalRangeFilter)){const cutoff=new Date(now);cutoff.setHours(0,0,0,0);cutoff.setDate(cutoff.getDate()-(Number(journalRangeFilter)-1));rows=rows.filter(j=>new Date(j.date+'T12:00:00')>=cutoff)}
+  else if(journalRangeFilter==='custom'){
+    if(journalRangeStart)rows=rows.filter(j=>String(j.date||'')>=journalRangeStart);
+    if(journalRangeEnd)rows=rows.filter(j=>String(j.date||'')<=journalRangeEnd);
+  }
   return rows.sort((a,b)=>b.date.localeCompare(a.date));
+}
+function applyJournalListScrollLimit(list,count,limit=10){
+  if(!list)return;
+  list.classList.toggle('journal-scroll-limited',count>limit);
+  list.style.removeProperty('--journal-scroll-height');
+  if(count<=limit)return;
+  requestAnimationFrame(()=>{
+    const rows=[...list.children].slice(0,limit);
+    if(!rows.length)return;
+    const style=getComputedStyle(list),gap=parseFloat(style.rowGap||style.gap)||0;
+    const height=rows.reduce((sum,row)=>sum+row.getBoundingClientRect().height,0)+gap*Math.max(0,rows.length-1);
+    list.style.setProperty('--journal-scroll-height',Math.ceil(height)+'px');
+  });
 }
 function journalRow(j,planned=false){
   const d=new Date(j.date+'T12:00:00'),items=(j.itemIds||[]).map(x=>state.items.find(i=>i.id===x)).filter(Boolean);
@@ -1176,8 +1198,8 @@ function renderJournal(){
   $('#todayJournalSection').classList.toggle('hidden',!todayEntry);
   $('#todayJournalList').innerHTML=todayEntry?journalRow(todayEntry,false):'';
   $('#todayJournalMeta').textContent=todayEntry?`${(todayEntry.itemIds||[]).length} ${(todayEntry.itemIds||[]).length===1?'piece':'pieces'}`:'today';renderTodayJournalVisibility();
-  const planned=state.journal.filter(isFutureJournal).sort((a,b)=>a.date.localeCompare(b.date));$('#plannedJournalSection').classList.toggle('hidden',!planned.length);$('#plannedJournalList').innerHTML=planned.map(j=>journalRow(j,true)).join('');$('#plannedJournalCount').textContent=`${planned.length} ${planned.length===1?'planned day':'planned days'}`;renderPlannedJournalVisibility();
-  const rows=journalEntriesForRange().filter(j=>String(j.date||'')!==today);$('#journalRange').value=journalRangeFilter;$('#journalCount').textContent=`${rows.length} ${rows.length===1?'day':'days'}`;$('#journalList').innerHTML=rows.map(j=>journalRow(j,false)).join('')||'<div class="empty-state compact"><p>No journal entries in this view.</p></div>';$$('.journal-row-button').forEach(b=>b.onclick=()=>openJournalDetail(b.dataset.journalId));renderWearLogVisibility();
+  const planned=state.journal.filter(isFutureJournal).sort((a,b)=>a.date.localeCompare(b.date));$('#plannedJournalSection').classList.toggle('hidden',!planned.length);$('#plannedJournalList').innerHTML=planned.map(j=>journalRow(j,true)).join('');$('#plannedJournalCount').textContent=`${planned.length} ${planned.length===1?'planned day':'planned days'}`;renderPlannedJournalVisibility();applyJournalListScrollLimit($('#plannedJournalList'),planned.length);
+  const rows=journalEntriesForRange().filter(j=>String(j.date||'')!==today);$('#journalRange').value=journalRangeFilter;$('#journalCustomRange').classList.toggle('hidden',journalRangeFilter!=='custom');$('#journalRangeStart').value=journalRangeStart;$('#journalRangeEnd').value=journalRangeEnd;$('#journalCount').textContent=`${rows.length} ${rows.length===1?'day':'days'}`;$('#journalList').innerHTML=rows.map(j=>journalRow(j,false)).join('')||'<div class="empty-state compact"><p>No journal entries in this view.</p></div>';applyJournalListScrollLimit($('#journalList'),rows.length);$$('.journal-row-button').forEach(b=>b.onclick=()=>openJournalDetail(b.dataset.journalId));renderWearLogVisibility();
   renderWearInsightsVisibility();drawDonut($('#colorChart'),colorCounts);const seasonCounts={Winter:0,Spring:0,Summer:0,Fall:0};pastJournal.forEach(j=>seasonCounts[seasonForDate(new Date(j.date+'T12:00:00'))]++);drawBars($('#seasonChart'),seasonCounts)
 }
 

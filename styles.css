@@ -781,3 +781,12 @@ body.portfolio-modal-open{position:fixed;left:0;right:0;width:100%;overflow:hidd
 .wear-insights-toggle small{font-size:10px;color:#7b7065}
 .wear-insights-toggle-icon{font-size:20px;line-height:1;color:var(--burgundy);font-weight:700;flex:0 0 auto}
 .wear-insights-content{padding-top:10px}
+
+/* v13.12-dev4.2 — Journal history filters and 10-entry scroll limits */
+.wear-log-filter-row{align-items:flex-start;gap:8px;flex-wrap:wrap}
+.journal-custom-range{display:flex;gap:6px;align-items:flex-end;flex-wrap:wrap}
+.journal-custom-range label{display:flex;flex-direction:column;gap:3px;font-size:9px;font-weight:750;color:#756a5c}
+.journal-custom-range input{min-width:132px;border:1px solid var(--line);border-radius:10px;padding:7px;background:#fffaf0;font:inherit;font-size:11px;color:var(--ink)}
+.journal-list.journal-scroll-limited{max-height:var(--journal-scroll-height,920px);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding-right:3px;scrollbar-gutter:stable}
+.planned-journal-list.journal-scroll-limited{padding-bottom:2px}
+@media(max-width:520px){.journal-custom-range{width:100%;justify-content:flex-end}.journal-custom-range input{min-width:125px}}
