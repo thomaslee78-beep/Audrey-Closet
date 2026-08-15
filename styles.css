@@ -690,3 +690,58 @@ body.portfolio-modal-open{position:fixed;left:0;right:0;width:100%;overflow:hidd
     border-radius:16px;
   }
 }
+
+
+/* v13.12-dev2.4 — integrated Closet detail panel + fixed action tray */
+#itemDialog{
+  padding:0;
+  overflow:hidden;
+  background:transparent;
+  border-radius:24px;
+}
+#itemDialog #itemForm{
+  display:flex;
+  flex-direction:column;
+  width:100%;
+  max-height:94dvh;
+  overflow:hidden;
+  padding:0;
+  border-radius:24px;
+  background:#f7f0df;
+  box-shadow:0 22px 70px rgba(36,30,22,.3);
+}
+#itemDialog .item-detail-scroll{
+  flex:1 1 auto;
+  min-height:0;
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+  overscroll-behavior:contain;
+  padding:17px 17px 14px;
+  scroll-padding-bottom:24px;
+  background:#f7f0df;
+}
+#itemDialog .item-sheet-actions{
+  position:relative;
+  bottom:auto;
+  flex:0 0 auto;
+  margin:0;
+  padding:11px 17px max(11px,env(safe-area-inset-bottom));
+  border:0;
+  border-top:1px solid rgba(108,81,66,.15);
+  border-radius:0 0 24px 24px;
+  box-shadow:0 -7px 18px rgba(64,52,38,.07);
+  background:#f7f0df;
+  backdrop-filter:none;
+  overflow:hidden;
+}
+@media(max-width:410px){
+  #itemDialog{width:calc(100% - 8px);border-radius:22px}
+  #itemDialog #itemForm{border-radius:22px;max-height:calc(100dvh - 8px)}
+  #itemDialog .item-detail-scroll{padding:14px 14px 12px}
+  #itemDialog .item-sheet-actions{
+    margin:0;
+    padding:10px 14px max(10px,env(safe-area-inset-bottom));
+    border-radius:0 0 22px 22px;
+    gap:7px;
+  }
+}

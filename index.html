@@ -215,6 +215,7 @@
 
   <dialog id="itemDialog" class="sheet-dialog">
     <form method="dialog" id="itemForm">
+      <div class="item-detail-scroll">
       <div class="sheet-head item-head"><div><p class="script">closet piece</p><h2 id="itemDialogTitle">Add a piece</h2></div><button type="button" id="closeItemDialogBtn" class="close-btn" aria-label="Close">×</button></div>
       <input type="hidden" id="itemId" />
       <div id="itemSwipeZone" class="item-swipe-zone">
@@ -256,6 +257,7 @@
       <label class="full-label">Notes<textarea id="itemNotes" placeholder="Fit, styling notes, sentimental story…"></textarea></label>
       <div id="itemArchiveNotice" class="item-archive-notice hidden"><strong>Archived piece</strong><span>Hidden from the normal Closet, but preserved in Journal history and saved outfits.</span></div>
       <button type="button" id="permanentDeleteItemBtn" class="permanent-delete-btn item-permanent-delete hidden">Permanently delete…</button>
+      </div>
       <div class="sheet-actions item-sheet-actions"><button type="button" id="cancelItemBtn" class="soft-btn">Cancel</button><button type="button" class="danger-text hidden" id="deleteItemBtn">Remove from Closet</button><button type="submit" value="default" class="primary" id="saveItemBtn">Save piece</button></div>
     </form>
   </dialog>
