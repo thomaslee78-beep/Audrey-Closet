@@ -342,3 +342,9 @@ Journal section drag handles were removed in favor of a Preferences > Journal la
 - Added an inline × control to clear only the Catalog search.
 - Compact saved-piece Review mode by hiding the redundant Closet Piece / Piece Details heading while preserving the close ×.
 - Reduced photo/detail spacing and review row padding so more attributes are visible without scrolling.
+
+
+## v13.14-dev2.2.3 — Review Card Stability
+- Keeps saved Closet review cards at a consistent viewport height while swiping between pieces.
+- Keeps the photo region stable and lets longer item details scroll inside the review card.
+- Does not change Add Piece or Edit mode behavior.
