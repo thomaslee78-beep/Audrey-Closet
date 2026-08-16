@@ -566,7 +566,18 @@ async function saveItem(){
   const previous=state.items;rememberBrandSuggestion(obj.brand);if(iid)state.items=state.items.map(x=>x.id===iid?obj:x);else{state.items=[obj,...state.items];ensureSettings();const order=state.settings.closetOrder[obj.category]||[];state.settings.closetOrder[obj.category]=[obj.id,...order.filter(x=>x!==obj.id)];}
   const btn=$('#saveItemBtn');btn.disabled=true;btn.textContent='Saving…';$('#scanStatus').textContent='Saving securely on this device…';
   const ok=await saveState();btn.disabled=false;btn.textContent='Save piece';
-  if(ok){$('#itemDialog').close();unlockPageForItemDialog();toast(iid?'Piece updated':'Added to closet')}else{state.items=previous;$('#scanStatus').textContent='Save failed. Your entry is still open so you can try again.'}
+  if(ok){
+    if(iid){
+      // Keep the user in the same browsing context after editing an existing piece.
+      // The review sequence (itemReviewIds) is intentionally preserved so they can
+      // swipe to the next/previous item without returning to the Closet overview.
+      const savedItem=state.items.find(x=>x.id===iid)||obj;
+      loadItemIntoEditor(savedItem,'','review');
+      toast('Piece updated');
+    }else{
+      $('#itemDialog').close();unlockPageForItemDialog();toast('Added to closet');
+    }
+  }else{state.items=previous;$('#scanStatus').textContent='Save failed. Your entry is still open so you can try again.'}
 }
 function setPhotoBusy(busy,message=''){['#removeBgBtn','#smartScanIconBtn','#saveItemBtn','#reviewPhotoMenuBtn'].forEach(sel=>{const el=$(sel);if(el)el.disabled=busy});if(message)$('#scanStatus').textContent=message}
 async function toggleItemArchived(){

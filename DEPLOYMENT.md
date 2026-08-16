@@ -280,3 +280,9 @@ Journal section drag handles were removed in favor of a Preferences > Journal la
 - Keeps saved Closet review cards at a consistent viewport height while swiping between pieces.
 - Keeps the photo region stable and lets longer item details scroll inside the review card.
 - Does not change Add Piece or Edit mode behavior.
+
+
+## v13.14-dev2.2.4 — Edit Return Flow
+- Saving changes to an existing Closet piece now returns to that same piece in read-only Review mode instead of closing back to the Closet overview.
+- The current review/swipe sequence is preserved so the user can continue to the next or previous piece and make multiple edits while browsing.
+- Add Piece keeps its prior behavior and closes after the new item is saved.
