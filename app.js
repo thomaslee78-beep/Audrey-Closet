@@ -23,6 +23,21 @@ const TYPES={
   Misc:['Jumpsuit / Romper','Swimsuit','Socks','Tights','Underwear','Pajamas / Sleepwear','Costume','Uniform','Other']
 };
 const CLOTHING_SIZES=['Not set','XXS','XS','S','M','L','XL','XXL','Girls 8','Girls 10','Girls 12','Girls 14','Girls 16','00','0','2','4','6','8','10','12','14','16','18','Men XS','Men S','Men M','Men L','Men XL','Men XXL','One Size','Other'];
+// Optional, context-sensitive garment attributes. Stored values are deliberately
+// separate from their UI labels so the wording can evolve without data migration.
+const FIT_OPTIONS={
+  Tops:['Regular','Petite','Tall'],
+  Bottoms:['Regular','Petite','Short','Tall','Long'],
+  Dresses:['Regular','Petite','Tall'],
+  Outerwear:['Regular','Petite','Tall']
+};
+const STYLE_OPTIONS={
+  'Bottoms|Jeans':['Skinny','Slim','Straight','Relaxed','Boyfriend','Mom','Baggy','Barrel','Wide Leg','Bootcut','Flare','Other'],
+  'Bottoms|Pants / Trousers':['Slim','Straight','Relaxed','Tapered','Wide Leg','Barrel','Bootcut','Flare','Cargo','Pleated','Other'],
+  'Bottoms|Shorts':['Denim','Tailored','Athletic','Bike','Cargo','Bermuda','Relaxed','Other'],
+  'Bottoms|Skirt':['A-Line','Pencil','Pleated','Wrap','Tiered','Other'],
+  'Bottoms|Joggers / Sweatpants':['Slim','Relaxed','Wide Leg','Cargo','Other']
+};
 const BOTTOM_SIZES=['Not set','XXS','XS','S','M','L','XL','XXL','Girls 8','Girls 10','Girls 12','Girls 14','Girls 16','00','0','2','4','6','8','10','12','14','16','18',...Array.from({length:17},(_,i)=>`Men W${28+i}`),'Men W46','Men W48','Other'];
 const SHOE_SIZES=['Not set',...Array.from({length:25},(_,i)=>String(1+i*.5)),'Other'];
 const ACCESSORY_SIZES=['Not set','One Size','XS','S','M','L','XL','Other'];
@@ -95,6 +110,9 @@ let itemSwipeStart=null;
 let itemPhotoPickerActive=false;
 let itemDialogScrollY=0;
 let itemDialogMode='create';
+let itemFitDrafts={};
+let itemStyleDrafts={};
+let itemAttributeContextKey='';
 let pendingSmartScanResult=null;
 let itemWorkingPhoto='';
 let itemOriginalPhoto='';
@@ -318,7 +336,7 @@ async function init(){
   $('#settingsBtn').onclick=()=>{renderPortfolioFolderEditor();renderJournalOrderEditor();showScreen('more')};
   $('#addPortfolioFolderBtn').onclick=addPortfolioFolder;
   $('#portfolioNewBtn').onclick=()=>guardBoardSwitch(()=>{startNewOutfit();showScreen('outfits')},'start a new look');  $('#portfolioSearch').oninput=e=>{portfolioSearchQuery=e.target.value||'';renderSavedOutfits()};$('#portfolioSearch').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();e.currentTarget.blur()}});$('#portfolioItemFilterBtn').onclick=()=>{portfolioItemPickerOpen=!portfolioItemPickerOpen;renderPortfolioDiscovery()};
-  if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js?v=13.14-dev2.2.2',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
+  if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js?v=13.14-dev3',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
   renderAll();
 }
 function fillSelects(){
@@ -330,11 +348,37 @@ function fillSelects(){
   $('#itemColor').innerHTML=colorOpts;$('#wishColor').innerHTML=colorOpts;
   $('#filterColor').innerHTML='<option value="">All colors</option>'+COLORS.map(c=>`<option>${c}</option>`).join('');
   populateTypeOptions('Tops');populateSizeOptions('Tops');
-  $('#itemCategory').addEventListener('change',()=>{populateTypeOptions($('#itemCategory').value);populateSizeOptions($('#itemCategory').value);updateItemReviewSummary()});
+  $('#itemCategory').addEventListener('change',()=>{stashItemContextAttributes();populateTypeOptions($('#itemCategory').value);populateSizeOptions($('#itemCategory').value);setItemAttributeContext($('#itemCategory').value,$('#itemType').value);updateItemReviewSummary()});
+  $('#itemType').addEventListener('change',()=>{stashItemContextAttributes();setItemAttributeContext($('#itemCategory').value,$('#itemType').value);updateItemReviewSummary()});
 }
 function populateTypeOptions(category,selected=''){const opts=[...(TYPES[category]||['Other'])];if(selected&&!opts.includes(selected))opts.unshift(selected);$('#itemType').innerHTML=opts.map(v=>`<option${v===selected?' selected':''}>${esc(v)}</option>`).join('')}
 function sizesForCategory(category){if(category==='Shoes')return [...SHOE_SIZES];if(category==='Accessories')return [...ACCESSORY_SIZES];if(category==='Bottoms')return [...BOTTOM_SIZES];return [...CLOTHING_SIZES]}
 function populateSizeOptions(category,selected=''){const opts=sizesForCategory(category);if(selected&&!opts.includes(selected))opts.unshift(selected);$('#itemSize').innerHTML=opts.map(v=>`<option value="${v==='Not set'?'':esc(v)}"${v===selected||(!selected&&v==='Not set')?' selected':''}>${esc(v)}</option>`).join('')}
+function itemContextKey(category,type){return `${category||''}|${type||''}`}
+function validFitOptions(category){return FIT_OPTIONS[category]||[]}
+function validStyleOptions(category,type){return STYLE_OPTIONS[itemContextKey(category,type)]||[]}
+function stashItemContextAttributes(){
+  if(!itemAttributeContextKey)return;
+  const splitAt=itemAttributeContextKey.indexOf('|'),category=splitAt>=0?itemAttributeContextKey.slice(0,splitAt):itemAttributeContextKey;
+  itemFitDrafts[category]=$('#itemFit')?.value||'';
+  itemStyleDrafts[itemAttributeContextKey]=$('#itemStyle')?.value||'';
+}
+function fillContextAttributeSelect(select,options,selected=''){
+  select.innerHTML='<option value="">Not set</option>'+options.map(v=>`<option${v===selected?' selected':''}>${esc(v)}</option>`).join('');
+  select.value=options.includes(selected)?selected:'';
+}
+function setItemAttributeContext(category,type,seed=null){
+  const key=itemContextKey(category,type),fits=validFitOptions(category),styles=validStyleOptions(category,type);
+  const fitDraft=Object.prototype.hasOwnProperty.call(itemFitDrafts,category)?itemFitDrafts[category]:(seed?.fit||'');
+  const styleDraft=Object.prototype.hasOwnProperty.call(itemStyleDrafts,key)?itemStyleDrafts[key]:(seed?.style||'');
+  fillContextAttributeSelect($('#itemFit'),fits,fitDraft);
+  fillContextAttributeSelect($('#itemStyle'),styles,styleDraft);
+  $('#itemFitLabel').classList.toggle('hidden',!fits.length);
+  $('#itemStyleLabel').classList.toggle('hidden',!styles.length);
+  itemAttributeContextKey=key;
+}
+function cleanedItemFit(category,value){return validFitOptions(category).includes(value)?value:''}
+function cleanedItemStyle(category,type,value){return validStyleOptions(category,type).includes(value)?value:''}
 function bindNav(){
   $$('.bottom-nav button').forEach(b=>b.onclick=()=>showScreen(b.dataset.nav));
   ['addItemBtn','emptyAddBtn','quickAddBtn'].forEach(x=>$('#'+x).onclick=()=>openItem(null, selectedCategory||$('#filterCategory').value||''));
@@ -449,7 +493,7 @@ function loadItemIntoEditor(item=null,preferredCategory='',mode='review'){
   $('#itemDialog').classList.toggle('item-review-mode',itemDialogMode==='review');
   $('#itemDialog').classList.toggle('item-edit-mode',itemDialogMode!=='review');
   $('#itemDialogTitle').textContent=isExisting?(itemDialogMode==='review'?'Piece details':'Edit piece'):'Add a piece';$('#itemId').value=item?.id||'';itemWorkingPhoto=item?.photo||'';itemOriginalPhoto=item?.originalPhoto||item?.photo||'';itemCutoutApplied=item?.photoStudioCutoutApplied ?? (!!item?.photo&&!!item?.originalPhoto&&item.photo!==item.originalPhoto);itemStudioState=item?.photoStudioState?JSON.parse(JSON.stringify(item.photoStudioState)):null;
-  showPhoto('#itemPhotoPreview','#photoPlaceholder',itemWorkingPhoto);updateOriginalPhotoButton();const category=item?.category||preferredCategory||selectedCategory||$('#filterCategory').value||'Tops';$('#itemCategory').value=category;populateTypeOptions(category,item?.type||'');populateSizeOptions(category,item?.size||'');$('#itemBrand').value=item?.brand||'';closeBrandSuggestions();$('#itemColor').value=item?.color||'';$('#itemPattern').value=item?.pattern||'Solid';$('#itemAcquired').value=item?.acquired||'Bought new';$('#itemSeason').value=item?.season||'All-season';$('#itemNotes').value=item?.notes||'';$('#scanStatus').textContent='';const archived=!!item&&isArchived(item);$('#deleteItemBtn').classList.toggle('hidden',!item);$('#deleteItemBtn').textContent=archived?'Reactivate':'Remove from Closet';$('#deleteItemBtn').classList.toggle('reactivate-item',archived);$('#permanentDeleteItemBtn').classList.toggle('hidden',!item);$('#itemArchiveNotice').classList.toggle('hidden',!archived);$('#itemPhoto').value='';$('#itemPhotoLibrary').value='';
+  showPhoto('#itemPhotoPreview','#photoPlaceholder',itemWorkingPhoto);updateOriginalPhotoButton();const category=item?.category||preferredCategory||selectedCategory||$('#filterCategory').value||'Tops';$('#itemCategory').value=category;populateTypeOptions(category,item?.type||'');populateSizeOptions(category,item?.size||'');itemFitDrafts={};itemStyleDrafts={};itemAttributeContextKey='';setItemAttributeContext(category,$('#itemType').value,{fit:item?.sizeVariant||item?.fit||'',style:item?.style||''});$('#itemBrand').value=item?.brand||'';closeBrandSuggestions();$('#itemColor').value=item?.color||'';$('#itemPattern').value=item?.pattern||'Solid';$('#itemAcquired').value=item?.acquired||'Bought new';$('#itemSeason').value=item?.season||'All-season';$('#itemNotes').value=item?.notes||'';$('#scanStatus').textContent='';const archived=!!item&&isArchived(item);$('#deleteItemBtn').classList.toggle('hidden',!item);$('#deleteItemBtn').textContent=archived?'Reactivate':'Remove from Closet';$('#deleteItemBtn').classList.toggle('reactivate-item',archived);$('#permanentDeleteItemBtn').classList.toggle('hidden',!item);$('#itemArchiveNotice').classList.toggle('hidden',!archived);$('#itemPhoto').value='';$('#itemPhotoLibrary').value='';
   $('#itemCardUtilityActions').classList.toggle('hidden',!isExisting&&!itemWorkingPhoto);$('#reviewPhotoMenuWrap').classList.toggle('hidden',!isExisting&&!itemWorkingPhoto);$('#smartScanIconBtn').classList.toggle('hidden',!itemWorkingPhoto);closeReviewPhotoMenu();updateReviewPhotoMenuState();updatePhotoToolAvailability();
   $('#itemReviewSummary').classList.toggle('hidden',!isExisting);$('#itemSwipeHint').classList.add('hidden');updateItemReviewSummary();applyItemDialogMode(item);updateItemSwipeArrows();
   if($('#itemDialog').open){const scroller=$('#itemDialog .item-detail-scroll');if(scroller)scroller.scrollTop=0;else $('#itemDialog').scrollTop=0;}
@@ -458,7 +502,10 @@ function itemReviewValue(value,fallback='Not set'){const v=String(value||'').tri
 function renderItemReviewDetails(item){
   const box=$('#itemReviewDetails');if(!box)return;
   const category=$('#itemCategory').value,type=displayItemType(category,$('#itemType').value);
-  const rows=[['Category',category],['Type',type],['Brand',$('#itemBrand').value],['Size',$('#itemSize').value],['Color',$('#itemColor').value],['Pattern',$('#itemPattern').value],['Acquired',$('#itemAcquired').value],['Season',$('#itemSeason').value]];
+  const rows=[['Category',category],['Type',type],['Brand',$('#itemBrand').value],['Size',$('#itemSize').value]];
+  if($('#itemFit').value)rows.push(['Fit',$('#itemFit').value]);
+  if($('#itemStyle').value)rows.push(['Style',$('#itemStyle').value]);
+  rows.push(['Color',$('#itemColor').value],['Pattern',$('#itemPattern').value],['Acquired',$('#itemAcquired').value],['Season',$('#itemSeason').value]);
   box.innerHTML=`<div class="item-review-detail-grid">${rows.map(([k,v])=>`<div class="item-review-detail-row"><span>${esc(k)}</span><strong>${esc(itemReviewValue(v))}</strong></div>`).join('')}</div>${String($('#itemNotes').value||'').trim()?`<div class="item-review-notes"><span>Notes</span><p>${esc($('#itemNotes').value.trim())}</p></div>`:''}`;
 }
 function applyItemDialogMode(item=null){
@@ -562,7 +609,7 @@ function updateItemReviewSummary(){
   $('#itemReviewTitle').textContent=type;$('#itemReviewMeta').innerHTML=`<span class="swatch" style="background:${colorHex(color)}"></span>${esc(color)} · ${esc(brand)}`;
 }
 async function saveItem(){
-  const iid=$('#itemId').value;const old=state.items.find(x=>x.id===iid);const obj={id:iid||id(),photo:itemWorkingPhoto,originalPhoto:itemOriginalPhoto||itemWorkingPhoto,photoStudioCutoutApplied:!!itemCutoutApplied,photoStudioState:itemStudioState||null,category:$('#itemCategory').value,categoryId:categoryIdFor($('#itemCategory').value),type:$('#itemType').value,brand:$('#itemBrand').value.trim(),size:$('#itemSize').value,color:$('#itemColor').value,pattern:$('#itemPattern').value,acquired:$('#itemAcquired').value,season:$('#itemSeason').value,notes:$('#itemNotes').value.trim(),created:old?.created||Date.now(),wears:old?.wears||0,status:old?.status||'active',statusDate:old?.statusDate||''};
+  const iid=$('#itemId').value;const old=state.items.find(x=>x.id===iid);const obj={id:iid||id(),photo:itemWorkingPhoto,originalPhoto:itemOriginalPhoto||itemWorkingPhoto,photoStudioCutoutApplied:!!itemCutoutApplied,photoStudioState:itemStudioState||null,category:$('#itemCategory').value,categoryId:categoryIdFor($('#itemCategory').value),type:$('#itemType').value,brand:$('#itemBrand').value.trim(),size:$('#itemSize').value,sizeVariant:cleanedItemFit($('#itemCategory').value,$('#itemFit').value),style:cleanedItemStyle($('#itemCategory').value,$('#itemType').value,$('#itemStyle').value),color:$('#itemColor').value,pattern:$('#itemPattern').value,acquired:$('#itemAcquired').value,season:$('#itemSeason').value,notes:$('#itemNotes').value.trim(),created:old?.created||Date.now(),wears:old?.wears||0,status:old?.status||'active',statusDate:old?.statusDate||''};
   const previous=state.items;rememberBrandSuggestion(obj.brand);if(iid)state.items=state.items.map(x=>x.id===iid?obj:x);else{state.items=[obj,...state.items];ensureSettings();const order=state.settings.closetOrder[obj.category]||[];state.settings.closetOrder[obj.category]=[obj.id,...order.filter(x=>x!==obj.id)];}
   const btn=$('#saveItemBtn');btn.disabled=true;btn.textContent='Saving…';$('#scanStatus').textContent='Saving securely on this device…';
   const ok=await saveState();btn.disabled=false;btn.textContent='Save piece';

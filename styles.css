@@ -968,3 +968,7 @@ body.portfolio-modal-open{position:fixed;left:0;right:0;width:100%;overflow:hidd
     max-height:min(300px,35dvh);
   }
 }
+
+/* v13.14-dev3 — optional Fit + Style fields */
+#itemDialog .context-attribute.hidden{display:none}
+#itemDialog .context-attribute select{width:100%}

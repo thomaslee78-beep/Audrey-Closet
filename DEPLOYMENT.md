@@ -286,3 +286,6 @@ Journal section drag handles were removed in favor of a Preferences > Journal la
 - Saving changes to an existing Closet piece now returns to that same piece in read-only Review mode instead of closing back to the Closet overview.
 - The current review/swipe sequence is preserved so the user can continue to the next or previous piece and make multiple edits while browsing.
 - Add Piece keeps its prior behavior and closes after the new item is saved.
+
+## v13.14-dev3
+Service worker cache: `audrey-closet-v13.14-dev3`.

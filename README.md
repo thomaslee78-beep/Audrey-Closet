@@ -354,3 +354,11 @@ Journal section drag handles were removed in favor of a Preferences > Journal la
 - Saving changes to an existing Closet piece now returns to that same piece in read-only Review mode instead of closing back to the Closet overview.
 - The current review/swipe sequence is preserved so the user can continue to the next or previous piece and make multiple edits while browsing.
 - Add Piece keeps its prior behavior and closes after the new item is saved.
+
+### v13.14-dev3 — Fit + Style groundwork
+- Adds optional, context-sensitive **Fit** and **Style** fields to Closet pieces.
+- Fit currently supports sizing variants such as Regular, Petite, Tall, Short and Long where relevant.
+- Style is filtered by garment context, beginning with Jeans and common Bottoms types.
+- Temporary Fit/Style choices are preserved while changing Category/Type during an edit, but incompatible values are omitted when the final piece is saved.
+- Stored names (`sizeVariant`, `style`) are independent of the UI labels so wording can change later without a data migration.
+- No IndexedDB schema/version change.
