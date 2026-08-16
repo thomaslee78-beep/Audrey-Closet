@@ -253,3 +253,9 @@ v13.12-dev4.2.2: Wear Log filter controls are directly visible; Clear is conditi
 
 ## v13.12-dev4.3.1
 Journal section drag handles were removed in favor of a Preferences > Journal layout editor. The four Journal sections can be reordered with up/down controls and the order is saved in app settings. Expand/collapse controls remain on the right, Journal section spacing is normalized, and header text selection/callouts are suppressed on iPhone.
+
+
+## v13.14-dev1 — Add Piece photo UI polish
+- Reordered new-piece photo actions so Upload photo is on the left and the primary Take photo action is on the right.
+- Refined the new-piece photo action palette: warm parchment/olive secondary styling for Upload photo and deep wine/burgundy primary styling for Take photo.
+- No catalog data model or IndexedDB schema changes.
