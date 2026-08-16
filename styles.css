@@ -883,3 +883,29 @@ body.portfolio-modal-open{position:fixed;left:0;right:0;width:100%;overflow:hidd
 #itemDialog.item-review-mode .brand-suggestions{display:none!important}
 #itemDialog.item-review-mode .item-sheet-actions{grid-template-columns:repeat(3,minmax(0,1fr))}
 @media(max-width:410px){#itemDialog .item-review-detail-grid{gap:0 12px}#itemDialog .item-review-detail-row strong{font-size:14px}}
+
+
+/* v13.14-dev2.2.2 — Catalog search reset + compact review browsing */
+.searchbox{position:relative}
+.searchbox input{min-width:0;padding-right:4px}
+.search-clear-btn{flex:0 0 auto;width:28px;height:28px;border:0;border-radius:50%;padding:0;background:rgba(108,81,66,.10);color:var(--coffee);font:600 20px/1 var(--sans);display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent}
+.search-clear-btn:active{background:rgba(108,81,66,.18);transform:scale(.96)}
+#itemDialog.item-review-mode .item-head{min-height:36px;justify-content:flex-end;margin:0 0 2px;padding:0}
+#itemDialog.item-review-mode .item-head>div{display:none}
+#itemDialog.item-review-mode .item-head .close-btn{width:34px;height:34px;min-width:34px;font-size:23px;position:relative;z-index:30}
+#itemDialog.item-review-mode .item-review-summary{padding-top:2px;padding-bottom:6px;margin-bottom:2px}
+#itemDialog.item-review-mode .item-photo-stage{margin-bottom:2px}
+#itemDialog.item-review-mode .item-photo-large{aspect-ratio:1.12/1;max-height:350px}
+#itemDialog.item-review-mode .item-review-details{gap:6px;margin:0 0 6px}
+#itemDialog.item-review-mode .item-review-detail-row{gap:1px;padding:7px 0}
+#itemDialog.item-review-mode .item-review-detail-row strong{line-height:1.18}
+#itemDialog.item-review-mode .item-review-notes{padding-top:1px}
+@media(max-width:410px){
+  #itemDialog.item-review-mode .item-head{min-height:34px;margin-bottom:0}
+  #itemDialog.item-review-mode .item-head .close-btn{width:32px;height:32px;min-width:32px;font-size:22px}
+  #itemDialog.item-review-mode .item-review-summary{padding-top:0;padding-bottom:4px;margin-bottom:0}
+  #itemDialog.item-review-mode .item-photo-stage{margin-bottom:0}
+  #itemDialog.item-review-mode .item-photo-large{aspect-ratio:1.14/1;max-height:315px}
+  #itemDialog.item-review-mode .item-review-details{margin-top:0;gap:4px}
+  #itemDialog.item-review-mode .item-review-detail-row{padding:6px 0}
+}

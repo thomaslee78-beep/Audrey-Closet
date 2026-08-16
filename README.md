@@ -335,3 +335,10 @@ Journal section drag handles were removed in favor of a Preferences > Journal la
 ### v13.14-dev2.2.1 — Contextual Other labels
 - Keeps `type: "Other"` in stored catalog data while displaying category-aware labels such as **Other Dress** in Closet, Portfolio, and Journal views.
 - Category and type remain separate so future statistics can group by category without mixing unrelated Other items.
+
+
+## v13.14-dev2.2.2 — Catalog review polish
+- Catalog Clear now resets both search text and filter selections.
+- Added an inline × control to clear only the Catalog search.
+- Compact saved-piece Review mode by hiding the redundant Closet Piece / Piece Details heading while preserving the close ×.
+- Reduced photo/detail spacing and review row padding so more attributes are visible without scrolling.

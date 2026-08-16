@@ -267,3 +267,10 @@ Journal section drag handles were removed in favor of a Preferences > Journal la
 - Introduces stable internal category IDs plus a catalog taxonomy version without changing IndexedDB schema/version.
 - One-time migration moves legacy `Misc > Dress` pieces to `Dresses > Other`, preserving the item and all non-category attributes.
 - New and imported closet items are normalized to the current taxonomy.
+
+
+## v13.14-dev2.2.2 — Catalog review polish
+- Catalog Clear now resets both search text and filter selections.
+- Added an inline × control to clear only the Catalog search.
+- Compact saved-piece Review mode by hiding the redundant Closet Piece / Piece Details heading while preserving the close ×.
+- Reduced photo/detail spacing and review row padding so more attributes are visible without scrolling.

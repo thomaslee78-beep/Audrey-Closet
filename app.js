@@ -306,9 +306,10 @@ async function init(){
   if(taxonomyChanged){try{await persistState(state)}catch(e){console.warn('Catalog taxonomy migration could not be persisted yet',e)}}
   renderStudioBackgroundPalette();applyLocalizedStrings();
   fillSelects(); bindNav(); bindDialogs(); bindBoard(); bindPhotoStudio();
-  $('#catalogSearch').addEventListener('input',renderCatalog);
+  $('#catalogSearch').addEventListener('input',()=>{updateCatalogSearchClear();renderCatalog()});
+  $('#clearCatalogSearchBtn').onclick=()=>{const search=$('#catalogSearch');search.value='';updateCatalogSearchClear();renderCatalog();search.focus()};
   $('#filterBtn').onclick=()=>$('#filterPanel').classList.toggle('hidden');
-  $('#clearFilters').onclick=()=>{selectedCategory='';$('#filterCategory').value='';$('#filterSeason').value='';$('#filterColor').value='';renderCatalog();renderCategories()};
+  $('#clearFilters').onclick=()=>{selectedCategory='';$('#catalogSearch').value='';$('#filterCategory').value='';$('#filterSeason').value='';$('#filterColor').value='';updateCatalogSearchClear();renderCatalog();renderCategories()};
   ['filterCategory','filterSeason','filterColor'].forEach(x=>$('#'+x).addEventListener('change',renderCatalog));
   $('#includeArchivedCloset').checked=includeArchivedCloset;
   $('#includeArchivedCloset').addEventListener('change',e=>{includeArchivedCloset=!!e.target.checked;localStorage.setItem('audreyIncludeArchivedCloset',includeArchivedCloset?'true':'false');renderCategories();renderCatalog()});
@@ -317,7 +318,7 @@ async function init(){
   $('#settingsBtn').onclick=()=>{renderPortfolioFolderEditor();renderJournalOrderEditor();showScreen('more')};
   $('#addPortfolioFolderBtn').onclick=addPortfolioFolder;
   $('#portfolioNewBtn').onclick=()=>guardBoardSwitch(()=>{startNewOutfit();showScreen('outfits')},'start a new look');  $('#portfolioSearch').oninput=e=>{portfolioSearchQuery=e.target.value||'';renderSavedOutfits()};$('#portfolioSearch').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();e.currentTarget.blur()}});$('#portfolioItemFilterBtn').onclick=()=>{portfolioItemPickerOpen=!portfolioItemPickerOpen;renderPortfolioDiscovery()};
-  if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js?v=13.14-dev2',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
+  if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js?v=13.14-dev2.2.2',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
   renderAll();
 }
 function fillSelects(){
@@ -597,6 +598,7 @@ async function permanentDeleteItem(){
 
 function renderAll(){ensureSettings();applyAppName();renderCategories();renderCatalog();renderOutfits();renderSavedOutfits();renderWishlist();renderJournal();renderPortfolioFolderEditor();renderJournalOrderEditor()}
 function renderCategories(){const host=$('#categoryStrip');host.innerHTML=CATEGORIES.map(c=>{const n=state.items.filter(i=>i.category===c&&(includeArchivedCloset||!isArchived(i))).length;return`<button class="category-chip ${selectedCategory===c?'active':''}" data-cat="${c}"><strong>${c}</strong><span>${n} ${n===1?'piece':'pieces'}</span></button>`}).join('');$$('.category-chip').forEach(b=>b.onclick=()=>{selectedCategory=selectedCategory===b.dataset.cat?'':b.dataset.cat;renderCategories();renderCatalog()})}
+function updateCatalogSearchClear(){const btn=$('#clearCatalogSearchBtn'),search=$('#catalogSearch');if(btn&&search)btn.classList.toggle('hidden',!search.value.trim())}
 function renderCatalog(){
   ensureSettings();
   const q=$('#catalogSearch').value.toLowerCase().trim(),fc=$('#filterCategory').value,fs=$('#filterSeason').value,fcol=$('#filterColor').value;
