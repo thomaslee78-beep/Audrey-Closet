@@ -556,7 +556,7 @@ function bindBrandSuggestions(){
   input.addEventListener('input',renderBrandSuggestions);input.addEventListener('focus',renderBrandSuggestions);input.addEventListener('keydown',e=>{if(e.key==='Escape')closeBrandSuggestions()});input.addEventListener('blur',()=>setTimeout(closeBrandSuggestions,120));
 }
 function updateItemReviewSummary(){
-  const isEdit=!!$('#itemId').value;$('#itemReviewSummary').classList.toggle('hidden',!isExisting);if(!isEdit)return;
+  const isEdit=!!$('#itemId').value;$('#itemReviewSummary').classList.toggle('hidden',!isEdit);if(!isEdit)return;
   const type=displayItemType($('#itemCategory').value,$('#itemType').value),color=$('#itemColor').value||'Color not set',brand=$('#itemBrand').value.trim()||'No brand';
   $('#itemReviewTitle').textContent=type;$('#itemReviewMeta').innerHTML=`<span class="swatch" style="background:${colorHex(color)}"></span>${esc(color)} · ${esc(brand)}`;
 }
