@@ -266,6 +266,8 @@
         <button type="button" id="photoStudioBtn" tabindex="-1">Photo Studio</button>
         <button type="button" id="restoreOriginalPhotoBtn" tabindex="-1">Original photo</button>
       </div>
+      <div id="itemReviewDetails" class="item-review-details hidden" aria-live="polite"></div>
+      <div id="itemEditFields">
       <div class="form-grid">
         <label>Category<select id="itemCategory" required></select></label>
         <label>Type<select id="itemType" required></select></label>
@@ -277,6 +279,7 @@
         <label>Season<select id="itemSeason"><option>All-season</option><option>Winter</option><option>Spring</option><option>Summer</option><option>Fall</option></select></label>
       </div>
       <label class="full-label">Notes<textarea id="itemNotes" placeholder="Fit, styling notes, sentimental story…"></textarea></label>
+      </div>
       <div id="itemArchiveNotice" class="item-archive-notice hidden"><strong>Archived piece</strong><span>Hidden from the normal Closet, but preserved in Journal history and saved outfits.</span></div>
       <button type="button" id="permanentDeleteItemBtn" class="permanent-delete-btn item-permanent-delete hidden">Permanently delete…</button>
       </div>

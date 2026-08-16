@@ -94,6 +94,7 @@ let itemReviewIds=[];
 let itemSwipeStart=null;
 let itemPhotoPickerActive=false;
 let itemDialogScrollY=0;
+let itemDialogMode='create';
 let pendingSmartScanResult=null;
 let itemWorkingPhoto='';
 let itemOriginalPhoto='';
@@ -346,23 +347,23 @@ function bindDialogs(){
   $('#itemPhotoLibrary').onchange=e=>handleItemPhotoSelection(e,'library');
   $('#reviewItemPhoto').onchange=e=>handleItemPhotoSelection(e,'camera');
   $('#reviewItemPhotoLibrary').onchange=e=>handleItemPhotoSelection(e,'library');
-  ['itemPhoto','itemPhotoLibrary','reviewItemPhoto','reviewItemPhotoLibrary'].forEach(inputId=>{const input=$('#'+inputId);input.addEventListener('click',()=>{itemPhotoPickerActive=true;closeReviewPhotoMenu();ensureItemDialogVisible();document.body.classList.add('item-photo-picker-active')})});
+  ['itemPhoto','itemPhotoLibrary','reviewItemPhoto','reviewItemPhotoLibrary'].forEach(inputId=>{const input=$('#'+inputId);input.addEventListener('click',()=>{if(itemDialogMode==='review')enterItemEditMode();itemPhotoPickerActive=true;closeReviewPhotoMenu();ensureItemDialogVisible();document.body.classList.add('item-photo-picker-active')})});
   const restoreAfterPhotoPicker=()=>{if(!itemPhotoPickerActive)return;[80,260,650].forEach(ms=>setTimeout(restoreItemDialogAfterPicker,ms))};
   window.addEventListener('focus',restoreAfterPhotoPicker);
   window.addEventListener('pageshow',restoreAfterPhotoPicker);
   document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')restoreAfterPhotoPicker()});
   $('#photoStudioBtn').onclick=()=>openPhotoStudio();
   $('#restoreOriginalPhotoBtn').onclick=()=>restoreCapturedOriginal(false);
-  $('#reviewStudioBtn').onclick=()=>{closeReviewPhotoMenu();openPhotoStudio()};
-  $('#reviewRestoreOriginalBtn').onclick=()=>{closeReviewPhotoMenu();restoreCapturedOriginal(false)};
+  $('#reviewStudioBtn').onclick=()=>{if(itemDialogMode==='review')enterItemEditMode();closeReviewPhotoMenu();openPhotoStudio()};
+  $('#reviewRestoreOriginalBtn').onclick=()=>{if(itemDialogMode==='review')enterItemEditMode();closeReviewPhotoMenu();restoreCapturedOriginal(false)};
   $('#reviewPhotoMenuBtn').onclick=e=>{e.stopPropagation();toggleReviewPhotoMenu()};
-  $('#smartScanIconBtn').onclick=smartScan;
+  $('#smartScanIconBtn').onclick=()=>{if(itemDialogMode==='review')enterItemEditMode();smartScan()};
   $('#closeSmartScanReviewBtn').onclick=closeSmartScanReview;
   $('#cancelSmartScanReviewBtn').onclick=closeSmartScanReview;
   $('#applySmartScanReviewBtn').onclick=applyPendingSmartScan;
   $('#smartScanReviewDialog').addEventListener('cancel',e=>{e.preventDefault();closeSmartScanReview()});
-  $('#itemForm').onsubmit=e=>{e.preventDefault();saveItem()};
-  $('#cancelItemBtn').onclick=closeItemWithoutSaving;
+  $('#itemForm').onsubmit=e=>{e.preventDefault();if(itemDialogMode==='review')enterItemEditMode();else saveItem()};
+  $('#cancelItemBtn').onclick=()=>{if(itemDialogMode==='edit'&&$('#itemId').value)cancelItemEditToReview();else closeItemWithoutSaving()};
   $('#closeItemDialogBtn').onclick=closeItemWithoutSaving;
   $('#itemDialog').addEventListener('cancel',e=>{e.preventDefault();if(itemPhotoPickerActive){restoreItemDialogAfterPicker();return}closeItemWithoutSaving()});
   $('#itemDialog').addEventListener('close',()=>{if(itemPhotoPickerActive){[60,180,420].forEach(ms=>setTimeout(restoreItemDialogAfterPicker,ms));return}unlockPageForItemDialog()});
@@ -435,21 +436,50 @@ function bindDialogs(){
   $$('.stat-action').forEach(b=>b.onclick=()=>openJournalStat(b.dataset.stat));
   $('#deleteOutfitBtn').onclick=deleteOutfit;$('#favoriteViewedOutfitBtn').onclick=favoriteViewedOutfit;$('#editViewedOutfitBtn').onclick=editViewedOutfit;$('#duplicateViewedOutfitBtn').onclick=duplicateViewedOutfit;$('#shareViewedOutfitBtn').onclick=shareViewedOutfit;$('#closeViewedOutfitBtn').onclick=closeViewedOutfit;$('#outfitViewDialog').addEventListener('cancel',e=>{e.preventDefault();closeViewedOutfit()});$('#boardConflictSaveBtn').onclick=saveBoardBeforeSwitch;$('#boardConflictReplaceBtn').onclick=replaceBoardForSwitch;$('#boardConflictCancelBtn').onclick=cancelBoardSwitch;$('#boardConflictCloseBtn').onclick=cancelBoardSwitch;$('#closePortfolioItemPreviewBtn').onclick=closePortfolioItemPreview;$('#backPortfolioItemPreviewBtn').onclick=closePortfolioItemPreview;$('#portfolioItemPreviewDialog').addEventListener('cancel',e=>{e.preventDefault();closePortfolioItemPreview()});$('#shareChoiceCloseBtn').onclick=cancelShareChoice;$('#shareChoiceDialog').addEventListener('cancel',e=>{e.preventDefault();cancelShareChoice()});$$('.share-choice-btn').forEach(b=>b.onclick=()=>prepareOutfitShare(b.dataset.shareMode||'look'));
 }
-function openItem(item=null,preferredCategory=''){
+function openItem(item=null,preferredCategory='',mode='review'){
   itemReviewIds=item ? (catalogReviewIds.includes(item.id)?[...catalogReviewIds]:state.items.map(i=>i.id)) : [];
-  loadItemIntoEditor(item,preferredCategory);
+  loadItemIntoEditor(item,preferredCategory,item?mode:'create');
   if(!$('#itemDialog').open){lockPageForItemDialog();$('#itemDialog').showModal()}
 }
-function loadItemIntoEditor(item=null,preferredCategory=''){
-  const isEdit=!!item;
-  $('#itemDialog').classList.toggle('editing-existing',isEdit);
-  $('#itemDialogTitle').textContent=isEdit?'Review piece':'Add a piece';$('#itemId').value=item?.id||'';itemWorkingPhoto=item?.photo||'';itemOriginalPhoto=item?.originalPhoto||item?.photo||'';itemCutoutApplied=item?.photoStudioCutoutApplied ?? (!!item?.photo&&!!item?.originalPhoto&&item.photo!==item.originalPhoto);itemStudioState=item?.photoStudioState?JSON.parse(JSON.stringify(item.photoStudioState)):null;
+function loadItemIntoEditor(item=null,preferredCategory='',mode='review'){
+  const isExisting=!!item;
+  itemDialogMode=isExisting?(mode==='edit'?'edit':'review'):'create';
+  $('#itemDialog').classList.toggle('editing-existing',isExisting);
+  $('#itemDialog').classList.toggle('item-review-mode',itemDialogMode==='review');
+  $('#itemDialog').classList.toggle('item-edit-mode',itemDialogMode!=='review');
+  $('#itemDialogTitle').textContent=isExisting?(itemDialogMode==='review'?'Piece details':'Edit piece'):'Add a piece';$('#itemId').value=item?.id||'';itemWorkingPhoto=item?.photo||'';itemOriginalPhoto=item?.originalPhoto||item?.photo||'';itemCutoutApplied=item?.photoStudioCutoutApplied ?? (!!item?.photo&&!!item?.originalPhoto&&item.photo!==item.originalPhoto);itemStudioState=item?.photoStudioState?JSON.parse(JSON.stringify(item.photoStudioState)):null;
   showPhoto('#itemPhotoPreview','#photoPlaceholder',itemWorkingPhoto);updateOriginalPhotoButton();const category=item?.category||preferredCategory||selectedCategory||$('#filterCategory').value||'Tops';$('#itemCategory').value=category;populateTypeOptions(category,item?.type||'');populateSizeOptions(category,item?.size||'');$('#itemBrand').value=item?.brand||'';closeBrandSuggestions();$('#itemColor').value=item?.color||'';$('#itemPattern').value=item?.pattern||'Solid';$('#itemAcquired').value=item?.acquired||'Bought new';$('#itemSeason').value=item?.season||'All-season';$('#itemNotes').value=item?.notes||'';$('#scanStatus').textContent='';const archived=!!item&&isArchived(item);$('#deleteItemBtn').classList.toggle('hidden',!item);$('#deleteItemBtn').textContent=archived?'Reactivate':'Remove from Closet';$('#deleteItemBtn').classList.toggle('reactivate-item',archived);$('#permanentDeleteItemBtn').classList.toggle('hidden',!item);$('#itemArchiveNotice').classList.toggle('hidden',!archived);$('#itemPhoto').value='';$('#itemPhotoLibrary').value='';
-  $('#itemCardUtilityActions').classList.toggle('hidden',!isEdit&&!itemWorkingPhoto);$('#reviewPhotoMenuWrap').classList.toggle('hidden',!isEdit&&!itemWorkingPhoto);$('#smartScanIconBtn').classList.toggle('hidden',!itemWorkingPhoto);closeReviewPhotoMenu();updateReviewPhotoMenuState();updatePhotoToolAvailability();
-  $('#itemReviewSummary').classList.toggle('hidden',!isEdit);$('#itemSwipeHint').classList.add('hidden');updateItemReviewSummary();updateItemSwipeArrows();
-  if($('#itemDialog').open){const s=$('#itemDialog .item-detail-scroll');if(s)s.scrollTop=0;else $('#itemDialog').scrollTop=0;}
+  $('#itemCardUtilityActions').classList.toggle('hidden',!isExisting&&!itemWorkingPhoto);$('#reviewPhotoMenuWrap').classList.toggle('hidden',!isExisting&&!itemWorkingPhoto);$('#smartScanIconBtn').classList.toggle('hidden',!itemWorkingPhoto);closeReviewPhotoMenu();updateReviewPhotoMenuState();updatePhotoToolAvailability();
+  $('#itemReviewSummary').classList.toggle('hidden',!isExisting);$('#itemSwipeHint').classList.add('hidden');updateItemReviewSummary();applyItemDialogMode(item);updateItemSwipeArrows();
+  if($('#itemDialog').open){const scroller=$('#itemDialog .item-detail-scroll');if(scroller)scroller.scrollTop=0;else $('#itemDialog').scrollTop=0;}
 }
-function updateItemSwipeArrows(){const prev=$('#itemSwipePrevBtn'),next=$('#itemSwipeNextBtn'),current=$('#itemId').value;if(!prev||!next)return;const idx=current?itemReviewIds.indexOf(current):-1,canPrev=idx>0,canNext=idx>=0&&idx<itemReviewIds.length-1;prev.classList.toggle('hidden',!canPrev);next.classList.toggle('hidden',!canNext)}
+function itemReviewValue(value,fallback='Not set'){const v=String(value||'').trim();return v||fallback}
+function renderItemReviewDetails(item){
+  const box=$('#itemReviewDetails');if(!box)return;
+  const category=$('#itemCategory').value,type=displayItemType(category,$('#itemType').value);
+  const rows=[['Category',category],['Type',type],['Brand',$('#itemBrand').value],['Size',$('#itemSize').value],['Color',$('#itemColor').value],['Pattern',$('#itemPattern').value],['Acquired',$('#itemAcquired').value],['Season',$('#itemSeason').value]];
+  box.innerHTML=`<div class="item-review-detail-grid">${rows.map(([k,v])=>`<div class="item-review-detail-row"><span>${esc(k)}</span><strong>${esc(itemReviewValue(v))}</strong></div>`).join('')}</div>${String($('#itemNotes').value||'').trim()?`<div class="item-review-notes"><span>Notes</span><p>${esc($('#itemNotes').value.trim())}</p></div>`:''}`;
+}
+function applyItemDialogMode(item=null){
+  const reviewing=itemDialogMode==='review',existing=!!$('#itemId').value;
+  $('#itemReviewDetails').classList.toggle('hidden',!reviewing);
+  $('#itemEditFields').classList.toggle('hidden',reviewing);
+  $('#newPiecePhotoActions').classList.toggle('hidden',existing||!!itemWorkingPhoto);
+  $('#saveItemBtn').textContent=reviewing?'Edit piece':'Save piece';
+  $('#cancelItemBtn').textContent=reviewing?'Close':'Cancel';
+  $('#deleteItemBtn').classList.toggle('hidden',!existing);
+  $('#permanentDeleteItemBtn').classList.toggle('hidden',reviewing||!existing);
+  if(reviewing)renderItemReviewDetails(item);
+}
+function enterItemEditMode(){
+  if(itemDialogMode!=='review')return;itemDialogMode='edit';
+  $('#itemDialog').classList.remove('item-review-mode');$('#itemDialog').classList.add('item-edit-mode');$('#itemDialogTitle').textContent='Edit piece';applyItemDialogMode();updateItemSwipeArrows();
+}
+function cancelItemEditToReview(){
+  const iid=$('#itemId').value,live=state.items.find(x=>x.id===iid);if(!live){closeItemWithoutSaving();return}
+  loadItemIntoEditor(live,'','review');
+}
+function updateItemSwipeArrows(){const prev=$('#itemSwipePrevBtn'),next=$('#itemSwipeNextBtn'),current=$('#itemId').value;if(!prev||!next)return;if(itemDialogMode!=='review'){prev.classList.add('hidden');next.classList.add('hidden');return}const idx=current?itemReviewIds.indexOf(current):-1,canPrev=idx>0,canNext=idx>=0&&idx<itemReviewIds.length-1;prev.classList.toggle('hidden',!canPrev);next.classList.toggle('hidden',!canNext)}
 function bindItemSwipe(){
   const zone=$('#itemSwipeZone');if(!zone)return;$('#itemSwipePrevBtn')?.addEventListener('click',()=>navigateReviewItem(-1));$('#itemSwipeNextBtn')?.addEventListener('click',()=>navigateReviewItem(1));
   zone.addEventListener('touchstart',e=>{if(!$('#itemId').value||e.touches.length!==1||e.target.closest('button,label,input,.review-photo-menu'))return;const t=e.touches[0];itemSwipeStart={x:t.clientX,y:t.clientY,time:Date.now(),axis:null}},{passive:true});
@@ -526,7 +556,7 @@ function bindBrandSuggestions(){
   input.addEventListener('input',renderBrandSuggestions);input.addEventListener('focus',renderBrandSuggestions);input.addEventListener('keydown',e=>{if(e.key==='Escape')closeBrandSuggestions()});input.addEventListener('blur',()=>setTimeout(closeBrandSuggestions,120));
 }
 function updateItemReviewSummary(){
-  const isEdit=!!$('#itemId').value;$('#itemReviewSummary').classList.toggle('hidden',!isEdit);if(!isEdit)return;
+  const isEdit=!!$('#itemId').value;$('#itemReviewSummary').classList.toggle('hidden',!isExisting);if(!isEdit)return;
   const type=displayItemType($('#itemCategory').value,$('#itemType').value),color=$('#itemColor').value||'Color not set',brand=$('#itemBrand').value.trim()||'No brand';
   $('#itemReviewTitle').textContent=type;$('#itemReviewMeta').innerHTML=`<span class="swatch" style="background:${colorHex(color)}"></span>${esc(color)} · ${esc(brand)}`;
 }
@@ -543,7 +573,7 @@ async function toggleItemArchived(){
   if(isArchived(item)){
     item.status='active';item.statusDate='';
     const ok=await saveState();if(!ok)return;
-    loadItemIntoEditor(item);toast('Piece returned to closet');return;
+    loadItemIntoEditor(item,'',itemDialogMode);toast('Piece returned to closet');return;
   }
   if(!confirm('Remove this piece from your active Closet? It will be archived, but Journal history and saved outfits will be preserved.'))return;
   item.status='archived';item.statusDate=localTodayISO();
@@ -1445,7 +1475,7 @@ function openJournalItemPreview(itemId){
 }
 function clearJournalItemPreview(){journalItemPreviewId=null;journalItemPreviewSnapshot=null}
 function closeJournalItemPreviewToDay(){const returnId=journalItemReturnId,d=$('#journalItemPreviewDialog');if(d.open)d.close();unlockPageForJournalItemPreview();clearJournalItemPreview();journalItemReturnId=null;if(returnId&&state.journal.some(j=>j.id===returnId))openJournalDetail(returnId)}
-function editJournalItemPreview(){const itemId=journalItemPreviewId,d=$('#journalItemPreviewDialog');if(d.open)d.close();unlockPageForJournalItemPreview();clearJournalItemPreview();journalItemReturnId=null;const live=state.items.find(i=>i.id===itemId);if(!live)return;showScreen('catalog');openItem(live)}
+function editJournalItemPreview(){const itemId=journalItemPreviewId,d=$('#journalItemPreviewDialog');if(d.open)d.close();unlockPageForJournalItemPreview();clearJournalItemPreview();journalItemReturnId=null;const live=state.items.find(i=>i.id===itemId);if(!live)return;showScreen('catalog');openItem(live,'','edit')}
 function lockPageForJournalStat(){
   if(document.body.classList.contains('journal-stat-open'))return;
   journalStatScrollY=window.scrollY||0;document.body.style.top=`-${journalStatScrollY}px`;document.body.classList.add('journal-stat-open');

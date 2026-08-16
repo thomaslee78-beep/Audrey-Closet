@@ -261,7 +261,7 @@ Journal section drag handles were removed in favor of a Preferences > Journal la
 - No catalog data model or IndexedDB schema changes.
 
 
-## v13.14-dev2.1 — Dresses + catalog taxonomy foundation
+## v13.14-dev2.2 — Dresses + catalog taxonomy foundation
 - Adds Dresses as a first-class Closet category.
 - Dress types: Mini, Midi, Maxi, Shirt, Sweater, Slip, Wrap, Casual, Formal / Event, and Other.
 - Introduces stable internal category IDs plus a catalog taxonomy version without changing IndexedDB schema/version.
