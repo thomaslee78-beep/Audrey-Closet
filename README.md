@@ -322,3 +322,11 @@ Journal section drag handles were removed in favor of a Preferences > Journal la
 - Reordered new-piece photo actions so Upload photo is on the left and the primary Take photo action is on the right.
 - Refined the new-piece photo action palette: warm parchment/olive secondary styling for Upload photo and deep wine/burgundy primary styling for Take photo.
 - No catalog data model or IndexedDB schema changes.
+
+
+## v13.14-dev2 — Dresses + catalog taxonomy foundation
+- Adds Dresses as a first-class Closet category.
+- Dress types: Mini, Midi, Maxi, Shirt, Sweater, Slip, Wrap, Casual, Formal / Event, and Other.
+- Introduces stable internal category IDs plus a catalog taxonomy version without changing IndexedDB schema/version.
+- One-time migration moves legacy `Misc > Dress` pieces to `Dresses > Other`, preserving the item and all non-category attributes.
+- New and imported closet items are normalized to the current taxonomy.
