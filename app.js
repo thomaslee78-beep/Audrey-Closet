@@ -301,7 +301,7 @@ function normalizeWishlistItem(w={}){
     currency:w.currency||'USD',
     store:String(w.store||''),
     productUrl,
-    wishlistDesire:w.wishlistDesire??null,
+    wishlistDesire:(()=>{const d=Number(w.wishlistDesire);return d>=1?Math.min(4,Math.round(d)):null})(),
     inputSource:w.inputSource||'manual',
     barcode:String(w.barcode||''),
     sku:String(w.sku||''),
@@ -515,6 +515,7 @@ function bindDialogs(){
   $('#wishDialog').addEventListener('cancel',e=>{e.preventDefault();if(wishDialogMode==='edit'&&$('#wishId').value)cancelWishEditToReview();else closeWishWithoutSaving()});
   $('#wishDialog').addEventListener('close',restoreWishlistViewport);
   $('#deleteWishBtn').onclick=deleteWish;
+  $('#wishDialog').addEventListener('click',e=>{const heart=e.target.closest('[data-wish-desire]');if(!heart)return;e.preventDefault();e.stopPropagation();setWishDesire(heart.dataset.wishDesire)});
   $('#wearForm').onsubmit=e=>{e.preventDefault();saveWear()};
   $('#closeWearBtn').onclick=closeWearWithoutSaving;
   $('#cancelWearBtn').onclick=closeWearWithoutSaving;
@@ -982,6 +983,8 @@ async function finishCatalogDrag(pointerId,touchId,canceled=false,e){
 
 function itemCard(i){return`<article class="item-card ${isArchived(i)?'item-card-archived':''}" data-id="${i.id}"><div class="thumb">${i.photo?`<img src="${i.photo}" alt="${esc(displayItemType(i))}" draggable="false">`:`<div class="hanger">⌇</div>`}<span class="count-badge">${i.wears||0} wears</span>${isArchived(i)?'<span class="archived-badge">Archived</span>':''}</div><div class="card-body"><h4>${esc(displayItemType(i))}</h4><p>${i.color?`<span class="swatch" style="background:${colorHex(i.color)}"></span>${esc(i.color)} · `:''}${esc(i.brand||'No brand')}</p><p>${esc(i.size||'Size —')} · ${esc(i.pattern||'Solid')}</p></div></article>`}
 
+let wishDesireDraft=null;
+
 function openWish(w=null,mode='review'){
   wishDialogScrollY=window.scrollY||document.documentElement.scrollTop||0;
   wishDialogMode=w?(mode==='edit'?'edit':'review'):'create';
@@ -990,6 +993,7 @@ function openWish(w=null,mode='review'){
   $('#wishDialogKicker').textContent=wishDialogMode==='review'?'Wish List':'future find';
   $('#wishDialogTitle').textContent=w?(wishDialogMode==='review'?(w.name||displayItemType(w)||'Wishlist item'):'Edit wish'):'Add a wish';
   $('#wishId').value=w?.id||'';wishWorkingPhoto=w?.photo||'';wishOriginalPhoto=w?.originalPhoto||w?.photo||'';wishStudioState=w?.photoStudioState?JSON.parse(JSON.stringify(w.photoStudioState)):null;
+  wishDesireDraft=(()=>{const d=Number(w?.wishlistDesire);return d>=1?Math.min(4,Math.round(d)):null})();
   showPhoto('#wishPhotoPreview','#wishPhotoPlaceholder',wishWorkingPhoto);
   const category=w?.category||'Tops';$('#wishCategory').value=category;populateWishTypeOptions(category,w?.type||'');populateWishSizeOptions(category,w?.size||'');wishFitDrafts={};wishStyleDrafts={};wishAttributeContextKey='';setWishAttributeContext(category,$('#wishType').value,{fit:w?.sizeVariant||'',style:w?.style||''});
   $('#wishName').value=w?.name||'';$('#wishBrand').value=w?.brand||'';$('#wishColor').value=w?.color||'';$('#wishPattern').value=w?.pattern||'';$('#wishSeason').value=w?.season||'';
@@ -999,13 +1003,17 @@ function openWish(w=null,mode='review'){
   if(!$('#wishDialog').open)$('#wishDialog').showModal();const scroller=$('#wishDialog .wish-detail-scroll');if(scroller)scroller.scrollTop=0;
 }
 function wishReviewValue(value,fallback='Not set'){const v=String(value??'').trim();return v||fallback}
+function wishlistDesireLabel(value){const n=Number(value);return n>=1&&n<=4?['','Keep an eye on it','Interested','Really want it','Gotta have it'][n]:''}
+function wishDesireHeartsMarkup(){const value=Number(wishDesireDraft)||0;return `<div class="wish-desire-hearts" role="group" aria-label="Wishlist desire rating">${[1,2,3,4].map(n=>`<button type="button" class="wish-heart ${n<=value?'active':''}" data-wish-desire="${n}" aria-label="${n} of 4 hearts: ${esc(wishlistDesireLabel(n))}" title="${esc(wishlistDesireLabel(n))}">♥</button>`).join('')}</div>`}
+function renderWishDesirePickers(){const edit=$('#wishEditDesire');if(edit)edit.innerHTML=wishDesireHeartsMarkup()}
+async function setWishDesire(value){const n=Math.max(1,Math.min(4,Number(value)||1));wishDesireDraft=n;renderWishDesirePickers();if(wishDialogMode==='review'){const wid=$('#wishId').value,idx=state.wishlist.findIndex(x=>x.id===wid);if(idx>=0){state.wishlist[idx]=normalizeWishlistItem({...state.wishlist[idx],wishlistDesire:n,updatedAt:Date.now()});await saveState();renderWishlist();renderWishReviewDetails();toast(`${n} heart${n===1?'':'s'} · ${wishlistDesireLabel(n)}`)}}}
 function renderWishReviewDetails(){
   const category=$('#wishCategory').value,type=displayItemType(category,$('#wishType').value),price=formatWishlistPrice($('#wishPrice').value,$('#wishCurrency').value||'USD');
   const garment=[['Category',category],['Type',type],['Brand',$('#wishBrand').value],['Size',$('#wishSize').value]];
   if($('#wishFit').value)garment.push(['Fit',$('#wishFit').value]);if($('#wishStyle').value)garment.push(['Style',$('#wishStyle').value]);
   garment.push(['Color',$('#wishColor').value],['Pattern',$('#wishPattern').value],['Season',$('#wishSeason').value]);
   const shopping=[['Price',price],['Store',$('#wishStore').value],['Link',$('#wishLink').value]].filter(([,v])=>String(v||'').trim());
-  $('#wishReviewDetails').innerHTML=`<div class="wish-review-section"><p class="wish-section-label">Garment</p><div class="item-review-detail-grid">${garment.map(([k,v])=>`<div class="item-review-detail-row"><span>${esc(k)}</span><strong>${esc(wishReviewValue(v))}</strong></div>`).join('')}</div></div>${shopping.length?`<div class="wish-review-section"><p class="wish-section-label">Shopping</p><div class="item-review-detail-grid">${shopping.map(([k,v])=>`<div class="item-review-detail-row"><span>${esc(k)}</span><strong>${esc(v)}</strong></div>`).join('')}</div></div>`:''}${String($('#wishNotes').value||'').trim()?`<div class="item-review-notes"><span>Notes</span><p>${esc($('#wishNotes').value.trim())}</p></div>`:''}`;
+  $('#wishReviewDetails').innerHTML=`<div class="wish-review-section"><div class="wish-section-heading"><p class="wish-section-label">Garment</p>${wishDesireHeartsMarkup()}</div><div class="item-review-detail-grid">${garment.map(([k,v])=>`<div class="item-review-detail-row"><span>${esc(k)}</span><strong>${esc(wishReviewValue(v))}</strong></div>`).join('')}</div></div>${shopping.length?`<div class="wish-review-section"><p class="wish-section-label">Shopping</p><div class="item-review-detail-grid">${shopping.map(([k,v])=>`<div class="item-review-detail-row"><span>${esc(k)}</span><strong>${esc(v)}</strong></div>`).join('')}</div></div>`:''}${String($('#wishNotes').value||'').trim()?`<div class="item-review-notes"><span>Notes</span><p>${esc($('#wishNotes').value.trim())}</p></div>`:''}`;
 }
 function applyWishDialogMode(w=null){
   const reviewing=wishDialogMode==='review',existing=!!$('#wishId').value;
@@ -1013,7 +1021,7 @@ function applyWishDialogMode(w=null){
   $('#newWishPhotoActions').classList.toggle('hidden',existing||!!wishWorkingPhoto);
   $('#wishCardUtilityActions').classList.toggle('hidden',!existing&&!wishWorkingPhoto);$('#wishPhotoMenuWrap').classList.toggle('hidden',!existing&&!wishWorkingPhoto);$('#wishSmartScanBtn').classList.toggle('hidden',!wishWorkingPhoto);$('#wishRestoreOriginalBtn').classList.toggle('hidden',!wishOriginalPhoto||wishWorkingPhoto===wishOriginalPhoto);
   $('#saveWishBtn').textContent=reviewing?'Edit wish':'Save wish';$('#cancelWishBtn').textContent=reviewing?'Close':'Cancel';$('#deleteWishBtn').classList.toggle('hidden',reviewing||!existing);
-  if(reviewing)renderWishReviewDetails();
+  if(reviewing)renderWishReviewDetails();else renderWishDesirePickers();
 }
 function enterWishEditMode(){if(wishDialogMode!=='review')return;wishDialogMode='edit';$('#wishDialog').classList.remove('wish-review-mode');$('#wishDialog').classList.add('wish-edit-mode');$('#wishDialogKicker').textContent='future find';$('#wishDialogTitle').textContent='Edit wish';applyWishDialogMode()}
 function cancelWishEditToReview(){const wid=$('#wishId').value,live=state.wishlist.find(x=>x.id===wid);if(!live)return closeWishWithoutSaving();openWish(live,'review')}
@@ -1024,12 +1032,11 @@ function restoreWishCapturedOriginal(){if(!wishOriginalPhoto)return toast('No ca
 async function saveWish(){
   const wid=$('#wishId').value,old=state.wishlist.find(x=>x.id===wid),now=Date.now(),category=$('#wishCategory').value,type=$('#wishType').value;
   const wishlistPrice=$('#wishPrice').value.trim(),productUrl=$('#wishLink').value.trim();
-  const obj=normalizeWishlistItem({...(old||{}),id:wid||id(),photo:wishWorkingPhoto,originalPhoto:wishOriginalPhoto||wishWorkingPhoto,photoStudioState:wishStudioState,name:$('#wishName').value.trim(),brand:$('#wishBrand').value.trim(),category,categoryId:categoryIdFor(category),type,size:$('#wishSize').value,sizeVariant:cleanedItemFit(category,$('#wishFit').value),style:cleanedItemStyle(category,type,$('#wishStyle').value),color:$('#wishColor').value,pattern:$('#wishPattern').value,season:$('#wishSeason').value,wishlistPrice,price:wishlistPrice,currency:$('#wishCurrency').value||'USD',store:$('#wishStore').value.trim(),productUrl,link:productUrl,notes:$('#wishNotes').value.trim(),lifecycle:'wishlist',wishlistStatus:old?.wishlistStatus||'active',inputSource:old?.inputSource||'manual',createdAt:old?.createdAt||old?.created||now,created:old?.createdAt||old?.created||now,updatedAt:now});
+  const obj=normalizeWishlistItem({...(old||{}),id:wid||id(),photo:wishWorkingPhoto,originalPhoto:wishOriginalPhoto||wishWorkingPhoto,photoStudioState:wishStudioState,name:$('#wishName').value.trim(),brand:$('#wishBrand').value.trim(),category,categoryId:categoryIdFor(category),type,size:$('#wishSize').value,sizeVariant:cleanedItemFit(category,$('#wishFit').value),style:cleanedItemStyle(category,type,$('#wishStyle').value),color:$('#wishColor').value,pattern:$('#wishPattern').value,season:$('#wishSeason').value,wishlistPrice,price:wishlistPrice,currency:$('#wishCurrency').value||'USD',store:$('#wishStore').value.trim(),productUrl,link:productUrl,notes:$('#wishNotes').value.trim(),wishlistDesire:wishDesireDraft,lifecycle:'wishlist',wishlistStatus:old?.wishlistStatus||'active',inputSource:old?.inputSource||'manual',createdAt:old?.createdAt||old?.created||now,created:old?.createdAt||old?.created||now,updatedAt:now});
   if(wid)state.wishlist=state.wishlist.map(x=>x.id===wid?obj:x);else state.wishlist.unshift(obj);await saveState();renderWishlist();
   if(wid){openWish(obj,'review');toast('Wishlist updated')}else{$('#wishDialog').close();toast('Wishlist saved')}
 }
 function deleteWish(){const wid=$('#wishId').value;if(!confirm('Remove this wishlist item?'))return;state.wishlist=state.wishlist.filter(x=>x.id!==wid);saveState();$('#wishDialog').close();renderWishlist();toast('Removed from Wishlist')}
-function wishlistDesireLabel(value){const n=Number(value);return n>=1&&n<=5?['','Just looking','Maybe','I like it','Really want it','Gotta have it'][n]:''}
 function formatWishlistPrice(value,currency='USD'){
   if(value===undefined||value===null||String(value).trim()==='')return '';
   const raw=String(value).trim(),numeric=Number(raw.replace(/[^0-9.-]/g,''));
@@ -1041,7 +1048,7 @@ function renderWishlist(){
   $('#wishlistGrid').innerHTML=state.wishlist.filter(w=>(w.wishlistStatus||'active')==='active').map(w=>{
     const rawPrice=w.wishlistPrice??w.price??'',price=formatWishlistPrice(rawPrice,w.currency||'USD'),desire=wishlistDesireLabel(w.wishlistDesire),desireValue=Number(w.wishlistDesire),link=w.productUrl||w.link;
     const meta=[w.brand,w.color].filter(Boolean).join(' · ');
-    const desireMark=desireValue>=1&&desireValue<=5?`<div class="wish-desire" title="${esc(desire)}" aria-label="Desire ${desireValue} of 5: ${esc(desire)}"><span aria-hidden="true">♥</span> ${desireValue}</div>`:'';
+    const desireMark=desireValue>=1&&desireValue<=4?`<div class="wish-desire" title="${esc(desire)}" aria-label="Desire ${desireValue} of 4: ${esc(desire)}"><span aria-hidden="true">${'♥'.repeat(desireValue)}${'♡'.repeat(4-desireValue)}</span></div>`:'';
     return `<article class="wish-card" data-id="${esc(w.id)}" tabindex="0" role="button" aria-label="Open ${esc(w.name||wishlistListType(w))}"><div class="wish-photo">${w.photo?`<img src="${w.photo}" alt="" draggable="false">`:'♡'}</div><div class="wish-body"><h4>${esc(w.name||wishlistListType(w))}</h4><p class="wish-type">${esc(wishlistListType(w))}</p>${meta?`<p>${esc(meta)}</p>`:''}${w.store?`<p class="wish-store">${esc(w.store)}</p>`:''}</div><div class="wish-side">${price?`<div class="price">${esc(price)}</div>`:''}${desireMark}${link?'<div class="wish-link-mark">link ↗</div>':''}<span class="wish-chevron" aria-hidden="true">›</span></div></article>`
   }).join('');
   const activeCount=state.wishlist.filter(w=>(w.wishlistStatus||'active')==='active').length;

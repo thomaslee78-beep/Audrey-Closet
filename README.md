@@ -397,3 +397,7 @@ Journal section drag handles were removed in favor of a Preferences > Journal la
 
 ## v13.15-dev3.4 — Wishlist review header polish
 Wishlist Review mode now uses a Closet-style header with a small Wish List kicker, the saved item name, and Smart Scan/photo tools grouped beside the close control. The item name remains editable only after entering Edit mode. Service-worker cache: `audrey-closet-v13.15-dev3.4`.
+
+
+## v13.15-dev4 — Wishlist desire + edit polish
+Wishlist edit fields now use the same calm, regular-weight typography as Closet editing. Wishlist desire is a four-heart scale (1–4) shown beside the Garment heading below the photo. Hearts can be changed directly while reviewing a saved wish without entering Edit mode, or adjusted while editing/creating and saved with the wish. Legacy desire value 5 is safely normalized to 4. Service-worker cache: `audrey-closet-v13.15-dev4`.
