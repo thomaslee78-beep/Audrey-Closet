@@ -315,3 +315,7 @@ Wishlist Review/Edit detail refinement. Service-worker cache: `audrey-closet-v13
 
 ## v13.15-dev3.3 — Wishlist review header polish
 Wishlist Review mode now uses a Closet-style header with a small Wish List kicker, the saved item name, and Smart Scan/photo tools grouped beside the close control. The item name remains editable only after entering Edit mode. Service-worker cache: `audrey-closet-v13.15-dev3.3`.
+
+
+## v13.15-dev4.2.2 — Wishlist desire feedback polish
+The selected Wishlist desire heart now receives a gold outline around the heart glyph itself instead of a rectangular button border. The same heart markup is used in Review and Edit modes so the current selection stays visible in both contexts. Rating feedback is now rendered inside the Wishlist modal at the top of the card, avoiding the iOS top-layer issue that could hide the normal page toast behind an open dialog. The confirmation remains visible for about 3.2 seconds. Service-worker cache: `audrey-closet-v13.15-dev4.2.2`.
