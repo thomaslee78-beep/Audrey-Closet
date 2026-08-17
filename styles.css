@@ -1309,3 +1309,9 @@ body.portfolio-modal-open{position:fixed;left:0;right:0;width:100%;overflow:hidd
   #wishDialog .wish-desire-hearts{gap:1px}
   #wishDialog .wish-heart{width:25px;font-size:20px}
 }
+
+/* v13.15-dev4.1 — Wishlist desire hierarchy */
+.wish-side .wish-desire{order:1}
+.wish-side .price{order:2}
+.wish-side .wish-link-mark{order:3}
+.wish-side .wish-chevron{order:4}

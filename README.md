@@ -401,3 +401,7 @@ Wishlist Review mode now uses a Closet-style header with a small Wish List kicke
 
 ## v13.15-dev4 — Wishlist desire + edit polish
 Wishlist edit fields now use the same calm, regular-weight typography as Closet editing. Wishlist desire is a four-heart scale (1–4) shown beside the Garment heading below the photo. Hearts can be changed directly while reviewing a saved wish without entering Edit mode, or adjusted while editing/creating and saved with the wish. Legacy desire value 5 is safely normalized to 4. Service-worker cache: `audrey-closet-v13.15-dev4`.
+
+
+## v13.15-dev4.1 — Wishlist desire list refinement
+Wishlist rows now place the four-heart desire indicator above the price so priority reads before cost. Changing a desire rating in Review mode shows a compact confirmation toast such as `Rating — Gotta have it`; rating changes made while editing show the same confirmation when the wish is saved. Service-worker cache: `audrey-closet-v13.15-dev4.1`.
