@@ -1045,7 +1045,7 @@ body.portfolio-modal-open{position:fixed;left:0;right:0;width:100%;overflow:hidd
 }
 
 
-/* v13.15-dev3.1 — Wishlist review header alignment */
+/* v13.15-dev3.2 — Wishlist review header alignment */
 #wishDialog .wish-head{align-items:center;gap:10px;margin-bottom:7px}
 #wishDialog .wish-head-copy{min-width:0;flex:1}
 #wishDialog .wish-head-copy .script{margin:0 0 -2px;font-size:15px;line-height:1.1;color:var(--burgundy)}
@@ -1066,4 +1066,36 @@ body.portfolio-modal-open{position:fixed;left:0;right:0;width:100%;overflow:hidd
   #wishDialog .wish-head-actions{gap:4px}
   #wishDialog .wish-head-actions .item-card-icon{width:36px;height:36px;min-width:36px}
   #wishDialog .wish-head-actions .close-btn{width:32px;height:32px;min-width:32px}
+}
+
+/* v13.15-dev3.2 — Wishlist review photo/header polish */
+#wishDialog .wish-head{align-items:flex-start}
+#wishDialog .wish-head-copy{display:block}
+#wishDialog .wish-head-copy .script{display:block;margin:0 0 2px}
+#wishDialog .wish-head-copy h2{display:block;margin:0;max-width:100%}
+#wishDialog .wish-head-actions{align-self:flex-start}
+#wishDialog .wish-photo-stage{position:relative}
+#wishDialog .wish-photo-utility-actions{
+  position:absolute;
+  top:8px;
+  right:8px;
+  display:flex;
+  align-items:center;
+  gap:6px;
+  z-index:35;
+}
+#wishDialog .wish-photo-utility-actions .item-card-icon{width:38px;height:38px;min-width:38px;border-radius:13px}
+#wishDialog .wish-photo-utility-actions .review-photo-menu{right:0;top:44px}
+#wishDialog.wish-review-mode .wish-photo-large{
+  border:0!important;
+  box-shadow:none!important;
+  background:transparent!important;
+  outline:0!important;
+}
+#wishDialog.wish-review-mode .wish-photo-large::before,
+#wishDialog.wish-review-mode .wish-photo-large::after{display:none!important}
+#wishDialog.wish-review-mode .wish-photo-large img{background:transparent!important}
+@media(max-width:410px){
+  #wishDialog .wish-photo-utility-actions{top:6px;right:6px;gap:5px}
+  #wishDialog .wish-photo-utility-actions .item-card-icon{width:36px;height:36px;min-width:36px}
 }
