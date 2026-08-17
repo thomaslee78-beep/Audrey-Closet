@@ -350,14 +350,42 @@
     </div>
   </dialog>
 
-  <dialog id="wishDialog" class="sheet-dialog">
+  <dialog id="wishDialog" class="sheet-dialog wish-detail-dialog">
     <form method="dialog" id="wishForm">
-      <div class="sheet-head"><div><p class="script">future find</p><h2>Wishlist item</h2></div><button type="button" id="closeWishDialogBtn" class="close-btn" aria-label="Close wishlist item">×</button></div>
-      <input type="hidden" id="wishId" />
-      <div class="photo-capture compact-photo"><div class="photo-preview-wrap"><img id="wishPhotoPreview" /><div class="photo-placeholder" id="wishPhotoPlaceholder">photo</div></div><label class="soft-btn file-label">Add photo<input type="file" id="wishPhoto" accept="image/*" capture="environment" /></label></div>
-      <div class="form-grid"><label>Item<input id="wishName" required placeholder="Striped cardigan" /></label><label>Brand<input id="wishBrand" placeholder="Brand" /></label><label>Price<input id="wishPrice" inputmode="decimal" placeholder="$45" /></label><label>Link<input id="wishLink" type="url" placeholder="https://…" /></label><label>Category<select id="wishCategory"></select></label><label>Color<select id="wishColor"></select></label></div>
-      <label class="full-label">Notes<textarea id="wishNotes"></textarea></label>
-      <div class="sheet-actions"><button type="button" id="cancelWishBtn" class="soft-btn">Cancel</button><button type="button" class="danger-text hidden" id="deleteWishBtn">Delete</button><button type="submit" value="default" class="primary">Save wish</button></div>
+      <div class="wish-detail-scroll">
+        <div class="sheet-head wish-head"><div><p class="script">future find</p><h2 id="wishDialogTitle">Add a wish</h2></div><button type="button" id="closeWishDialogBtn" class="close-btn" aria-label="Close wishlist item">×</button></div>
+        <input type="hidden" id="wishId" />
+        <div class="wish-photo-stage">
+          <div class="photo-preview-wrap wish-photo-large"><img id="wishPhotoPreview" alt="Wishlist item preview" /><div class="photo-placeholder" id="wishPhotoPlaceholder">photo</div></div>
+          <div id="wishCardUtilityActions" class="item-card-utility-actions hidden">
+            <button type="button" id="wishSmartScanBtn" class="item-card-icon hidden" aria-label="Smart scan photo" title="Smart scan"><span class="scan-corners">⌗</span><span class="scan-sparkle">✦</span></button>
+            <div id="wishPhotoMenuWrap" class="review-photo-menu-wrap hidden"><button type="button" id="wishPhotoMenuBtn" class="item-card-icon" aria-label="Photo tools" title="Photo tools">📷</button><div id="wishPhotoMenu" class="review-photo-menu hidden" role="menu"><button type="button" id="wishStudioBtn" role="menuitem">Edit in Photo Studio</button><label role="menuitem">Take new photo<input type="file" id="wishCameraPhoto" accept="image/*" capture="environment" /></label><label role="menuitem">Choose from library<input type="file" id="wishLibraryPhoto" accept="image/*" /></label><button type="button" id="wishRestoreOriginalBtn" class="hidden" role="menuitem">Restore original photo</button></div></div>
+          </div>
+        </div>
+        <div id="newWishPhotoActions" class="new-piece-photo-actions">
+          <label class="soft-btn file-label new-piece-upload">Upload photo<input type="file" id="wishPhotoLibrary" accept="image/*" /></label>
+          <label class="primary file-label new-piece-camera">Take photo<input type="file" id="wishPhoto" accept="image/*" capture="environment" /></label>
+        </div>
+        <div class="scan-status item-photo-status" id="wishScanStatus"></div>
+        <div id="wishReviewDetails" class="item-review-details wish-review-details hidden" aria-live="polite"></div>
+        <div id="wishEditFields">
+          <p class="wish-section-label">Garment</p>
+          <div class="form-grid">
+            <label>Item<input id="wishName" required placeholder="Striped cardigan" /></label><label>Brand<input id="wishBrand" placeholder="Brand" /></label>
+            <label>Category<select id="wishCategory"></select></label><label>Type<select id="wishType"></select></label>
+            <label>Size<select id="wishSize"></select></label><label id="wishFitLabel">Fit<select id="wishFit"></select></label>
+            <label id="wishStyleLabel">Style<select id="wishStyle"></select></label><label>Color<select id="wishColor"></select></label>
+            <label>Pattern<select id="wishPattern"></select></label><label>Season<select id="wishSeason"></select></label>
+          </div>
+          <p class="wish-section-label">Shopping</p>
+          <div class="form-grid">
+            <label>Price<input id="wishPrice" inputmode="decimal" placeholder="$45" /></label><label>Currency<select id="wishCurrency"><option value="USD">USD</option><option value="EUR">EUR</option><option value="GBP">GBP</option><option value="CAD">CAD</option><option value="JPY">JPY</option><option value="TWD">TWD</option></select></label>
+            <label>Store<input id="wishStore" placeholder="Store or seller" /></label><label>Link<input id="wishLink" type="url" placeholder="https://…" /></label>
+          </div>
+          <label class="full-label">Notes<textarea id="wishNotes"></textarea></label>
+        </div>
+      </div>
+      <div class="sheet-actions wish-sheet-actions"><button type="button" id="cancelWishBtn" class="soft-btn">Cancel</button><button type="button" class="danger-text hidden" id="deleteWishBtn">Remove</button><button type="submit" id="saveWishBtn" value="default" class="primary">Save wish</button></div>
     </form>
   </dialog>
 

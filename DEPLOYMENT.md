@@ -308,3 +308,6 @@ Wishlist model version: `1` (state-level migration only; IndexedDB remains versi
 - Tightens Wishlist rows into one continuous list with subtle dividers instead of separate cards.
 - Shows a compact heart + 1–5 desire indicator when a desire value exists.
 - Keeps existing Wishlist tap/edit behavior unchanged.
+
+### v13.15-dev3
+Wishlist Review/Edit detail refinement. Service-worker cache: `audrey-closet-v13.15-dev3`.

@@ -381,8 +381,15 @@ Journal section drag handles were removed in favor of a Preferences > Journal la
 - Built on the v13.15-dev1 Wishlist data-model migration with no IndexedDB schema change.
 
 
-## v13.15-dev2.2.1 — Wishlist list polish
+## v13.15-dev3 — Wishlist list polish
 - Formats Wishlist prices using the saved currency (USD defaults to a dollar sign).
 - Tightens Wishlist rows into one continuous list with subtle dividers instead of separate cards.
 - Shows a compact heart + 1–5 desire indicator when a desire value exists.
 - Keeps existing Wishlist tap/edit behavior unchanged.
+
+## v13.15-dev3 — Wishlist Review/Edit detail
+- Existing Wishlist rows now open in a read-only review view first.
+- Edit wish switches to editable garment and shopping fields; Cancel returns to the saved review state.
+- Wishlist items now expose the shared garment fields (category/type/size/fit/style/color/pattern/season) plus price, currency, store, URL and notes.
+- Wishlist photo actions now mirror the Closet flow with Take Photo, Upload Photo, Photo Studio, restore original and Smart Scan support.
+- Existing Wishlist saves return to the same item in Review mode; Add Wish still closes after the first save.
