@@ -311,3 +311,7 @@ Wishlist model version: `1` (state-level migration only; IndexedDB remains versi
 
 ### v13.15-dev3
 Wishlist Review/Edit detail refinement. Service-worker cache: `audrey-closet-v13.15-dev3`.
+
+
+## v13.15-dev3.1 — Wishlist review header polish
+Wishlist Review mode now uses a Closet-style header with a small Wish List kicker, the saved item name, and Smart Scan/photo tools grouped beside the close control. The item name remains editable only after entering Edit mode. Service-worker cache: `audrey-closet-v13.15-dev3.1`.

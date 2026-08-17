@@ -353,14 +353,19 @@
   <dialog id="wishDialog" class="sheet-dialog wish-detail-dialog">
     <form method="dialog" id="wishForm">
       <div class="wish-detail-scroll">
-        <div class="sheet-head wish-head"><div><p class="script">future find</p><h2 id="wishDialogTitle">Add a wish</h2></div><button type="button" id="closeWishDialogBtn" class="close-btn" aria-label="Close wishlist item">×</button></div>
+        <div class="sheet-head wish-head">
+          <div class="wish-head-copy"><p class="script" id="wishDialogKicker">future find</p><h2 id="wishDialogTitle">Add a wish</h2></div>
+          <div class="wish-head-actions">
+            <div id="wishCardUtilityActions" class="item-card-utility-actions hidden">
+              <button type="button" id="wishSmartScanBtn" class="item-card-icon hidden" aria-label="Smart scan photo" title="Smart scan"><span class="scan-corners">⌗</span><span class="scan-sparkle">✦</span></button>
+              <div id="wishPhotoMenuWrap" class="review-photo-menu-wrap hidden"><button type="button" id="wishPhotoMenuBtn" class="item-card-icon" aria-label="Photo tools" title="Photo tools">📷</button><div id="wishPhotoMenu" class="review-photo-menu hidden" role="menu"><button type="button" id="wishStudioBtn" role="menuitem">Edit in Photo Studio</button><label role="menuitem">Take new photo<input type="file" id="wishCameraPhoto" accept="image/*" capture="environment" /></label><label role="menuitem">Choose from library<input type="file" id="wishLibraryPhoto" accept="image/*" /></label><button type="button" id="wishRestoreOriginalBtn" class="hidden" role="menuitem">Restore original photo</button></div></div>
+            </div>
+            <button type="button" id="closeWishDialogBtn" class="close-btn" aria-label="Close wishlist item">×</button>
+          </div>
+        </div>
         <input type="hidden" id="wishId" />
         <div class="wish-photo-stage">
           <div class="photo-preview-wrap wish-photo-large"><img id="wishPhotoPreview" alt="Wishlist item preview" /><div class="photo-placeholder" id="wishPhotoPlaceholder">photo</div></div>
-          <div id="wishCardUtilityActions" class="item-card-utility-actions hidden">
-            <button type="button" id="wishSmartScanBtn" class="item-card-icon hidden" aria-label="Smart scan photo" title="Smart scan"><span class="scan-corners">⌗</span><span class="scan-sparkle">✦</span></button>
-            <div id="wishPhotoMenuWrap" class="review-photo-menu-wrap hidden"><button type="button" id="wishPhotoMenuBtn" class="item-card-icon" aria-label="Photo tools" title="Photo tools">📷</button><div id="wishPhotoMenu" class="review-photo-menu hidden" role="menu"><button type="button" id="wishStudioBtn" role="menuitem">Edit in Photo Studio</button><label role="menuitem">Take new photo<input type="file" id="wishCameraPhoto" accept="image/*" capture="environment" /></label><label role="menuitem">Choose from library<input type="file" id="wishLibraryPhoto" accept="image/*" /></label><button type="button" id="wishRestoreOriginalBtn" class="hidden" role="menuitem">Restore original photo</button></div></div>
-          </div>
         </div>
         <div id="newWishPhotoActions" class="new-piece-photo-actions">
           <label class="soft-btn file-label new-piece-upload">Upload photo<input type="file" id="wishPhotoLibrary" accept="image/*" /></label>

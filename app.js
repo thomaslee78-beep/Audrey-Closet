@@ -987,7 +987,8 @@ function openWish(w=null,mode='review'){
   wishDialogMode=w?(mode==='edit'?'edit':'review'):'create';
   $('#wishDialog').classList.toggle('wish-review-mode',wishDialogMode==='review');
   $('#wishDialog').classList.toggle('wish-edit-mode',wishDialogMode!=='review');
-  $('#wishDialogTitle').textContent=w?(wishDialogMode==='review'?'Wish details':'Edit wish'):'Add a wish';
+  $('#wishDialogKicker').textContent=wishDialogMode==='review'?'Wish List':'future find';
+  $('#wishDialogTitle').textContent=w?(wishDialogMode==='review'?(w.name||displayItemType(w)||'Wishlist item'):'Edit wish'):'Add a wish';
   $('#wishId').value=w?.id||'';wishWorkingPhoto=w?.photo||'';wishOriginalPhoto=w?.originalPhoto||w?.photo||'';wishStudioState=w?.photoStudioState?JSON.parse(JSON.stringify(w.photoStudioState)):null;
   showPhoto('#wishPhotoPreview','#wishPhotoPlaceholder',wishWorkingPhoto);
   const category=w?.category||'Tops';$('#wishCategory').value=category;populateWishTypeOptions(category,w?.type||'');populateWishSizeOptions(category,w?.size||'');wishFitDrafts={};wishStyleDrafts={};wishAttributeContextKey='';setWishAttributeContext(category,$('#wishType').value,{fit:w?.sizeVariant||'',style:w?.style||''});
@@ -1000,7 +1001,7 @@ function openWish(w=null,mode='review'){
 function wishReviewValue(value,fallback='Not set'){const v=String(value??'').trim();return v||fallback}
 function renderWishReviewDetails(){
   const category=$('#wishCategory').value,type=displayItemType(category,$('#wishType').value),price=formatWishlistPrice($('#wishPrice').value,$('#wishCurrency').value||'USD');
-  const garment=[['Item',$('#wishName').value],['Category',category],['Type',type],['Brand',$('#wishBrand').value],['Size',$('#wishSize').value]];
+  const garment=[['Category',category],['Type',type],['Brand',$('#wishBrand').value],['Size',$('#wishSize').value]];
   if($('#wishFit').value)garment.push(['Fit',$('#wishFit').value]);if($('#wishStyle').value)garment.push(['Style',$('#wishStyle').value]);
   garment.push(['Color',$('#wishColor').value],['Pattern',$('#wishPattern').value],['Season',$('#wishSeason').value]);
   const shopping=[['Price',price],['Store',$('#wishStore').value],['Link',$('#wishLink').value]].filter(([,v])=>String(v||'').trim());
@@ -1014,7 +1015,7 @@ function applyWishDialogMode(w=null){
   $('#saveWishBtn').textContent=reviewing?'Edit wish':'Save wish';$('#cancelWishBtn').textContent=reviewing?'Close':'Cancel';$('#deleteWishBtn').classList.toggle('hidden',reviewing||!existing);
   if(reviewing)renderWishReviewDetails();
 }
-function enterWishEditMode(){if(wishDialogMode!=='review')return;wishDialogMode='edit';$('#wishDialog').classList.remove('wish-review-mode');$('#wishDialog').classList.add('wish-edit-mode');$('#wishDialogTitle').textContent='Edit wish';applyWishDialogMode()}
+function enterWishEditMode(){if(wishDialogMode!=='review')return;wishDialogMode='edit';$('#wishDialog').classList.remove('wish-review-mode');$('#wishDialog').classList.add('wish-edit-mode');$('#wishDialogKicker').textContent='future find';$('#wishDialogTitle').textContent='Edit wish';applyWishDialogMode()}
 function cancelWishEditToReview(){const wid=$('#wishId').value,live=state.wishlist.find(x=>x.id===wid);if(!live)return closeWishWithoutSaving();openWish(live,'review')}
 async function handleWishPhotoSelection(e){const f=e.target.files&&e.target.files[0];if(!f){e.target.value='';return}if(wishDialogMode==='review')enterWishEditMode();wishWorkingPhoto=await fileToDataURL(f,900,.74);if(!wishOriginalPhoto)wishOriginalPhoto=wishWorkingPhoto;wishStudioState=null;showPhoto('#wishPhotoPreview','#wishPhotoPlaceholder',wishWorkingPhoto);$('#wishScanStatus').textContent='Photo ready. Review or edit it before saving.';$('#wishPhotoMenu').classList.add('hidden');applyWishDialogMode();e.target.value=''}
 function restoreWishlistViewport(){const active=document.activeElement;if(active&&typeof active.blur==='function')active.blur();requestAnimationFrame(()=>{window.scrollTo(0,wishDialogScrollY||0);setTimeout(()=>window.scrollTo(0,wishDialogScrollY||0),80)})}

@@ -393,3 +393,7 @@ Journal section drag handles were removed in favor of a Preferences > Journal la
 - Wishlist items now expose the shared garment fields (category/type/size/fit/style/color/pattern/season) plus price, currency, store, URL and notes.
 - Wishlist photo actions now mirror the Closet flow with Take Photo, Upload Photo, Photo Studio, restore original and Smart Scan support.
 - Existing Wishlist saves return to the same item in Review mode; Add Wish still closes after the first save.
+
+
+## v13.15-dev3.1 — Wishlist review header polish
+Wishlist Review mode now uses a Closet-style header with a small Wish List kicker, the saved item name, and Smart Scan/photo tools grouped beside the close control. The item name remains editable only after entering Edit mode. Service-worker cache: `audrey-closet-v13.15-dev3.1`.
