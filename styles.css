@@ -988,7 +988,19 @@ body.portfolio-modal-open{position:fixed;left:0;right:0;width:100%;overflow:hidd
 @media(max-width:380px){.wish-card{grid-template-columns:70px minmax(0,1fr) auto;gap:9px;padding-left:8px;padding-right:8px}.wish-photo{width:70px;height:76px}.wish-side{min-width:62px}}
 
 
-/* v13.15-dev2.2 — Wishlist interaction cleanup */
+/* v13.15-dev2.2.1 — Wishlist interaction cleanup */
 .wishlist-grid{margin-left:-14px;margin-right:-14px;width:calc(100% + 28px);border-left:0;border-right:0;border-radius:0;box-shadow:none}
 .wish-card{border-radius:0;padding-left:14px;padding-right:14px}
 @media(min-width:880px){.wishlist-grid{margin-left:0;margin-right:0;width:100%;border-left:1px solid var(--line);border-right:1px solid var(--line)}}
+
+/* v13.15-dev2.2.1 — Wishlist iPhone cancel/focus hardening */
+@media(max-width:700px){
+  #wishDialog input:not([type="hidden"]),
+  #wishDialog select,
+  #wishDialog textarea{
+    font-size:16px!important;
+    -webkit-text-size-adjust:100%;
+    text-size-adjust:100%;
+  }
+  #wishDialog{overscroll-behavior:contain}
+}

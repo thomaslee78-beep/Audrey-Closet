@@ -153,6 +153,8 @@ let studioPendingAdjustmentHistory=null;
 let studioPointers=new Map();
 let studioGesture=null;
 let wishWorkingPhoto='';
+let wishDialogScrollY=0;
+
 let boardItems=[];
 let pendingBoardSwitchAction=null;
 let boardUndoStack=[];
@@ -488,6 +490,7 @@ function bindDialogs(){
   $('#closeWishDialogBtn').onclick=closeWishWithoutSaving;
   $('#cancelWishBtn').onclick=closeWishWithoutSaving;
   $('#wishDialog').addEventListener('cancel',e=>{e.preventDefault();closeWishWithoutSaving()});
+  $('#wishDialog').addEventListener('close',restoreWishlistViewport);
   $('#deleteWishBtn').onclick=deleteWish;
   $('#wearForm').onsubmit=e=>{e.preventDefault();saveWear()};
   $('#closeWearBtn').onclick=closeWearWithoutSaving;
@@ -956,9 +959,18 @@ async function finishCatalogDrag(pointerId,touchId,canceled=false,e){
 
 function itemCard(i){return`<article class="item-card ${isArchived(i)?'item-card-archived':''}" data-id="${i.id}"><div class="thumb">${i.photo?`<img src="${i.photo}" alt="${esc(displayItemType(i))}" draggable="false">`:`<div class="hanger">⌇</div>`}<span class="count-badge">${i.wears||0} wears</span>${isArchived(i)?'<span class="archived-badge">Archived</span>':''}</div><div class="card-body"><h4>${esc(displayItemType(i))}</h4><p>${i.color?`<span class="swatch" style="background:${colorHex(i.color)}"></span>${esc(i.color)} · `:''}${esc(i.brand||'No brand')}</p><p>${esc(i.size||'Size —')} · ${esc(i.pattern||'Solid')}</p></div></article>`}
 
-function openWish(w=null){$('#wishId').value=w?.id||'';wishWorkingPhoto=w?.photo||'';showPhoto('#wishPhotoPreview','#wishPhotoPlaceholder',wishWorkingPhoto);$('#wishName').value=w?.name||'';$('#wishBrand').value=w?.brand||'';$('#wishPrice').value=w?.wishlistPrice??w?.price??'';$('#wishLink').value=w?.productUrl??w?.link??'';$('#wishCategory').value=w?.category||'Tops';$('#wishColor').value=w?.color||'';$('#wishNotes').value=w?.notes||'';$('#deleteWishBtn').classList.toggle('hidden',!w);$('#wishDialog').showModal()}
+function openWish(w=null){wishDialogScrollY=window.scrollY||document.documentElement.scrollTop||0;$('#wishId').value=w?.id||'';wishWorkingPhoto=w?.photo||'';showPhoto('#wishPhotoPreview','#wishPhotoPlaceholder',wishWorkingPhoto);$('#wishName').value=w?.name||'';$('#wishBrand').value=w?.brand||'';$('#wishPrice').value=w?.wishlistPrice??w?.price??'';$('#wishLink').value=w?.productUrl??w?.link??'';$('#wishCategory').value=w?.category||'Tops';$('#wishColor').value=w?.color||'';$('#wishNotes').value=w?.notes||'';$('#deleteWishBtn').classList.toggle('hidden',!w);$('#wishDialog').showModal()}
+function restoreWishlistViewport(){
+  const active=document.activeElement;
+  if(active&&typeof active.blur==='function')active.blur();
+  requestAnimationFrame(()=>{
+    window.scrollTo(0,wishDialogScrollY||0);
+    setTimeout(()=>window.scrollTo(0,wishDialogScrollY||0),80);
+  });
+}
 function closeWishWithoutSaving(){
   const d=$('#wishDialog');
+  restoreWishlistViewport();
   if(d?.open)d.close();
 }
 function saveWish(){
