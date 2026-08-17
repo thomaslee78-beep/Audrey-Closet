@@ -294,3 +294,10 @@ Service worker cache: `audrey-closet-v13.14-dev3`.
 ## v13.15-dev1
 Service worker cache: `audrey-closet-v13.15-dev1`.
 Wishlist model version: `1` (state-level migration only; IndexedDB remains version 1).
+
+
+## v13.15-dev2 — Wishlist list redesign
+- Replaces the two-column Wishlist card grid with a compact vertical shopping list.
+- Rows show photo, item/type, brand/color, optional store, price, desire (when present), saved-link indicator, and a detail chevron.
+- Tapping a row continues to open the existing Wishlist editor; no reorder or lifecycle behavior is added yet.
+- Built on the v13.15-dev1 Wishlist data-model migration with no IndexedDB schema change.

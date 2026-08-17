@@ -967,7 +967,18 @@ function saveWish(){
   saveState();$('#wishDialog').close();toast('Wishlist saved')
 }
 function deleteWish(){const wid=$('#wishId').value;if(!confirm('Remove this wishlist item?'))return;state.wishlist=state.wishlist.filter(x=>x.id!==wid);saveState();$('#wishDialog').close()}
-function renderWishlist(){$('#wishlistGrid').innerHTML=state.wishlist.map(w=>`<article class="wish-card" data-id="${w.id}"><div class="wish-photo">${w.photo?`<img src="${w.photo}">`:'♡'}</div><div class="wish-body"><h4>${esc(w.name)}</h4><p>${esc(w.brand||'')} ${w.color?'· '+esc(w.color):''}</p><div class="price">${esc(w.wishlistPrice??w.price??'')}</div>${(w.productUrl||w.link)?`<p>link saved ↗</p>`:''}</div></article>`).join('');$('#wishlistEmpty').classList.toggle('hidden',state.wishlist.length>0);$$('.wish-card').forEach(c=>c.onclick=()=>openWish(state.wishlist.find(w=>w.id===c.dataset.id)))}
+function wishlistDesireLabel(value){const n=Number(value);return n>=1&&n<=5?['','Just looking','Maybe','I like it','Really want it','Gotta have it'][n]:''}
+function wishlistListType(w){const type=displayItemType(w);if(type&&type!=='Other')return type;if(w.category)return w.category;return 'Wishlist item'}
+function renderWishlist(){
+  $('#wishlistGrid').innerHTML=state.wishlist.filter(w=>(w.wishlistStatus||'active')==='active').map(w=>{
+    const price=w.wishlistPrice??w.price??'',desire=wishlistDesireLabel(w.wishlistDesire),link=w.productUrl||w.link;
+    const meta=[w.brand,w.color].filter(Boolean).join(' · ');
+    return `<article class="wish-card" data-id="${esc(w.id)}" tabindex="0" role="button" aria-label="Open ${esc(w.name||wishlistListType(w))}"><div class="wish-photo">${w.photo?`<img src="${w.photo}" alt="" draggable="false">`:'♡'}</div><div class="wish-body"><h4>${esc(w.name||wishlistListType(w))}</h4><p class="wish-type">${esc(wishlistListType(w))}</p>${meta?`<p>${esc(meta)}</p>`:''}${w.store?`<p class="wish-store">${esc(w.store)}</p>`:''}</div><div class="wish-side">${price?`<div class="price">${esc(price)}</div>`:''}${desire?`<div class="wish-desire">${esc(desire)}</div>`:''}${link?'<div class="wish-link-mark">link ↗</div>':''}<span class="wish-chevron" aria-hidden="true">›</span></div></article>`
+  }).join('');
+  const activeCount=state.wishlist.filter(w=>(w.wishlistStatus||'active')==='active').length;
+  $('#wishlistEmpty').classList.toggle('hidden',activeCount>0);
+  $$('.wish-card').forEach(c=>{const open=()=>openWish(state.wishlist.find(w=>w.id===c.dataset.id));c.onclick=open;c.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();open()}}})
+}
 
 function bindBoard(){
   $('#newBoardBtn').onclick=startNewOutfit;

@@ -372,3 +372,10 @@ Journal section drag handles were removed in favor of a Preferences > Journal la
 - Includes a one-time Wishlist model migration that preserves existing IDs, photos, names, brands, prices, links, categories, colors and notes.
 - Retains legacy `price`, `link`, and `created` aliases for backward compatibility during the UI transition.
 - Does not change the IndexedDB schema or database version.
+
+
+## v13.15-dev2 — Wishlist list redesign
+- Replaces the two-column Wishlist card grid with a compact vertical shopping list.
+- Rows show photo, item/type, brand/color, optional store, price, desire (when present), saved-link indicator, and a detail chevron.
+- Tapping a row continues to open the existing Wishlist editor; no reorder or lifecycle behavior is added yet.
+- Built on the v13.15-dev1 Wishlist data-model migration with no IndexedDB schema change.
