@@ -379,3 +379,10 @@ Journal section drag handles were removed in favor of a Preferences > Journal la
 - Rows show photo, item/type, brand/color, optional store, price, desire (when present), saved-link indicator, and a detail chevron.
 - Tapping a row continues to open the existing Wishlist editor; no reorder or lifecycle behavior is added yet.
 - Built on the v13.15-dev1 Wishlist data-model migration with no IndexedDB schema change.
+
+
+## v13.15-dev2.1 — Wishlist list polish
+- Formats Wishlist prices using the saved currency (USD defaults to a dollar sign).
+- Tightens Wishlist rows into one continuous list with subtle dividers instead of separate cards.
+- Shows a compact heart + 1–5 desire indicator when a desire value exists.
+- Keeps existing Wishlist tap/edit behavior unchanged.

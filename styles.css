@@ -972,3 +972,17 @@ body.portfolio-modal-open{position:fixed;left:0;right:0;width:100%;overflow:hidd
 /* v13.14-dev3 — optional Fit + Style fields */
 #itemDialog .context-attribute.hidden{display:none}
 #itemDialog .context-attribute select{width:100%}
+
+/* v13.15-dev2.1 — Wishlist list polish */
+.wishlist-grid{display:grid;grid-template-columns:1fr;gap:0;background:#fffaf0;border:1px solid var(--line);border-radius:18px;overflow:hidden;box-shadow:0 3px 10px rgba(65,52,37,.045)}
+.wish-card{width:100%;min-width:0;display:grid;grid-template-columns:78px minmax(0,1fr) auto;align-items:center;gap:11px;background:transparent;border:0;border-bottom:1px solid rgba(108,81,66,.14);border-radius:0;padding:8px 10px;overflow:hidden;box-shadow:none;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.wish-card:last-child{border-bottom:0}
+.wish-card:active{transform:none;background:rgba(108,81,66,.035)}
+.wish-photo{width:78px;height:82px;border-radius:11px}
+.wish-side{align-self:stretch;min-width:70px;display:flex;flex-direction:column;align-items:flex-end;justify-content:center;gap:6px;padding:3px 1px 3px 4px}
+.wish-side .price{color:var(--burgundy);font-weight:800;font-size:14px;white-space:nowrap}
+.wish-desire{display:inline-flex;align-items:center;gap:3px;font-size:11px;color:var(--burgundy);font-weight:750;white-space:nowrap}
+.wish-desire span{font-size:12px;line-height:1}
+.wish-chevron{font-size:21px;line-height:1;color:#a19584;margin-top:auto}
+.wish-link-mark{font-size:9px;color:var(--turq);font-weight:750}
+@media(max-width:380px){.wish-card{grid-template-columns:70px minmax(0,1fr) auto;gap:9px;padding-left:8px;padding-right:8px}.wish-photo{width:70px;height:76px}.wish-side{min-width:62px}}

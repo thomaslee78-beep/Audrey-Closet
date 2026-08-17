@@ -968,12 +968,19 @@ function saveWish(){
 }
 function deleteWish(){const wid=$('#wishId').value;if(!confirm('Remove this wishlist item?'))return;state.wishlist=state.wishlist.filter(x=>x.id!==wid);saveState();$('#wishDialog').close()}
 function wishlistDesireLabel(value){const n=Number(value);return n>=1&&n<=5?['','Just looking','Maybe','I like it','Really want it','Gotta have it'][n]:''}
+function formatWishlistPrice(value,currency='USD'){
+  if(value===undefined||value===null||String(value).trim()==='')return '';
+  const raw=String(value).trim(),numeric=Number(raw.replace(/[^0-9.-]/g,''));
+  if(!Number.isFinite(numeric))return raw;
+  try{return new Intl.NumberFormat(undefined,{style:'currency',currency:currency||'USD',minimumFractionDigits:Number.isInteger(numeric)?0:2,maximumFractionDigits:2}).format(numeric)}catch{return `${currency==='USD'?'$':''}${numeric.toLocaleString(undefined,{maximumFractionDigits:2})}`}
+}
 function wishlistListType(w){const type=displayItemType(w);if(type&&type!=='Other')return type;if(w.category)return w.category;return 'Wishlist item'}
 function renderWishlist(){
   $('#wishlistGrid').innerHTML=state.wishlist.filter(w=>(w.wishlistStatus||'active')==='active').map(w=>{
-    const price=w.wishlistPrice??w.price??'',desire=wishlistDesireLabel(w.wishlistDesire),link=w.productUrl||w.link;
+    const rawPrice=w.wishlistPrice??w.price??'',price=formatWishlistPrice(rawPrice,w.currency||'USD'),desire=wishlistDesireLabel(w.wishlistDesire),desireValue=Number(w.wishlistDesire),link=w.productUrl||w.link;
     const meta=[w.brand,w.color].filter(Boolean).join(' · ');
-    return `<article class="wish-card" data-id="${esc(w.id)}" tabindex="0" role="button" aria-label="Open ${esc(w.name||wishlistListType(w))}"><div class="wish-photo">${w.photo?`<img src="${w.photo}" alt="" draggable="false">`:'♡'}</div><div class="wish-body"><h4>${esc(w.name||wishlistListType(w))}</h4><p class="wish-type">${esc(wishlistListType(w))}</p>${meta?`<p>${esc(meta)}</p>`:''}${w.store?`<p class="wish-store">${esc(w.store)}</p>`:''}</div><div class="wish-side">${price?`<div class="price">${esc(price)}</div>`:''}${desire?`<div class="wish-desire">${esc(desire)}</div>`:''}${link?'<div class="wish-link-mark">link ↗</div>':''}<span class="wish-chevron" aria-hidden="true">›</span></div></article>`
+    const desireMark=desireValue>=1&&desireValue<=5?`<div class="wish-desire" title="${esc(desire)}" aria-label="Desire ${desireValue} of 5: ${esc(desire)}"><span aria-hidden="true">♥</span> ${desireValue}</div>`:'';
+    return `<article class="wish-card" data-id="${esc(w.id)}" tabindex="0" role="button" aria-label="Open ${esc(w.name||wishlistListType(w))}"><div class="wish-photo">${w.photo?`<img src="${w.photo}" alt="" draggable="false">`:'♡'}</div><div class="wish-body"><h4>${esc(w.name||wishlistListType(w))}</h4><p class="wish-type">${esc(wishlistListType(w))}</p>${meta?`<p>${esc(meta)}</p>`:''}${w.store?`<p class="wish-store">${esc(w.store)}</p>`:''}</div><div class="wish-side">${price?`<div class="price">${esc(price)}</div>`:''}${desireMark}${link?'<div class="wish-link-mark">link ↗</div>':''}<span class="wish-chevron" aria-hidden="true">›</span></div></article>`
   }).join('');
   const activeCount=state.wishlist.filter(w=>(w.wishlistStatus||'active')==='active').length;
   $('#wishlistEmpty').classList.toggle('hidden',activeCount>0);
