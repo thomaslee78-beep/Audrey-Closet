@@ -362,3 +362,13 @@ Journal section drag handles were removed in favor of a Preferences > Journal la
 - Temporary Fit/Style choices are preserved while changing Category/Type during an edit, but incompatible values are omitted when the final piece is saved.
 - Stored names (`sizeVariant`, `style`) are independent of the UI labels so wording can change later without a data migration.
 - No IndexedDB schema/version change.
+
+
+### v13.15-dev1 — Wishlist data-model alignment
+- Aligns Wishlist records with the common garment foundation used by Closet items while preserving the current Wishlist UI.
+- Adds stable category IDs plus garment fields for type, size, Fit (`sizeVariant`), Style, pattern and season.
+- Adds future-ready shopping metadata: wishlist price/currency, store, product URL, desire, input source, barcode/SKU/product ID, reference photo and shopping-session ID.
+- Adds Wishlist lifecycle/status metadata and created/updated timestamps.
+- Includes a one-time Wishlist model migration that preserves existing IDs, photos, names, brands, prices, links, categories, colors and notes.
+- Retains legacy `price`, `link`, and `created` aliases for backward compatibility during the UI transition.
+- Does not change the IndexedDB schema or database version.

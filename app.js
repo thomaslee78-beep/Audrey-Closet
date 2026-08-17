@@ -1,4 +1,5 @@
 const CATALOG_TAXONOMY_VERSION=2;
+const WISHLIST_MODEL_VERSION=1;
 const CATEGORY_DEFS=[
   {id:'tops',label:'Tops'},
   {id:'bottoms',label:'Bottoms'},
@@ -215,7 +216,7 @@ let journalItemPreviewSnapshot=null;
 let journalItemReturnId=null;
 let journalItemPreviewScrollY=0;
 
-function emptyState(){return {items:[],outfits:[],journal:[],wishlist:[],settings:{appName:DEFAULT_APP_NAME,portfolioFolders:[...DEFAULT_PORTFOLIO_FOLDERS],portfolioTabOrder:[...SYSTEM_PORTFOLIO_TABS,...DEFAULT_PORTFOLIO_FOLDERS],boardRecent:{closet:[],wishlist:[]},catalogTaxonomyVersion:CATALOG_TAXONOMY_VERSION}}}
+function emptyState(){return {items:[],outfits:[],journal:[],wishlist:[],settings:{appName:DEFAULT_APP_NAME,portfolioFolders:[...DEFAULT_PORTFOLIO_FOLDERS],portfolioTabOrder:[...SYSTEM_PORTFOLIO_TABS,...DEFAULT_PORTFOLIO_FOLDERS],boardRecent:{closet:[],wishlist:[]},catalogTaxonomyVersion:CATALOG_TAXONOMY_VERSION,wishlistModelVersion:WISHLIST_MODEL_VERSION}}}
 function categoryIdFor(value=''){
   const raw=String(value||'').trim();
   if(CATEGORY_LABEL_BY_ID[raw])return raw;
@@ -254,6 +255,69 @@ function migrateCatalogTaxonomy(){
     }
   });
   if(fromVersion<CATALOG_TAXONOMY_VERSION){state.settings.catalogTaxonomyVersion=CATALOG_TAXONOMY_VERSION;changed=true}
+  return changed;
+}
+
+// Wishlist items share the garment foundation with Closet pieces while retaining
+// shopping-specific fields. Legacy UI aliases (price/link/created) are preserved
+// during this transition so the current Wishlist experience remains unchanged.
+function normalizeWishlistItem(w={}){
+  const category=categoryLabelFor(w.categoryId||w.category||'Tops')||'Tops';
+  const categoryId=categoryIdFor(category);
+  const createdAt=Number(w.createdAt||w.created)||Date.now();
+  const wishlistPrice=w.wishlistPrice!==undefined?w.wishlistPrice:(w.price||'');
+  const productUrl=w.productUrl!==undefined?w.productUrl:(w.link||'');
+  return {
+    ...w,
+    id:w.id||id(),
+    lifecycle:'wishlist',
+    wishlistStatus:w.wishlistStatus||'active',
+    name:String(w.name||''),
+    category,
+    categoryId,
+    type:String(w.type||''),
+    brand:String(w.brand||''),
+    size:String(w.size||''),
+    sizeVariant:String(w.sizeVariant||''),
+    style:String(w.style||''),
+    color:String(w.color||''),
+    pattern:String(w.pattern||''),
+    season:String(w.season||''),
+    notes:String(w.notes||''),
+    photo:w.photo||'',
+    wishlistPrice,
+    currency:w.currency||'USD',
+    store:String(w.store||''),
+    productUrl,
+    wishlistDesire:w.wishlistDesire??null,
+    inputSource:w.inputSource||'manual',
+    barcode:String(w.barcode||''),
+    sku:String(w.sku||''),
+    retailerProductId:String(w.retailerProductId||''),
+    referencePhoto:w.referencePhoto||'',
+    shoppingSessionId:String(w.shoppingSessionId||''),
+    createdAt,
+    updatedAt:Number(w.updatedAt||createdAt),
+    wishlistModelVersion:WISHLIST_MODEL_VERSION,
+    // Transitional aliases used by the current Wishlist UI and older backups.
+    price:wishlistPrice,
+    link:productUrl,
+    created:createdAt
+  };
+}
+function migrateWishlistModel(){
+  state.settings=state.settings||{};
+  state.wishlist=Array.isArray(state.wishlist)?state.wishlist:[];
+  let changed=false;
+  state.wishlist=state.wishlist.map(w=>{
+    const next=normalizeWishlistItem(w);
+    if(JSON.stringify(next)!==JSON.stringify(w))changed=true;
+    return next;
+  });
+  if(Number(state.settings.wishlistModelVersion||0)<WISHLIST_MODEL_VERSION){
+    state.settings.wishlistModelVersion=WISHLIST_MODEL_VERSION;
+    changed=true;
+  }
   return changed;
 }
 function ensureSettings(){
@@ -320,8 +384,9 @@ function isArchived(item){return item?.status==='archived'}
 async function init(){
   state=await loadState();
   const taxonomyChanged=migrateCatalogTaxonomy();
+  const wishlistModelChanged=migrateWishlistModel();
   ensureSettings();
-  if(taxonomyChanged){try{await persistState(state)}catch(e){console.warn('Catalog taxonomy migration could not be persisted yet',e)}}
+  if(taxonomyChanged||wishlistModelChanged){try{await persistState(state)}catch(e){console.warn('Startup data migration could not be persisted yet',e)}}
   renderStudioBackgroundPalette();applyLocalizedStrings();
   fillSelects(); bindNav(); bindDialogs(); bindBoard(); bindPhotoStudio();
   $('#catalogSearch').addEventListener('input',()=>{updateCatalogSearchClear();renderCatalog()});
@@ -336,7 +401,7 @@ async function init(){
   $('#settingsBtn').onclick=()=>{renderPortfolioFolderEditor();renderJournalOrderEditor();showScreen('more')};
   $('#addPortfolioFolderBtn').onclick=addPortfolioFolder;
   $('#portfolioNewBtn').onclick=()=>guardBoardSwitch(()=>{startNewOutfit();showScreen('outfits')},'start a new look');  $('#portfolioSearch').oninput=e=>{portfolioSearchQuery=e.target.value||'';renderSavedOutfits()};$('#portfolioSearch').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();e.currentTarget.blur()}});$('#portfolioItemFilterBtn').onclick=()=>{portfolioItemPickerOpen=!portfolioItemPickerOpen;renderPortfolioDiscovery()};
-  if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js?v=13.14-dev3',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
+  if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js?v=13.15-dev1',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
   renderAll();
 }
 function fillSelects(){
@@ -888,10 +953,21 @@ async function finishCatalogDrag(pointerId,touchId,canceled=false,e){
 
 function itemCard(i){return`<article class="item-card ${isArchived(i)?'item-card-archived':''}" data-id="${i.id}"><div class="thumb">${i.photo?`<img src="${i.photo}" alt="${esc(displayItemType(i))}" draggable="false">`:`<div class="hanger">⌇</div>`}<span class="count-badge">${i.wears||0} wears</span>${isArchived(i)?'<span class="archived-badge">Archived</span>':''}</div><div class="card-body"><h4>${esc(displayItemType(i))}</h4><p>${i.color?`<span class="swatch" style="background:${colorHex(i.color)}"></span>${esc(i.color)} · `:''}${esc(i.brand||'No brand')}</p><p>${esc(i.size||'Size —')} · ${esc(i.pattern||'Solid')}</p></div></article>`}
 
-function openWish(w=null){$('#wishId').value=w?.id||'';wishWorkingPhoto=w?.photo||'';showPhoto('#wishPhotoPreview','#wishPhotoPlaceholder',wishWorkingPhoto);$('#wishName').value=w?.name||'';$('#wishBrand').value=w?.brand||'';$('#wishPrice').value=w?.price||'';$('#wishLink').value=w?.link||'';$('#wishCategory').value=w?.category||'Tops';$('#wishColor').value=w?.color||'';$('#wishNotes').value=w?.notes||'';$('#deleteWishBtn').classList.toggle('hidden',!w);$('#wishDialog').showModal()}
-function saveWish(){const wid=$('#wishId').value,old=state.wishlist.find(x=>x.id===wid),obj={id:wid||id(),photo:wishWorkingPhoto,name:$('#wishName').value.trim(),brand:$('#wishBrand').value.trim(),price:$('#wishPrice').value.trim(),link:$('#wishLink').value.trim(),category:$('#wishCategory').value,color:$('#wishColor').value,notes:$('#wishNotes').value.trim(),created:old?.created||Date.now()};if(wid)state.wishlist=state.wishlist.map(x=>x.id===wid?obj:x);else state.wishlist.unshift(obj);saveState();$('#wishDialog').close();toast('Wishlist saved')}
+function openWish(w=null){$('#wishId').value=w?.id||'';wishWorkingPhoto=w?.photo||'';showPhoto('#wishPhotoPreview','#wishPhotoPlaceholder',wishWorkingPhoto);$('#wishName').value=w?.name||'';$('#wishBrand').value=w?.brand||'';$('#wishPrice').value=w?.wishlistPrice??w?.price??'';$('#wishLink').value=w?.productUrl??w?.link??'';$('#wishCategory').value=w?.category||'Tops';$('#wishColor').value=w?.color||'';$('#wishNotes').value=w?.notes||'';$('#deleteWishBtn').classList.toggle('hidden',!w);$('#wishDialog').showModal()}
+function saveWish(){
+  const wid=$('#wishId').value,old=state.wishlist.find(x=>x.id===wid),now=Date.now();
+  const wishlistPrice=$('#wishPrice').value.trim(),productUrl=$('#wishLink').value.trim(),category=$('#wishCategory').value;
+  const obj=normalizeWishlistItem({
+    ...(old||{}),id:wid||id(),photo:wishWorkingPhoto,name:$('#wishName').value.trim(),brand:$('#wishBrand').value.trim(),
+    wishlistPrice,price:wishlistPrice,productUrl,link:productUrl,category,categoryId:categoryIdFor(category),color:$('#wishColor').value,
+    notes:$('#wishNotes').value.trim(),lifecycle:'wishlist',wishlistStatus:old?.wishlistStatus||'active',inputSource:old?.inputSource||'manual',
+    createdAt:old?.createdAt||old?.created||now,created:old?.createdAt||old?.created||now,updatedAt:now
+  });
+  if(wid)state.wishlist=state.wishlist.map(x=>x.id===wid?obj:x);else state.wishlist.unshift(obj);
+  saveState();$('#wishDialog').close();toast('Wishlist saved')
+}
 function deleteWish(){const wid=$('#wishId').value;if(!confirm('Remove this wishlist item?'))return;state.wishlist=state.wishlist.filter(x=>x.id!==wid);saveState();$('#wishDialog').close()}
-function renderWishlist(){$('#wishlistGrid').innerHTML=state.wishlist.map(w=>`<article class="wish-card" data-id="${w.id}"><div class="wish-photo">${w.photo?`<img src="${w.photo}">`:'♡'}</div><div class="wish-body"><h4>${esc(w.name)}</h4><p>${esc(w.brand||'')} ${w.color?'· '+esc(w.color):''}</p><div class="price">${esc(w.price||'')}</div>${w.link?`<p>link saved ↗</p>`:''}</div></article>`).join('');$('#wishlistEmpty').classList.toggle('hidden',state.wishlist.length>0);$$('.wish-card').forEach(c=>c.onclick=()=>openWish(state.wishlist.find(w=>w.id===c.dataset.id)))}
+function renderWishlist(){$('#wishlistGrid').innerHTML=state.wishlist.map(w=>`<article class="wish-card" data-id="${w.id}"><div class="wish-photo">${w.photo?`<img src="${w.photo}">`:'♡'}</div><div class="wish-body"><h4>${esc(w.name)}</h4><p>${esc(w.brand||'')} ${w.color?'· '+esc(w.color):''}</p><div class="price">${esc(w.wishlistPrice??w.price??'')}</div>${(w.productUrl||w.link)?`<p>link saved ↗</p>`:''}</div></article>`).join('');$('#wishlistEmpty').classList.toggle('hidden',state.wishlist.length>0);$$('.wish-card').forEach(c=>c.onclick=()=>openWish(state.wishlist.find(w=>w.id===c.dataset.id)))}
 
 function bindBoard(){
   $('#newBoardBtn').onclick=startNewOutfit;
@@ -1131,7 +1207,7 @@ function unlockPageForPortfolioModal(){if(!document.body.classList.contains('por
 function closeViewedOutfit({keepLocked=false}={}){const d=$('#outfitViewDialog');if(d.open)d.close();viewingOutfitId=null;if(!keepLocked)unlockPageForPortfolioModal()}
 function updateOutfitDetailScrollLock(){const scroll=$('#outfitViewDialog .outfit-view-scroll'),panel=$('#outfitViewDialog .outfit-items-panel');if(!scroll||!panel)return;const expanded=panel.open;scroll.classList.toggle('allow-detail-scroll',expanded);if(!expanded)scroll.scrollTop=0}
 function viewOutfit(oid){const o=state.outfits.find(x=>x.id===oid);if(!o)return;viewingOutfitId=oid;$('#viewOutfitName').textContent=o.name;refreshViewedOutfitFavorite(o);$('#viewOutfitNotes').textContent=o.notes||'No notes yet.';$('#viewOutfitFolder').textContent=o.folder||'Everyday';$('#viewOutfitItems').innerHTML=renderPortfolioItemList(o);const unique=portfolioItemDetails(o),copies=unique.reduce((n,x)=>n+x.count,0);$('#viewOutfitItemsSummary').textContent=`${unique.length} ${unique.length===1?'item':'items'}${copies>unique.length?` · ${copies} placements`:''}`;$$('#viewOutfitItems .portfolio-item-row').forEach(row=>row.onclick=()=>openPortfolioItemPreview(row.dataset.itemSource,row.dataset.itemId));const board=$('#viewOutfitBoard');board.innerHTML='';board.oncontextmenu=e=>{if(e.target.closest('img'))e.preventDefault()};const itemPanel=$('#outfitViewDialog .outfit-items-panel');if(itemPanel){itemPanel.open=false;itemPanel.ontoggle=()=>requestAnimationFrame(updateOutfitDetailScrollLock)}lockPageForPortfolioModal();$('#outfitViewDialog').showModal();updateOutfitDetailScrollLock();requestAnimationFrame(()=>{const sourceW=o.boardWidth||390,sourceH=o.boardHeight||420,bw=board.clientWidth||390,bh=board.clientHeight||350,scale=Math.min(bw/sourceW,bh/sourceH),offsetX=(bw-sourceW*scale)/2,offsetY=(bh-sourceH*scale)/2;o.pieces.slice().sort((a,b)=>(a.z||0)-(b.z||0)).forEach(p=>renderSnapshotPiece(board,p,scale,scale,offsetX,offsetY))})}
-function portfolioItemDetailRows(item,source='closet'){const rows=source==='wishlist'?[['Category',item.category],['Item',item.name||item.type],['Brand',item.brand],['Color',item.color],['Price',item.price],['Notes',item.notes]]:[['Category',item.category],['Type',displayItemType(item)],['Brand',item.brand],['Color',item.color],['Size',item.size],['Pattern',item.pattern],['Season',item.season],['Acquired',item.acquired],['Wears',Number(item.wears||0)||0],['Status',isArchived(item)?'Archived':'Active'],['Notes',item.notes]];return rows.filter(([,value])=>value!==undefined&&value!==null&&String(value).trim()!=='').map(([label,value])=>`<div class="journal-preview-detail-row"><span>${esc(label)}</span><strong>${esc(value)}</strong></div>`).join('')}
+function portfolioItemDetailRows(item,source='closet'){const rows=source==='wishlist'?[['Category',item.category],['Item',item.name||item.type],['Brand',item.brand],['Color',item.color],['Price',item.wishlistPrice??item.price],['Notes',item.notes]]:[['Category',item.category],['Type',displayItemType(item)],['Brand',item.brand],['Color',item.color],['Size',item.size],['Pattern',item.pattern],['Season',item.season],['Acquired',item.acquired],['Wears',Number(item.wears||0)||0],['Status',isArchived(item)?'Archived':'Active'],['Notes',item.notes]];return rows.filter(([,value])=>value!==undefined&&value!==null&&String(value).trim()!=='').map(([label,value])=>`<div class="journal-preview-detail-row"><span>${esc(label)}</span><strong>${esc(value)}</strong></div>`).join('')}
 function openPortfolioItemPreview(source,itemId){const pool=source==='wishlist'?state.wishlist:state.items,item=pool.find(x=>x.id===itemId);if(!item)return toast('This item is no longer available');portfolioPreviewReturnOutfitId=viewingOutfitId;portfolioPreviewItemId=item.id;portfolioPreviewItemSource=source==='wishlist'?'wishlist':'closet';const d=$('#outfitViewDialog');if(d.open)d.close();lockPageForPortfolioModal();$('#portfolioItemPreviewTitle').textContent=item.name||displayItemType(item)||'Piece details';$('#portfolioItemPreviewKicker').textContent=portfolioPreviewItemSource==='wishlist'?'wishlist piece':'portfolio piece';$('#portfolioItemPreviewPhoto').innerHTML=item.photo?`<img src="${item.photo}" alt="${esc(item.name||displayItemType(item)||'Piece')}" draggable="false">`:'<div class="journal-preview-placeholder">✣</div>';$('#portfolioItemPreviewDetails').innerHTML=portfolioItemDetailRows(item,portfolioPreviewItemSource);$('#portfolioItemPreviewDialog').showModal()}
 function closePortfolioItemPreview(){const returnId=portfolioPreviewReturnOutfitId,d=$('#portfolioItemPreviewDialog');if(d.open)d.close();portfolioPreviewReturnOutfitId=null;portfolioPreviewItemId=null;portfolioPreviewItemSource='closet';if(returnId&&state.outfits.some(o=>o.id===returnId))viewOutfit(returnId);else unlockPageForPortfolioModal()}
 function deleteOutfit(){if(!viewingOutfitId||!confirm('Delete this saved outfit?'))return;const doomed=viewingOutfitId;state.outfits=state.outfits.filter(x=>x.id!==doomed);ensureSettings();Object.keys(state.settings.portfolioOrder||{}).forEach(f=>state.settings.portfolioOrder[f]=state.settings.portfolioOrder[f].filter(x=>x!==doomed));saveState();$('#outfitViewDialog').close();unlockPageForPortfolioModal();renderSavedOutfits()}
@@ -1669,7 +1745,7 @@ async function resetAppName(){
   const ok=await saveState();if(ok)toast("Restored Audrey's default");
 }
 function exportData(){const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);const safe=getAppName().toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')||'clothing-app';a.download=`${safe}-backup-${new Date().toISOString().slice(0,10)}.json`;a.click();URL.revokeObjectURL(a.href)}
-async function importData(e){const f=e.target.files[0];if(!f)return;try{const obj=JSON.parse(await f.text());state={...emptyState(),...obj,settings:{...emptyState().settings,...(obj.settings||{})}};migrateCatalogTaxonomy();ensureSettings();saveState();toast('Backup imported')}catch{alert('That file does not look like a valid clothing-app backup.')}e.target.value=''}
+async function importData(e){const f=e.target.files[0];if(!f)return;try{const obj=JSON.parse(await f.text());state={...emptyState(),...obj,settings:{...emptyState().settings,...(obj.settings||{})}};migrateCatalogTaxonomy();migrateWishlistModel();ensureSettings();saveState();toast('Backup imported')}catch{alert('That file does not look like a valid clothing-app backup.')}e.target.value=''}
 function resetData(){if(confirm('Erase all closet, outfit, journal and wishlist data from this device?')){state=emptyState();saveState();toast('App data erased')}}
 
 init();

@@ -289,3 +289,8 @@ Journal section drag handles were removed in favor of a Preferences > Journal la
 
 ## v13.14-dev3
 Service worker cache: `audrey-closet-v13.14-dev3`.
+
+
+## v13.15-dev1
+Service worker cache: `audrey-closet-v13.15-dev1`.
+Wishlist model version: `1` (state-level migration only; IndexedDB remains version 1).
