@@ -395,5 +395,5 @@ Journal section drag handles were removed in favor of a Preferences > Journal la
 - Existing Wishlist saves return to the same item in Review mode; Add Wish still closes after the first save.
 
 
-## v13.15-dev3.3 — Wishlist review header polish
-Wishlist Review mode now uses a Closet-style header with a small Wish List kicker, the saved item name, and Smart Scan/photo tools grouped beside the close control. The item name remains editable only after entering Edit mode. Service-worker cache: `audrey-closet-v13.15-dev3.3`.
+## v13.15-dev3.4 — Wishlist review header polish
+Wishlist Review mode now uses a Closet-style header with a small Wish List kicker, the saved item name, and Smart Scan/photo tools grouped beside the close control. The item name remains editable only after entering Edit mode. Service-worker cache: `audrey-closet-v13.15-dev3.4`.

@@ -1170,3 +1170,69 @@ body.portfolio-modal-open{position:fixed;left:0;right:0;width:100%;overflow:hidd
   #wishDialog .wish-header-utility-actions .item-card-icon{width:36px;height:36px;min-width:36px}
   #wishDialog.wish-edit-mode .wish-sheet-actions{gap:7px}
 }
+
+/* v13.15-dev3.4 — shared Closet/Wishlist detail typography + action sizing */
+/* Keep the Wishlist review typography aligned with the saved Closet review. */
+#wishDialog .item-review-detail-row span,
+#wishDialog .item-review-notes>span{
+  font-size:10px;
+  letter-spacing:.07em;
+  text-transform:uppercase;
+  color:#8a7c6e;
+  font-weight:700;
+}
+#wishDialog .item-review-detail-row strong{
+  font-family:var(--serif);
+  font-size:15px;
+  line-height:1.25;
+  color:var(--ink);
+  font-weight:600;
+  overflow-wrap:anywhere;
+}
+#wishDialog .item-review-notes p{
+  margin:0;
+  font-size:13px;
+  line-height:1.48;
+  color:#51483f;
+  white-space:pre-wrap;
+}
+
+/* The Closet and Wishlist bottom action trays now share the same control rhythm. */
+#itemDialog .item-sheet-actions button,
+#wishDialog .wish-sheet-actions button{
+  width:100%;
+  min-width:0;
+  min-height:44px;
+  margin:0;
+  padding:10px 11px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  font-family:var(--sans);
+  font-size:13px;
+  line-height:1.15;
+  font-weight:700;
+  white-space:normal;
+}
+#itemDialog .item-sheet-actions .primary,
+#wishDialog .wish-sheet-actions .primary{font-weight:750}
+#itemDialog .item-sheet-actions .danger-text,
+#wishDialog .wish-sheet-actions .danger-text{font-weight:700}
+
+/* Review and edit use the same compact spacing so mode changes do not feel jumpy. */
+#wishDialog.wish-review-mode .wish-sheet-actions,
+#wishDialog.wish-edit-mode .wish-sheet-actions{
+  align-items:center;
+}
+
+@media(max-width:410px){
+  #wishDialog .item-review-detail-row strong{font-size:14px}
+  #itemDialog .item-sheet-actions button,
+  #wishDialog .wish-sheet-actions button{
+    min-height:44px;
+    padding:9px 7px;
+    font-size:12px;
+    line-height:1.12;
+  }
+}
