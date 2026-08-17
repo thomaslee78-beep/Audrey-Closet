@@ -381,7 +381,7 @@ Journal section drag handles were removed in favor of a Preferences > Journal la
 - Built on the v13.15-dev1 Wishlist data-model migration with no IndexedDB schema change.
 
 
-## v13.15-dev2.1 — Wishlist list polish
+## v13.15-dev2.2 — Wishlist list polish
 - Formats Wishlist prices using the saved currency (USD defaults to a dollar sign).
 - Tightens Wishlist rows into one continuous list with subtle dividers instead of separate cards.
 - Shows a compact heart + 1–5 desire indicator when a desire value exists.

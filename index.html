@@ -352,12 +352,12 @@
 
   <dialog id="wishDialog" class="sheet-dialog">
     <form method="dialog" id="wishForm">
-      <div class="sheet-head"><div><p class="script">future find</p><h2>Wishlist item</h2></div><button value="cancel" class="close-btn">×</button></div>
+      <div class="sheet-head"><div><p class="script">future find</p><h2>Wishlist item</h2></div><button type="button" id="closeWishDialogBtn" class="close-btn" aria-label="Close wishlist item">×</button></div>
       <input type="hidden" id="wishId" />
       <div class="photo-capture compact-photo"><div class="photo-preview-wrap"><img id="wishPhotoPreview" /><div class="photo-placeholder" id="wishPhotoPlaceholder">photo</div></div><label class="soft-btn file-label">Add photo<input type="file" id="wishPhoto" accept="image/*" capture="environment" /></label></div>
       <div class="form-grid"><label>Item<input id="wishName" required placeholder="Striped cardigan" /></label><label>Brand<input id="wishBrand" placeholder="Brand" /></label><label>Price<input id="wishPrice" inputmode="decimal" placeholder="$45" /></label><label>Link<input id="wishLink" type="url" placeholder="https://…" /></label><label>Category<select id="wishCategory"></select></label><label>Color<select id="wishColor"></select></label></div>
       <label class="full-label">Notes<textarea id="wishNotes"></textarea></label>
-      <div class="sheet-actions"><button value="cancel" class="soft-btn">Cancel</button><button type="button" class="danger-text hidden" id="deleteWishBtn">Delete</button><button type="submit" value="default" class="primary">Save wish</button></div>
+      <div class="sheet-actions"><button type="button" id="cancelWishBtn" class="soft-btn">Cancel</button><button type="button" class="danger-text hidden" id="deleteWishBtn">Delete</button><button type="submit" value="default" class="primary">Save wish</button></div>
     </form>
   </dialog>
 
