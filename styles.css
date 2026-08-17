@@ -1315,3 +1315,47 @@ body.portfolio-modal-open{position:fixed;left:0;right:0;width:100%;overflow:hidd
 .wish-side .price{order:2}
 .wish-side .wish-link-mark{order:3}
 .wish-side .wish-chevron{order:4}
+
+
+/* v13.15-dev4.2.1 — Wishlist detail spacing, photo consistency, rating feedback */
+/* Give the review title enough breathing room before the photo and allow longer item names to wrap cleanly. */
+#wishDialog .wish-head{
+  margin-bottom:10px;
+}
+#wishDialog .wish-head-copy h2{
+  white-space:normal!important;
+  overflow:visible!important;
+  text-overflow:clip!important;
+  line-height:1.16;
+  max-height:2.32em;
+  display:-webkit-box!important;
+  -webkit-line-clamp:2;
+  -webkit-box-orient:vertical;
+  padding-bottom:1px;
+}
+#wishDialog .wish-photo-stage{margin-top:1px}
+
+/* Photo presentation stays identical in Review and Edit: no frame, no fill behind the garment. */
+#wishDialog .wish-photo-large,
+#wishDialog.wish-review-mode .wish-photo-large,
+#wishDialog.wish-edit-mode .wish-photo-large{
+  border:0!important;
+  box-shadow:none!important;
+  background:transparent!important;
+  outline:0!important;
+}
+#wishDialog .wish-photo-large::before,
+#wishDialog .wish-photo-large::after{display:none!important}
+#wishDialog .wish-photo-large img{background:transparent!important}
+
+@media(max-width:410px){
+  #wishDialog .wish-head{margin-bottom:9px}
+  #wishDialog .wish-head-copy h2{line-height:1.15;max-height:2.3em}
+}
+
+/* v13.15-dev4.2.1.1 — Highlight the exact Wishlist desire rating */
+#wishDialog .wish-heart.selected{
+  border:1.5px solid #d2ad42;
+  border-radius:8px;
+  background:rgba(238,219,156,.16);
+}

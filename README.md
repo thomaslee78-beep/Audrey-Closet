@@ -405,3 +405,7 @@ Wishlist edit fields now use the same calm, regular-weight typography as Closet 
 
 ## v13.15-dev4.1 — Wishlist desire list refinement
 Wishlist rows now place the four-heart desire indicator above the price so priority reads before cost. Changing a desire rating in Review mode shows a compact confirmation toast such as `Rating — Gotta have it`; rating changes made while editing show the same confirmation when the wish is saved. Service-worker cache: `audrey-closet-v13.15-dev4.1`.
+
+
+## v13.15-dev4.2.1 — Wishlist detail polish
+Wishlist review titles now have more space above the photo and can wrap cleanly to two lines. Wishlist photos use the same borderless transparent presentation in both Review and Edit modes. Desire-rating confirmation toasts now remain visible longer (about 2.8 seconds) and reset their timer when a new rating is tapped so rapid changes still produce clear feedback. Service-worker cache: `audrey-closet-v13.15-dev4.2.1`.

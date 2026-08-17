@@ -386,7 +386,7 @@ async function saveState(){
 }
 function id(){return crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2)}
 function esc(s=''){return String(s).replace(/[&<>'"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[m]))}
-function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1800)}
+let toastTimer=null;function toast(msg,duration=1800){const t=$('#toast');if(!t)return;clearTimeout(toastTimer);t.textContent=msg;t.classList.add('show');toastTimer=setTimeout(()=>t.classList.remove('show'),duration)}
 function $(q){return document.querySelector(q)}
 function $$(q){return [...document.querySelectorAll(q)]}
 function seasonForDate(d=new Date()){const m=d.getMonth()+1;if([12,1,2].includes(m))return'Winter';if([3,4,5].includes(m))return'Spring';if([6,7,8].includes(m))return'Summer';return'Fall'}
@@ -1004,9 +1004,9 @@ function openWish(w=null,mode='review'){
 }
 function wishReviewValue(value,fallback='Not set'){const v=String(value??'').trim();return v||fallback}
 function wishlistDesireLabel(value){const n=Number(value);return n>=1&&n<=4?['','Keep an eye on it','Interested','Really want it','Gotta have it'][n]:''}
-function wishDesireHeartsMarkup(){const value=Number(wishDesireDraft)||0;return `<div class="wish-desire-hearts" role="group" aria-label="Wishlist desire rating">${[1,2,3,4].map(n=>`<button type="button" class="wish-heart ${n<=value?'active':''}" data-wish-desire="${n}" aria-label="${n} of 4 hearts: ${esc(wishlistDesireLabel(n))}" title="${esc(wishlistDesireLabel(n))}">♥</button>`).join('')}</div>`}
+function wishDesireHeartsMarkup(){const value=Number(wishDesireDraft)||0;return `<div class="wish-desire-hearts" role="group" aria-label="Wishlist desire rating">${[1,2,3,4].map(n=>`<button type="button" class="wish-heart ${n<=value?'active':''} ${n===value?'selected':''}" data-wish-desire="${n}" aria-label="${n} of 4 hearts: ${esc(wishlistDesireLabel(n))}" title="${esc(wishlistDesireLabel(n))}">♥</button>`).join('')}</div>`}
 function renderWishDesirePickers(){const edit=$('#wishEditDesire');if(edit)edit.innerHTML=wishDesireHeartsMarkup()}
-async function setWishDesire(value){const n=Math.max(1,Math.min(4,Number(value)||1));wishDesireDraft=n;renderWishDesirePickers();if(wishDialogMode==='review'){const wid=$('#wishId').value,idx=state.wishlist.findIndex(x=>x.id===wid);if(idx>=0){state.wishlist[idx]=normalizeWishlistItem({...state.wishlist[idx],wishlistDesire:n,updatedAt:Date.now()});await saveState();renderWishlist();renderWishReviewDetails();toast(`Rating — ${wishlistDesireLabel(n)}`)}}}
+async function setWishDesire(value){const n=Math.max(1,Math.min(4,Number(value)||1));wishDesireDraft=n;renderWishDesirePickers();if(wishDialogMode==='review'){const wid=$('#wishId').value,idx=state.wishlist.findIndex(x=>x.id===wid);if(idx>=0){state.wishlist[idx]=normalizeWishlistItem({...state.wishlist[idx],wishlistDesire:n,updatedAt:Date.now()});await saveState();renderWishlist();renderWishReviewDetails();toast(`Rating — ${wishlistDesireLabel(n)}`,2800)}}}
 function renderWishReviewDetails(){
   const category=$('#wishCategory').value,type=displayItemType(category,$('#wishType').value),price=formatWishlistPrice($('#wishPrice').value,$('#wishCurrency').value||'USD');
   const garment=[['Category',category],['Type',type],['Brand',$('#wishBrand').value],['Size',$('#wishSize').value]];
@@ -1035,7 +1035,7 @@ async function saveWish(){
   const obj=normalizeWishlistItem({...(old||{}),id:wid||id(),photo:wishWorkingPhoto,originalPhoto:wishOriginalPhoto||wishWorkingPhoto,photoStudioState:wishStudioState,name:$('#wishName').value.trim(),brand:$('#wishBrand').value.trim(),category,categoryId:categoryIdFor(category),type,size:$('#wishSize').value,sizeVariant:cleanedItemFit(category,$('#wishFit').value),style:cleanedItemStyle(category,type,$('#wishStyle').value),color:$('#wishColor').value,pattern:$('#wishPattern').value,season:$('#wishSeason').value,wishlistPrice,price:wishlistPrice,currency:$('#wishCurrency').value||'USD',store:$('#wishStore').value.trim(),productUrl,link:productUrl,notes:$('#wishNotes').value.trim(),wishlistDesire:wishDesireDraft,lifecycle:'wishlist',wishlistStatus:old?.wishlistStatus||'active',inputSource:old?.inputSource||'manual',createdAt:old?.createdAt||old?.created||now,created:old?.createdAt||old?.created||now,updatedAt:now});
   const desireChanged=Number(old?.wishlistDesire||0)!==Number(obj.wishlistDesire||0);
   if(wid)state.wishlist=state.wishlist.map(x=>x.id===wid?obj:x);else state.wishlist.unshift(obj);await saveState();renderWishlist();
-  if(wid){openWish(obj,'review');toast(desireChanged&&obj.wishlistDesire?`Rating — ${wishlistDesireLabel(obj.wishlistDesire)}`:'Wishlist updated')}else{$('#wishDialog').close();toast(desireChanged&&obj.wishlistDesire?`Rating — ${wishlistDesireLabel(obj.wishlistDesire)}`:'Wishlist saved')}
+  if(wid){openWish(obj,'review');toast(desireChanged&&obj.wishlistDesire?`Rating — ${wishlistDesireLabel(obj.wishlistDesire)}`:'Wishlist updated',desireChanged&&obj.wishlistDesire?2800:1800)}else{$('#wishDialog').close();toast(desireChanged&&obj.wishlistDesire?`Rating — ${wishlistDesireLabel(obj.wishlistDesire)}`:'Wishlist saved',desireChanged&&obj.wishlistDesire?2800:1800)}
 }
 function deleteWish(){const wid=$('#wishId').value;if(!confirm('Remove this wishlist item?'))return;state.wishlist=state.wishlist.filter(x=>x.id!==wid);saveState();$('#wishDialog').close();renderWishlist();toast('Removed from Wishlist')}
 function formatWishlistPrice(value,currency='USD'){
