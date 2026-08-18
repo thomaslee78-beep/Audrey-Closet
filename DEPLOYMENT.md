@@ -338,3 +338,7 @@ Moves the desire hearts directly below the Wishlist item title. In Reorder mode,
 
 ## v13.15-dev5.3 — Wishlist reorder visual polish
 Refines Wishlist ranking mode: the floating row is slightly transparent and inset to avoid edge/image clipping; the destination row remains visible with a light transparent treatment plus top and bottom turquoise guides; the Reorder/Done control is text-only; and Wishlist prices use regular rather than bold weight. Service-worker cache: `audrey-closet-v13.15-dev5.3`.
+
+
+## v13.15-dev5.4 — Wishlist review actions + reorder geometry
+Streamlines Wishlist detail actions to **Edit** and **Save**, makes **Remove** available directly from saved-item Review mode, and refines the floating reorder row so its thumbnail is smaller, vertically centered, and fully contained within the ranking rectangle. Service-worker cache: `audrey-closet-v13.15-dev5.4`.

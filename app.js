@@ -1033,7 +1033,7 @@ function applyWishDialogMode(w=null){
   $('#wishReviewDetails').classList.toggle('hidden',!reviewing);$('#wishEditFields').classList.toggle('hidden',reviewing);
   $('#newWishPhotoActions').classList.toggle('hidden',existing||!!wishWorkingPhoto);
   $('#wishCardUtilityActions').classList.toggle('hidden',!existing&&!wishWorkingPhoto);$('#wishPhotoMenuWrap').classList.toggle('hidden',!existing&&!wishWorkingPhoto);$('#wishSmartScanBtn').classList.toggle('hidden',!wishWorkingPhoto);$('#wishRestoreOriginalBtn').classList.toggle('hidden',!wishOriginalPhoto||wishWorkingPhoto===wishOriginalPhoto);
-  $('#saveWishBtn').textContent=reviewing?'Edit wish':'Save wish';$('#cancelWishBtn').textContent=reviewing?'Close':'Cancel';$('#deleteWishBtn').classList.toggle('hidden',reviewing||!existing);
+  $('#saveWishBtn').textContent=reviewing?'Edit':'Save';$('#cancelWishBtn').textContent=reviewing?'Close':'Cancel';$('#deleteWishBtn').classList.toggle('hidden',!existing);
   if(reviewing)renderWishReviewDetails();else renderWishDesirePickers();
 }
 function enterWishEditMode(){if(wishDialogMode!=='review')return;wishDialogMode='edit';$('#wishDialog').classList.remove('wish-review-mode');$('#wishDialog').classList.add('wish-edit-mode');$('#wishDialogKicker').textContent='future find';$('#wishDialogTitle').textContent='Edit wish';applyWishDialogMode()}
