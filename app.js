@@ -164,7 +164,7 @@ let wishStyleDrafts={};
 let wishAttributeContextKey='';
 let wishlistView='all';
 let wishlistReorderMode=false;
-let wishlistDrag={timer:null,pointerId:null,startY:0,active:false,card:null,id:null,ghost:null,placeholder:null,target:null};
+let wishlistDrag={timer:null,pointerId:null,startY:0,active:false,card:null,id:null,ghost:null,placeholder:null,target:null,targetAfter:false,originalOrder:[]};
 let suppressWishlistClickUntil=0;
 let studioTarget='item';
 let smartScanTarget='item';
@@ -1083,20 +1083,24 @@ function wishlistDragCleanup(){
   wishlistDrag.ghost?.remove();wishlistDrag.placeholder?.remove();
   wishlistDrag.card?.classList.remove('wishlist-drag-source');
   document.body.classList.remove('wishlist-reordering');
-  wishlistDrag={timer:null,pointerId:null,startY:0,active:false,card:null,id:null,ghost:null,placeholder:null,target:null};
+  wishlistDrag={timer:null,pointerId:null,startY:0,active:false,card:null,id:null,ghost:null,placeholder:null,target:null,targetAfter:false,originalOrder:[]};
 }
 function beginWishlistDrag(card,e){
   if(!wishlistReorderMode||wishlistView!=='all')return;
   clearTimeout(wishlistDrag.timer);
-  wishlistDrag={timer:null,pointerId:e.pointerId,startY:e.clientY,active:false,card,id:card.dataset.id,ghost:null,placeholder:null,target:null};
+  const originalOrder=orderedActiveWishlist().map(w=>w.id);
+  wishlistDrag={timer:null,pointerId:e.pointerId,startY:e.clientY,active:false,card,id:card.dataset.id,ghost:null,placeholder:null,target:null,targetAfter:false,originalOrder};
   wishlistDrag.timer=setTimeout(()=>{
     if(!wishlistDrag.card)return;
     wishlistDrag.active=true;suppressWishlistClickUntil=Date.now()+650;document.body.classList.add('wishlist-reordering');
     const r=card.getBoundingClientRect(),ghost=card.cloneNode(true),placeholder=document.createElement('div');
     ghost.classList.add('wishlist-drag-ghost');ghost.querySelector('.wish-reorder-handle')?.remove();
     Object.assign(ghost.style,{left:(r.left+2)+'px',top:r.top+'px',width:Math.max(1,r.width-4)+'px',height:r.height+'px'});
-    placeholder.className='wishlist-drop-placeholder';placeholder.style.height=r.height+'px';
-    card.after(placeholder);card.classList.add('wishlist-drag-source');document.body.appendChild(ghost);
+    placeholder.className='wishlist-drop-placeholder';
+    // Keep the real row in its original queue position while dragging. The placeholder is
+    // only a thin insertion cue and is not shown until another row is actually targeted.
+    placeholder.hidden=true;
+    card.classList.add('wishlist-drag-source');document.body.appendChild(ghost);
     wishlistDrag.ghost=ghost;wishlistDrag.placeholder=placeholder;
     if(card.setPointerCapture)try{card.setPointerCapture(e.pointerId)}catch{}
   },120);
@@ -1107,14 +1111,20 @@ function moveWishlistDrag(e){
   if(e.cancelable)e.preventDefault();
   const g=d.ghost;if(g){const h=g.getBoundingClientRect().height;g.style.top=(e.clientY-h*.5)+'px'}
   const cards=[...$('#wishlistGrid').querySelectorAll('.wish-card:not(.wishlist-drag-source)')];
-  let before=null,target=null;
+  let target=null,targetAfter=false;
   for(const c of cards){
     const r=c.getBoundingClientRect();
-    if(e.clientY>=r.top&&e.clientY<=r.bottom)target=c;
-    if(!before&&e.clientY<r.top+r.height/2)before=c;
+    if(e.clientY>=r.top&&e.clientY<=r.bottom){target=c;targetAfter=e.clientY>=r.top+r.height/2;break}
   }
   if(d.target!==target){d.target?.classList.remove('wishlist-drop-target');d.target=target;d.target?.classList.add('wishlist-drop-target')}
-  const grid=$('#wishlistGrid');if(before)grid.insertBefore(d.placeholder,before);else grid.appendChild(d.placeholder);
+  d.targetAfter=targetAfter;
+  const grid=$('#wishlistGrid');
+  if(target){
+    d.placeholder.hidden=false;
+    if(targetAfter)target.after(d.placeholder);else grid.insertBefore(d.placeholder,target);
+  }else{
+    d.placeholder.remove();d.placeholder.hidden=true;
+  }
   const edge=72;if(e.clientY<edge)window.scrollBy(0,-8);else if(e.clientY>window.innerHeight-edge)window.scrollBy(0,8);
 }
 async function finishWishlistDrag(e,canceled=false){
@@ -1122,20 +1132,24 @@ async function finishWishlistDrag(e,canceled=false){
   clearTimeout(d.timer);
   if(d.active){
     if(e.cancelable)e.preventDefault();
-    if(!canceled){
-      // The source row remains in the DOM while its placeholder moves. Exclude the source
-      // and let the placeholder represent it exactly once so a drag can never duplicate an ID.
-      const rawIds=[...$('#wishlistGrid').children].filter(el=>el!==d.card).map(el=>el===d.placeholder?d.id:el.dataset?.id).filter(Boolean);
-      const ids=[...new Set(rawIds)];
-      ensureSettings();const activeIds=new Set(orderedActiveWishlist().map(w=>w.id));
-      const inactive=state.settings.wishlistOrder.filter(id=>!activeIds.has(id));
-      state.settings.wishlistOrder=[...ids,...inactive.filter(id=>!ids.includes(id))];
-      await saveState();
-      wishlistDragCleanup();
-      renderWishlist();toast('Wishlist order saved');
-      return;
+    if(!canceled&&d.target){
+      const ids=d.originalOrder.filter(id=>id!==d.id);
+      const targetIndex=ids.indexOf(d.target.dataset.id);
+      if(targetIndex>=0)ids.splice(targetIndex+(d.targetAfter?1:0),0,d.id);
+      const changed=ids.length===d.originalOrder.length&&ids.some((id,i)=>id!==d.originalOrder[i]);
+      if(changed){
+        ensureSettings();const activeIds=new Set(d.originalOrder);
+        const inactive=state.settings.wishlistOrder.filter(id=>!activeIds.has(id));
+        state.settings.wishlistOrder=[...ids,...inactive.filter(id=>!ids.includes(id))];
+        await saveState();
+        wishlistDragCleanup();
+        renderWishlist();toast('Wishlist order saved');
+        return;
+      }
     }
   }
+  // Dropping outside another row, canceling, or choosing the same slot restores the
+  // original queue exactly as it was; nothing is persisted and no row appears deleted.
   wishlistDragCleanup();
 }
 function bindWishlistReorder(){

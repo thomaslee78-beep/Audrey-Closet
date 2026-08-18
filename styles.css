@@ -1630,3 +1630,26 @@ body.wishlist-reordering .wish-card{touch-action:none}
   .wishlist-drag-ghost .wish-photo{width:40px!important;height:40px!important}
   .wishlist-drag-ghost .wish-side{min-width:32px!important;width:32px!important}
 }
+
+/* v13.15-dev5.4.1 — keep the Wishlist source row anchored until a real drop target is chosen */
+.wishlist-reorder-mode .wishlist-drag-source{
+  min-height:62px!important;
+  height:auto!important;
+  padding:7px 10px!important;
+  margin:0!important;
+  border-top:1px solid var(--line)!important;
+  border-bottom:1px solid var(--line)!important;
+  overflow:visible!important;
+  opacity:.38!important;
+  background:rgba(255,250,240,.58)!important;
+}
+.wishlist-reorder-mode .wishlist-drop-placeholder[hidden]{display:none!important}
+.wishlist-reorder-mode .wishlist-drop-placeholder{
+  display:block;
+  min-height:7px!important;
+  height:7px!important;
+  margin:0!important;
+  border-top:2px solid var(--turq)!important;
+  border-bottom:0!important;
+  background:transparent!important;
+}
