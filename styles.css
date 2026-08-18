@@ -1394,7 +1394,7 @@ body.portfolio-modal-open{position:fixed;left:0;right:0;width:100%;overflow:hidd
   #wishDialog .wish-rating-toast{top:8px;max-width:calc(100% - 76px);font-size:11.5px}
 }
 
-/* v13.15-dev5 — Wishlist ranking, Top 10, reorder, and larger desire controls */
+/* v13.15-dev5.1 — Wishlist ranking, Top 10, reorder, and larger desire controls */
 .wishlist-view-tabs{display:flex;gap:6px;margin:-3px 0 9px}
 .wishlist-view-tabs button{border:1px solid var(--line);background:#f8f2e4;color:var(--coffee);border-radius:15px;padding:7px 12px;font:inherit;font-size:12px;font-weight:700}
 .wishlist-view-tabs button.active{background:var(--coffee);border-color:var(--coffee);color:#fff}
@@ -1421,3 +1421,47 @@ body.wishlist-reordering .wish-card{touch-action:none}
   .wishlist-top10-view .wish-side{min-width:62px;padding-right:2px!important}
   .wish-reorder-handle{width:29px}
 }
+
+
+/* v13.15-dev5.1 — deliberate Wishlist reorder mode */
+.wishlist-list-toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:-3px 0 9px}
+.wishlist-list-toolbar .wishlist-view-tabs{margin:0;min-width:0}
+.wishlist-reorder-toggle{border:1px solid rgba(108,81,66,.24);background:transparent;color:var(--coffee);border-radius:15px;padding:7px 11px;font:inherit;font-size:12px;font-weight:750;white-space:nowrap}
+.wishlist-reorder-toggle.active{background:var(--coffee);border-color:var(--coffee);color:#fff}
+.wishlist-view-tabs button:disabled{opacity:.38}
+/* Browsing stays clean. The grip only exists after the user explicitly enters Reorder. */
+.wishlist-grid:not(.wishlist-reorder-mode) .wish-reorder-handle{display:none!important}
+.wishlist-reorder-mode .wish-card{cursor:default;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.wishlist-reorder-mode .wish-body .wish-type,
+.wishlist-reorder-mode .wish-body>p:not(.wish-type),
+.wishlist-reorder-mode .wish-store{display:none!important}
+.wishlist-reorder-mode .wish-side>.wish-desire,
+.wishlist-reorder-mode .wish-side>.price,
+.wishlist-reorder-mode .wish-side>.wish-link-mark,
+.wishlist-reorder-mode .wish-side>.wish-chevron{display:none!important}
+.wishlist-reorder-mode .wish-side{min-width:38px!important;padding-right:34px!important}
+.wishlist-reorder-mode .wish-card{min-height:66px;padding-top:8px;padding-bottom:8px}
+.wishlist-reorder-mode .wish-body{align-self:center}
+.wishlist-reorder-mode .wish-title-line{align-items:center;gap:7px}
+.wish-reorder-desire{font-size:10.5px;line-height:1;color:var(--burgundy);font-weight:800;white-space:nowrap;opacity:.78}
+/* Subtle unboxed grip: small visible marks, generous invisible touch target. */
+.wishlist-reorder-mode .wish-reorder-handle{display:flex;right:0;width:34px;height:46px;padding:12px 8px;background:transparent!important;border:0!important;box-shadow:none!important;opacity:.72}
+.wishlist-reorder-mode .wish-reorder-handle span{width:15px;height:1.5px;background:#8b8175;border-radius:3px}
+.wishlist-reorder-mode .wish-reorder-handle:active{opacity:1;transform:translateY(-50%) scale(1.04)}
+.wishlist-reorder-mode .wish-photo{width:52px;height:52px}
+.wishlist-reorder-mode .wishlist-drop-placeholder{min-height:66px;border-top:2px solid var(--turq);background:rgba(77,142,138,.04)}
+.wishlist-drag-ghost .wish-side>.wish-desire,
+.wishlist-drag-ghost .wish-side>.price,
+.wishlist-drag-ghost .wish-side>.wish-link-mark,
+.wishlist-drag-ghost .wish-side>.wish-chevron{display:none!important}
+.wishlist-drag-ghost .wish-body .wish-type,
+.wishlist-drag-ghost .wish-body>p{display:none!important}
+@media(max-width:410px){
+  .wishlist-list-toolbar{gap:7px}
+  .wishlist-reorder-toggle{padding:7px 9px;font-size:11.5px}
+  .wishlist-reorder-mode .wish-card{min-height:62px}
+  .wishlist-reorder-mode .wish-photo{width:48px;height:48px}
+}
+
+/* Keep only one insertion-sized gap while the dragged source is represented by its placeholder. */
+.wishlist-reorder-mode .wishlist-drag-source{min-height:0!important;height:0!important;padding-top:0!important;padding-bottom:0!important;margin:0!important;border:0!important;overflow:hidden!important;opacity:0!important}

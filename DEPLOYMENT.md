@@ -317,5 +317,12 @@ Wishlist Review/Edit detail refinement. Service-worker cache: `audrey-closet-v13
 Wishlist Review mode now uses a Closet-style header with a small Wish List kicker, the saved item name, and Smart Scan/photo tools grouped beside the close control. The item name remains editable only after entering Edit mode. Service-worker cache: `audrey-closet-v13.15-dev3.3`.
 
 
-## v13.15-dev5 — Wishlist desire feedback polish
-The selected Wishlist desire heart now receives a gold outline around the heart glyph itself instead of a rectangular button border. The same heart markup is used in Review and Edit modes so the current selection stays visible in both contexts. Rating feedback is now rendered inside the Wishlist modal at the top of the card, avoiding the iOS top-layer issue that could hide the normal page toast behind an open dialog. The confirmation remains visible for about 3.2 seconds. Service-worker cache: `audrey-closet-v13.15-dev5`.
+## v13.15-dev5.1 — Wishlist desire feedback polish
+The selected Wishlist desire heart now receives a gold outline around the heart glyph itself instead of a rectangular button border. The same heart markup is used in Review and Edit modes so the current selection stays visible in both contexts. Rating feedback is now rendered inside the Wishlist modal at the top of the card, avoiding the iOS top-layer issue that could hide the normal page toast behind an open dialog. The confirmation remains visible for about 3.2 seconds. Service-worker cache: `audrey-closet-v13.15-dev5.1`.
+
+
+## v13.15-dev5.1
+- Fixes Wishlist reorder ordering so a dragged item ID can never be recorded twice.
+- Automatically normalizes previously saved Wishlist order preferences to unique valid IDs.
+- Adds an explicit Reorder / Done mode; drag handles are hidden during normal browsing.
+- Simplifies rows during reordering by hiding price, chevron, link, and full heart meter while keeping a small desire cue.

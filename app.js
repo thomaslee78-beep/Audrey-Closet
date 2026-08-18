@@ -163,6 +163,7 @@ let wishFitDrafts={};
 let wishStyleDrafts={};
 let wishAttributeContextKey='';
 let wishlistView='all';
+let wishlistReorderMode=false;
 let wishlistDrag={timer:null,pointerId:null,startY:0,active:false,card:null,id:null,ghost:null,placeholder:null};
 let suppressWishlistClickUntil=0;
 let studioTarget='item';
@@ -353,7 +354,8 @@ function ensureSettings(){
   state.settings.journalSectionOrder=[...savedJournalOrder.filter(x=>JOURNAL_SECTION_ORDER.includes(x)),...JOURNAL_SECTION_ORDER.filter(x=>!savedJournalOrder.includes(x))];
   const wishlistIds=(state.wishlist||[]).map(w=>w.id).filter(Boolean);
   const savedWishlistOrder=Array.isArray(state.settings.wishlistOrder)?state.settings.wishlistOrder:[];
-  state.settings.wishlistOrder=[...savedWishlistOrder.filter(id=>wishlistIds.includes(id)),...wishlistIds.filter(id=>!savedWishlistOrder.includes(id))];
+  const validWishlistIds=new Set(wishlistIds),seenWishlistOrder=new Set();
+  state.settings.wishlistOrder=[...savedWishlistOrder.filter(id=>validWishlistIds.has(id)&&!seenWishlistOrder.has(id)&&(seenWishlistOrder.add(id),true)),...wishlistIds.filter(id=>!seenWishlistOrder.has(id)&&(seenWishlistOrder.add(id),true))];
   state.settings.brandSuggestions=Array.isArray(state.settings.brandSuggestions)?state.settings.brandSuggestions:[];
   const brandMap=new Map();
   const rememberSeed=(name,count=1,lastUsed=0)=>{name=String(name||'').trim();if(!name)return;const key=name.toLocaleLowerCase();const prev=brandMap.get(key);if(!prev)brandMap.set(key,{name,count:Math.max(1,Number(count)||1),lastUsed:Number(lastUsed)||0});else{prev.count=Math.max(prev.count,Number(count)||1);prev.lastUsed=Math.max(prev.lastUsed,Number(lastUsed)||0)}};
@@ -476,6 +478,7 @@ function bindNav(){
   $('#addWishBtn').onclick=()=>openWish();
   $('#wishlistAllBtn').onclick=()=>setWishlistView('all');
   $('#wishlistTop10Btn').onclick=()=>setWishlistView('top10');
+  $('#wishlistReorderBtn').onclick=toggleWishlistReorderMode;
   $('#logWearBtn').onclick=()=>openWear();
 }
 function showScreen(name){$$('.screen').forEach(s=>s.classList.toggle('active',s.dataset.screen===name));$$('.bottom-nav button').forEach(b=>b.classList.toggle('active',b.dataset.nav===name));scrollTo({top:0,behavior:'smooth'});if(name==='journal')renderJournal();if(name==='outfits')renderOutfits();if(name==='portfolio')renderSavedOutfits();if(name==='more'){renderPortfolioFolderEditor();renderJournalOrderEditor()}}
@@ -1056,10 +1059,18 @@ function formatWishlistPrice(value,currency='USD'){
 }
 function wishlistListType(w){const type=displayItemType(w);if(type&&type!=='Other')return type;if(w.category)return w.category;return 'Wishlist item'}
 function setWishlistView(view){
+  if(wishlistReorderMode&&view==='top10')return;
   wishlistView=view==='top10'?'top10':'all';
   $('#wishlistAllBtn')?.classList.toggle('active',wishlistView==='all');
   $('#wishlistTop10Btn')?.classList.toggle('active',wishlistView==='top10');
   renderWishlist();
+}
+function toggleWishlistReorderMode(){
+  wishlistDragCleanup();
+  wishlistReorderMode=!wishlistReorderMode;
+  if(wishlistReorderMode)wishlistView='all';
+  renderWishlist();
+  if(wishlistReorderMode)toast('Drag items to rank your Wishlist');
 }
 function orderedActiveWishlist(){
   ensureSettings();
@@ -1074,7 +1085,7 @@ function wishlistDragCleanup(){
   wishlistDrag={timer:null,pointerId:null,startY:0,active:false,card:null,id:null,ghost:null,placeholder:null};
 }
 function beginWishlistDrag(card,e){
-  if(wishlistView!=='all')return;
+  if(!wishlistReorderMode||wishlistView!=='all')return;
   clearTimeout(wishlistDrag.timer);
   wishlistDrag={timer:null,pointerId:e.pointerId,startY:e.clientY,active:false,card,id:card.dataset.id,ghost:null,placeholder:null};
   wishlistDrag.timer=setTimeout(()=>{
@@ -1087,7 +1098,7 @@ function beginWishlistDrag(card,e){
     card.after(placeholder);card.classList.add('wishlist-drag-source');document.body.appendChild(ghost);
     wishlistDrag.ghost=ghost;wishlistDrag.placeholder=placeholder;
     if(card.setPointerCapture)try{card.setPointerCapture(e.pointerId)}catch{}
-  },140);
+  },120);
 }
 function moveWishlistDrag(e){
   const d=wishlistDrag;if(!d.card||d.pointerId!==e.pointerId)return;
@@ -1106,11 +1117,17 @@ async function finishWishlistDrag(e,canceled=false){
   if(d.active){
     if(e.cancelable)e.preventDefault();
     if(!canceled){
-      const ids=[...$('#wishlistGrid').children].map(el=>el===d.placeholder?d.id:el.dataset?.id).filter(Boolean);
+      // The source row remains in the DOM while its placeholder moves. Exclude the source
+      // and let the placeholder represent it exactly once so a drag can never duplicate an ID.
+      const rawIds=[...$('#wishlistGrid').children].filter(el=>el!==d.card).map(el=>el===d.placeholder?d.id:el.dataset?.id).filter(Boolean);
+      const ids=[...new Set(rawIds)];
       ensureSettings();const activeIds=new Set(orderedActiveWishlist().map(w=>w.id));
       const inactive=state.settings.wishlistOrder.filter(id=>!activeIds.has(id));
       state.settings.wishlistOrder=[...ids,...inactive.filter(id=>!ids.includes(id))];
-      await saveState();renderWishlist();toast('Wishlist order saved');
+      await saveState();
+      wishlistDragCleanup();
+      renderWishlist();toast('Wishlist order saved');
+      return;
     }
   }
   wishlistDragCleanup();
@@ -1131,16 +1148,20 @@ function renderWishlist(){
   $('#wishlistAllBtn')?.classList.toggle('active',wishlistView==='all');$('#wishlistTop10Btn')?.classList.toggle('active',wishlistView==='top10');
   $('#wishlistTop10Btn').textContent=`Top 10${ordered.length?` (${Math.min(10,ordered.length)})`:''}`;
   $('#wishlistGrid').classList.toggle('wishlist-top10-view',wishlistView==='top10');
+  $('#wishlistGrid').classList.toggle('wishlist-reorder-mode',wishlistReorderMode);
+  const reorderBtn=$('#wishlistReorderBtn');if(reorderBtn){reorderBtn.textContent=wishlistReorderMode?'Done':'Reorder';reorderBtn.classList.toggle('active',wishlistReorderMode);reorderBtn.setAttribute('aria-pressed',wishlistReorderMode?'true':'false')}
+  if($('#wishlistTop10Btn'))$('#wishlistTop10Btn').disabled=wishlistReorderMode;
   $('#wishlistGrid').innerHTML=visible.map((w,index)=>{
     const rawPrice=w.wishlistPrice??w.price??'',price=formatWishlistPrice(rawPrice,w.currency||'USD'),desire=wishlistDesireLabel(w.wishlistDesire),desireValue=Number(w.wishlistDesire),link=w.productUrl||w.link;
     const meta=[w.brand,w.color].filter(Boolean).join(' · ');
     const desireMark=desireValue>=1&&desireValue<=4?`<div class="wish-desire" title="${esc(desire)}" aria-label="Desire ${desireValue} of 4: ${esc(desire)}"><span aria-hidden="true">${'♥'.repeat(desireValue)}${'♡'.repeat(4-desireValue)}</span></div>`:'';
+    const reorderDesire=wishlistReorderMode&&desireValue>=1&&desireValue<=4?`<span class="wish-reorder-desire" aria-label="Desire ${desireValue} of 4">♥${desireValue}</span>`:'';
     const rank=wishlistView==='top10'?`<span class="wish-rank">#${index+1}</span>`:'';
-    const handle=wishlistView==='all'?`<button type="button" class="wish-reorder-handle" aria-label="Reorder ${esc(w.name||wishlistListType(w))}" title="Drag to reorder"><span></span><span></span><span></span></button>`:'';
-    return `<article class="wish-card" data-id="${esc(w.id)}" tabindex="0" role="button" aria-label="Open ${esc(w.name||wishlistListType(w))}"><div class="wish-photo">${w.photo?`<img src="${w.photo}" alt="" draggable="false">`:'♡'}</div><div class="wish-body"><div class="wish-title-line">${rank}<h4>${esc(w.name||wishlistListType(w))}</h4></div><p class="wish-type">${esc(wishlistListType(w))}</p>${meta?`<p>${esc(meta)}</p>`:''}${w.store?`<p class="wish-store">${esc(w.store)}</p>`:''}</div><div class="wish-side">${desireMark}${price?`<div class="price">${esc(price)}</div>`:''}${link?'<div class="wish-link-mark">link ↗</div>':''}<span class="wish-chevron" aria-hidden="true">›</span>${handle}</div></article>`
+    const handle=wishlistReorderMode?`<button type="button" class="wish-reorder-handle" aria-label="Reorder ${esc(w.name||wishlistListType(w))}" title="Drag to reorder"><span></span><span></span><span></span></button>`:'';
+    return `<article class="wish-card" data-id="${esc(w.id)}" tabindex="${wishlistReorderMode?'-1':'0'}" role="${wishlistReorderMode?'listitem':'button'}" aria-label="${wishlistReorderMode?'Reorder':'Open'} ${esc(w.name||wishlistListType(w))}"><div class="wish-photo">${w.photo?`<img src="${w.photo}" alt="" draggable="false">`:'♡'}</div><div class="wish-body"><div class="wish-title-line">${rank}<h4>${esc(w.name||wishlistListType(w))}</h4>${reorderDesire}</div><p class="wish-type">${esc(wishlistListType(w))}</p>${meta?`<p>${esc(meta)}</p>`:''}${w.store?`<p class="wish-store">${esc(w.store)}</p>`:''}</div><div class="wish-side">${desireMark}${price?`<div class="price">${esc(price)}</div>`:''}${link?'<div class="wish-link-mark">link ↗</div>':''}<span class="wish-chevron" aria-hidden="true">›</span>${handle}</div></article>`
   }).join('');
   $('#wishlistEmpty').classList.toggle('hidden',ordered.length>0);
-  $$('.wish-card').forEach(c=>{const open=()=>{if(Date.now()<suppressWishlistClickUntil)return;openWish(state.wishlist.find(w=>w.id===c.dataset.id))};c.onclick=e=>{if(e.target.closest('.wish-reorder-handle'))return;open()};c.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();open()}}});
+  $$('.wish-card').forEach(c=>{const open=()=>{if(wishlistReorderMode||Date.now()<suppressWishlistClickUntil)return;openWish(state.wishlist.find(w=>w.id===c.dataset.id))};c.onclick=e=>{if(wishlistReorderMode||e.target.closest('.wish-reorder-handle'))return;open()};c.onkeydown=e=>{if(!wishlistReorderMode&&(e.key==='Enter'||e.key===' ')){e.preventDefault();open()}}});
   bindWishlistReorder();
 }
 
