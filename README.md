@@ -420,3 +420,7 @@ The selected Wishlist desire heart now receives a gold outline around the heart 
 - Automatically normalizes previously saved Wishlist order preferences to unique valid IDs.
 - Adds an explicit Reorder / Done mode; drag handles are hidden during normal browsing.
 - Simplifies rows during reordering by hiding price, chevron, link, and full heart meter while keeping a small desire cue.
+
+
+## v13.15-dev5.2 — Wishlist row hierarchy polish
+Wishlist list rows now place the 1–4 heart desire meter on the left above the item title, while price is larger and anchored with navigation on the right. Reorder mode preserves the same heart placement and keeps the garment title beside the thumbnail, hiding price/link/chevron so the right edge contains only the subtle three-line drag grip. Service-worker cache: `audrey-closet-v13.15-dev5.2`.

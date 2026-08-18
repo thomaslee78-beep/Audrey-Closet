@@ -1465,3 +1465,34 @@ body.wishlist-reordering .wish-card{touch-action:none}
 
 /* Keep only one insertion-sized gap while the dragged source is represented by its placeholder. */
 .wishlist-reorder-mode .wishlist-drag-source{min-height:0!important;height:0!important;padding-top:0!important;padding-bottom:0!important;margin:0!important;border:0!important;overflow:hidden!important;opacity:0!important}
+
+
+/* v13.15-dev5.2 — Wishlist row hierarchy polish */
+/* Browse mode: desire belongs with the garment on the left; price and navigation stay anchored right. */
+.wish-body{min-width:0;align-self:center}
+.wish-body>.wish-desire{display:flex;align-items:center;justify-content:flex-start;margin:0 0 4px;color:var(--burgundy);font-size:13px;line-height:1;letter-spacing:.015em}
+.wish-body>.wish-desire span{font-size:14px;line-height:1}
+.wish-side{min-width:78px!important;padding:3px 0 3px 8px!important;align-items:flex-end!important;justify-content:center!important;gap:5px}
+.wish-side .price{font-size:17px!important;line-height:1.05;font-weight:850!important;text-align:right}
+.wish-side .wish-link-mark{text-align:right}
+.wish-side .wish-chevron{align-self:flex-end;margin-top:2px!important;margin-right:1px}
+/* Reorder mode keeps the same rating placement so priority remains easy to compare. */
+.wishlist-reorder-mode .wish-body>.wish-desire{display:flex!important;margin-bottom:4px;font-size:12px;opacity:.9}
+.wishlist-reorder-mode .wish-body>.wish-desire span{font-size:13px}
+.wishlist-reorder-mode .wish-body{align-self:center;text-align:left;padding-right:3px}
+.wishlist-reorder-mode .wish-title-line{justify-content:flex-start;align-items:center}
+.wishlist-reorder-mode .wish-side{min-width:38px!important;padding:0 34px 0 0!important}
+.wishlist-reorder-mode .wish-side>.price,
+.wishlist-reorder-mode .wish-side>.wish-link-mark,
+.wishlist-reorder-mode .wish-side>.wish-chevron{display:none!important}
+.wishlist-drag-ghost .wish-body>.wish-desire{display:flex!important;margin-bottom:4px}
+.wishlist-drag-ghost .wish-side>.price,
+.wishlist-drag-ghost .wish-side>.wish-link-mark,
+.wishlist-drag-ghost .wish-side>.wish-chevron{display:none!important}
+@media(max-width:410px){
+  .wish-body>.wish-desire{font-size:12.5px;margin-bottom:3px}
+  .wish-body>.wish-desire span{font-size:13.5px}
+  .wish-side{min-width:72px!important;padding-left:6px!important}
+  .wish-side .price{font-size:16px!important}
+  .wishlist-reorder-mode .wish-side{min-width:36px!important;padding-right:32px!important;padding-left:0!important}
+}
