@@ -164,7 +164,7 @@ let wishStyleDrafts={};
 let wishAttributeContextKey='';
 let wishlistView='all';
 let wishlistReorderMode=false;
-let wishlistDrag={timer:null,pointerId:null,startY:0,active:false,card:null,id:null,ghost:null,placeholder:null};
+let wishlistDrag={timer:null,pointerId:null,startY:0,active:false,card:null,id:null,ghost:null,placeholder:null,target:null};
 let suppressWishlistClickUntil=0;
 let studioTarget='item';
 let smartScanTarget='item';
@@ -1079,21 +1079,22 @@ function orderedActiveWishlist(){
 }
 function wishlistDragCleanup(){
   clearTimeout(wishlistDrag.timer);
+  wishlistDrag.target?.classList.remove('wishlist-drop-target');
   wishlistDrag.ghost?.remove();wishlistDrag.placeholder?.remove();
   wishlistDrag.card?.classList.remove('wishlist-drag-source');
   document.body.classList.remove('wishlist-reordering');
-  wishlistDrag={timer:null,pointerId:null,startY:0,active:false,card:null,id:null,ghost:null,placeholder:null};
+  wishlistDrag={timer:null,pointerId:null,startY:0,active:false,card:null,id:null,ghost:null,placeholder:null,target:null};
 }
 function beginWishlistDrag(card,e){
   if(!wishlistReorderMode||wishlistView!=='all')return;
   clearTimeout(wishlistDrag.timer);
-  wishlistDrag={timer:null,pointerId:e.pointerId,startY:e.clientY,active:false,card,id:card.dataset.id,ghost:null,placeholder:null};
+  wishlistDrag={timer:null,pointerId:e.pointerId,startY:e.clientY,active:false,card,id:card.dataset.id,ghost:null,placeholder:null,target:null};
   wishlistDrag.timer=setTimeout(()=>{
     if(!wishlistDrag.card)return;
     wishlistDrag.active=true;suppressWishlistClickUntil=Date.now()+650;document.body.classList.add('wishlist-reordering');
     const r=card.getBoundingClientRect(),ghost=card.cloneNode(true),placeholder=document.createElement('div');
     ghost.classList.add('wishlist-drag-ghost');ghost.querySelector('.wish-reorder-handle')?.remove();
-    Object.assign(ghost.style,{left:r.left+'px',top:r.top+'px',width:r.width+'px',height:r.height+'px'});
+    Object.assign(ghost.style,{left:(r.left+2)+'px',top:r.top+'px',width:Math.max(1,r.width-4)+'px',height:r.height+'px'});
     placeholder.className='wishlist-drop-placeholder';placeholder.style.height=r.height+'px';
     card.after(placeholder);card.classList.add('wishlist-drag-source');document.body.appendChild(ghost);
     wishlistDrag.ghost=ghost;wishlistDrag.placeholder=placeholder;
@@ -1106,8 +1107,13 @@ function moveWishlistDrag(e){
   if(e.cancelable)e.preventDefault();
   const g=d.ghost;if(g){const h=g.getBoundingClientRect().height;g.style.top=(e.clientY-h*.5)+'px'}
   const cards=[...$('#wishlistGrid').querySelectorAll('.wish-card:not(.wishlist-drag-source)')];
-  let before=null;
-  for(const c of cards){const r=c.getBoundingClientRect();if(e.clientY<r.top+r.height/2){before=c;break}}
+  let before=null,target=null;
+  for(const c of cards){
+    const r=c.getBoundingClientRect();
+    if(e.clientY>=r.top&&e.clientY<=r.bottom)target=c;
+    if(!before&&e.clientY<r.top+r.height/2)before=c;
+  }
+  if(d.target!==target){d.target?.classList.remove('wishlist-drop-target');d.target=target;d.target?.classList.add('wishlist-drop-target')}
   const grid=$('#wishlistGrid');if(before)grid.insertBefore(d.placeholder,before);else grid.appendChild(d.placeholder);
   const edge=72;if(e.clientY<edge)window.scrollBy(0,-8);else if(e.clientY>window.innerHeight-edge)window.scrollBy(0,8);
 }
