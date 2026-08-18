@@ -162,6 +162,9 @@ let wishDialogMode='create';
 let wishFitDrafts={};
 let wishStyleDrafts={};
 let wishAttributeContextKey='';
+let wishlistView='all';
+let wishlistDrag={timer:null,pointerId:null,startY:0,active:false,card:null,id:null,ghost:null,placeholder:null};
+let suppressWishlistClickUntil=0;
 let studioTarget='item';
 let smartScanTarget='item';
 
@@ -348,6 +351,9 @@ function ensureSettings(){
   state.settings.portfolioOrder=state.settings.portfolioOrder&&typeof state.settings.portfolioOrder==='object'?state.settings.portfolioOrder:{};
   const savedJournalOrder=Array.isArray(state.settings.journalSectionOrder)?state.settings.journalSectionOrder:[];
   state.settings.journalSectionOrder=[...savedJournalOrder.filter(x=>JOURNAL_SECTION_ORDER.includes(x)),...JOURNAL_SECTION_ORDER.filter(x=>!savedJournalOrder.includes(x))];
+  const wishlistIds=(state.wishlist||[]).map(w=>w.id).filter(Boolean);
+  const savedWishlistOrder=Array.isArray(state.settings.wishlistOrder)?state.settings.wishlistOrder:[];
+  state.settings.wishlistOrder=[...savedWishlistOrder.filter(id=>wishlistIds.includes(id)),...wishlistIds.filter(id=>!savedWishlistOrder.includes(id))];
   state.settings.brandSuggestions=Array.isArray(state.settings.brandSuggestions)?state.settings.brandSuggestions:[];
   const brandMap=new Map();
   const rememberSeed=(name,count=1,lastUsed=0)=>{name=String(name||'').trim();if(!name)return;const key=name.toLocaleLowerCase();const prev=brandMap.get(key);if(!prev)brandMap.set(key,{name,count:Math.max(1,Number(count)||1),lastUsed:Number(lastUsed)||0});else{prev.count=Math.max(prev.count,Number(count)||1);prev.lastUsed=Math.max(prev.lastUsed,Number(lastUsed)||0)}};
@@ -468,6 +474,8 @@ function bindNav(){
   $$('.bottom-nav button').forEach(b=>b.onclick=()=>showScreen(b.dataset.nav));
   ['addItemBtn','emptyAddBtn','quickAddBtn'].forEach(x=>$('#'+x).onclick=()=>openItem(null, selectedCategory||$('#filterCategory').value||''));
   $('#addWishBtn').onclick=()=>openWish();
+  $('#wishlistAllBtn').onclick=()=>setWishlistView('all');
+  $('#wishlistTop10Btn').onclick=()=>setWishlistView('top10');
   $('#logWearBtn').onclick=()=>openWear();
 }
 function showScreen(name){$$('.screen').forEach(s=>s.classList.toggle('active',s.dataset.screen===name));$$('.bottom-nav button').forEach(b=>b.classList.toggle('active',b.dataset.nav===name));scrollTo({top:0,behavior:'smooth'});if(name==='journal')renderJournal();if(name==='outfits')renderOutfits();if(name==='portfolio')renderSavedOutfits();if(name==='more'){renderPortfolioFolderEditor();renderJournalOrderEditor()}}
@@ -1036,10 +1044,10 @@ async function saveWish(){
   const wishlistPrice=$('#wishPrice').value.trim(),productUrl=$('#wishLink').value.trim();
   const obj=normalizeWishlistItem({...(old||{}),id:wid||id(),photo:wishWorkingPhoto,originalPhoto:wishOriginalPhoto||wishWorkingPhoto,photoStudioState:wishStudioState,name:$('#wishName').value.trim(),brand:$('#wishBrand').value.trim(),category,categoryId:categoryIdFor(category),type,size:$('#wishSize').value,sizeVariant:cleanedItemFit(category,$('#wishFit').value),style:cleanedItemStyle(category,type,$('#wishStyle').value),color:$('#wishColor').value,pattern:$('#wishPattern').value,season:$('#wishSeason').value,wishlistPrice,price:wishlistPrice,currency:$('#wishCurrency').value||'USD',store:$('#wishStore').value.trim(),productUrl,link:productUrl,notes:$('#wishNotes').value.trim(),wishlistDesire:wishDesireDraft,lifecycle:'wishlist',wishlistStatus:old?.wishlistStatus||'active',inputSource:old?.inputSource||'manual',createdAt:old?.createdAt||old?.created||now,created:old?.createdAt||old?.created||now,updatedAt:now});
   const desireChanged=Number(old?.wishlistDesire||0)!==Number(obj.wishlistDesire||0);
-  if(wid)state.wishlist=state.wishlist.map(x=>x.id===wid?obj:x);else state.wishlist.unshift(obj);await saveState();renderWishlist();
+  if(wid)state.wishlist=state.wishlist.map(x=>x.id===wid?obj:x);else{state.wishlist.unshift(obj);ensureSettings();state.settings.wishlistOrder=[obj.id,...state.settings.wishlistOrder.filter(id=>id!==obj.id)]}await saveState();renderWishlist();
   if(wid){openWish(obj,'review');if(desireChanged&&obj.wishlistDesire)showWishRatingToast(`Rating — ${wishlistDesireLabel(obj.wishlistDesire)}`,3200);else toast('Wishlist updated')}else{$('#wishDialog').close();toast(desireChanged&&obj.wishlistDesire?`Rating — ${wishlistDesireLabel(obj.wishlistDesire)}`:'Wishlist saved',desireChanged&&obj.wishlistDesire?3200:1800)}
 }
-function deleteWish(){const wid=$('#wishId').value;if(!confirm('Remove this wishlist item?'))return;state.wishlist=state.wishlist.filter(x=>x.id!==wid);saveState();$('#wishDialog').close();renderWishlist();toast('Removed from Wishlist')}
+function deleteWish(){const wid=$('#wishId').value;if(!confirm('Remove this wishlist item?'))return;state.wishlist=state.wishlist.filter(x=>x.id!==wid);ensureSettings();state.settings.wishlistOrder=state.settings.wishlistOrder.filter(id=>id!==wid);saveState();$('#wishDialog').close();renderWishlist();toast('Removed from Wishlist')}
 function formatWishlistPrice(value,currency='USD'){
   if(value===undefined||value===null||String(value).trim()==='')return '';
   const raw=String(value).trim(),numeric=Number(raw.replace(/[^0-9.-]/g,''));
@@ -1047,17 +1055,95 @@ function formatWishlistPrice(value,currency='USD'){
   try{return new Intl.NumberFormat(undefined,{style:'currency',currency:currency||'USD',minimumFractionDigits:Number.isInteger(numeric)?0:2,maximumFractionDigits:2}).format(numeric)}catch{return `${currency==='USD'?'$':''}${numeric.toLocaleString(undefined,{maximumFractionDigits:2})}`}
 }
 function wishlistListType(w){const type=displayItemType(w);if(type&&type!=='Other')return type;if(w.category)return w.category;return 'Wishlist item'}
+function setWishlistView(view){
+  wishlistView=view==='top10'?'top10':'all';
+  $('#wishlistAllBtn')?.classList.toggle('active',wishlistView==='all');
+  $('#wishlistTop10Btn')?.classList.toggle('active',wishlistView==='top10');
+  renderWishlist();
+}
+function orderedActiveWishlist(){
+  ensureSettings();
+  const active=state.wishlist.filter(w=>(w.wishlistStatus||'active')==='active'),byId=new Map(active.map(w=>[w.id,w]));
+  return [...state.settings.wishlistOrder.filter(id=>byId.has(id)).map(id=>byId.get(id)),...active.filter(w=>!state.settings.wishlistOrder.includes(w.id))];
+}
+function wishlistDragCleanup(){
+  clearTimeout(wishlistDrag.timer);
+  wishlistDrag.ghost?.remove();wishlistDrag.placeholder?.remove();
+  wishlistDrag.card?.classList.remove('wishlist-drag-source');
+  document.body.classList.remove('wishlist-reordering');
+  wishlistDrag={timer:null,pointerId:null,startY:0,active:false,card:null,id:null,ghost:null,placeholder:null};
+}
+function beginWishlistDrag(card,e){
+  if(wishlistView!=='all')return;
+  clearTimeout(wishlistDrag.timer);
+  wishlistDrag={timer:null,pointerId:e.pointerId,startY:e.clientY,active:false,card,id:card.dataset.id,ghost:null,placeholder:null};
+  wishlistDrag.timer=setTimeout(()=>{
+    if(!wishlistDrag.card)return;
+    wishlistDrag.active=true;suppressWishlistClickUntil=Date.now()+650;document.body.classList.add('wishlist-reordering');
+    const r=card.getBoundingClientRect(),ghost=card.cloneNode(true),placeholder=document.createElement('div');
+    ghost.classList.add('wishlist-drag-ghost');ghost.querySelector('.wish-reorder-handle')?.remove();
+    Object.assign(ghost.style,{left:r.left+'px',top:r.top+'px',width:r.width+'px',height:r.height+'px'});
+    placeholder.className='wishlist-drop-placeholder';placeholder.style.height=r.height+'px';
+    card.after(placeholder);card.classList.add('wishlist-drag-source');document.body.appendChild(ghost);
+    wishlistDrag.ghost=ghost;wishlistDrag.placeholder=placeholder;
+    if(card.setPointerCapture)try{card.setPointerCapture(e.pointerId)}catch{}
+  },140);
+}
+function moveWishlistDrag(e){
+  const d=wishlistDrag;if(!d.card||d.pointerId!==e.pointerId)return;
+  if(!d.active){if(Math.abs(e.clientY-d.startY)>10)wishlistDragCleanup();return}
+  if(e.cancelable)e.preventDefault();
+  const g=d.ghost;if(g){const h=g.getBoundingClientRect().height;g.style.top=(e.clientY-h*.5)+'px'}
+  const cards=[...$('#wishlistGrid').querySelectorAll('.wish-card:not(.wishlist-drag-source)')];
+  let before=null;
+  for(const c of cards){const r=c.getBoundingClientRect();if(e.clientY<r.top+r.height/2){before=c;break}}
+  const grid=$('#wishlistGrid');if(before)grid.insertBefore(d.placeholder,before);else grid.appendChild(d.placeholder);
+  const edge=72;if(e.clientY<edge)window.scrollBy(0,-8);else if(e.clientY>window.innerHeight-edge)window.scrollBy(0,8);
+}
+async function finishWishlistDrag(e,canceled=false){
+  const d=wishlistDrag;if(!d.card||d.pointerId!==e.pointerId)return;
+  clearTimeout(d.timer);
+  if(d.active){
+    if(e.cancelable)e.preventDefault();
+    if(!canceled){
+      const ids=[...$('#wishlistGrid').children].map(el=>el===d.placeholder?d.id:el.dataset?.id).filter(Boolean);
+      ensureSettings();const activeIds=new Set(orderedActiveWishlist().map(w=>w.id));
+      const inactive=state.settings.wishlistOrder.filter(id=>!activeIds.has(id));
+      state.settings.wishlistOrder=[...ids,...inactive.filter(id=>!ids.includes(id))];
+      await saveState();renderWishlist();toast('Wishlist order saved');
+    }
+  }
+  wishlistDragCleanup();
+}
+function bindWishlistReorder(){
+  $$('.wish-reorder-handle').forEach(handle=>{
+    const card=handle.closest('.wish-card');
+    handle.onpointerdown=e=>{e.preventDefault();e.stopPropagation();beginWishlistDrag(card,e)};
+  });
+  $$('.wish-card').forEach(card=>{
+    card.onpointermove=moveWishlistDrag;
+    card.onpointerup=e=>finishWishlistDrag(e,false);
+    card.onpointercancel=e=>finishWishlistDrag(e,true);
+  });
+}
 function renderWishlist(){
-  $('#wishlistGrid').innerHTML=state.wishlist.filter(w=>(w.wishlistStatus||'active')==='active').map(w=>{
+  const ordered=orderedActiveWishlist(),visible=wishlistView==='top10'?ordered.slice(0,10):ordered;
+  $('#wishlistAllBtn')?.classList.toggle('active',wishlistView==='all');$('#wishlistTop10Btn')?.classList.toggle('active',wishlistView==='top10');
+  $('#wishlistTop10Btn').textContent=`Top 10${ordered.length?` (${Math.min(10,ordered.length)})`:''}`;
+  $('#wishlistGrid').classList.toggle('wishlist-top10-view',wishlistView==='top10');
+  $('#wishlistGrid').innerHTML=visible.map((w,index)=>{
     const rawPrice=w.wishlistPrice??w.price??'',price=formatWishlistPrice(rawPrice,w.currency||'USD'),desire=wishlistDesireLabel(w.wishlistDesire),desireValue=Number(w.wishlistDesire),link=w.productUrl||w.link;
     const meta=[w.brand,w.color].filter(Boolean).join(' · ');
     const desireMark=desireValue>=1&&desireValue<=4?`<div class="wish-desire" title="${esc(desire)}" aria-label="Desire ${desireValue} of 4: ${esc(desire)}"><span aria-hidden="true">${'♥'.repeat(desireValue)}${'♡'.repeat(4-desireValue)}</span></div>`:'';
-    return `<article class="wish-card" data-id="${esc(w.id)}" tabindex="0" role="button" aria-label="Open ${esc(w.name||wishlistListType(w))}"><div class="wish-photo">${w.photo?`<img src="${w.photo}" alt="" draggable="false">`:'♡'}</div><div class="wish-body"><h4>${esc(w.name||wishlistListType(w))}</h4><p class="wish-type">${esc(wishlistListType(w))}</p>${meta?`<p>${esc(meta)}</p>`:''}${w.store?`<p class="wish-store">${esc(w.store)}</p>`:''}</div><div class="wish-side">${desireMark}${price?`<div class="price">${esc(price)}</div>`:''}${link?'<div class="wish-link-mark">link ↗</div>':''}<span class="wish-chevron" aria-hidden="true">›</span></div></article>`
+    const rank=wishlistView==='top10'?`<span class="wish-rank">#${index+1}</span>`:'';
+    const handle=wishlistView==='all'?`<button type="button" class="wish-reorder-handle" aria-label="Reorder ${esc(w.name||wishlistListType(w))}" title="Drag to reorder"><span></span><span></span><span></span></button>`:'';
+    return `<article class="wish-card" data-id="${esc(w.id)}" tabindex="0" role="button" aria-label="Open ${esc(w.name||wishlistListType(w))}"><div class="wish-photo">${w.photo?`<img src="${w.photo}" alt="" draggable="false">`:'♡'}</div><div class="wish-body"><div class="wish-title-line">${rank}<h4>${esc(w.name||wishlistListType(w))}</h4></div><p class="wish-type">${esc(wishlistListType(w))}</p>${meta?`<p>${esc(meta)}</p>`:''}${w.store?`<p class="wish-store">${esc(w.store)}</p>`:''}</div><div class="wish-side">${desireMark}${price?`<div class="price">${esc(price)}</div>`:''}${link?'<div class="wish-link-mark">link ↗</div>':''}<span class="wish-chevron" aria-hidden="true">›</span>${handle}</div></article>`
   }).join('');
-  const activeCount=state.wishlist.filter(w=>(w.wishlistStatus||'active')==='active').length;
-  $('#wishlistEmpty').classList.toggle('hidden',activeCount>0);
-  $$('.wish-card').forEach(c=>{const open=()=>openWish(state.wishlist.find(w=>w.id===c.dataset.id));c.onclick=open;c.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();open()}}})
+  $('#wishlistEmpty').classList.toggle('hidden',ordered.length>0);
+  $$('.wish-card').forEach(c=>{const open=()=>{if(Date.now()<suppressWishlistClickUntil)return;openWish(state.wishlist.find(w=>w.id===c.dataset.id))};c.onclick=e=>{if(e.target.closest('.wish-reorder-handle'))return;open()};c.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();open()}}});
+  bindWishlistReorder();
 }
+
 
 function bindBoard(){
   $('#newBoardBtn').onclick=startNewOutfit;

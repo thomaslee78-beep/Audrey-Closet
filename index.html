@@ -187,6 +187,10 @@
 
     <section class="screen" data-screen="wishlist">
       <div class="page-head"><div><p class="script">maybe someday…</p><h2>Wishlist</h2></div><button class="primary" id="addWishBtn">Add wish</button></div>
+      <div class="wishlist-view-tabs" role="group" aria-label="Wishlist view">
+        <button type="button" class="active" id="wishlistAllBtn" data-wishlist-view="all">All</button>
+        <button type="button" id="wishlistTop10Btn" data-wishlist-view="top10">Top 10</button>
+      </div>
       <div class="wishlist-grid" id="wishlistGrid"></div>
       <div class="empty-state compact" id="wishlistEmpty"><h3>Save future finds</h3><p>Add a photo, link, price and brand. Wishlist pieces can be tried on your Outfit Board.</p></div>
     </section>

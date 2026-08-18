@@ -1393,3 +1393,31 @@ body.portfolio-modal-open{position:fixed;left:0;right:0;width:100%;overflow:hidd
 @media(max-width:410px){
   #wishDialog .wish-rating-toast{top:8px;max-width:calc(100% - 76px);font-size:11.5px}
 }
+
+/* v13.15-dev5 — Wishlist ranking, Top 10, reorder, and larger desire controls */
+.wishlist-view-tabs{display:flex;gap:6px;margin:-3px 0 9px}
+.wishlist-view-tabs button{border:1px solid var(--line);background:#f8f2e4;color:var(--coffee);border-radius:15px;padding:7px 12px;font:inherit;font-size:12px;font-weight:700}
+.wishlist-view-tabs button.active{background:var(--coffee);border-color:var(--coffee);color:#fff}
+.wish-title-line{display:flex;align-items:baseline;gap:6px;min-width:0}
+.wish-title-line h4{min-width:0;flex:1}
+.wish-rank{font-size:10px;font-weight:850;color:var(--burgundy);flex:none}
+.wish-side{position:relative;padding-right:34px!important;min-width:104px}
+.wish-reorder-handle{position:absolute;right:2px;top:50%;transform:translateY(-50%);width:30px;height:42px;border:0;background:transparent;border-radius:10px;padding:10px 6px;display:flex;flex-direction:column;justify-content:center;gap:4px;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;cursor:grab}
+.wish-reorder-handle span{display:block;width:17px;height:2px;border-radius:2px;background:#8e8172;margin:0 auto}
+.wish-reorder-handle:active{background:rgba(108,81,66,.08);cursor:grabbing}
+.wishlist-top10-view .wish-side{padding-right:4px!important;min-width:70px}
+.wishlist-drag-source{opacity:.22!important}
+.wishlist-drag-ghost{position:fixed!important;z-index:2500!important;margin:0!important;pointer-events:none!important;opacity:.97!important;background:#fffaf0!important;border-top:1px solid var(--line)!important;border-bottom:1px solid var(--line)!important;box-shadow:0 12px 28px rgba(48,39,29,.2)!important;transform:scale(1.012);border-radius:0!important}
+.wishlist-drop-placeholder{border-top:3px solid var(--turq);background:rgba(77,142,138,.055);min-height:48px}
+body.wishlist-reordering{cursor:grabbing;-webkit-user-select:none;user-select:none}
+body.wishlist-reordering .wish-card{touch-action:none}
+.wish-side .wish-desire{font-size:11.5px;line-height:1.05;letter-spacing:.01em}
+#wishDialog .wish-heart{width:34px;height:36px;font-size:25px}
+#wishDialog .wish-heart.selected{-webkit-text-stroke:1.85px #d2ad42;text-shadow:0 0 .01px #d2ad42}
+@media(max-width:410px){
+  #wishDialog .wish-desire-hearts{gap:2px}
+  #wishDialog .wish-heart{width:32px;height:35px;font-size:24px}
+  .wish-side{min-width:96px;padding-right:32px!important}
+  .wishlist-top10-view .wish-side{min-width:62px;padding-right:2px!important}
+  .wish-reorder-handle{width:29px}
+}
