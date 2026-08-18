@@ -424,3 +424,7 @@ The selected Wishlist desire heart now receives a gold outline around the heart 
 
 ## v13.15-dev5.2 — Wishlist row hierarchy polish
 Wishlist list rows now place the 1–4 heart desire meter on the left above the item title, while price is larger and anchored with navigation on the right. Reorder mode preserves the same heart placement and keeps the garment title beside the thumbnail, hiding price/link/chevron so the right edge contains only the subtle three-line drag grip. Service-worker cache: `audrey-closet-v13.15-dev5.2`.
+
+
+## v13.15-dev5.2.1 — Wishlist rating placement + reorder alignment
+Moves the desire hearts directly below the Wishlist item title. In Reorder mode, the grid column now shrinks with the smaller thumbnail so the title and rating remain tucked directly beside the photo instead of leaving an empty horizontal gap. Service-worker cache: `audrey-closet-v13.15-dev5.2.1`.

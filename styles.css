@@ -1496,3 +1496,16 @@ body.wishlist-reordering .wish-card{touch-action:none}
   .wish-side .price{font-size:16px!important}
   .wishlist-reorder-mode .wish-side{min-width:36px!important;padding-right:32px!important;padding-left:0!important}
 }
+
+
+/* v13.15-dev5.2.1 — Wishlist title/rating order + tighter reorder geometry */
+/* Keep desire directly beneath the item description/title in browse and reorder views. */
+.wish-body>.wish-desire{margin:3px 0 4px!important}
+/* When the thumbnail shrinks for ranking, shrink the grid column with it so text follows the photo left. */
+.wishlist-reorder-mode .wish-card{grid-template-columns:52px minmax(0,1fr) 38px!important;gap:8px!important}
+.wishlist-reorder-mode .wish-body{margin-left:0!important;padding-left:0!important}
+.wishlist-reorder-mode .wish-title-line{margin-left:0!important}
+.wishlist-reorder-mode .wish-body>.wish-desire{margin:3px 0 0!important}
+@media(max-width:410px){
+  .wishlist-reorder-mode .wish-card{grid-template-columns:48px minmax(0,1fr) 36px!important;gap:7px!important}
+}
