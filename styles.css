@@ -2018,3 +2018,13 @@ body.wishlist-reordering .wish-card{touch-action:none}
 @media(prefers-reduced-motion:reduce){
   .acquisition-moment-card,.acquisition-moment-heart{transition:none!important;transform:none!important;opacity:1!important}
 }
+
+
+/* v13.15-dev6.3 — Wishlist entry refinements */
+#wishEditFields .wish-link-field{grid-column:1/-1}
+#wishEditFields .brand-field-label{position:relative;overflow:visible}
+#wishBrandSuggestions,#wishStoreSuggestions{z-index:60}
+.wish-review-link-row{align-items:center}
+.wish-product-link{font:600 14px var(--sans);color:var(--burgundy);text-decoration:none;overflow-wrap:anywhere;text-align:right;max-width:72%}
+.wish-product-link:active,.wish-product-link:focus-visible{text-decoration:underline;outline:none}
+@media(max-width:410px){.wish-product-link{font-size:13px;max-width:68%}}

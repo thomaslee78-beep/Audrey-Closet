@@ -366,7 +366,14 @@ function ensureSettings(){
   const rememberSeed=(name,count=1,lastUsed=0)=>{name=String(name||'').trim();if(!name)return;const key=name.toLocaleLowerCase();const prev=brandMap.get(key);if(!prev)brandMap.set(key,{name,count:Math.max(1,Number(count)||1),lastUsed:Number(lastUsed)||0});else{prev.count=Math.max(prev.count,Number(count)||1);prev.lastUsed=Math.max(prev.lastUsed,Number(lastUsed)||0)}};
   state.settings.brandSuggestions.forEach(b=>typeof b==='string'?rememberSeed(b):rememberSeed(b?.name,b?.count,b?.lastUsed));
   (state.items||[]).forEach(i=>rememberSeed(i.brand,1,i.created||0));
+  (state.wishlist||[]).forEach(w=>rememberSeed(w.brand,1,w.updatedAt||w.createdAt||w.created||0));
   state.settings.brandSuggestions=[...brandMap.values()].sort((a,b)=>(b.lastUsed-a.lastUsed)||(b.count-a.count)||a.name.localeCompare(b.name)).slice(0,150);
+  state.settings.storeSuggestions=Array.isArray(state.settings.storeSuggestions)?state.settings.storeSuggestions:[];
+  const storeMap=new Map();
+  const rememberStoreSeed=(name,count=1,lastUsed=0)=>{name=String(name||'').trim();if(!name)return;const key=name.toLocaleLowerCase();const prev=storeMap.get(key);if(!prev)storeMap.set(key,{name,count:Math.max(1,Number(count)||1),lastUsed:Number(lastUsed)||0});else{prev.count=Math.max(prev.count,Number(count)||1);prev.lastUsed=Math.max(prev.lastUsed,Number(lastUsed)||0)}};
+  state.settings.storeSuggestions.forEach(x=>typeof x==='string'?rememberStoreSeed(x):rememberStoreSeed(x?.name,x?.count,x?.lastUsed));
+  (state.wishlist||[]).forEach(w=>rememberStoreSeed(w.store,1,w.updatedAt||w.createdAt||w.created||0));
+  state.settings.storeSuggestions=[...storeMap.values()].sort((a,b)=>(b.lastUsed-a.lastUsed)||(b.count-a.count)||a.name.localeCompare(b.name)).slice(0,150);
   const outfitIds=new Set((state.outfits||[]).map(o=>o.id).filter(Boolean));
   (state.outfits||[]).forEach(o=>{if(!o.id)o.id=id()});
   state.settings.portfolioFolders.forEach(folder=>{
@@ -517,6 +524,7 @@ function bindDialogs(){
   document.addEventListener('click',e=>{if(!e.target.closest('#reviewPhotoMenuWrap'))closeReviewPhotoMenu()});
   ['itemCategory','itemType','itemBrand','itemColor'].forEach(id=>$('#'+id).addEventListener('input',updateItemReviewSummary));
   bindBrandSuggestions();
+  bindWishlistEntrySuggestions();
   $('#deleteItemBtn').onclick=toggleItemArchived;
   $('#permanentDeleteItemBtn').onclick=permanentDeleteItem;
   bindItemSwipe();
@@ -724,6 +732,36 @@ function closeBrandSuggestions(){const box=$('#brandSuggestions');if(box){box.cl
 function bindBrandSuggestions(){
   const input=$('#itemBrand');if(!input||input.dataset.brandSuggestionsBound)return;input.dataset.brandSuggestionsBound='true';
   input.addEventListener('input',renderBrandSuggestions);input.addEventListener('focus',renderBrandSuggestions);input.addEventListener('keydown',e=>{if(e.key==='Escape')closeBrandSuggestions()});input.addEventListener('blur',()=>setTimeout(closeBrandSuggestions,120));
+}
+function rememberStoreSuggestion(name){
+  name=String(name||'').trim();if(!name)return;
+  ensureSettings();const key=normalizeBrandKey(name),now=Date.now();let found=state.settings.storeSuggestions.find(x=>normalizeBrandKey(typeof x==='string'?x:x?.name)===key);
+  if(typeof found==='string'){const idx=state.settings.storeSuggestions.indexOf(found);found={name:found,count:1,lastUsed:0};state.settings.storeSuggestions[idx]=found}
+  if(found){found.name=found.name||name;found.count=(Number(found.count)||0)+1;found.lastUsed=now}else state.settings.storeSuggestions.push({name,count:1,lastUsed:now});
+  state.settings.storeSuggestions.sort((a,b)=>(Number(b.lastUsed)||0)-(Number(a.lastUsed)||0)||(Number(b.count)||0)-(Number(a.count)||0)||String(a.name).localeCompare(String(b.name)));
+  state.settings.storeSuggestions=state.settings.storeSuggestions.slice(0,150)
+}
+function matchingStoreSuggestions(query=''){
+  ensureSettings();const q=normalizeBrandKey(query);if(!q)return[];
+  return state.settings.storeSuggestions.filter(x=>normalizeBrandKey(x?.name).startsWith(q)&&normalizeBrandKey(x?.name)!==q).sort((a,b)=>(Number(b.count)||0)-(Number(a.count)||0)||(Number(b.lastUsed)||0)-(Number(a.lastUsed)||0)).slice(0,5)
+}
+function renderEntrySuggestionBox(inputSelector,boxSelector,matches,dataKey){
+  const input=$(inputSelector),box=$(boxSelector);if(!input||!box)return;
+  box.innerHTML=matches.map(x=>`<button type="button" class="brand-suggestion" data-entry-value="${esc(x.name)}"><span>${esc(x.name)}</span></button>`).join('');box.classList.toggle('hidden',!matches.length);
+  $$(`${boxSelector} .brand-suggestion`).forEach(btn=>{btn.onpointerdown=e=>e.preventDefault();btn.onclick=()=>{input.value=btn.dataset.entryValue||'';box.classList.add('hidden');box.innerHTML='';input.focus()}})
+}
+function closeWishlistEntrySuggestions(){['#wishBrandSuggestions','#wishStoreSuggestions'].forEach(sel=>{const box=$(sel);if(box){box.classList.add('hidden');box.innerHTML=''}})}
+function bindWishlistEntrySuggestions(){
+  const brand=$('#wishBrand'),store=$('#wishStore');
+  if(brand&&!brand.dataset.entrySuggestionsBound){brand.dataset.entrySuggestionsBound='true';const render=()=>renderEntrySuggestionBox('#wishBrand','#wishBrandSuggestions',matchingBrandSuggestions(brand.value),'brand');brand.addEventListener('input',render);brand.addEventListener('focus',render);brand.addEventListener('keydown',e=>{if(e.key==='Escape')closeWishlistEntrySuggestions()});brand.addEventListener('blur',()=>setTimeout(closeWishlistEntrySuggestions,120))}
+  if(store&&!store.dataset.entrySuggestionsBound){store.dataset.entrySuggestionsBound='true';const render=()=>renderEntrySuggestionBox('#wishStore','#wishStoreSuggestions',matchingStoreSuggestions(store.value),'store');store.addEventListener('input',render);store.addEventListener('focus',render);store.addEventListener('keydown',e=>{if(e.key==='Escape')closeWishlistEntrySuggestions()});store.addEventListener('blur',()=>setTimeout(closeWishlistEntrySuggestions,120))}
+}
+function normalizedProductUrl(raw=''){
+  let value=String(raw||'').trim();if(!value)return'';if(!/^[a-z][a-z0-9+.-]*:/i.test(value))value='https://'+value;
+  try{const u=new URL(value);return (u.protocol==='http:'||u.protocol==='https:')?u.href:''}catch{return''}
+}
+function productUrlDisplay(raw=''){
+  const href=normalizedProductUrl(raw);if(!href)return'';try{return new URL(href).hostname.replace(/^www\./i,'')||'Open product link'}catch{return'Open product link'}
 }
 function updateItemReviewSummary(){
   const isEdit=!!$('#itemId').value;$('#itemReviewSummary').classList.toggle('hidden',!isEdit);if(!isEdit)return;
@@ -1026,7 +1064,7 @@ function openWish(w=null,mode='review'){
   showPhoto('#wishPhotoPreview','#wishPhotoPlaceholder',wishWorkingPhoto);
   const category=w?.category||'Tops';$('#wishCategory').value=category;populateWishTypeOptions(category,w?.type||'');populateWishSizeOptions(category,w?.size||'');wishFitDrafts={};wishStyleDrafts={};wishAttributeContextKey='';setWishAttributeContext(category,$('#wishType').value,{fit:w?.sizeVariant||'',style:w?.style||''});
   $('#wishName').value=w?.name||'';$('#wishBrand').value=w?.brand||'';$('#wishColor').value=w?.color||'';$('#wishPattern').value=w?.pattern||'';$('#wishSeason').value=w?.season||'';
-  $('#wishPrice').value=w?.wishlistPrice??w?.price??'';$('#wishCurrency').value=w?.currency||'USD';$('#wishStore').value=w?.store||'';$('#wishLink').value=w?.productUrl??w?.link??'';$('#wishNotes').value=w?.notes||'';
+  $('#wishPrice').value=w?.wishlistPrice??w?.price??'';$('#wishCurrency').value=w?.currency||'USD';$('#wishStore').value=w?.store||'';$('#wishLink').value=w?.productUrl??w?.link??'';$('#wishNotes').value=w?.notes||'';closeWishlistEntrySuggestions();
   ['wishPhoto','wishPhotoLibrary','wishCameraPhoto','wishLibraryPhoto'].forEach(id=>{const el=$('#'+id);if(el)el.value=''});
   $('#wishScanStatus').textContent='';$('#wishPhotoMenu').classList.add('hidden');applyWishDialogMode(w);
   if(!$('#wishDialog').open)$('#wishDialog').showModal();const scroller=$('#wishDialog .wish-detail-scroll');if(scroller)scroller.scrollTop=0;
@@ -1041,8 +1079,10 @@ function renderWishReviewDetails(){
   const garment=[['Category',category],['Type',type],['Brand',$('#wishBrand').value],['Size',$('#wishSize').value]];
   if($('#wishFit').value)garment.push(['Fit',$('#wishFit').value]);if($('#wishStyle').value)garment.push(['Style',$('#wishStyle').value]);
   garment.push(['Color',$('#wishColor').value],['Pattern',$('#wishPattern').value],['Season',$('#wishSeason').value]);
-  const shopping=[['Price',price],['Store',$('#wishStore').value],['Link',$('#wishLink').value]].filter(([,v])=>String(v||'').trim());
-  $('#wishReviewDetails').innerHTML=`<div class="wish-review-section"><div class="wish-section-heading"><p class="wish-section-label">Garment</p>${wishDesireHeartsMarkup()}</div><div class="item-review-detail-grid">${garment.map(([k,v])=>`<div class="item-review-detail-row"><span>${esc(k)}</span><strong>${esc(wishReviewValue(v))}</strong></div>`).join('')}</div></div>${shopping.length?`<div class="wish-review-section"><p class="wish-section-label">Shopping</p><div class="item-review-detail-grid">${shopping.map(([k,v])=>`<div class="item-review-detail-row"><span>${esc(k)}</span><strong>${esc(v)}</strong></div>`).join('')}</div></div>`:''}${String($('#wishNotes').value||'').trim()?`<div class="item-review-notes"><span>Notes</span><p>${esc($('#wishNotes').value.trim())}</p></div>`:''}`;
+  const shopping=[['Price',price],['Store',$('#wishStore').value]].filter(([,v])=>String(v||'').trim());
+  const rawLink=$('#wishLink').value.trim(),safeLink=normalizedProductUrl(rawLink),linkLabel=productUrlDisplay(rawLink);
+  const linkRow=rawLink?`<div class="item-review-detail-row wish-review-link-row"><span>Link</span>${safeLink?`<a class="wish-product-link" href="${esc(safeLink)}" target="_blank" rel="noopener noreferrer">${esc(linkLabel)} <span aria-hidden="true">↗</span></a>`:`<strong>${esc(rawLink)}</strong>`}</div>`:'';
+  $('#wishReviewDetails').innerHTML=`<div class="wish-review-section"><div class="wish-section-heading"><p class="wish-section-label">Garment</p>${wishDesireHeartsMarkup()}</div><div class="item-review-detail-grid">${garment.map(([k,v])=>`<div class="item-review-detail-row"><span>${esc(k)}</span><strong>${esc(wishReviewValue(v))}</strong></div>`).join('')}</div></div>${shopping.length||linkRow?`<div class="wish-review-section"><p class="wish-section-label">Shopping</p><div class="item-review-detail-grid">${shopping.map(([k,v])=>`<div class="item-review-detail-row"><span>${esc(k)}</span><strong>${esc(v)}</strong></div>`).join('')}${linkRow}</div></div>`:''}${String($('#wishNotes').value||'').trim()?`<div class="item-review-notes"><span>Notes</span><p>${esc($('#wishNotes').value.trim())}</p></div>`:''}`;
 }
 function applyWishDialogMode(w=null){
   const reviewing=wishDialogMode==='review',existing=!!$('#wishId').value;
@@ -1067,6 +1107,7 @@ async function saveWish(){
   const wishlistPrice=$('#wishPrice').value.trim(),productUrl=$('#wishLink').value.trim();
   const obj=normalizeWishlistItem({...(old||{}),id:wid||id(),photo:wishWorkingPhoto,originalPhoto:wishOriginalPhoto||wishWorkingPhoto,photoStudioState:wishStudioState,name:$('#wishName').value.trim(),brand:$('#wishBrand').value.trim(),category,categoryId:categoryIdFor(category),type,size:$('#wishSize').value,sizeVariant:cleanedItemFit(category,$('#wishFit').value),style:cleanedItemStyle(category,type,$('#wishStyle').value),color:$('#wishColor').value,pattern:$('#wishPattern').value,season:$('#wishSeason').value,wishlistPrice,price:wishlistPrice,currency:$('#wishCurrency').value||'USD',store:$('#wishStore').value.trim(),productUrl,link:productUrl,notes:$('#wishNotes').value.trim(),wishlistDesire:wishDesireDraft,lifecycle:'wishlist',wishlistStatus:old?.wishlistStatus||'active',inputSource:old?.inputSource||'manual',createdAt:old?.createdAt||old?.created||now,created:old?.createdAt||old?.created||now,updatedAt:now});
   const desireChanged=Number(old?.wishlistDesire||0)!==Number(obj.wishlistDesire||0);
+  rememberBrandSuggestion(obj.brand);rememberStoreSuggestion(obj.store);
   if(wid)state.wishlist=state.wishlist.map(x=>x.id===wid?obj:x);else{state.wishlist.unshift(obj);ensureSettings();state.settings.wishlistOrder=[obj.id,...state.settings.wishlistOrder.filter(id=>id!==obj.id)]}await saveState();renderWishlist();
   if(wid){openWish(obj,'review');if(desireChanged&&obj.wishlistDesire)showWishRatingToast(`Rating — ${wishlistDesireLabel(obj.wishlistDesire)}`,3200);else toast('Wishlist updated')}else{$('#wishDialog').close();toast(desireChanged&&obj.wishlistDesire?`Rating — ${wishlistDesireLabel(obj.wishlistDesire)}`:'Wishlist saved',desireChanged&&obj.wishlistDesire?3200:1800)}
 }

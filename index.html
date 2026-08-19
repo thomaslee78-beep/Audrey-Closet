@@ -384,7 +384,7 @@
         <div id="wishEditFields">
           <div class="wish-section-heading"><p class="wish-section-label">Garment</p><div id="wishEditDesire" class="wish-desire-picker" aria-label="How much do you want this item?"></div></div>
           <div class="form-grid">
-            <label>Item<input id="wishName" required placeholder="Striped cardigan" /></label><label>Brand<input id="wishBrand" placeholder="Brand" /></label>
+            <label>Item<input id="wishName" required placeholder="Striped cardigan" /></label><label class="brand-field-label">Brand<input id="wishBrand" placeholder="Brand" autocomplete="off" aria-autocomplete="list" aria-controls="wishBrandSuggestions" /><div id="wishBrandSuggestions" class="brand-suggestions hidden" role="listbox" aria-label="Brand suggestions"></div></label>
             <label>Category<select id="wishCategory"></select></label><label>Type<select id="wishType"></select></label>
             <label>Size<select id="wishSize"></select></label><label id="wishFitLabel">Fit<select id="wishFit"></select></label>
             <label id="wishStyleLabel">Style<select id="wishStyle"></select></label><label>Color<select id="wishColor"></select></label>
@@ -393,7 +393,7 @@
           <p class="wish-section-label">Shopping</p>
           <div class="form-grid">
             <label>Price<input id="wishPrice" inputmode="decimal" placeholder="$45" /></label><label>Currency<select id="wishCurrency"><option value="USD">USD</option><option value="EUR">EUR</option><option value="GBP">GBP</option><option value="CAD">CAD</option><option value="JPY">JPY</option><option value="TWD">TWD</option></select></label>
-            <label>Store<input id="wishStore" placeholder="Store or seller" /></label><label>Link<input id="wishLink" type="url" placeholder="https://…" /></label>
+            <label class="brand-field-label">Store<input id="wishStore" placeholder="Store or seller" autocomplete="off" aria-autocomplete="list" aria-controls="wishStoreSuggestions" /><div id="wishStoreSuggestions" class="brand-suggestions hidden" role="listbox" aria-label="Store suggestions"></div></label><label class="wish-link-field">Link<input id="wishLink" type="url" inputmode="url" autocomplete="url" placeholder="https://…" /></label>
           </div>
           <label class="full-label">Notes<textarea id="wishNotes"></textarea></label>
         </div>

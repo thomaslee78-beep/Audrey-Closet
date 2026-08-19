@@ -471,3 +471,6 @@ Vertically centers the native iOS Acquired date value inside the existing fixed-
 
 ### v13.15-dev6.2
 Adds a lightweight Wishlist-to-Closet acquisition moment after a successful handoff: Wish granted / Made it to the Closet, item photo, desire hearts, wishlisted/acquired dates, time-wanted context, and View in Closet / Back to Wishlist actions. Preserves the v13.15-dev6.1.6 acquisition form fixes. Service-worker cache: `audrey-closet-v13.15-dev6.2`.
+
+### v13.15-dev6.3
+Refines Wishlist entry: Wishlist Brand now shares the Closet brand suggestion pool, Store learns and suggests prior entries, and Product Link is a full-width edit field with a compact clickable domain link in Review mode. Service-worker cache: `audrey-closet-v13.15-dev6.3`.
