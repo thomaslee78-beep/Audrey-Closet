@@ -391,3 +391,7 @@ Lifecycle visual polish: Wishlist row product-link badges are now directly click
 - A session can be marked current; new wishes default to the current session.
 - Wishlist items can be assigned or reassigned to a session in Edit mode.
 - Existing Wishlist items remain compatible; no IndexedDB schema change.
+
+
+## v13.15-dev7.0.1
+- Fixed service-worker registration/cache version mismatch so Shopping Sessions UI and JavaScript deploy together reliably.
