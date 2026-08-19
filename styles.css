@@ -1821,3 +1821,31 @@ body.wishlist-reordering .wish-card{touch-action:none}
     font-size:16px!important;
   }
 }
+
+/* v13.15-dev6.1.4 — match Acquired date width to sibling fields and center the date value */
+.purchase-wish-dialog #purchaseWishDate{
+  width:100%;
+  inline-size:100%;
+  max-width:100%;
+  max-inline-size:100%;
+  margin-inline:0;
+  padding-left:11px;
+  padding-right:11px;
+  text-align:center;
+}
+.purchase-wish-dialog #purchaseWishDate::-webkit-date-and-time-value{
+  width:100%;
+  text-align:center;
+}
+.purchase-wish-dialog #purchaseWishDate::-webkit-datetime-edit{
+  width:100%;
+  text-align:center;
+}
+@media(max-width:520px){
+  .purchase-wish-dialog #purchaseWishDate{
+    width:100%;
+    inline-size:100%;
+    max-width:100%;
+    max-inline-size:100%;
+  }
+}
