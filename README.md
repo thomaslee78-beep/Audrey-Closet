@@ -440,3 +440,7 @@ Streamlines Wishlist detail actions to **Edit** and **Save**, makes **Remove** a
 
 ## v13.15-dev5.4.2 — Wishlist reorder queue stability
 Keeps the original Wishlist row visible in its queue position while dragging. A thin insertion cue appears only when another row is actively targeted; dropping outside all rows or back into the same slot restores the original order without saving. The source row is lightly transparent during drag so nothing looks temporarily deleted. Service-worker cache: `audrey-closet-v13.15-dev5.4.2`.
+
+## v13.15-dev6 — Wishlist lifecycle
+Adds a safer Wishlist lifecycle: **Remove** now moves wishes to a recoverable Removed view instead of deleting the record, and **Purchased** moves a wish into the Closet while preserving its garment/photo details. The purchase handoff collects purchase date, acquisition method, purchase price, and currency. Purchased and removed wishes no longer appear in the active Wishlist or Wishlist Board picker. Existing IndexedDB schema remains unchanged. Service-worker cache: `audrey-closet-v13.15-dev6`.
+

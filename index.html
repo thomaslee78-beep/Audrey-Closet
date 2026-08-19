@@ -191,6 +191,7 @@
         <div class="wishlist-view-tabs" role="group" aria-label="Wishlist view">
           <button type="button" class="active" id="wishlistAllBtn" data-wishlist-view="all">All</button>
           <button type="button" id="wishlistTop10Btn" data-wishlist-view="top10">Top 10</button>
+          <button type="button" id="wishlistRemovedBtn" data-wishlist-view="removed">Removed</button>
         </div>
         <button type="button" class="wishlist-reorder-toggle" id="wishlistReorderBtn" aria-pressed="false">Reorder</button>
       </div>
@@ -397,9 +398,25 @@
           <label class="full-label">Notes<textarea id="wishNotes"></textarea></label>
         </div>
       </div>
-      <div class="sheet-actions wish-sheet-actions"><button type="button" id="cancelWishBtn" class="soft-btn">Cancel</button><button type="button" class="danger-text hidden" id="deleteWishBtn">Remove</button><button type="submit" id="saveWishBtn" value="default" class="primary">Save wish</button></div>
+      <div class="sheet-actions wish-sheet-actions"><button type="button" id="cancelWishBtn" class="soft-btn">Cancel</button><button type="button" class="danger-text hidden" id="deleteWishBtn">Remove</button><button type="button" class="soft-btn hidden" id="purchaseWishBtn">Purchased</button><button type="submit" id="saveWishBtn" value="default" class="primary">Save wish</button></div>
     </form>
     <div class="wish-rating-toast" id="wishRatingToast" role="status" aria-live="polite"></div>
+  </dialog>
+
+  <dialog id="purchaseWishDialog" class="sheet-dialog purchase-wish-dialog">
+    <form id="purchaseWishForm">
+      <div class="sheet-head"><div><p class="script">wishlist to closet</p><h2>Add this piece to your Closet</h2></div><button type="button" class="close-btn" id="closePurchaseWishBtn" aria-label="Close">×</button></div>
+      <p class="purchase-wish-summary" id="purchaseWishSummary"></p>
+      <input type="hidden" id="purchaseWishId" />
+      <div class="form-grid">
+        <label>Purchase date<input type="date" id="purchaseWishDate" required /></label>
+        <label>Acquired<select id="purchaseWishAcquired"></select></label>
+        <label>Purchase price<input id="purchaseWishPrice" inputmode="decimal" placeholder="$45" /></label>
+        <label>Currency<select id="purchaseWishCurrency"><option value="USD">USD</option><option value="EUR">EUR</option><option value="GBP">GBP</option><option value="CAD">CAD</option><option value="JPY">JPY</option><option value="TWD">TWD</option></select></label>
+      </div>
+      <p class="scan-status">The photo and garment details will carry into the Closet. You can edit the piece there afterward.</p>
+      <div class="sheet-actions"><button type="button" class="soft-btn" id="cancelPurchaseWishBtn">Cancel</button><button type="submit" class="primary">Move to Closet</button></div>
+    </form>
   </dialog>
 
   <dialog id="wearDialog" class="sheet-dialog wear-dialog">

@@ -1680,3 +1680,24 @@ body.wishlist-reordering .wish-card{touch-action:none}
    repeated 7–8px reflow that caused rows below to jitter. */
 .wishlist-reorder-mode .wishlist-drop-placeholder{display:none!important}
 .wishlist-drag-ghost{will-change:top;contain:layout paint style}
+
+/* v13.15-dev6 — Wishlist lifecycle: removed/archive + purchased to Closet */
+#wishDialog.wish-review-mode .wish-sheet-actions{
+  grid-template-columns:repeat(auto-fit,minmax(68px,1fr))!important;
+}
+#wishDialog.wish-review-mode .wish-sheet-actions>#purchaseWishBtn{
+  width:100%!important;min-width:0!important;margin:0!important;display:flex;align-items:center;justify-content:center;text-align:center;
+}
+#wishDialog.wish-review-mode .wish-sheet-actions>#purchaseWishBtn.hidden{display:none!important}
+#wishDialog .wish-sheet-actions>#saveWishBtn.hidden{display:none!important}
+.wishlist-removed-view .wish-card{opacity:.82}
+.wishlist-removed-view .wish-card::after{content:'Removed';font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:#8b8175;position:absolute;right:34px;bottom:7px}
+.purchase-wish-dialog form{padding:18px 17px 0}
+.purchase-wish-dialog .purchase-wish-summary{margin:2px 0 14px;font-family:Georgia,serif;font-size:15px;color:var(--coffee);line-height:1.35}
+.purchase-wish-dialog .sheet-actions{margin:18px -17px 0;padding:10px 17px max(10px,env(safe-area-inset-bottom));display:grid;grid-template-columns:1fr 1fr;gap:9px;border-top:1px solid rgba(108,81,66,.13);background:rgba(247,240,223,.98)}
+@media(max-width:410px){
+  #wishDialog.wish-review-mode .wish-sheet-actions{gap:6px!important}
+  #wishDialog.wish-review-mode .wish-sheet-actions button{font-size:11.5px!important;padding-left:5px!important;padding-right:5px!important}
+  .purchase-wish-dialog form{padding-left:14px;padding-right:14px}
+  .purchase-wish-dialog .sheet-actions{margin-left:-14px;margin-right:-14px;padding-left:14px;padding-right:14px}
+}
