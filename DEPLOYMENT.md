@@ -365,3 +365,7 @@ Restores the full rounded border on the Acquired date field while keeping its co
 
 ### v13.15-dev6.1.4
 Matches the Acquired date field width exactly to the other Wishlist-to-Closet handoff controls and centers the native date value for a cleaner, more consistent appearance. Service-worker cache: `audrey-closet-v13.15-dev6.1.4`.
+
+
+### v13.15-dev6.1.5
+Uses a fixed-width visual shell around the native Acquired date control so it matches the other Wishlist-to-Closet fields on iPhone, keeps the date centered, and moves the close X nearer the top-right edge of the handoff panel. Service-worker cache: `audrey-closet-v13.15-dev6.1.5`.
