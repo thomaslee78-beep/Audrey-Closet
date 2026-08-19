@@ -356,4 +356,8 @@ Adds a safer Wishlist lifecycle: **Remove** now moves wishes to a recoverable Re
 Restores removed wishes to their prior ranking position, renames the Wishlist lifecycle action to **Acquired**, stacks the acquisition handoff fields for mobile readability, prevents iPhone input zoom, and only shows optional price/currency fields when appropriate for the acquisition method. Original Wishlist price/history remains preserved. Service-worker cache: `audrey-closet-v13.15-dev6.1`.
 
 ## v13.15-dev6.1.2 — Acquisition handoff visual polish
-Constrains the Acquired date field to the same width as the other handoff controls, uses regular-weight field text, and matches Cancel / Move to Closet button sizing. Service-worker cache: `audrey-closet-v13.15-dev6.1.2`.
+Constrains the Acquired date field to the same width as the other handoff controls, uses regular-weight field text, and matches Cancel / Move to Closet button sizing. Service-worker cache: `audrey-closet-v13.15-dev6.1.3`.
+
+
+### v13.15-dev6.1.3
+Restores the full rounded border on the Acquired date field while keeping its corrected width, and vertically aligns the native iOS date value with the other acquisition controls. Service-worker cache: `audrey-closet-v13.15-dev6.1.3`.

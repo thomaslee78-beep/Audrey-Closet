@@ -1781,3 +1781,43 @@ body.wishlist-reordering .wish-card{touch-action:none}
     max-width:100%;
   }
 }
+
+/* v13.15-dev6.1.3 — restore full rounded date-field chrome and align iOS date value */
+.purchase-wish-dialog .purchase-wish-fields > label{
+  overflow:visible;
+}
+.purchase-wish-dialog #purchaseWishDate{
+  display:block;
+  width:calc(100% - 2px);
+  inline-size:calc(100% - 2px);
+  max-width:calc(100% - 2px);
+  max-inline-size:calc(100% - 2px);
+  min-width:0;
+  min-inline-size:0;
+  margin-inline:1px;
+  height:44px;
+  min-height:44px;
+  padding:10px 11px;
+  border:1px solid var(--line);
+  border-radius:12px;
+  background:#fffdf7;
+  color:var(--ink);
+  font-family:var(--sans);
+  font-weight:400!important;
+  line-height:1.2;
+  box-sizing:border-box;
+}
+.purchase-wish-dialog #purchaseWishDate::-webkit-date-and-time-value{
+  min-height:22px;
+  line-height:22px;
+  text-align:left;
+}
+@media(max-width:520px){
+  .purchase-wish-dialog #purchaseWishDate{
+    width:calc(100% - 2px);
+    inline-size:calc(100% - 2px);
+    max-width:calc(100% - 2px);
+    max-inline-size:calc(100% - 2px);
+    font-size:16px!important;
+  }
+}
