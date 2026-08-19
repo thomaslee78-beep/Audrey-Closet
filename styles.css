@@ -1714,3 +1714,39 @@ body.wishlist-reordering .wish-card{touch-action:none}
   .purchase-wish-dialog .purchase-price-fields{grid-template-columns:1fr}
   .purchase-wish-dialog input,.purchase-wish-dialog select{font-size:16px!important}
 }
+
+/* v13.15-dev6.1.1 — acquisition handoff visual polish */
+.purchase-wish-dialog .purchase-wish-fields > label,
+.purchase-wish-dialog .purchase-price-fields > label{
+  min-width:0;
+}
+.purchase-wish-dialog .purchase-wish-fields input,
+.purchase-wish-dialog .purchase-wish-fields select,
+.purchase-wish-dialog .purchase-price-fields input,
+.purchase-wish-dialog .purchase-price-fields select{
+  width:100%;
+  min-width:0;
+  max-width:100%;
+  font-family:var(--sans);
+  font-weight:400!important;
+}
+.purchase-wish-dialog #purchaseWishDate{
+  width:100%;
+  min-width:0;
+  max-width:100%;
+  box-sizing:border-box;
+}
+.purchase-wish-dialog .sheet-actions button{
+  width:100%;
+  min-width:0;
+  min-height:42px;
+  padding:10px 8px;
+  font-size:12px;
+  line-height:1.2;
+  font-weight:700;
+  white-space:nowrap;
+}
+.purchase-wish-dialog .sheet-actions .primary{
+  font-size:12px;
+  font-weight:700;
+}
