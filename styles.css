@@ -1653,3 +1653,30 @@ body.wishlist-reordering .wish-card{touch-action:none}
   border-bottom:0!important;
   background:transparent!important;
 }
+
+/* v13.15-dev5.4.2 — stable Wishlist reorder geometry */
+/* Target feedback is painted with inset shadows, not borders, so it never changes
+   row dimensions while the drag crosses from one destination to another. */
+.wishlist-reorder-mode .wish-card.wishlist-drop-target{
+  box-sizing:border-box!important;
+  border-top:1px solid var(--line)!important;
+  border-bottom:1px solid var(--line)!important;
+  background:rgba(77,142,138,.045)!important;
+  opacity:.62!important;
+  transition:background .12s ease,opacity .12s ease,box-shadow .12s ease!important;
+}
+.wishlist-reorder-mode .wish-card.wishlist-drop-target.drop-before{
+  box-shadow:inset 0 2px 0 rgba(77,142,138,.78),inset 0 -1px 0 rgba(77,142,138,.26)!important;
+}
+.wishlist-reorder-mode .wish-card.wishlist-drop-target.drop-after{
+  box-shadow:inset 0 1px 0 rgba(77,142,138,.26),inset 0 -2px 0 rgba(77,142,138,.78)!important;
+}
+/* The source remains a fixed-height visual anchor; opacity changes only paint, not layout. */
+.wishlist-reorder-mode .wishlist-drag-source{
+  box-sizing:border-box!important;
+  transition:opacity .12s ease,background .12s ease!important;
+}
+/* No insertion spacer is needed during the gesture; keeping it out of layout removes the
+   repeated 7–8px reflow that caused rows below to jitter. */
+.wishlist-reorder-mode .wishlist-drop-placeholder{display:none!important}
+.wishlist-drag-ghost{will-change:top;contain:layout paint style}

@@ -1079,29 +1079,29 @@ function orderedActiveWishlist(){
 }
 function wishlistDragCleanup(){
   clearTimeout(wishlistDrag.timer);
-  wishlistDrag.target?.classList.remove('wishlist-drop-target');
+  wishlistDrag.target?.classList.remove('wishlist-drop-target','drop-before','drop-after');
   wishlistDrag.ghost?.remove();wishlistDrag.placeholder?.remove();
   wishlistDrag.card?.classList.remove('wishlist-drag-source');
+  $$('#wishlistGrid .wish-card').forEach(card=>{card.style.height='';card.style.minHeight='';card.style.maxHeight=''});
   document.body.classList.remove('wishlist-reordering');
-  wishlistDrag={timer:null,pointerId:null,startY:0,active:false,card:null,id:null,ghost:null,placeholder:null,target:null,targetAfter:false,originalOrder:[]};
+  wishlistDrag={timer:null,pointerId:null,startY:0,active:false,card:null,id:null,ghost:null,placeholder:null,target:null,targetAfter:false,originalOrder:[],lastTargetId:null,lastTargetAfter:false};
 }
 function beginWishlistDrag(card,e){
   if(!wishlistReorderMode||wishlistView!=='all')return;
   clearTimeout(wishlistDrag.timer);
   const originalOrder=orderedActiveWishlist().map(w=>w.id);
-  wishlistDrag={timer:null,pointerId:e.pointerId,startY:e.clientY,active:false,card,id:card.dataset.id,ghost:null,placeholder:null,target:null,targetAfter:false,originalOrder};
+  wishlistDrag={timer:null,pointerId:e.pointerId,startY:e.clientY,active:false,card,id:card.dataset.id,ghost:null,placeholder:null,target:null,targetAfter:false,originalOrder,lastTargetId:null,lastTargetAfter:false};
   wishlistDrag.timer=setTimeout(()=>{
     if(!wishlistDrag.card)return;
     wishlistDrag.active=true;suppressWishlistClickUntil=Date.now()+650;document.body.classList.add('wishlist-reordering');
-    const r=card.getBoundingClientRect(),ghost=card.cloneNode(true),placeholder=document.createElement('div');
+    // Freeze every visible row before the drag begins. Target highlights therefore cannot
+    // change row geometry or make the rows below jump while the finger crosses boundaries.
+    $$('#wishlistGrid .wish-card').forEach(row=>{const rr=row.getBoundingClientRect();row.style.height=rr.height+'px';row.style.minHeight=rr.height+'px';row.style.maxHeight=rr.height+'px'});
+    const r=card.getBoundingClientRect(),ghost=card.cloneNode(true);
     ghost.classList.add('wishlist-drag-ghost');ghost.querySelector('.wish-reorder-handle')?.remove();
     Object.assign(ghost.style,{left:(r.left+2)+'px',top:r.top+'px',width:Math.max(1,r.width-4)+'px',height:r.height+'px'});
-    placeholder.className='wishlist-drop-placeholder';
-    // Keep the real row in its original queue position while dragging. The placeholder is
-    // only a thin insertion cue and is not shown until another row is actually targeted.
-    placeholder.hidden=true;
     card.classList.add('wishlist-drag-source');document.body.appendChild(ghost);
-    wishlistDrag.ghost=ghost;wishlistDrag.placeholder=placeholder;
+    wishlistDrag.ghost=ghost;wishlistDrag.placeholder=null;
     if(card.setPointerCapture)try{card.setPointerCapture(e.pointerId)}catch{}
   },120);
 }
@@ -1114,16 +1114,20 @@ function moveWishlistDrag(e){
   let target=null,targetAfter=false;
   for(const c of cards){
     const r=c.getBoundingClientRect();
-    if(e.clientY>=r.top&&e.clientY<=r.bottom){target=c;targetAfter=e.clientY>=r.top+r.height/2;break}
+    if(e.clientY>=r.top&&e.clientY<=r.bottom){
+      target=c;
+      // A small neutral zone around the midpoint prevents rapid before/after flipping
+      // when the finger hovers on the boundary between insertion positions.
+      const mid=r.top+r.height/2,dead=Math.min(7,r.height*.10);
+      if(d.target===c&&Math.abs(e.clientY-mid)<=dead)targetAfter=d.targetAfter;
+      else targetAfter=e.clientY>=mid;
+      break;
+    }
   }
-  if(d.target!==target){d.target?.classList.remove('wishlist-drop-target');d.target=target;d.target?.classList.add('wishlist-drop-target')}
-  d.targetAfter=targetAfter;
-  const grid=$('#wishlistGrid');
-  if(target){
-    d.placeholder.hidden=false;
-    if(targetAfter)target.after(d.placeholder);else grid.insertBefore(d.placeholder,target);
-  }else{
-    d.placeholder.remove();d.placeholder.hidden=true;
+  if(d.target!==target||d.targetAfter!==targetAfter){
+    d.target?.classList.remove('wishlist-drop-target','drop-before','drop-after');
+    d.target=target;d.targetAfter=targetAfter;
+    if(d.target)d.target.classList.add('wishlist-drop-target',targetAfter?'drop-after':'drop-before');
   }
   const edge=72;if(e.clientY<edge)window.scrollBy(0,-8);else if(e.clientY>window.innerHeight-edge)window.scrollBy(0,8);
 }
