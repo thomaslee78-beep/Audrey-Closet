@@ -1913,3 +1913,43 @@ body.wishlist-reordering .wish-card{touch-action:none}
   align-items:center;
   justify-content:center;
 }
+
+/* v13.15-dev6.1.6 — vertically center the native iOS Acquired date value */
+.purchase-wish-dialog .purchase-date-shell #purchaseWishDate{
+  display:block;
+  height:42px!important;
+  min-height:42px!important;
+  padding-top:0!important;
+  padding-bottom:0!important;
+  line-height:normal!important;
+}
+.purchase-wish-dialog .purchase-date-shell #purchaseWishDate::-webkit-date-and-time-value{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  height:42px;
+  min-height:42px;
+  line-height:normal;
+  padding:0;
+  margin:0;
+  text-align:center;
+}
+.purchase-wish-dialog .purchase-date-shell #purchaseWishDate::-webkit-datetime-edit{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  height:42px;
+  min-height:42px;
+  line-height:normal;
+  padding:0;
+  margin:0;
+  text-align:center;
+}
+.purchase-wish-dialog .purchase-date-shell #purchaseWishDate::-webkit-datetime-edit-fields-wrapper{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  height:100%;
+  padding:0;
+  margin:0;
+}

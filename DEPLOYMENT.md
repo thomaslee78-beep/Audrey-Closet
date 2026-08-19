@@ -369,3 +369,7 @@ Matches the Acquired date field width exactly to the other Wishlist-to-Closet ha
 
 ### v13.15-dev6.1.5
 Uses a fixed-width visual shell around the native Acquired date control so it matches the other Wishlist-to-Closet fields on iPhone, keeps the date centered, and moves the close X nearer the top-right edge of the handoff panel. Service-worker cache: `audrey-closet-v13.15-dev6.1.5`.
+
+
+### v13.15-dev6.1.6
+Vertically centers the native iOS Acquired date value inside the existing fixed-width rounded date field without changing the acquisition workflow. Service-worker cache: `audrey-closet-v13.15-dev6.1.6`.
