@@ -1701,3 +1701,16 @@ body.wishlist-reordering .wish-card{touch-action:none}
   .purchase-wish-dialog form{padding-left:14px;padding-right:14px}
   .purchase-wish-dialog .sheet-actions{margin-left:-14px;margin-right:-14px;padding-left:14px;padding-right:14px}
 }
+
+
+/* v13.15-dev6.1 — acquisition handoff cleanup */
+.purchase-wish-dialog .purchase-wish-fields{display:grid;grid-template-columns:1fr;gap:10px;margin-top:2px}
+.purchase-wish-dialog .purchase-wish-fields>label,.purchase-wish-dialog .purchase-price-fields label{display:block;font-size:10px;font-weight:750;color:#756a5c;letter-spacing:.02em}
+.purchase-wish-dialog .purchase-wish-fields input,.purchase-wish-dialog .purchase-wish-fields select{display:block;width:100%;margin-top:4px;min-height:44px;box-sizing:border-box}
+.purchase-wish-dialog .purchase-price-fields{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(92px,.75fr);gap:10px;align-items:end}
+.purchase-wish-dialog .optional-note{font-weight:500;color:#948777;letter-spacing:0}
+.purchase-wish-dialog .purchase-price-note{margin:0;padding:9px 10px;border-radius:12px;background:rgba(125,116,74,.07);color:#776c5f;font-size:10.5px;line-height:1.4}
+@media(max-width:520px){
+  .purchase-wish-dialog .purchase-price-fields{grid-template-columns:1fr}
+  .purchase-wish-dialog input,.purchase-wish-dialog select{font-size:16px!important}
+}

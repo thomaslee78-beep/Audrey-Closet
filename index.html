@@ -398,7 +398,7 @@
           <label class="full-label">Notes<textarea id="wishNotes"></textarea></label>
         </div>
       </div>
-      <div class="sheet-actions wish-sheet-actions"><button type="button" id="cancelWishBtn" class="soft-btn">Cancel</button><button type="button" class="danger-text hidden" id="deleteWishBtn">Remove</button><button type="button" class="soft-btn hidden" id="purchaseWishBtn">Purchased</button><button type="submit" id="saveWishBtn" value="default" class="primary">Save wish</button></div>
+      <div class="sheet-actions wish-sheet-actions"><button type="button" id="cancelWishBtn" class="soft-btn">Cancel</button><button type="button" class="danger-text hidden" id="deleteWishBtn">Remove</button><button type="button" class="soft-btn hidden" id="purchaseWishBtn">Acquired</button><button type="submit" id="saveWishBtn" value="default" class="primary">Save wish</button></div>
     </form>
     <div class="wish-rating-toast" id="wishRatingToast" role="status" aria-live="polite"></div>
   </dialog>
@@ -408,11 +408,14 @@
       <div class="sheet-head"><div><p class="script">wishlist to closet</p><h2>Add this piece to your Closet</h2></div><button type="button" class="close-btn" id="closePurchaseWishBtn" aria-label="Close">×</button></div>
       <p class="purchase-wish-summary" id="purchaseWishSummary"></p>
       <input type="hidden" id="purchaseWishId" />
-      <div class="form-grid">
-        <label>Purchase date<input type="date" id="purchaseWishDate" required /></label>
-        <label>Acquired<select id="purchaseWishAcquired"></select></label>
-        <label>Purchase price<input id="purchaseWishPrice" inputmode="decimal" placeholder="$45" /></label>
-        <label>Currency<select id="purchaseWishCurrency"><option value="USD">USD</option><option value="EUR">EUR</option><option value="GBP">GBP</option><option value="CAD">CAD</option><option value="JPY">JPY</option><option value="TWD">TWD</option></select></label>
+      <div class="purchase-wish-fields">
+        <label>Acquired date<input type="date" id="purchaseWishDate" required /></label>
+        <label>How acquired<select id="purchaseWishAcquired"></select></label>
+        <div id="purchaseWishPriceFields" class="purchase-price-fields">
+          <label>Price paid <span class="optional-note">optional</span><input id="purchaseWishPrice" inputmode="decimal" placeholder="$45" /></label>
+          <label>Currency<select id="purchaseWishCurrency"><option value="USD">USD</option><option value="EUR">EUR</option><option value="GBP">GBP</option><option value="CAD">CAD</option><option value="JPY">JPY</option><option value="TWD">TWD</option></select></label>
+        </div>
+        <p id="purchaseWishPriceNote" class="purchase-price-note hidden">No price needed for this acquisition type. The original Wishlist price is still kept with the item's history.</p>
       </div>
       <p class="scan-status">The photo and garment details will carry into the Closet. You can edit the piece there afterward.</p>
       <div class="sheet-actions"><button type="button" class="soft-btn" id="cancelPurchaseWishBtn">Cancel</button><button type="submit" class="primary">Move to Closet</button></div>

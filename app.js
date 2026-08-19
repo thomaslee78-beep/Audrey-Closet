@@ -292,6 +292,7 @@ function normalizeWishlistItem(w={}){
     purchasedAt:String(w.purchasedAt||''),
     purchasePrice:w.purchasePrice!==undefined?w.purchasePrice:'',
     purchaseCurrency:w.purchaseCurrency||w.currency||'USD',
+    wishlistPreviousOrderIndex:(w.wishlistPreviousOrderIndex===null||w.wishlistPreviousOrderIndex===undefined||w.wishlistPreviousOrderIndex==='')?null:(Number.isInteger(Number(w.wishlistPreviousOrderIndex))?Number(w.wishlistPreviousOrderIndex):null),
     name:String(w.name||''),
     category,
     categoryId,
@@ -425,7 +426,7 @@ async function init(){
   $('#settingsBtn').onclick=()=>{renderPortfolioFolderEditor();renderJournalOrderEditor();showScreen('more')};
   $('#addPortfolioFolderBtn').onclick=addPortfolioFolder;
   $('#portfolioNewBtn').onclick=()=>guardBoardSwitch(()=>{startNewOutfit();showScreen('outfits')},'start a new look');  $('#portfolioSearch').oninput=e=>{portfolioSearchQuery=e.target.value||'';renderSavedOutfits()};$('#portfolioSearch').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();e.currentTarget.blur()}});$('#portfolioItemFilterBtn').onclick=()=>{portfolioItemPickerOpen=!portfolioItemPickerOpen;renderPortfolioDiscovery()};
-  if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js?v=13.15-dev6',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
+  if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js?v=13.15-dev6.1',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
   renderAll();
 }
 function fillSelects(){
@@ -533,6 +534,7 @@ function bindDialogs(){
   $('#deleteWishBtn').onclick=deleteWish;
   $('#purchaseWishBtn').onclick=openPurchaseWish;
   $('#purchaseWishForm').onsubmit=e=>{e.preventDefault();completeWishPurchase()};
+  $('#purchaseWishAcquired').onchange=updatePurchaseWishPriceVisibility;
   $('#cancelPurchaseWishBtn').onclick=()=>$('#purchaseWishDialog').close();
   $('#closePurchaseWishBtn').onclick=()=>$('#purchaseWishDialog').close();
   $('#purchaseWishDialog').addEventListener('cancel',e=>{e.preventDefault();$('#purchaseWishDialog').close()});
@@ -1068,11 +1070,15 @@ async function deleteWish(){
   const wid=$('#wishId').value,w=state.wishlist.find(x=>x.id===wid);if(!w)return;
   if((w.wishlistStatus||'active')==='dismissed'){
     w.wishlistStatus='active';w.dismissedAt=null;w.updatedAt=Date.now();ensureSettings();
-    state.settings.wishlistOrder=[wid,...state.settings.wishlistOrder.filter(id=>id!==wid)];
+    const activeIds=state.settings.wishlistOrder.filter(id=>id!==wid&&state.wishlist.some(x=>x.id===id&&(x.wishlistStatus||'active')==='active'));
+    const requested=Number.isInteger(Number(w.wishlistPreviousOrderIndex))?Number(w.wishlistPreviousOrderIndex):activeIds.length;
+    const insertAt=Math.max(0,Math.min(activeIds.length,requested));
+    activeIds.splice(insertAt,0,wid);state.settings.wishlistOrder=activeIds;w.wishlistPreviousOrderIndex=null;
     if(await saveState()===false)return;wishlistView='all';$('#wishDialog').close();renderWishlist();toast('Wish restored');return;
   }
   if(!confirm('Remove this item from your active Wishlist? You can restore it later from Removed.'))return;
-  w.wishlistStatus='dismissed';w.dismissedAt=Date.now();w.updatedAt=Date.now();ensureSettings();state.settings.wishlistOrder=state.settings.wishlistOrder.filter(id=>id!==wid);
+  ensureSettings();const previousOrder=orderedActiveWishlist().map(x=>x.id);w.wishlistPreviousOrderIndex=Math.max(0,previousOrder.indexOf(wid));
+  w.wishlistStatus='dismissed';w.dismissedAt=Date.now();w.updatedAt=Date.now();state.settings.wishlistOrder=state.settings.wishlistOrder.filter(id=>id!==wid);
   if(await saveState()===false)return;$('#wishDialog').close();renderWishlist();toast('Moved to Removed');
 }
 function openPurchaseWish(){
@@ -1081,16 +1087,23 @@ function openPurchaseWish(){
   $('#purchaseWishAcquired').innerHTML=ACQUIRED.map(a=>`<option>${esc(a)}</option>`).join('');
   $('#purchaseWishAcquired').value='Bought new';$('#purchaseWishPrice').value=w.wishlistPrice??w.price??'';$('#purchaseWishCurrency').value=w.currency||'USD';
   $('#purchaseWishSummary').textContent=[w.name||displayItemType(w),w.brand].filter(Boolean).join(' · ');
+  updatePurchaseWishPriceVisibility();
   $('#purchaseWishDialog').showModal();
+}
+function acquisitionUsesPrice(acquired){return !['Gifted','Hand-me-down','DIY'].includes(String(acquired||''))}
+function updatePurchaseWishPriceVisibility(){
+  const show=acquisitionUsesPrice($('#purchaseWishAcquired')?.value);
+  $('#purchaseWishPriceFields')?.classList.toggle('hidden',!show);
+  $('#purchaseWishPriceNote')?.classList.toggle('hidden',show);
 }
 async function completeWishPurchase(){
   const wid=$('#purchaseWishId').value,w=state.wishlist.find(x=>x.id===wid);if(!w)return $('#purchaseWishDialog').close();
   if(state.items.some(i=>i.id===wid)){w.wishlistStatus='purchased';w.purchasedAt=$('#purchaseWishDate').value||localTodayISO();await saveState();$('#purchaseWishDialog').close();$('#wishDialog').close();renderAll();return toast('This piece is already in your Closet')}
-  const purchaseDate=$('#purchaseWishDate').value||localTodayISO(),purchasePrice=$('#purchaseWishPrice').value.trim(),purchaseCurrency=$('#purchaseWishCurrency').value||w.currency||'USD';
+  const purchaseDate=$('#purchaseWishDate').value||localTodayISO(),acquired=$('#purchaseWishAcquired').value||'Bought new',purchasePrice=acquisitionUsesPrice(acquired)?$('#purchaseWishPrice').value.trim():'',purchaseCurrency=$('#purchaseWishCurrency').value||w.currency||'USD';
   const item={
     id:w.id,photo:w.photo||'',originalPhoto:w.originalPhoto||w.photo||'',photoStudioCutoutApplied:!!w.photoStudioCutoutApplied,photoStudioState:w.photoStudioState||null,
     name:w.name||'',category:w.category,categoryId:w.categoryId||categoryIdFor(w.category),type:w.type||'',brand:w.brand||'',size:w.size||'',sizeVariant:w.sizeVariant||'',style:w.style||'',color:w.color||'',pattern:w.pattern||'Solid',season:w.season||'All-season',notes:w.notes||'',
-    acquired:$('#purchaseWishAcquired').value||'Bought new',acquiredDate:purchaseDate,purchasePrice,purchaseCurrency,purchaseStore:w.store||'',wishlistOriginId:w.id,wishlistAddedAt:w.createdAt||w.created||null,wishlistPrice:w.wishlistPrice??w.price??'',created:Date.now(),wears:0,status:'active',statusDate:''
+    acquired,acquiredDate:purchaseDate,purchasePrice,purchaseCurrency,purchaseStore:w.store||'',wishlistOriginId:w.id,wishlistAddedAt:w.createdAt||w.created||null,wishlistPrice:w.wishlistPrice??w.price??'',wishlistDesireAtAcquisition:w.wishlistDesire||0,created:Date.now(),wears:0,status:'active',statusDate:''
   };
   state.items=[item,...state.items.filter(i=>i.id!==item.id)];rememberBrandSuggestion(item.brand);ensureSettings();const order=state.settings.closetOrder[item.category]||[];state.settings.closetOrder[item.category]=[item.id,...order.filter(id=>id!==item.id)];
   w.wishlistStatus='purchased';w.purchasedAt=purchaseDate;w.purchasePrice=purchasePrice;w.purchaseCurrency=purchaseCurrency;w.updatedAt=Date.now();state.settings.wishlistOrder=state.settings.wishlistOrder.filter(id=>id!==wid);
