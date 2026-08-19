@@ -2028,3 +2028,48 @@ body.wishlist-reordering .wish-card{touch-action:none}
 .wish-product-link{font:600 14px var(--sans);color:var(--burgundy);text-decoration:none;overflow-wrap:anywhere;text-align:right;max-width:72%}
 .wish-product-link:active,.wish-product-link:focus-visible{text-decoration:underline;outline:none}
 @media(max-width:410px){.wish-product-link{font-size:13px;max-width:68%}}
+
+/* v13.15-dev6.4 — lifecycle visual polish */
+/* Active rows remain full color; inactive lifecycle states use one consistent visual language. */
+.item-card-archived{
+  opacity:.70;
+  filter:grayscale(.95) saturate(.18);
+}
+.item-card-archived .thumb{
+  filter:grayscale(1) saturate(0) contrast(.92);
+}
+.item-card-archived .card-body{color:#756f68}
+.item-card-archived .swatch{filter:grayscale(1);opacity:.68}
+
+.wishlist-removed-view .wish-card{
+  opacity:.72;
+  filter:grayscale(.96) saturate(.12);
+}
+.wishlist-removed-view .wish-photo{
+  filter:grayscale(1) saturate(0) contrast(.92);
+}
+.wishlist-removed-view .wish-desire,
+.wishlist-removed-view .price,
+.wishlist-removed-view .wish-link-mark{
+  color:#817a71!important;
+}
+
+/* The row stays the primary detail action; this compact secondary action opens the product itself. */
+.wish-link-mark{
+  display:inline-flex;
+  align-items:center;
+  justify-content:flex-end;
+  width:max-content;
+  max-width:100%;
+  color:var(--turq);
+  font-size:9px;
+  font-weight:750;
+  line-height:1.2;
+  text-decoration:none;
+  border-bottom:1px solid rgba(77,142,138,.34);
+  padding:2px 0;
+  cursor:pointer;
+  -webkit-tap-highlight-color:rgba(77,142,138,.12);
+}
+.wish-link-mark:active{opacity:.62}
+.wishlist-reorder-mode .wish-link-mark{display:none!important}

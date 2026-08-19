@@ -474,3 +474,6 @@ Adds a lightweight Wishlist-to-Closet acquisition moment after a successful hand
 
 ### v13.15-dev6.3
 Refines Wishlist entry: Wishlist Brand now shares the Closet brand suggestion pool, Store learns and suggests prior entries, and Product Link is a full-width edit field with a compact clickable domain link in Review mode. Service-worker cache: `audrey-closet-v13.15-dev6.3`.
+
+### v13.15-dev6.4
+Lifecycle visual polish: Wishlist row product-link badges are now directly clickable without opening item details, archived Closet pieces use a grayscale/subdued treatment, and Removed Wishlist rows use the same grayscale lifecycle language. Service-worker cache: `audrey-closet-v13.15-dev6.4`.
