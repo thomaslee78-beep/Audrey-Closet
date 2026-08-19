@@ -422,6 +422,24 @@
     </form>
   </dialog>
 
+  <dialog id="acquisitionMomentDialog" class="sheet-dialog acquisition-moment-dialog">
+    <div class="acquisition-moment-card">
+      <button type="button" class="close-btn acquisition-moment-close" id="closeAcquisitionMomentBtn" aria-label="Close">×</button>
+      <p class="script">wish granted</p>
+      <div class="acquisition-moment-heart" aria-hidden="true">♥</div>
+      <h2>Made it to the Closet</h2>
+      <div class="acquisition-moment-photo" id="acquisitionMomentPhoto"></div>
+      <h3 id="acquisitionMomentTitle">New closet piece</h3>
+      <div class="acquisition-moment-rating" id="acquisitionMomentRating" aria-label="Wishlist rating"></div>
+      <p class="acquisition-moment-meta" id="acquisitionMomentMeta"></p>
+      <p class="acquisition-moment-wait hidden" id="acquisitionMomentWait"></p>
+      <div class="acquisition-moment-actions">
+        <button type="button" class="soft-btn" id="acquisitionMomentContinueBtn">Back to Wishlist</button>
+        <button type="button" class="primary" id="acquisitionMomentViewBtn">View in Closet</button>
+      </div>
+    </div>
+  </dialog>
+
   <dialog id="wearDialog" class="sheet-dialog wear-dialog">
     <form id="wearForm">
       <div class="sheet-head"><div><p class="script">today's look</p><h2 id="wearDialogTitle">Log what you wore</h2></div><button type="button" class="close-btn" id="closeWearBtn">×</button></div>

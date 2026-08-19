@@ -1953,3 +1953,68 @@ body.wishlist-reordering .wish-card{touch-action:none}
   padding:0;
   margin:0;
 }
+
+/* v13.15-dev6.2 — Wishlist acquisition moment */
+.acquisition-moment-dialog{
+  width:min(92vw,430px);
+  max-width:430px;
+  border:0;
+  padding:0;
+  background:transparent;
+  overflow:visible;
+}
+.acquisition-moment-dialog::backdrop{
+  background:rgba(42,36,30,.42);
+  backdrop-filter:blur(2px);
+}
+.acquisition-moment-card{
+  position:relative;
+  overflow:hidden;
+  padding:26px 22px 20px;
+  border:1px solid rgba(108,81,66,.16);
+  border-radius:24px;
+  background:rgba(247,240,223,.985);
+  box-shadow:0 22px 58px rgba(47,39,31,.22);
+  text-align:center;
+  transform:translateY(8px) scale(.985);
+  opacity:.92;
+  transition:transform .32s cubic-bezier(.2,.75,.25,1),opacity .26s ease;
+}
+.acquisition-moment-dialog.moment-entered .acquisition-moment-card{transform:none;opacity:1}
+.acquisition-moment-close{position:absolute;top:8px;right:9px;z-index:3}
+.acquisition-moment-card>.script{margin:0 34px 0;color:#7c624c;font-size:1.02rem}
+.acquisition-moment-heart{
+  width:42px;height:42px;margin:6px auto 2px;
+  display:grid;place-items:center;
+  color:#8f3446;font-size:31px;line-height:1;
+  transform:scale(.72);opacity:.2;
+  filter:drop-shadow(0 2px 0 rgba(215,180,74,.22));
+  transition:transform .48s cubic-bezier(.2,1.4,.35,1),opacity .35s ease;
+}
+.acquisition-moment-dialog.moment-entered .acquisition-moment-heart{transform:scale(1);opacity:1}
+.acquisition-moment-card h2{margin:0 0 12px;font-size:1.45rem;line-height:1.08}
+.acquisition-moment-photo{
+  width:min(58vw,210px);height:min(58vw,210px);max-width:210px;max-height:210px;
+  margin:0 auto 10px;display:grid;place-items:center;background:transparent;border:0;
+}
+.acquisition-moment-photo img{width:100%;height:100%;object-fit:contain;background:transparent;border:0;filter:drop-shadow(0 7px 12px rgba(55,45,36,.09))}
+.acquisition-moment-placeholder{font-size:72px;color:rgba(143,52,70,.22)}
+.acquisition-moment-card h3{margin:2px 0 7px;font-family:Georgia,'Times New Roman',serif;font-size:1.12rem;font-weight:600;line-height:1.2;color:#372f28}
+.acquisition-moment-rating{display:flex;justify-content:center;align-items:center;gap:3px;margin:0 auto 9px;color:#b9aa98}
+.acquisition-moment-rating span{font-size:20px;line-height:1;color:#c8bba9}
+.acquisition-moment-rating span.filled{color:#8f3446;filter:drop-shadow(0 0 1px rgba(211,173,61,.55))}
+.acquisition-moment-rating small{margin-left:6px;font-size:11px;font-weight:600;letter-spacing:.02em;color:#7a6a59}
+.acquisition-moment-meta{margin:0 auto;font-size:11px;line-height:1.45;color:#76695c}
+.acquisition-moment-wait{margin:7px auto 0;max-width:300px;font-family:Georgia,'Times New Roman',serif;font-size:13px;line-height:1.35;color:#5e5044}
+.acquisition-moment-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:17px}
+.acquisition-moment-actions button{min-height:42px;font-size:12px;padding:9px 10px}
+@media(max-width:410px){
+  .acquisition-moment-dialog{width:min(94vw,390px)}
+  .acquisition-moment-card{padding:23px 16px 16px;border-radius:20px}
+  .acquisition-moment-photo{width:min(50vw,184px);height:min(50vw,184px)}
+  .acquisition-moment-card h2{font-size:1.32rem}
+  .acquisition-moment-actions{gap:8px}
+}
+@media(prefers-reduced-motion:reduce){
+  .acquisition-moment-card,.acquisition-moment-heart{transition:none!important;transform:none!important;opacity:1!important}
+}

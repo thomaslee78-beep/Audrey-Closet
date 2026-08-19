@@ -373,3 +373,7 @@ Uses a fixed-width visual shell around the native Acquired date control so it ma
 
 ### v13.15-dev6.1.6
 Vertically centers the native iOS Acquired date value inside the existing fixed-width rounded date field without changing the acquisition workflow. Service-worker cache: `audrey-closet-v13.15-dev6.1.6`.
+
+
+### v13.15-dev6.2
+Adds a lightweight Wishlist-to-Closet acquisition moment after a successful handoff: Wish granted / Made it to the Closet, item photo, desire hearts, wishlisted/acquired dates, time-wanted context, and View in Closet / Back to Wishlist actions. Preserves the v13.15-dev6.1.6 acquisition form fixes. Service-worker cache: `audrey-closet-v13.15-dev6.2`.
