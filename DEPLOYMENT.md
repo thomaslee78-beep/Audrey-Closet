@@ -383,3 +383,11 @@ Refines Wishlist entry: Wishlist Brand now shares the Closet brand suggestion po
 
 ### v13.15-dev6.4
 Lifecycle visual polish: Wishlist row product-link badges are now directly clickable without opening item details, archived Closet pieces use a grayscale/subdued treatment, and Removed Wishlist rows use the same grayscale lifecycle language. Service-worker cache: `audrey-closet-v13.15-dev6.4`.
+
+
+## v13.15-dev7 — Shopping sessions
+- Adds optional Shopping Sessions for grouping Wishlist items from the same trip.
+- Sessions store name, date, store, and optional location.
+- A session can be marked current; new wishes default to the current session.
+- Wishlist items can be assigned or reassigned to a session in Edit mode.
+- Existing Wishlist items remain compatible; no IndexedDB schema change.

@@ -193,7 +193,7 @@
           <button type="button" id="wishlistTop10Btn" data-wishlist-view="top10">Top 10</button>
           <button type="button" id="wishlistRemovedBtn" data-wishlist-view="removed">Removed</button>
         </div>
-        <button type="button" class="wishlist-reorder-toggle" id="wishlistReorderBtn" aria-pressed="false">Reorder</button>
+        <div class="wishlist-toolbar-actions"><button type="button" class="wishlist-sessions-toggle" id="wishlistSessionsBtn">Sessions</button><button type="button" class="wishlist-reorder-toggle" id="wishlistReorderBtn" aria-pressed="false">Reorder</button></div>
       </div>
       <div class="wishlist-grid" id="wishlistGrid"></div>
       <div class="empty-state compact" id="wishlistEmpty"><h3>Save future finds</h3><p>Add a photo, link, price and brand. Wishlist pieces can be tried on your Outfit Board.</p></div>
@@ -393,7 +393,7 @@
           <p class="wish-section-label">Shopping</p>
           <div class="form-grid">
             <label>Price<input id="wishPrice" inputmode="decimal" placeholder="$45" /></label><label>Currency<select id="wishCurrency"><option value="USD">USD</option><option value="EUR">EUR</option><option value="GBP">GBP</option><option value="CAD">CAD</option><option value="JPY">JPY</option><option value="TWD">TWD</option></select></label>
-            <label class="brand-field-label">Store<input id="wishStore" placeholder="Store or seller" autocomplete="off" aria-autocomplete="list" aria-controls="wishStoreSuggestions" /><div id="wishStoreSuggestions" class="brand-suggestions hidden" role="listbox" aria-label="Store suggestions"></div></label><label class="wish-link-field">Link<input id="wishLink" type="url" inputmode="url" autocomplete="url" placeholder="https://…" /></label>
+            <label class="brand-field-label">Store<input id="wishStore" placeholder="Store or seller" autocomplete="off" aria-autocomplete="list" aria-controls="wishStoreSuggestions" /><div id="wishStoreSuggestions" class="brand-suggestions hidden" role="listbox" aria-label="Store suggestions"></div></label><label class="wish-session-field">Shopping session<div class="wish-session-control"><select id="wishShoppingSession"><option value="">None</option></select><button type="button" class="text-btn" id="newShoppingSessionFromWishBtn">New</button></div></label><label class="wish-link-field">Link<input id="wishLink" type="url" inputmode="url" autocomplete="url" placeholder="https://…" /></label>
           </div>
           <label class="full-label">Notes<textarea id="wishNotes"></textarea></label>
         </div>
@@ -401,6 +401,24 @@
       <div class="sheet-actions wish-sheet-actions"><button type="button" id="cancelWishBtn" class="soft-btn">Cancel</button><button type="button" class="danger-text hidden" id="deleteWishBtn">Remove</button><button type="button" class="soft-btn hidden" id="purchaseWishBtn">Acquired</button><button type="submit" id="saveWishBtn" value="default" class="primary">Save wish</button></div>
     </form>
     <div class="wish-rating-toast" id="wishRatingToast" role="status" aria-live="polite"></div>
+  </dialog>
+
+
+  <dialog id="shoppingSessionsDialog" class="sheet-dialog shopping-sessions-dialog">
+    <div class="shopping-sessions-scroll">
+      <div class="sheet-head"><div><p class="script">shopping together</p><h2>Shopping sessions</h2></div><button type="button" class="close-btn" id="closeShoppingSessionsBtn" aria-label="Close">×</button></div>
+      <p class="shopping-session-help">Group wishes from the same shopping trip. Set a current session and new wishes can start there automatically.</p>
+      <div id="shoppingSessionsList" class="shopping-sessions-list"></div>
+      <form id="shoppingSessionForm" class="shopping-session-form">
+        <input type="hidden" id="shoppingSessionId" />
+        <p class="wish-section-label">Session details</p>
+        <label class="full-label">Name<input id="shoppingSessionName" required placeholder="Thrift Day" /></label>
+        <label class="full-label">Date<input id="shoppingSessionDate" type="date" required /></label>
+        <label class="full-label">Store<input id="shoppingSessionStore" placeholder="Store or shopping area" /></label>
+        <label class="full-label">Location <small>optional</small><input id="shoppingSessionLocation" placeholder="San Ramon, CA" /></label>
+        <div class="shopping-session-form-actions"><button type="button" class="soft-btn" id="cancelShoppingSessionEditBtn">Clear</button><button type="submit" class="primary" id="shoppingSessionSaveBtn">Save session</button></div>
+      </form>
+    </div>
   </dialog>
 
   <dialog id="purchaseWishDialog" class="sheet-dialog purchase-wish-dialog">

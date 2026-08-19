@@ -1,5 +1,5 @@
 const CATALOG_TAXONOMY_VERSION=2;
-const WISHLIST_MODEL_VERSION=2;
+const WISHLIST_MODEL_VERSION=3;
 const CATEGORY_DEFS=[
   {id:'tops',label:'Tops'},
   {id:'bottoms',label:'Bottoms'},
@@ -232,7 +232,7 @@ let journalItemPreviewSnapshot=null;
 let journalItemReturnId=null;
 let journalItemPreviewScrollY=0;
 
-function emptyState(){return {items:[],outfits:[],journal:[],wishlist:[],settings:{appName:DEFAULT_APP_NAME,portfolioFolders:[...DEFAULT_PORTFOLIO_FOLDERS],portfolioTabOrder:[...SYSTEM_PORTFOLIO_TABS,...DEFAULT_PORTFOLIO_FOLDERS],boardRecent:{closet:[],wishlist:[]},catalogTaxonomyVersion:CATALOG_TAXONOMY_VERSION,wishlistModelVersion:WISHLIST_MODEL_VERSION}}}
+function emptyState(){return {items:[],outfits:[],journal:[],wishlist:[],shoppingSessions:[],settings:{appName:DEFAULT_APP_NAME,portfolioFolders:[...DEFAULT_PORTFOLIO_FOLDERS],portfolioTabOrder:[...SYSTEM_PORTFOLIO_TABS,...DEFAULT_PORTFOLIO_FOLDERS],boardRecent:{closet:[],wishlist:[]},catalogTaxonomyVersion:CATALOG_TAXONOMY_VERSION,wishlistModelVersion:WISHLIST_MODEL_VERSION}}}
 function categoryIdFor(value=''){
   const raw=String(value||'').trim();
   if(CATEGORY_LABEL_BY_ID[raw])return raw;
@@ -271,6 +271,32 @@ function migrateCatalogTaxonomy(){
     }
   });
   if(fromVersion<CATALOG_TAXONOMY_VERSION){state.settings.catalogTaxonomyVersion=CATALOG_TAXONOMY_VERSION;changed=true}
+  return changed;
+}
+
+
+function normalizeShoppingSession(session={}){
+  const createdAt=Number(session.createdAt||session.created)||Date.now();
+  return {
+    ...session,
+    id:String(session.id||id()),
+    name:String(session.name||'').trim()||'Shopping session',
+    date:String(session.date||localTodayISO()),
+    store:String(session.store||''),
+    location:String(session.location||''),
+    status:session.status==='closed'?'closed':'active',
+    createdAt,
+    updatedAt:Number(session.updatedAt||createdAt)
+  };
+}
+function shoppingSessionById(sessionId=''){return (state.shoppingSessions||[]).find(s=>s.id===sessionId)||null}
+function shoppingSessionLabel(session){if(!session)return '';const parts=[session.name,session.store].filter(Boolean);return parts.join(' · ')}
+function migrateShoppingSessions(){
+  state.shoppingSessions=Array.isArray(state.shoppingSessions)?state.shoppingSessions:[];
+  let changed=false;
+  state.shoppingSessions=state.shoppingSessions.map(session=>{const next=normalizeShoppingSession(session);if(JSON.stringify(next)!==JSON.stringify(session))changed=true;return next});
+  const valid=new Set(state.shoppingSessions.map(s=>s.id));
+  (state.wishlist||[]).forEach(w=>{if(w.shoppingSessionId&&!valid.has(w.shoppingSessionId)){w.shoppingSessionId='';changed=true}});
   return changed;
 }
 
@@ -329,7 +355,7 @@ function normalizeWishlistItem(w={}){
 function migrateWishlistModel(){
   state.settings=state.settings||{};
   state.wishlist=Array.isArray(state.wishlist)?state.wishlist:[];
-  let changed=false;
+  let changed=migrateShoppingSessions();
   state.wishlist=state.wishlist.map(w=>{
     const next=normalizeWishlistItem(w);
     if(JSON.stringify(next)!==JSON.stringify(w))changed=true;
@@ -374,6 +400,8 @@ function ensureSettings(){
   state.settings.storeSuggestions.forEach(x=>typeof x==='string'?rememberStoreSeed(x):rememberStoreSeed(x?.name,x?.count,x?.lastUsed));
   (state.wishlist||[]).forEach(w=>rememberStoreSeed(w.store,1,w.updatedAt||w.createdAt||w.created||0));
   state.settings.storeSuggestions=[...storeMap.values()].sort((a,b)=>(b.lastUsed-a.lastUsed)||(b.count-a.count)||a.name.localeCompare(b.name)).slice(0,150);
+  const validShoppingSessionIds=new Set((state.shoppingSessions||[]).map(s=>s.id));
+  if(!validShoppingSessionIds.has(state.settings.activeShoppingSessionId))state.settings.activeShoppingSessionId='';
   const outfitIds=new Set((state.outfits||[]).map(o=>o.id).filter(Boolean));
   (state.outfits||[]).forEach(o=>{if(!o.id)o.id=id()});
   state.settings.portfolioFolders.forEach(folder=>{
@@ -492,6 +520,7 @@ function bindNav(){
   $('#wishlistTop10Btn').onclick=()=>setWishlistView('top10');
   $('#wishlistRemovedBtn').onclick=()=>setWishlistView('removed');
   $('#wishlistReorderBtn').onclick=toggleWishlistReorderMode;
+  $('#wishlistSessionsBtn').onclick=openShoppingSessionsDialog;
   $('#logWearBtn').onclick=()=>openWear();
 }
 function showScreen(name){$$('.screen').forEach(s=>s.classList.toggle('active',s.dataset.screen===name));$$('.bottom-nav button').forEach(b=>b.classList.toggle('active',b.dataset.nav===name));scrollTo({top:0,behavior:'smooth'});if(name==='journal')renderJournal();if(name==='outfits')renderOutfits();if(name==='portfolio')renderSavedOutfits();if(name==='more'){renderPortfolioFolderEditor();renderJournalOrderEditor()}}
@@ -541,6 +570,11 @@ function bindDialogs(){
   $('#wishDialog').addEventListener('close',restoreWishlistViewport);
   $('#deleteWishBtn').onclick=deleteWish;
   $('#purchaseWishBtn').onclick=openPurchaseWish;
+  $('#wishShoppingSession').addEventListener('change',()=>{const session=shoppingSessionById($('#wishShoppingSession').value);if(session&&session.store&&!$('#wishStore').value.trim())$('#wishStore').value=session.store});
+  $('#newShoppingSessionFromWishBtn').onclick=()=>openShoppingSessionsDialog(true);
+  $('#closeShoppingSessionsBtn').onclick=()=>$('#shoppingSessionsDialog').close();
+  $('#shoppingSessionForm').onsubmit=e=>{e.preventDefault();saveShoppingSession()};
+  $('#cancelShoppingSessionEditBtn').onclick=resetShoppingSessionForm;
   $('#purchaseWishForm').onsubmit=e=>{e.preventDefault();completeWishPurchase()};
   $('#purchaseWishAcquired').onchange=updatePurchaseWishPriceVisibility;
   $('#cancelPurchaseWishBtn').onclick=()=>$('#purchaseWishDialog').close();
@@ -1052,6 +1086,34 @@ let wishDesireDraft=null;
 let wishRatingToastTimer=null;
 function showWishRatingToast(msg,duration=3200){const t=$('#wishRatingToast');if(!t)return;clearTimeout(wishRatingToastTimer);t.textContent=msg;t.classList.add('show');wishRatingToastTimer=setTimeout(()=>t.classList.remove('show'),duration)}
 
+function populateWishShoppingSessionSelect(selected='',useCurrent=false){
+  const select=$('#wishShoppingSession');if(!select)return;
+  const sessions=(state.shoppingSessions||[]).filter(s=>s.status!=='closed');
+  select.innerHTML='<option value="">None</option>'+sessions.map(s=>`<option value="${esc(s.id)}">${esc(shoppingSessionLabel(s))}</option>`).join('');
+  const fallback=selected||(useCurrent?state.settings?.activeShoppingSessionId:'')||'';select.value=sessions.some(s=>s.id===fallback)?fallback:'';
+}
+function renderShoppingSessions(){
+  const host=$('#shoppingSessionsList');if(!host)return;ensureSettings();
+  const sessions=(state.shoppingSessions||[]).slice().sort((a,b)=>String(b.date||'').localeCompare(String(a.date||''))||(b.updatedAt||0)-(a.updatedAt||0));
+  host.innerHTML=sessions.length?sessions.map(s=>{const current=state.settings.activeShoppingSessionId===s.id;const count=(state.wishlist||[]).filter(w=>w.shoppingSessionId===s.id&&(w.wishlistStatus||'active')==='active').length;return `<article class="shopping-session-row" data-session-id="${esc(s.id)}"><div><strong>${esc(s.name)}</strong><small>${esc([s.date,s.store,s.location].filter(Boolean).join(' · '))}</small><em>${count} wish${count===1?'':'es'}${current?' · Current session':''}</em></div><div class="shopping-session-actions"><button type="button" class="text-btn" data-session-action="${current?'clear':'use'}">${current?'Clear current':'Use'}</button><button type="button" class="text-btn" data-session-action="edit">Edit</button></div></article>`}).join(''):'<p class="shopping-session-empty">No shopping sessions yet.</p>';
+  host.querySelectorAll('[data-session-action]').forEach(btn=>btn.onclick=async()=>{const row=btn.closest('[data-session-id]'),session=shoppingSessionById(row?.dataset.sessionId);if(!session)return;const action=btn.dataset.sessionAction;if(action==='edit'){fillShoppingSessionForm(session);return}ensureSettings();state.settings.activeShoppingSessionId=action==='clear'?'':session.id;await saveState();renderShoppingSessions();populateWishShoppingSessionSelect($('#wishShoppingSession')?.value||'',false);toast(action==='clear'?'Current shopping session cleared':`Current session — ${session.name}`)});
+}
+function resetShoppingSessionForm(){
+  $('#shoppingSessionId').value='';$('#shoppingSessionName').value='';$('#shoppingSessionDate').value=localTodayISO();$('#shoppingSessionStore').value='';$('#shoppingSessionLocation').value='';$('#shoppingSessionSaveBtn').textContent='Save session';
+}
+function fillShoppingSessionForm(session){
+  $('#shoppingSessionId').value=session.id;$('#shoppingSessionName').value=session.name||'';$('#shoppingSessionDate').value=session.date||localTodayISO();$('#shoppingSessionStore').value=session.store||'';$('#shoppingSessionLocation').value=session.location||'';$('#shoppingSessionSaveBtn').textContent='Update session';
+}
+function openShoppingSessionsDialog(fromWish=false){
+  resetShoppingSessionForm();renderShoppingSessions();const d=$('#shoppingSessionsDialog');d.dataset.fromWish=fromWish?'true':'false';if(!d.open)d.showModal();
+}
+async function saveShoppingSession(){
+  const sid=$('#shoppingSessionId').value,existing=shoppingSessionById(sid),now=Date.now();
+  const session=normalizeShoppingSession({...(existing||{}),id:sid||id(),name:$('#shoppingSessionName').value.trim(),date:$('#shoppingSessionDate').value||localTodayISO(),store:$('#shoppingSessionStore').value.trim(),location:$('#shoppingSessionLocation').value.trim(),createdAt:existing?.createdAt||now,updatedAt:now});
+  if(existing)state.shoppingSessions=state.shoppingSessions.map(s=>s.id===session.id?session:s);else state.shoppingSessions.unshift(session);
+  ensureSettings();if(!state.settings.activeShoppingSessionId)state.settings.activeShoppingSessionId=session.id;await saveState();renderShoppingSessions();populateWishShoppingSessionSelect(session.id,false);if($('#shoppingSessionsDialog').dataset.fromWish==='true')$('#wishShoppingSession').value=session.id;resetShoppingSessionForm();toast(existing?'Shopping session updated':'Shopping session saved');
+}
+
 function openWish(w=null,mode='review'){
   wishDialogScrollY=window.scrollY||document.documentElement.scrollTop||0;
   wishDialogMode=w?(mode==='edit'?'edit':'review'):'create';
@@ -1064,7 +1126,7 @@ function openWish(w=null,mode='review'){
   showPhoto('#wishPhotoPreview','#wishPhotoPlaceholder',wishWorkingPhoto);
   const category=w?.category||'Tops';$('#wishCategory').value=category;populateWishTypeOptions(category,w?.type||'');populateWishSizeOptions(category,w?.size||'');wishFitDrafts={};wishStyleDrafts={};wishAttributeContextKey='';setWishAttributeContext(category,$('#wishType').value,{fit:w?.sizeVariant||'',style:w?.style||''});
   $('#wishName').value=w?.name||'';$('#wishBrand').value=w?.brand||'';$('#wishColor').value=w?.color||'';$('#wishPattern').value=w?.pattern||'';$('#wishSeason').value=w?.season||'';
-  $('#wishPrice').value=w?.wishlistPrice??w?.price??'';$('#wishCurrency').value=w?.currency||'USD';$('#wishStore').value=w?.store||'';$('#wishLink').value=w?.productUrl??w?.link??'';$('#wishNotes').value=w?.notes||'';closeWishlistEntrySuggestions();
+  $('#wishPrice').value=w?.wishlistPrice??w?.price??'';$('#wishCurrency').value=w?.currency||'USD';$('#wishStore').value=w?.store||'';$('#wishLink').value=w?.productUrl??w?.link??'';$('#wishNotes').value=w?.notes||'';populateWishShoppingSessionSelect(w?.shoppingSessionId||'',!w);if(!w){const currentSession=shoppingSessionById($('#wishShoppingSession').value);if(currentSession?.store&&!$('#wishStore').value.trim())$('#wishStore').value=currentSession.store}closeWishlistEntrySuggestions();
   ['wishPhoto','wishPhotoLibrary','wishCameraPhoto','wishLibraryPhoto'].forEach(id=>{const el=$('#'+id);if(el)el.value=''});
   $('#wishScanStatus').textContent='';$('#wishPhotoMenu').classList.add('hidden');applyWishDialogMode(w);
   if(!$('#wishDialog').open)$('#wishDialog').showModal();const scroller=$('#wishDialog .wish-detail-scroll');if(scroller)scroller.scrollTop=0;
@@ -1079,7 +1141,8 @@ function renderWishReviewDetails(){
   const garment=[['Category',category],['Type',type],['Brand',$('#wishBrand').value],['Size',$('#wishSize').value]];
   if($('#wishFit').value)garment.push(['Fit',$('#wishFit').value]);if($('#wishStyle').value)garment.push(['Style',$('#wishStyle').value]);
   garment.push(['Color',$('#wishColor').value],['Pattern',$('#wishPattern').value],['Season',$('#wishSeason').value]);
-  const shopping=[['Price',price],['Store',$('#wishStore').value]].filter(([,v])=>String(v||'').trim());
+  const session=shoppingSessionById($('#wishShoppingSession').value);
+  const shopping=[['Price',price],['Store',$('#wishStore').value],['Shopping session',session?shoppingSessionLabel(session):'']].filter(([,v])=>String(v||'').trim());
   const rawLink=$('#wishLink').value.trim(),safeLink=normalizedProductUrl(rawLink),linkLabel=productUrlDisplay(rawLink);
   const linkRow=rawLink?`<div class="item-review-detail-row wish-review-link-row"><span>Link</span>${safeLink?`<a class="wish-product-link" href="${esc(safeLink)}" target="_blank" rel="noopener noreferrer">${esc(linkLabel)} <span aria-hidden="true">↗</span></a>`:`<strong>${esc(rawLink)}</strong>`}</div>`:'';
   $('#wishReviewDetails').innerHTML=`<div class="wish-review-section"><div class="wish-section-heading"><p class="wish-section-label">Garment</p>${wishDesireHeartsMarkup()}</div><div class="item-review-detail-grid">${garment.map(([k,v])=>`<div class="item-review-detail-row"><span>${esc(k)}</span><strong>${esc(wishReviewValue(v))}</strong></div>`).join('')}</div></div>${shopping.length||linkRow?`<div class="wish-review-section"><p class="wish-section-label">Shopping</p><div class="item-review-detail-grid">${shopping.map(([k,v])=>`<div class="item-review-detail-row"><span>${esc(k)}</span><strong>${esc(v)}</strong></div>`).join('')}${linkRow}</div></div>`:''}${String($('#wishNotes').value||'').trim()?`<div class="item-review-notes"><span>Notes</span><p>${esc($('#wishNotes').value.trim())}</p></div>`:''}`;
@@ -1105,7 +1168,7 @@ function restoreWishCapturedOriginal(){if(!wishOriginalPhoto)return toast('No ca
 async function saveWish(){
   const wid=$('#wishId').value,old=state.wishlist.find(x=>x.id===wid),now=Date.now(),category=$('#wishCategory').value,type=$('#wishType').value;
   const wishlistPrice=$('#wishPrice').value.trim(),productUrl=$('#wishLink').value.trim();
-  const obj=normalizeWishlistItem({...(old||{}),id:wid||id(),photo:wishWorkingPhoto,originalPhoto:wishOriginalPhoto||wishWorkingPhoto,photoStudioState:wishStudioState,name:$('#wishName').value.trim(),brand:$('#wishBrand').value.trim(),category,categoryId:categoryIdFor(category),type,size:$('#wishSize').value,sizeVariant:cleanedItemFit(category,$('#wishFit').value),style:cleanedItemStyle(category,type,$('#wishStyle').value),color:$('#wishColor').value,pattern:$('#wishPattern').value,season:$('#wishSeason').value,wishlistPrice,price:wishlistPrice,currency:$('#wishCurrency').value||'USD',store:$('#wishStore').value.trim(),productUrl,link:productUrl,notes:$('#wishNotes').value.trim(),wishlistDesire:wishDesireDraft,lifecycle:'wishlist',wishlistStatus:old?.wishlistStatus||'active',inputSource:old?.inputSource||'manual',createdAt:old?.createdAt||old?.created||now,created:old?.createdAt||old?.created||now,updatedAt:now});
+  const obj=normalizeWishlistItem({...(old||{}),id:wid||id(),photo:wishWorkingPhoto,originalPhoto:wishOriginalPhoto||wishWorkingPhoto,photoStudioState:wishStudioState,name:$('#wishName').value.trim(),brand:$('#wishBrand').value.trim(),category,categoryId:categoryIdFor(category),type,size:$('#wishSize').value,sizeVariant:cleanedItemFit(category,$('#wishFit').value),style:cleanedItemStyle(category,type,$('#wishStyle').value),color:$('#wishColor').value,pattern:$('#wishPattern').value,season:$('#wishSeason').value,wishlistPrice,price:wishlistPrice,currency:$('#wishCurrency').value||'USD',store:$('#wishStore').value.trim(),shoppingSessionId:$('#wishShoppingSession').value||'',productUrl,link:productUrl,notes:$('#wishNotes').value.trim(),wishlistDesire:wishDesireDraft,lifecycle:'wishlist',wishlistStatus:old?.wishlistStatus||'active',inputSource:old?.inputSource||'manual',createdAt:old?.createdAt||old?.created||now,created:old?.createdAt||old?.created||now,updatedAt:now});
   const desireChanged=Number(old?.wishlistDesire||0)!==Number(obj.wishlistDesire||0);
   rememberBrandSuggestion(obj.brand);rememberStoreSuggestion(obj.store);
   if(wid)state.wishlist=state.wishlist.map(x=>x.id===wid?obj:x);else{state.wishlist.unshift(obj);ensureSettings();state.settings.wishlistOrder=[obj.id,...state.settings.wishlistOrder.filter(id=>id!==obj.id)]}await saveState();renderWishlist();
@@ -1320,7 +1383,7 @@ function renderWishlist(){
     const desireMark=desireValue>=1&&desireValue<=4?`<div class="wish-desire" title="${esc(desire)}" aria-label="Desire ${desireValue} of 4: ${esc(desire)}"><span aria-hidden="true">${'♥'.repeat(desireValue)}${'♡'.repeat(4-desireValue)}</span></div>`:'';
     const rank=wishlistView==='top10'?`<span class="wish-rank">#${index+1}</span>`:'';
     const handle=wishlistReorderMode?`<button type="button" class="wish-reorder-handle" aria-label="Reorder ${esc(w.name||wishlistListType(w))}" title="Drag to reorder"><span></span><span></span><span></span></button>`:'';
-    return `<article class="wish-card" data-id="${esc(w.id)}" tabindex="${wishlistReorderMode?'-1':'0'}" role="${wishlistReorderMode?'listitem':'button'}" aria-label="${wishlistReorderMode?'Reorder':'Open'} ${esc(w.name||wishlistListType(w))}"><div class="wish-photo">${w.photo?`<img src="${w.photo}" alt="" draggable="false">`:'♡'}</div><div class="wish-body"><div class="wish-title-line">${rank}<h4>${esc(w.name||wishlistListType(w))}</h4></div>${desireMark}<p class="wish-type">${esc(wishlistListType(w))}</p>${meta?`<p>${esc(meta)}</p>`:''}${w.store?`<p class="wish-store">${esc(w.store)}</p>`:''}</div><div class="wish-side">${price?`<div class="price">${esc(price)}</div>`:''}${safeRowLink?`<a class="wish-link-mark" href="${esc(safeRowLink)}" target="_blank" rel="noopener noreferrer" aria-label="Open product link for ${esc(w.name||wishlistListType(w))}">link ↗</a>`:''}<span class="wish-chevron" aria-hidden="true">›</span>${handle}</div></article>`
+    return `<article class="wish-card" data-id="${esc(w.id)}" tabindex="${wishlistReorderMode?'-1':'0'}" role="${wishlistReorderMode?'listitem':'button'}" aria-label="${wishlistReorderMode?'Reorder':'Open'} ${esc(w.name||wishlistListType(w))}"><div class="wish-photo">${w.photo?`<img src="${w.photo}" alt="" draggable="false">`:'♡'}</div><div class="wish-body"><div class="wish-title-line">${rank}<h4>${esc(w.name||wishlistListType(w))}</h4></div>${desireMark}<p class="wish-type">${esc(wishlistListType(w))}</p>${meta?`<p>${esc(meta)}</p>`:''}${w.store?`<p class="wish-store">${esc(w.store)}</p>`:''}${w.shoppingSessionId&&shoppingSessionById(w.shoppingSessionId)?`<p class="wish-session">${esc(shoppingSessionById(w.shoppingSessionId).name)}</p>`:''}</div><div class="wish-side">${price?`<div class="price">${esc(price)}</div>`:''}${safeRowLink?`<a class="wish-link-mark" href="${esc(safeRowLink)}" target="_blank" rel="noopener noreferrer" aria-label="Open product link for ${esc(w.name||wishlistListType(w))}">link ↗</a>`:''}<span class="wish-chevron" aria-hidden="true">›</span>${handle}</div></article>`
   }).join('');
   const empty=$('#wishlistEmpty');empty.classList.toggle('hidden',visible.length>0);if(!visible.length){const h=empty.querySelector('h3'),p=empty.querySelector('p');if(wishlistView==='removed'){h.textContent='Nothing removed';p.textContent='Items you remove from your Wishlist can be restored here.'}else{h.textContent='Save future finds';p.textContent='Add a photo, link, price and brand. Wishlist pieces can be tried on your Outfit Board.'}}
   $$('.wish-card').forEach(c=>{const open=()=>{if(wishlistReorderMode||Date.now()<suppressWishlistClickUntil)return;openWish(state.wishlist.find(w=>w.id===c.dataset.id))};c.onclick=e=>{if(wishlistReorderMode||e.target.closest('.wish-reorder-handle,.wish-link-mark'))return;open()};c.onkeydown=e=>{if(e.target.closest?.('.wish-link-mark'))return;if(!wishlistReorderMode&&(e.key==='Enter'||e.key===' ')){e.preventDefault();open()}}});

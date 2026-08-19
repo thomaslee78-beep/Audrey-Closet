@@ -2073,3 +2073,28 @@ body.wishlist-reordering .wish-card{touch-action:none}
 }
 .wish-link-mark:active{opacity:.62}
 .wishlist-reorder-mode .wish-link-mark{display:none!important}
+
+
+/* v13.15-dev7 — shopping session groundwork */
+.wishlist-toolbar-actions{display:flex;align-items:center;gap:12px}
+.wishlist-sessions-toggle{appearance:none;border:0;background:transparent;padding:5px 0;color:var(--olive);font:500 13px/1.1 inherit;letter-spacing:.02em}
+#wishEditFields .wish-session-field{grid-column:1/-1}
+.wish-session-control{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center}
+.wish-session-control .text-btn{padding:7px 2px;white-space:nowrap}
+.wish-session{margin-top:2px!important;font-size:11px!important;font-style:italic;color:var(--olive)!important}
+.shopping-sessions-dialog{width:min(92vw,520px);max-height:min(86vh,760px)}
+.shopping-sessions-scroll{max-height:min(80vh,700px);overflow-y:auto;padding:0 1px 12px}
+.shopping-session-help{margin:0 0 12px;color:var(--muted);font-size:13px;line-height:1.4}
+.shopping-sessions-list{border-top:1px solid rgba(94,78,62,.16);margin-bottom:18px}
+.shopping-session-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 0;border-bottom:1px solid rgba(94,78,62,.16)}
+.shopping-session-row>div:first-child{min-width:0;display:flex;flex-direction:column;gap:2px}
+.shopping-session-row strong{font-size:14px;font-weight:650}
+.shopping-session-row small,.shopping-session-row em{font-size:11px;color:var(--muted);font-style:normal}
+.shopping-session-actions{display:flex;gap:8px;flex:0 0 auto}
+.shopping-session-actions .text-btn{font-size:12px;padding:5px 0}
+.shopping-session-empty{padding:12px 0;color:var(--muted);font-size:13px}
+.shopping-session-form{border-top:1px solid rgba(94,78,62,.16);padding-top:12px;display:grid;gap:9px}
+.shopping-session-form label{font-size:11px;font-weight:650;color:var(--muted)}
+.shopping-session-form input{font-size:16px;font-weight:400}
+.shopping-session-form-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:4px}
+@media(max-width:410px){.wishlist-toolbar-actions{gap:9px}.wishlist-sessions-toggle{font-size:12px}.shopping-session-row{align-items:flex-start}.shopping-session-actions{flex-direction:column;gap:2px}}
