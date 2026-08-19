@@ -190,7 +190,7 @@
         <div><p class="script">maybe someday…</p><h2>Wishlist</h2></div>
         <div class="wishlist-head-actions"><button type="button" class="wishlist-sessions-toggle" id="wishlistSessionsBtn">Sessions</button><button class="primary" id="addWishBtn">Add wish</button></div>
       </div>
-      <div id="wishlistActiveSession" class="wishlist-active-session hidden" role="status"><div><small>Current shopping session</small><strong id="wishlistActiveSessionName"></strong></div><button type="button" id="clearWishlistSessionBtn">Clear</button></div>
+      <div id="wishlistActiveSession" class="wishlist-active-session hidden" role="status"><span class="wishlist-active-session-icon" aria-hidden="true">🛒</span><div><small>Current shopping session</small><strong id="wishlistActiveSessionName"></strong></div><button type="button" id="clearWishlistSessionBtn">Clear</button></div>
       <div class="wishlist-list-toolbar">
         <div class="wishlist-view-tabs" role="group" aria-label="Wishlist view">
           <button type="button" class="active" id="wishlistAllBtn" data-wishlist-view="all">All</button>
@@ -420,8 +420,8 @@
           <input type="hidden" id="shoppingSessionId" />
           <p class="wish-section-label">Session details</p>
           <label class="full-label">Name<input id="shoppingSessionName" required placeholder="Thrift Day" /></label>
-          <label class="full-label">Date<input id="shoppingSessionDate" type="date" required /></label>
-          <label class="full-label">Store<input id="shoppingSessionStore" placeholder="Store or shopping area" /></label>
+          <label class="full-label shopping-session-date-label">Date<div class="shopping-session-date-shell"><input id="shoppingSessionDate" type="date" required /></div></label>
+          <label class="full-label shopping-session-store-label">Store<input id="shoppingSessionStore" placeholder="Store or shopping area" autocomplete="off" aria-autocomplete="list" aria-controls="shoppingSessionStoreSuggestions" /><div id="shoppingSessionStoreSuggestions" class="brand-suggestions hidden" role="listbox" aria-label="Store suggestions"></div></label>
           <label class="full-label">Location <small>optional</small><input id="shoppingSessionLocation" placeholder="San Ramon, CA" /></label>
         </form>
       </div>

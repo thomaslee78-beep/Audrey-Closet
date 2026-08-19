@@ -397,3 +397,9 @@ Lifecycle visual polish: Wishlist row product-link badges are now directly click
 - Fixed service-worker registration/cache version mismatch so Shopping Sessions UI and JavaScript deploy together reliably.
 
 v13.15-dev7.1 cache: `audrey-closet-v13.15-dev7.1`.
+
+
+### v13.15-dev7.1.1 — Shopping Session entry polish
+- Normalized Shopping Session date input width/alignment on iPhone.
+- Shopping Session Store now suggests stores previously used in Wishlist items and Shopping Sessions.
+- Added a shopping-cart cue to the active Current shopping session banner.

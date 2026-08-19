@@ -494,3 +494,9 @@ Lifecycle visual polish: Wishlist row product-link badges are now directly click
 - Fixed Shopping Sessions header/help and bottom actions while the session content scrolls vertically.
 - Added Return to Wishlist, safe session deletion, current-session outline/badge, and active-session indicator/clear action on Wishlist.
 - Sessions now lock the background and suppress horizontal scrolling while open.
+
+
+### v13.15-dev7.1.1 — Shopping Session entry polish
+- Normalized Shopping Session date input width/alignment on iPhone.
+- Shopping Session Store now suggests stores previously used in Wishlist items and Shopping Sessions.
+- Added a shopping-cart cue to the active Current shopping session banner.

@@ -399,6 +399,7 @@ function ensureSettings(){
   const rememberStoreSeed=(name,count=1,lastUsed=0)=>{name=String(name||'').trim();if(!name)return;const key=name.toLocaleLowerCase();const prev=storeMap.get(key);if(!prev)storeMap.set(key,{name,count:Math.max(1,Number(count)||1),lastUsed:Number(lastUsed)||0});else{prev.count=Math.max(prev.count,Number(count)||1);prev.lastUsed=Math.max(prev.lastUsed,Number(lastUsed)||0)}};
   state.settings.storeSuggestions.forEach(x=>typeof x==='string'?rememberStoreSeed(x):rememberStoreSeed(x?.name,x?.count,x?.lastUsed));
   (state.wishlist||[]).forEach(w=>rememberStoreSeed(w.store,1,w.updatedAt||w.createdAt||w.created||0));
+  (state.shoppingSessions||[]).forEach(session=>rememberStoreSeed(session.store,1,session.updatedAt||session.createdAt||0));
   state.settings.storeSuggestions=[...storeMap.values()].sort((a,b)=>(b.lastUsed-a.lastUsed)||(b.count-a.count)||a.name.localeCompare(b.name)).slice(0,150);
   const validShoppingSessionIds=new Set((state.shoppingSessions||[]).map(s=>s.id));
   if(!validShoppingSessionIds.has(state.settings.activeShoppingSessionId))state.settings.activeShoppingSessionId='';
@@ -461,7 +462,7 @@ async function init(){
   $('#settingsBtn').onclick=()=>{renderPortfolioFolderEditor();renderJournalOrderEditor();showScreen('more')};
   $('#addPortfolioFolderBtn').onclick=addPortfolioFolder;
   $('#portfolioNewBtn').onclick=()=>guardBoardSwitch(()=>{startNewOutfit();showScreen('outfits')},'start a new look');  $('#portfolioSearch').oninput=e=>{portfolioSearchQuery=e.target.value||'';renderSavedOutfits()};$('#portfolioSearch').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();e.currentTarget.blur()}});$('#portfolioItemFilterBtn').onclick=()=>{portfolioItemPickerOpen=!portfolioItemPickerOpen;renderPortfolioDiscovery()};
-  if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js?v=13.15-dev7.1',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
+  if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js?v=13.15-dev7.1.1',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
   renderAll();
 }
 function fillSelects(){
@@ -576,6 +577,7 @@ function bindDialogs(){
   $('#returnToWishlistBtn').onclick=closeShoppingSessionsDialog;
   $('#clearWishlistSessionBtn').onclick=clearActiveShoppingSession;
   $('#shoppingSessionForm').onsubmit=e=>{e.preventDefault();saveShoppingSession()};
+  bindShoppingSessionStoreSuggestions();
   $('#shoppingSessionsDialog').addEventListener('cancel',e=>{e.preventDefault();closeShoppingSessionsDialog()});
   $('#shoppingSessionsDialog').addEventListener('close',unlockPageForShoppingSessions);
   $('#cancelShoppingSessionEditBtn').onclick=resetShoppingSessionForm;
@@ -789,6 +791,12 @@ function renderEntrySuggestionBox(inputSelector,boxSelector,matches,dataKey){
   $$(`${boxSelector} .brand-suggestion`).forEach(btn=>{btn.onpointerdown=e=>e.preventDefault();btn.onclick=()=>{input.value=btn.dataset.entryValue||'';box.classList.add('hidden');box.innerHTML='';input.focus()}})
 }
 function closeWishlistEntrySuggestions(){['#wishBrandSuggestions','#wishStoreSuggestions'].forEach(sel=>{const box=$(sel);if(box){box.classList.add('hidden');box.innerHTML=''}})}
+function closeShoppingSessionStoreSuggestions(){const box=$('#shoppingSessionStoreSuggestions');if(box){box.classList.add('hidden');box.innerHTML=''}}
+function bindShoppingSessionStoreSuggestions(){
+  const store=$('#shoppingSessionStore');if(!store||store.dataset.entrySuggestionsBound)return;store.dataset.entrySuggestionsBound='true';
+  const render=()=>renderEntrySuggestionBox('#shoppingSessionStore','#shoppingSessionStoreSuggestions',matchingStoreSuggestions(store.value),'store');
+  store.addEventListener('input',render);store.addEventListener('focus',render);store.addEventListener('keydown',e=>{if(e.key==='Escape')closeShoppingSessionStoreSuggestions()});store.addEventListener('blur',()=>setTimeout(closeShoppingSessionStoreSuggestions,120));
+}
 function bindWishlistEntrySuggestions(){
   const brand=$('#wishBrand'),store=$('#wishStore');
   if(brand&&!brand.dataset.entrySuggestionsBound){brand.dataset.entrySuggestionsBound='true';const render=()=>renderEntrySuggestionBox('#wishBrand','#wishBrandSuggestions',matchingBrandSuggestions(brand.value),'brand');brand.addEventListener('input',render);brand.addEventListener('focus',render);brand.addEventListener('keydown',e=>{if(e.key==='Escape')closeWishlistEntrySuggestions()});brand.addEventListener('blur',()=>setTimeout(closeWishlistEntrySuggestions,120))}
@@ -1128,6 +1136,7 @@ function openShoppingSessionsDialog(fromWish=false){
 async function saveShoppingSession(){
   const sid=$('#shoppingSessionId').value,existing=shoppingSessionById(sid),now=Date.now();
   const session=normalizeShoppingSession({...(existing||{}),id:sid||id(),name:$('#shoppingSessionName').value.trim(),date:$('#shoppingSessionDate').value||localTodayISO(),store:$('#shoppingSessionStore').value.trim(),location:$('#shoppingSessionLocation').value.trim(),createdAt:existing?.createdAt||now,updatedAt:now});
+  rememberStoreSuggestion(session.store);
   if(existing)state.shoppingSessions=state.shoppingSessions.map(s=>s.id===session.id?session:s);else state.shoppingSessions.unshift(session);
   ensureSettings();if(!state.settings.activeShoppingSessionId)state.settings.activeShoppingSessionId=session.id;await saveState();renderShoppingSessions();renderActiveShoppingSession();populateWishShoppingSessionSelect(session.id,false);if($('#shoppingSessionsDialog').dataset.fromWish==='true')$('#wishShoppingSession').value=session.id;resetShoppingSessionForm();toast(existing?'Shopping session updated':'Shopping session saved');
 }

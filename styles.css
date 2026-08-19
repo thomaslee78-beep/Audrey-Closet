@@ -2118,3 +2118,17 @@ body.shopping-sessions-open{position:fixed;left:0;right:0;width:100%;overflow:hi
 .shopping-session-form-actions{display:grid;grid-template-columns:1.25fr .72fr 1fr;gap:8px;margin:0;padding:10px 17px max(10px,env(safe-area-inset-bottom));border-top:1px solid rgba(94,78,62,.14);background:rgba(247,240,223,.98);backdrop-filter:blur(10px)}
 .shopping-session-form-actions button{min-width:0;min-height:42px;font-size:11px;padding:9px 8px;white-space:normal;line-height:1.1}
 @media(max-width:410px){.shopping-sessions-dialog{width:calc(100vw - 14px);height:min(88dvh,760px)}.shopping-sessions-header{padding:15px 14px 8px}.shopping-sessions-body-scroll{padding:0 14px 12px}.shopping-session-row{align-items:center}.shopping-session-actions{flex-direction:column;gap:1px}.shopping-session-form-actions{padding-left:14px;padding-right:14px;grid-template-columns:1.22fr .7fr 1fr}.shopping-session-form-actions button{font-size:10.5px}.wishlist-head-actions .primary{padding:10px 13px}}
+
+/* v13.15-dev7.1.1 — Shopping Session entry polish */
+.wishlist-active-session{justify-content:flex-start}
+.wishlist-active-session-icon{display:flex;align-items:center;justify-content:center;flex:0 0 28px;width:28px;height:28px;font-size:17px;line-height:1;border-radius:9px;background:rgba(77,142,138,.09)}
+.wishlist-active-session>div{flex:1 1 auto}
+.wishlist-active-session>button{margin-left:auto}
+.shopping-session-date-label,.shopping-session-store-label{min-width:0;width:100%;box-sizing:border-box}
+.shopping-session-date-shell{width:100%;min-width:0;height:44px;margin-top:4px;border:1px solid var(--line);border-radius:12px;background:#fffdf7;display:flex;align-items:center;justify-content:center;overflow:hidden;box-sizing:border-box}
+.shopping-session-date-shell #shoppingSessionDate{width:100%!important;inline-size:100%!important;max-width:100%!important;max-inline-size:100%!important;min-width:0!important;min-inline-size:0!important;height:42px!important;min-height:42px!important;margin:0!important;padding:0 11px!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;font-family:var(--sans);font-weight:400!important;font-size:16px!important;line-height:normal!important;text-align:center;box-sizing:border-box}
+.shopping-session-date-shell #shoppingSessionDate::-webkit-date-and-time-value,.shopping-session-date-shell #shoppingSessionDate::-webkit-datetime-edit{display:flex;align-items:center;justify-content:center;width:100%;height:42px;min-height:42px;line-height:normal;text-align:center;padding:0;margin:0}
+.shopping-session-date-shell #shoppingSessionDate::-webkit-datetime-edit-fields-wrapper{display:flex;align-items:center;justify-content:center;height:100%;padding:0;margin:0}
+.shopping-session-store-label{position:relative;overflow:visible}
+.shopping-session-store-label .brand-suggestions{top:calc(100% - 2px)}
+@media(max-width:410px){.wishlist-active-session-icon{flex-basis:26px;width:26px;height:26px;font-size:16px}}
