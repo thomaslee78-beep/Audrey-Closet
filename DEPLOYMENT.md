@@ -395,3 +395,5 @@ Lifecycle visual polish: Wishlist row product-link badges are now directly click
 
 ## v13.15-dev7.0.1
 - Fixed service-worker registration/cache version mismatch so Shopping Sessions UI and JavaScript deploy together reliably.
+
+v13.15-dev7.1 cache: `audrey-closet-v13.15-dev7.1`.

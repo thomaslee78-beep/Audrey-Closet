@@ -186,14 +186,18 @@
     </section>
 
     <section class="screen" data-screen="wishlist">
-      <div class="page-head"><div><p class="script">maybe someday…</p><h2>Wishlist</h2></div><button class="primary" id="addWishBtn">Add wish</button></div>
+      <div class="page-head wishlist-page-head">
+        <div><p class="script">maybe someday…</p><h2>Wishlist</h2></div>
+        <div class="wishlist-head-actions"><button type="button" class="wishlist-sessions-toggle" id="wishlistSessionsBtn">Sessions</button><button class="primary" id="addWishBtn">Add wish</button></div>
+      </div>
+      <div id="wishlistActiveSession" class="wishlist-active-session hidden" role="status"><div><small>Current shopping session</small><strong id="wishlistActiveSessionName"></strong></div><button type="button" id="clearWishlistSessionBtn">Clear</button></div>
       <div class="wishlist-list-toolbar">
         <div class="wishlist-view-tabs" role="group" aria-label="Wishlist view">
           <button type="button" class="active" id="wishlistAllBtn" data-wishlist-view="all">All</button>
           <button type="button" id="wishlistTop10Btn" data-wishlist-view="top10">Top 10</button>
           <button type="button" id="wishlistRemovedBtn" data-wishlist-view="removed">Removed</button>
         </div>
-        <div class="wishlist-toolbar-actions"><button type="button" class="wishlist-sessions-toggle" id="wishlistSessionsBtn">Sessions</button><button type="button" class="wishlist-reorder-toggle" id="wishlistReorderBtn" aria-pressed="false">Reorder</button></div>
+        <div class="wishlist-toolbar-actions"><button type="button" class="wishlist-reorder-toggle" id="wishlistReorderBtn" aria-pressed="false">Reorder</button></div>
       </div>
       <div class="wishlist-grid" id="wishlistGrid"></div>
       <div class="empty-state compact" id="wishlistEmpty"><h3>Save future finds</h3><p>Add a photo, link, price and brand. Wishlist pieces can be tried on your Outfit Board.</p></div>
@@ -405,19 +409,27 @@
 
 
   <dialog id="shoppingSessionsDialog" class="sheet-dialog shopping-sessions-dialog">
-    <div class="shopping-sessions-scroll">
-      <div class="sheet-head"><div><p class="script">shopping together</p><h2>Shopping sessions</h2></div><button type="button" class="close-btn" id="closeShoppingSessionsBtn" aria-label="Close">×</button></div>
-      <p class="shopping-session-help">Group wishes from the same shopping trip. Set a current session and new wishes can start there automatically.</p>
-      <div id="shoppingSessionsList" class="shopping-sessions-list"></div>
-      <form id="shoppingSessionForm" class="shopping-session-form">
-        <input type="hidden" id="shoppingSessionId" />
-        <p class="wish-section-label">Session details</p>
-        <label class="full-label">Name<input id="shoppingSessionName" required placeholder="Thrift Day" /></label>
-        <label class="full-label">Date<input id="shoppingSessionDate" type="date" required /></label>
-        <label class="full-label">Store<input id="shoppingSessionStore" placeholder="Store or shopping area" /></label>
-        <label class="full-label">Location <small>optional</small><input id="shoppingSessionLocation" placeholder="San Ramon, CA" /></label>
-        <div class="shopping-session-form-actions"><button type="button" class="soft-btn" id="cancelShoppingSessionEditBtn">Clear</button><button type="submit" class="primary" id="shoppingSessionSaveBtn">Save session</button></div>
-      </form>
+    <div class="shopping-sessions-shell">
+      <header class="shopping-sessions-header">
+        <div class="sheet-head"><div><p class="script">shopping together</p><h2>Shopping sessions</h2></div><button type="button" class="close-btn" id="closeShoppingSessionsBtn" aria-label="Close">×</button></div>
+        <p class="shopping-session-help"><strong>Create a shopping session to track items on your wishlist together.</strong><span>New wishes can automatically be added to your current session.</span></p>
+      </header>
+      <div class="shopping-sessions-body-scroll">
+        <div id="shoppingSessionsList" class="shopping-sessions-list"></div>
+        <form id="shoppingSessionForm" class="shopping-session-form">
+          <input type="hidden" id="shoppingSessionId" />
+          <p class="wish-section-label">Session details</p>
+          <label class="full-label">Name<input id="shoppingSessionName" required placeholder="Thrift Day" /></label>
+          <label class="full-label">Date<input id="shoppingSessionDate" type="date" required /></label>
+          <label class="full-label">Store<input id="shoppingSessionStore" placeholder="Store or shopping area" /></label>
+          <label class="full-label">Location <small>optional</small><input id="shoppingSessionLocation" placeholder="San Ramon, CA" /></label>
+        </form>
+      </div>
+      <footer class="shopping-session-form-actions">
+        <button type="button" class="soft-btn" id="returnToWishlistBtn">Return to Wishlist</button>
+        <button type="button" class="soft-btn" id="cancelShoppingSessionEditBtn">Clear</button>
+        <button type="submit" form="shoppingSessionForm" class="primary" id="shoppingSessionSaveBtn">Save session</button>
+      </footer>
     </div>
   </dialog>
 

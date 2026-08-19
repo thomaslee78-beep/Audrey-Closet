@@ -489,3 +489,8 @@ Lifecycle visual polish: Wishlist row product-link badges are now directly click
 
 ## v13.15-dev7.0.1
 - Fixed service-worker registration/cache version mismatch so Shopping Sessions UI and JavaScript deploy together reliably.
+
+### v13.15-dev7.1 — Shopping Sessions UI & lifecycle
+- Fixed Shopping Sessions header/help and bottom actions while the session content scrolls vertically.
+- Added Return to Wishlist, safe session deletion, current-session outline/badge, and active-session indicator/clear action on Wishlist.
+- Sessions now lock the background and suppress horizontal scrolling while open.
