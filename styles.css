@@ -1750,3 +1750,34 @@ body.wishlist-reordering .wish-card{touch-action:none}
   font-size:12px;
   font-weight:700;
 }
+
+/* v13.15-dev6.1.2 — keep native iOS date control inside the acquisition field width */
+.purchase-wish-dialog .purchase-wish-fields{
+  width:100%;
+  min-width:0;
+}
+.purchase-wish-dialog .purchase-wish-fields > label{
+  width:100%;
+  max-width:100%;
+  min-width:0;
+  overflow:hidden;
+  box-sizing:border-box;
+}
+.purchase-wish-dialog #purchaseWishDate{
+  display:block;
+  inline-size:100%;
+  width:100%;
+  min-inline-size:0;
+  min-width:0;
+  max-inline-size:100%;
+  max-width:100%;
+  box-sizing:border-box;
+}
+@media(max-width:520px){
+  .purchase-wish-dialog #purchaseWishDate{
+    inline-size:100%;
+    width:100%;
+    max-inline-size:100%;
+    max-width:100%;
+  }
+}
