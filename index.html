@@ -188,7 +188,7 @@
     <section class="screen" data-screen="wishlist">
       <div class="page-head wishlist-page-head">
         <div><p class="script">maybe someday…</p><h2>Wishlist</h2></div>
-        <div class="wishlist-head-actions"><button type="button" class="wishlist-sessions-toggle" id="wishlistSessionsBtn">Sessions</button><button class="primary" id="addWishBtn">Add wish</button></div>
+        <div class="wishlist-head-actions"><button type="button" class="wishlist-sessions-toggle" id="wishlistSessionsBtn">Sessions</button><button type="button" class="wishlist-quick-capture" id="quickCaptureWishBtn">Quick capture</button><button class="primary" id="addWishBtn">Add wish</button></div>
       </div>
       <div id="wishlistActiveSession" class="wishlist-active-session hidden" role="status"><span class="wishlist-active-session-icon" aria-hidden="true">🛒</span><div><small>Current shopping session</small><strong id="wishlistActiveSessionName"></strong></div><button type="button" id="clearWishlistSessionBtn">Clear</button></div>
       <div class="wishlist-list-toolbar">
@@ -359,6 +359,32 @@
       <p class="scan-status studio-status" id="studioStatus" data-i18n="studio.noTool">No tool selected. The garment is locked; drag with one finger to pan and pinch with two fingers to zoom.</p>
       </div>
       <div class="sheet-actions studio-save-actions"><button type="button" class="soft-btn" id="studioCancelBtn" data-i18n="studio.cancel">Cancel</button><button type="button" class="primary" id="studioApply" data-i18n="studio.usePhoto">Use this photo</button></div>
+    </div>
+  </dialog>
+
+
+  <dialog id="quickCaptureDialog" class="sheet-dialog quick-capture-dialog">
+    <div class="quick-capture-shell">
+      <div class="sheet-head"><div><p class="script">capture first</p><h2>Quick Capture</h2></div><button type="button" class="close-btn" id="closeQuickCaptureBtn" aria-label="Close">×</button></div>
+      <p class="quick-capture-intro">Take the item photo now. Add a label and price-tag photo when useful — you can review the suggested details before anything is saved.</p>
+      <div id="quickCaptureSessionNote" class="quick-capture-session-note"></div>
+      <div class="quick-capture-slots">
+        <label class="quick-capture-slot primary-slot"><span class="quick-capture-slot-copy"><strong>1 · Item</strong><small>Main Wishlist / Board photo</small></span><div class="quick-capture-preview"><img id="quickCaptureItemPreview" alt="Item capture"><span id="quickCaptureItemPlaceholder">Take photo</span></div><input type="file" id="quickCaptureItemPhoto" accept="image/*" capture="environment"></label>
+        <label class="quick-capture-slot"><span class="quick-capture-slot-copy"><strong>2 · Label</strong><small>Brand, size, material or style code</small></span><div class="quick-capture-preview"><img id="quickCaptureLabelPreview" alt="Label capture"><span id="quickCaptureLabelPlaceholder">Optional</span></div><input type="file" id="quickCaptureLabelPhoto" accept="image/*" capture="environment"></label>
+        <label class="quick-capture-slot"><span class="quick-capture-slot-copy"><strong>3 · Price tag</strong><small>Price, barcode, QR or SKU</small></span><div class="quick-capture-preview"><img id="quickCapturePricePreview" alt="Price tag capture"><span id="quickCapturePricePlaceholder">Optional</span></div><input type="file" id="quickCapturePricePhoto" accept="image/*" capture="environment"></label>
+      </div>
+      <p id="quickCaptureStatus" class="scan-status">Take the item photo first. Label and price-tag photos are optional.</p>
+      <div class="sheet-actions quick-capture-actions"><button type="button" class="soft-btn" id="quickCaptureCancelBtn">Cancel</button><button type="button" class="primary" id="quickCaptureAnalyzeBtn" disabled>Review suggestions</button></div>
+    </div>
+  </dialog>
+
+  <dialog id="quickCaptureReviewDialog" class="sheet-dialog quick-capture-review-dialog">
+    <div class="quick-capture-review-shell">
+      <div class="sheet-head"><div><p class="script">review the scan</p><h2>Use these details?</h2></div><button type="button" class="close-btn" id="closeQuickCaptureReviewBtn" aria-label="Close">×</button></div>
+      <p class="quick-capture-intro">Check the attributes you want to apply, or edit any suggestion first. Nothing updates the Wishlist until you save the wish.</p>
+      <div id="quickCaptureReviewFields" class="quick-capture-review-fields"></div>
+      <p id="quickCaptureBarcodeNote" class="quick-capture-barcode-note"></p>
+      <div class="sheet-actions quick-capture-review-actions"><button type="button" class="soft-btn" id="quickCaptureReviewCancelBtn">Back</button><button type="button" class="primary" id="quickCaptureApplyBtn">Continue to wish</button></div>
     </div>
   </dialog>
 

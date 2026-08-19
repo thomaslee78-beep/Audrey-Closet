@@ -403,3 +403,7 @@ v13.15-dev7.1 cache: `audrey-closet-v13.15-dev7.1`.
 - Normalized Shopping Session date input width/alignment on iPhone.
 - Shopping Session Store now suggests stores previously used in Wishlist items and Shopping Sessions.
 - Added a shopping-cart cue to the active Current shopping session banner.
+
+
+## v13.15-dev8
+Wishlist Quick Capture groundwork: item/label/price-tag photo bundle, review-before-apply suggestions, session-aware capture metadata, and future-ready scan/source fields.
