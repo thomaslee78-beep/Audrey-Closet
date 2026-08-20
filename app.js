@@ -1,5 +1,5 @@
 const CATALOG_TAXONOMY_VERSION=2;
-const WISHLIST_MODEL_VERSION=4;
+const WISHLIST_MODEL_VERSION=5;
 const CATEGORY_DEFS=[
   {id:'tops',label:'Tops'},
   {id:'bottoms',label:'Bottoms'},
@@ -160,7 +160,7 @@ let wishStudioState=null;
 let wishCaptureAssetsDraft=[];
 let wishScanDataDraft={};
 let wishInputSourceDraft='manual';
-let quickCaptureDraft={item:'',label:'',price:'',itemName:'',labelText:'',priceText:'',barcode:'',suggestions:{}};
+let quickCaptureDraft={item:'',label:'',price:'',itemName:'',labelText:'',priceText:'',barcode:'',ocrAvailable:true,suggestions:{}};
 let wishDialogScrollY=0;
 let wishDialogMode='create';
 let wishFitDrafts={};
@@ -288,6 +288,7 @@ function normalizeShoppingSession(session={}){
     date:String(session.date||localTodayISO()),
     store:String(session.store||''),
     location:String(session.location||''),
+    tripId:String(session.tripId||''),
     status:session.status==='closed'?'closed':'active',
     createdAt,
     updatedAt:Number(session.updatedAt||createdAt)
@@ -329,6 +330,7 @@ function normalizeWishlistItem(w={}){
     type:String(w.type||''),
     brand:String(w.brand||''),
     size:String(w.size||''),
+    sizeRaw:String(w.sizeRaw||''),
     sizeVariant:String(w.sizeVariant||''),
     style:String(w.style||''),
     color:String(w.color||''),
@@ -469,7 +471,7 @@ async function init(){
   $('#settingsBtn').onclick=()=>{renderPortfolioFolderEditor();renderJournalOrderEditor();showScreen('more')};
   $('#addPortfolioFolderBtn').onclick=addPortfolioFolder;
   $('#portfolioNewBtn').onclick=()=>guardBoardSwitch(()=>{startNewOutfit();showScreen('outfits')},'start a new look');  $('#portfolioSearch').oninput=e=>{portfolioSearchQuery=e.target.value||'';renderSavedOutfits()};$('#portfolioSearch').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();e.currentTarget.blur()}});$('#portfolioItemFilterBtn').onclick=()=>{portfolioItemPickerOpen=!portfolioItemPickerOpen;renderPortfolioDiscovery()};
-  if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js?v=13.15-dev8',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
+  if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js?v=13.15-dev8.1',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
   renderAll();
 }
 function fillSelects(){
@@ -1160,25 +1162,41 @@ async function saveShoppingSession(){
 
 
 function resetQuickCaptureDraft(){
-  quickCaptureDraft={item:'',label:'',price:'',itemName:'',labelText:'',priceText:'',barcode:'',suggestions:{}};
+  quickCaptureDraft={item:'',label:'',price:'',itemName:'',labelText:'',priceText:'',barcode:'',ocrAvailable:true,suggestions:{}};
   ['quickCaptureItemPhoto','quickCaptureLabelPhoto','quickCapturePricePhoto'].forEach(id=>{const el=$('#'+id);if(el)el.value=''});
   [['#quickCaptureItemPreview','#quickCaptureItemPlaceholder'],['#quickCaptureLabelPreview','#quickCaptureLabelPlaceholder'],['#quickCapturePricePreview','#quickCapturePricePlaceholder']].forEach(([img,ph])=>showPhoto(img,ph,''));
-  const status=$('#quickCaptureStatus');if(status)status.textContent='Take the item photo first. Label and price-tag photos are optional.';
-  const analyze=$('#quickCaptureAnalyzeBtn');if(analyze)analyze.disabled=true;
+  const status=$('#quickCaptureStatus');if(status){status.textContent='Take the item photo first. Label and price-tag photos are optional.';status.classList.remove('quick-capture-warning')}
+  const analyze=$('#quickCaptureAnalyzeBtn');if(analyze)analyze.disabled=false;
+}
+let quickCaptureScrollY=0;
+function lockPageForQuickCapture(){
+  if(document.body.classList.contains('quick-capture-open'))return;
+  quickCaptureScrollY=window.scrollY||document.documentElement.scrollTop||0;
+  document.body.style.top=`-${quickCaptureScrollY}px`;
+  document.body.classList.add('quick-capture-open');
+}
+function unlockPageForQuickCapture(){
+  if(!document.body.classList.contains('quick-capture-open'))return;
+  document.body.classList.remove('quick-capture-open');
+  document.body.style.top='';
+  window.scrollTo(0,quickCaptureScrollY||0);
+}
+function quickCaptureNoPhotoMessage(){
+  const status=$('#quickCaptureStatus');if(status){status.textContent='Capture or upload an item photo first, or tap Cancel to exit.';status.classList.add('quick-capture-warning')}
+  toast('Capture or upload an item photo first');
 }
 function openQuickCapture(){
   resetQuickCaptureDraft();
   ensureSettings();const session=shoppingSessionById(state.settings.activeShoppingSessionId||'');
   const note=$('#quickCaptureSessionNote');if(note){note.textContent=session?`Current session — ${shoppingSessionLabel(session)}`:'No current shopping session. You can still capture a wish now.';note.classList.toggle('no-session',!session)}
-  const d=$('#quickCaptureDialog');if(d&&!d.open)d.showModal();
+  const d=$('#quickCaptureDialog');if(d&&!d.open){lockPageForQuickCapture();d.showModal()}
 }
-function closeQuickCapture(){const d=$('#quickCaptureDialog');if(d?.open)d.close();resetQuickCaptureDraft()}
+function closeQuickCapture(){const d=$('#quickCaptureDialog');if(d?.open)d.close();resetQuickCaptureDraft();unlockPageForQuickCapture()}
 async function handleQuickCapturePhoto(e,inputId){
   const f=e.target.files&&e.target.files[0];if(!f){e.target.value='';return}
   const role=inputId==='quickCaptureItemPhoto'?'item':inputId==='quickCaptureLabelPhoto'?'label':'price';
   const photo=await fileToDataURL(f,1000,.78);quickCaptureDraft[role]=photo;
   showPhoto(`#quickCapture${role[0].toUpperCase()+role.slice(1)}Preview`,`#quickCapture${role[0].toUpperCase()+role.slice(1)}Placeholder`,photo);
-  $('#quickCaptureAnalyzeBtn').disabled=!quickCaptureDraft.item;
   $('#quickCaptureStatus').textContent=role==='item'?'Item photo ready. Add a label or price tag if useful, then review suggestions.':`${role==='label'?'Label':'Price tag'} photo added.`;
   e.target.value='';
 }
@@ -1188,20 +1206,22 @@ function quickCaptureKnownBrands(){
 }
 function quickCaptureExtractBrand(text=''){const flat=String(text).replace(/\s+/g,' ');return quickCaptureKnownBrands().find(b=>flat.toLowerCase().includes(b.toLowerCase()))||''}
 function quickCaptureExtractSize(text=''){const flat=String(text).toUpperCase();const m=flat.match(/(?:SIZE\s*[:#-]?\s*)?\b(XXS|XS|S|M|L|XL|XXL|XXXL|00|0|2|4|6|8|10|12|14|16|18|2[4-9]|3[0-9]|4[0-8])\b/);return m?m[1]:''}
-function quickCaptureExtractPrice(text=''){const matches=[...String(text).matchAll(/(?:\$|USD\s*)?([0-9]{1,4}(?:\.[0-9]{2})?)/gi)].map(m=>Number(m[1])).filter(n=>Number.isFinite(n)&&n>0&&n<10000);if(!matches.length)return'';const decimal=matches.find(n=>!Number.isInteger(n));return String(decimal??matches[0])}
+function quickCaptureExtractPrice(text=''){const matches=[...String(text).matchAll(/(?:\$|USD\s*|EUR\s*|GBP\s*|CAD\s*|JPY\s*|TWD\s*|€|£|¥)?([0-9]{1,4}(?:\.[0-9]{2})?)/gi)].map(m=>Number(m[1])).filter(n=>Number.isFinite(n)&&n>0&&n<10000);if(!matches.length)return'';const decimal=matches.find(n=>!Number.isInteger(n));return String(decimal??matches[0])}
+function quickCaptureExtractCurrency(text=''){const t=String(text).toUpperCase();if(/(?:\bEUR\b|€)/.test(t))return'EUR';if(/(?:\bGBP\b|£)/.test(t))return'GBP';if(/\bCAD\b/.test(t))return'CAD';if(/\bTWD\b/.test(t))return'TWD';if(/(?:\bJPY\b|¥)/.test(t))return'JPY';if(/(?:\bUSD\b|\$)/.test(t))return'USD';return''}
 async function quickCaptureBarcode(dataURL){
   if(!dataURL||!('BarcodeDetector'in window))return'';
   try{const detector=new BarcodeDetector({formats:['qr_code','ean_13','ean_8','upc_a','upc_e','code_128']});const img=await imageFrom(dataURL);const results=await detector.detect(img);return String(results?.[0]?.rawValue||'')}catch{return''}
 }
 function quickCaptureSuggestion(value,source,confidence=.7){return value?{value:String(value),source,confidence}:null}
 async function analyzeQuickCapture(){
-  if(!quickCaptureDraft.item)return toast('Take or upload an item photo first');
-  const btn=$('#quickCaptureAnalyzeBtn');btn.disabled=true;$('#quickCaptureStatus').textContent='Reading the item, label and price tag…';
+  if(!quickCaptureDraft.item){quickCaptureNoPhotoMessage();return}
+  const btn=$('#quickCaptureAnalyzeBtn');btn.disabled=true;$('#quickCaptureStatus').classList.remove('quick-capture-warning');$('#quickCaptureStatus').textContent='Reading the item, label and price tag…';
   try{
     const visual=await analyzeImage(quickCaptureDraft.item);
-    let labelText='',priceText='';
-    if(quickCaptureDraft.label)try{labelText=await tryOCR(quickCaptureDraft.label)}catch{}
-    if(quickCaptureDraft.price)try{priceText=await tryOCR(quickCaptureDraft.price)}catch{}
+    let labelText='',priceText='',ocrAttempted=!!(quickCaptureDraft.label||quickCaptureDraft.price),ocrFailed=false;
+    if(quickCaptureDraft.label)try{labelText=await tryOCR(quickCaptureDraft.label)}catch{ocrFailed=true}
+    if(quickCaptureDraft.price)try{priceText=await tryOCR(quickCaptureDraft.price)}catch{ocrFailed=true}
+    quickCaptureDraft.ocrAvailable=!ocrAttempted||(!ocrFailed&&(!!labelText||!!priceText));
     const barcode=await quickCaptureBarcode(quickCaptureDraft.price||quickCaptureDraft.label);
     quickCaptureDraft.labelText=labelText.slice(0,1600);quickCaptureDraft.priceText=priceText.slice(0,1600);quickCaptureDraft.barcode=barcode;
     const allText=`${labelText}\n${priceText}`;
@@ -1210,6 +1230,7 @@ async function analyzeQuickCapture(){
       brand:quickCaptureSuggestion(quickCaptureExtractBrand(allText),'label',.82),
       size:quickCaptureSuggestion(quickCaptureExtractSize(labelText),'label',.76),
       price:quickCaptureSuggestion(quickCaptureExtractPrice(priceText),'price tag',.86),
+      currency:quickCaptureSuggestion(quickCaptureExtractCurrency(priceText)||(session?.currency||'USD'),quickCaptureExtractCurrency(priceText)?'price tag':'default',quickCaptureExtractCurrency(priceText)?.92:.55),
       store:quickCaptureSuggestion(session?.store||'','shopping session',.98),
       color:quickCaptureSuggestion(visual.color||'','item photo',.7),
       pattern:quickCaptureSuggestion(visual.pattern||'','item photo',.65),
@@ -1218,39 +1239,41 @@ async function analyzeQuickCapture(){
     renderQuickCaptureReview();
     $('#quickCaptureDialog').close();$('#quickCaptureReviewDialog').showModal();
   }catch(err){console.error(err);toast('Could not analyze the capture');$('#quickCaptureStatus').textContent='Capture saved. You can retry or add the wish manually.'}
-  finally{btn.disabled=!quickCaptureDraft.item}
+  finally{btn.disabled=false}
 }
 function quickCaptureReviewField(key,label,type='text'){
   const sug=quickCaptureDraft.suggestions[key],value=sug?.value||'',checked=value?'checked':'';
-  const input=type==='select-pattern'?`<select data-qc-value="${key}">${PATTERNS.map(v=>`<option${v===value?' selected':''}>${esc(v)}</option>`).join('')}</select>`:type==='select-color'?`<select data-qc-value="${key}">${COLORS.map(v=>`<option${v===value?' selected':''}>${esc(v)}</option>`).join('')}</select>`:`<input data-qc-value="${key}" value="${esc(value)}" ${key==='price'?'inputmode="decimal"':''}>`;
+  const input=type==='select-pattern'?`<select data-qc-value="${key}">${PATTERNS.map(v=>`<option${v===value?' selected':''}>${esc(v)}</option>`).join('')}</select>`:type==='select-color'?`<select data-qc-value="${key}">${COLORS.map(v=>`<option${v===value?' selected':''}>${esc(v)}</option>`).join('')}</select>`:type==='select-currency'?`<select data-qc-value="${key}">${['USD','EUR','GBP','CAD','JPY','TWD'].map(v=>`<option value="${v}"${v===value?' selected':''}>${v}</option>`).join('')}</select>`:`<input data-qc-value="${key}" value="${esc(value)}" ${key==='price'?'inputmode="decimal"':''}>`;
   return `<div class="quick-capture-review-row"><label class="quick-capture-apply"><input type="checkbox" data-qc-apply="${key}" ${checked}><span></span></label><div class="quick-capture-review-copy"><strong>${esc(label)}</strong>${sug?.source?`<small>${esc(sug.source)}</small>`:''}${input}</div></div>`;
 }
 function renderQuickCaptureReview(){
   const fields=$('#quickCaptureReviewFields');if(!fields)return;
-  fields.innerHTML=[quickCaptureReviewField('brand','Brand'),quickCaptureReviewField('size','Size'),quickCaptureReviewField('color','Color','select-color'),quickCaptureReviewField('pattern','Pattern','select-pattern'),quickCaptureReviewField('price','Price'),quickCaptureReviewField('store','Store')].join('');
-  const barcode=quickCaptureDraft.suggestions.barcode?.value||'';$('#quickCaptureBarcodeNote').textContent=barcode?`Code detected: ${barcode}`:'No barcode or QR code detected. That’s okay — the photos are still saved with the wish.';
+  fields.innerHTML=[quickCaptureReviewField('brand','Brand'),quickCaptureReviewField('size','Size / label text'),quickCaptureReviewField('color','Color','select-color'),quickCaptureReviewField('pattern','Pattern','select-pattern'),quickCaptureReviewField('price','Price'),quickCaptureReviewField('currency','Currency','select-currency'),quickCaptureReviewField('store','Store')].join('');
+  const barcode=quickCaptureDraft.suggestions.barcode?.value||'';const ocrNote=quickCaptureDraft.ocrAvailable?'':' Text recognition was unavailable or could not confidently read the tag; you can enter the values manually.';$('#quickCaptureBarcodeNote').textContent=(barcode?`Code detected: ${barcode}.`:'No barcode or QR code detected. That’s okay — the photos are still saved with the wish.')+ocrNote;
 }
 function closeQuickCaptureReview(){const d=$('#quickCaptureReviewDialog');if(d?.open)d.close();if(!$('#quickCaptureDialog').open)$('#quickCaptureDialog').showModal()}
 function setWishSelectValue(selector,value){const sel=$(selector);if(!sel||!value)return;let opt=[...sel.options].find(o=>o.value===value||o.textContent===value);if(!opt){opt=document.createElement('option');opt.value=value;opt.textContent=value;opt.dataset.scanSuggestion='true';sel.appendChild(opt)}sel.value=opt.value}
 function applyQuickCaptureSuggestions(){
   const picked={};$$('#quickCaptureReviewFields [data-qc-apply]:checked').forEach(box=>{const key=box.dataset.qcApply,val=$(`#quickCaptureReviewFields [data-qc-value="${key}"]`)?.value?.trim?.()||'';if(val)picked[key]=val});
   const assets=[{role:'item',imageRef:'photo',createdAt:Date.now()},...([['label',quickCaptureDraft.label],['price',quickCaptureDraft.price]].filter(([,image])=>image).map(([role,image])=>({role,image,createdAt:Date.now()})))];
-  const scanData={version:1,analyzedAt:Date.now(),itemPhotoStoredAs:'photo',labelText:quickCaptureDraft.labelText,priceText:quickCaptureDraft.priceText,barcode:quickCaptureDraft.barcode?{value:quickCaptureDraft.barcode,source:'barcode / QR',confidence:.95}:null,suggestions:quickCaptureDraft.suggestions};
+  const scanData={version:2,analyzedAt:Date.now(),itemPhotoStoredAs:'photo',labelText:quickCaptureDraft.labelText,priceText:quickCaptureDraft.priceText,recognitionAvailable:quickCaptureDraft.ocrAvailable,barcode:quickCaptureDraft.barcode?{value:quickCaptureDraft.barcode,source:'barcode / QR',confidence:.95}:null,suggestions:quickCaptureDraft.suggestions};
   const itemPhoto=quickCaptureDraft.item;
   const currentSessionId=state.settings?.activeShoppingSessionId||'';
   $('#quickCaptureReviewDialog').close();
+  unlockPageForQuickCapture();
   openWish(null,'create');
   wishWorkingPhoto=itemPhoto;wishOriginalPhoto=itemPhoto;wishStudioState=null;wishCaptureAssetsDraft=assets;wishScanDataDraft=scanData;wishInputSourceDraft='quick_capture';
   showPhoto('#wishPhotoPreview','#wishPhotoPlaceholder',wishWorkingPhoto);applyWishDialogMode();
   if(picked.brand)$('#wishBrand').value=picked.brand;
-  if(picked.size)setWishSelectValue('#wishSize',picked.size);
+  if(picked.size){setWishSelectValue('#wishSize',picked.size);wishScanDataDraft.sizeRaw={value:picked.size,source:quickCaptureDraft.suggestions.size?.source||'label',confidence:Number(quickCaptureDraft.suggestions.size?.confidence||0)};}
+  if(picked.currency)$('#wishCurrency').value=picked.currency;
   if(picked.color)setWishSelectValue('#wishColor',picked.color);
   if(picked.pattern)setWishSelectValue('#wishPattern',picked.pattern);
   if(picked.price)$('#wishPrice').value=picked.price;
   if(picked.store)$('#wishStore').value=picked.store;
   if(currentSessionId)$('#wishShoppingSession').value=currentSessionId;
   $('#wishScanStatus').textContent='Quick Capture suggestions applied. Review or override any field before saving.';
-  quickCaptureDraft={item:'',label:'',price:'',itemName:'',labelText:'',priceText:'',barcode:'',suggestions:{}};
+  quickCaptureDraft={item:'',label:'',price:'',itemName:'',labelText:'',priceText:'',barcode:'',ocrAvailable:true,suggestions:{}};
 }
 
 function openWish(w=null,mode='review'){
@@ -1311,7 +1334,7 @@ async function saveWish(){
   const wid=$('#wishId').value,old=state.wishlist.find(x=>x.id===wid),now=Date.now(),category=$('#wishCategory').value,type=$('#wishType').value;
   const wishlistPrice=$('#wishPrice').value.trim(),productUrl=$('#wishLink').value.trim();
   if(!wid&&productUrl&&wishInputSourceDraft==='manual')wishInputSourceDraft='url_manual';
-  const obj=normalizeWishlistItem({...(old||{}),id:wid||id(),photo:wishWorkingPhoto,originalPhoto:wishOriginalPhoto||wishWorkingPhoto,photoStudioState:wishStudioState,name:$('#wishName').value.trim(),brand:$('#wishBrand').value.trim(),category,categoryId:categoryIdFor(category),type,size:$('#wishSize').value,sizeVariant:cleanedItemFit(category,$('#wishFit').value),style:cleanedItemStyle(category,type,$('#wishStyle').value),color:$('#wishColor').value,pattern:$('#wishPattern').value,season:$('#wishSeason').value,wishlistPrice,price:wishlistPrice,currency:$('#wishCurrency').value||'USD',store:$('#wishStore').value.trim(),shoppingSessionId:$('#wishShoppingSession').value||'',productUrl,link:productUrl,notes:$('#wishNotes').value.trim(),wishlistDesire:wishDesireDraft,lifecycle:'wishlist',wishlistStatus:old?.wishlistStatus||'active',inputSource:wishInputSourceDraft||old?.inputSource||'manual',captureAssets:wishCaptureAssetsDraft,scanData:wishScanDataDraft,sourceMetadata:{...(old?.sourceMetadata||{}),productUrlAdded:!!productUrl},barcode:String(wishScanDataDraft?.barcode?.value||old?.barcode||''),createdAt:old?.createdAt||old?.created||now,created:old?.createdAt||old?.created||now,updatedAt:now});
+  const obj=normalizeWishlistItem({...(old||{}),id:wid||id(),photo:wishWorkingPhoto,originalPhoto:wishOriginalPhoto||wishWorkingPhoto,photoStudioState:wishStudioState,name:$('#wishName').value.trim(),brand:$('#wishBrand').value.trim(),category,categoryId:categoryIdFor(category),type,size:$('#wishSize').value,sizeRaw:String(wishScanDataDraft?.sizeRaw?.value||old?.sizeRaw||''),sizeVariant:cleanedItemFit(category,$('#wishFit').value),style:cleanedItemStyle(category,type,$('#wishStyle').value),color:$('#wishColor').value,pattern:$('#wishPattern').value,season:$('#wishSeason').value,wishlistPrice,price:wishlistPrice,currency:$('#wishCurrency').value||'USD',store:$('#wishStore').value.trim(),shoppingSessionId:$('#wishShoppingSession').value||'',productUrl,link:productUrl,notes:$('#wishNotes').value.trim(),wishlistDesire:wishDesireDraft,lifecycle:'wishlist',wishlistStatus:old?.wishlistStatus||'active',inputSource:wishInputSourceDraft||old?.inputSource||'manual',captureAssets:wishCaptureAssetsDraft,scanData:wishScanDataDraft,sourceMetadata:{...(old?.sourceMetadata||{}),productUrlAdded:!!productUrl},barcode:String(wishScanDataDraft?.barcode?.value||old?.barcode||''),createdAt:old?.createdAt||old?.created||now,created:old?.createdAt||old?.created||now,updatedAt:now});
   const desireChanged=Number(old?.wishlistDesire||0)!==Number(obj.wishlistDesire||0);
   rememberBrandSuggestion(obj.brand);rememberStoreSuggestion(obj.store);
   if(wid)state.wishlist=state.wishlist.map(x=>x.id===wid?obj:x);else{state.wishlist.unshift(obj);ensureSettings();state.settings.wishlistOrder=[obj.id,...state.settings.wishlistOrder.filter(id=>id!==obj.id)]}await saveState();renderWishlist();

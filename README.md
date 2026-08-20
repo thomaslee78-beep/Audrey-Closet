@@ -504,3 +504,7 @@ Lifecycle visual polish: Wishlist row product-link badges are now directly click
 
 ## v13.15-dev8
 Wishlist Quick Capture groundwork: item/label/price-tag photo bundle, review-before-apply suggestions, session-aware capture metadata, and future-ready scan/source fields.
+
+
+## v13.15-dev8.1
+Quick Capture polish: locks the background, validates missing item photos, adds currency to scan review, preserves raw/custom size text for future international sizing, improves recognition fallback messaging, and adds optional shopping-session tripId groundwork.
