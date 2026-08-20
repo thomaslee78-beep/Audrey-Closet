@@ -420,3 +420,8 @@ Deploy all files together. Quick Capture camera cancel now restores the active c
 - Stabilized the Wish granted / Made it to the Closet layout so photos cannot overlap the message or rating.
 - Refined Wishlist title positioning and hierarchy.
 - Lowered the Reorder control slightly to separate it from Wishlist creation actions.
+
+
+## v13.15 — Wishlist & Shopping Improvements
+
+Stable release promoted from v13.15-dev8.5. Includes Wishlist data-model alignment, list redesign, review/edit flow, 1–4 heart desire rating, Top 10 and manual reorder mode, Remove/Restore and Acquired→Closet lifecycle, Shopping Sessions, Quick Capture groundwork, shared brand/store suggestions, product-link improvements, lifecycle visual states, and associated mobile/layout polish. No IndexedDB schema/version change.
