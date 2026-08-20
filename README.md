@@ -517,4 +517,4 @@ Quick Capture polish: locks the background, validates missing item photos, adds 
 - Added learned Brand suggestions in scan review.
 - Price and Currency now share one compact row.
 
-- v13.15-dev8.3: Wishlist header/session polish, Add-to-Wishlist create action, full-width review link, Quick Capture checkbox/camera-cancel hardening, centered action rows.
+- v13.15-dev8.4: Wishlist header/session polish, Add-to-Wishlist create action, full-width review link, Quick Capture checkbox/camera-cancel hardening, centered action rows.

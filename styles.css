@@ -2161,3 +2161,68 @@ body.quick-capture-open{position:fixed!important;left:0;right:0;width:100%;overf
 .quick-capture-price-currency input,.quick-capture-price-currency select{grid-column:auto!important;margin:0!important}
 @media(max-width:410px){.quick-capture-price-currency{grid-template-columns:minmax(0,1fr) 82px}}
 \n\n/* v13.15-dev8.3 — Wishlist / Quick Capture interaction polish */\n.wishlist-page-head{align-items:flex-start}\n.wishlist-title-stack{display:flex;flex-direction:column;align-items:flex-start;min-width:0}\n.wishlist-title-stack .wishlist-sessions-toggle{display:inline-flex;align-items:center;gap:5px;margin-top:3px;padding:1px 0;border:0;background:transparent;color:var(--olive);font-size:11.5px;font-weight:520;line-height:1.2}\n.wishlist-title-stack .wishlist-sessions-toggle.hidden{display:none!important}\n#wishlistSessionsBtn span{font-size:12px;line-height:1}\n.wishlist-head-actions{align-items:flex-end;justify-content:flex-start}\n#addWishBtn{display:inline-flex;align-items:center;justify-content:center;gap:6px}\n.add-wish-sparkle{font-size:13px;line-height:1;color:#f3d96b;text-shadow:0 0 0.5px rgba(92,67,25,.45)}\n\n/* Full-width product-link row in Wishlist review. */\n#wishDialog .wish-review-link-row{grid-column:1/-1!important;width:100%;box-sizing:border-box}\n#wishDialog .wish-review-link-row .wish-product-link{min-width:0;max-width:100%;overflow-wrap:anywhere;word-break:break-word}\n\n/* Center bottom actions for create-mode Wishlist and Quick Capture. */\n#wishDialog.wish-edit-mode:not(.wish-review-mode) .wish-sheet-actions{justify-content:center}\n#wishDialog.wish-edit-mode .wish-sheet-actions>#cancelWishBtn,\n#wishDialog.wish-edit-mode .wish-sheet-actions>#saveWishBtn{justify-self:center}\n#wishDialog.wish-edit-mode .wish-sheet-actions>#deleteWishBtn.hidden,\n#wishDialog.wish-edit-mode .wish-sheet-actions>#purchaseWishBtn.hidden{display:none!important}\n#quickCaptureDialog .quick-capture-actions{display:flex;justify-content:center;align-items:center;gap:10px}\n#quickCaptureDialog .quick-capture-actions button{flex:0 1 46%;max-width:190px;min-width:0}\n\n@media(max-width:410px){\n  .wishlist-title-stack .wishlist-sessions-toggle{font-size:11px}\n  #quickCaptureDialog .quick-capture-actions{gap:8px}\n  #quickCaptureDialog .quick-capture-actions button{flex-basis:47%;font-size:11.5px;padding-left:8px;padding-right:8px}\n}\n\n/* Create mode has two centered actions instead of inheriting the three-column edit layout. */\n#wishDialog.wish-create-mode .wish-sheet-actions{display:flex!important;justify-content:center!important;align-items:center;gap:10px}\n#wishDialog.wish-create-mode .wish-sheet-actions>#cancelWishBtn,\n#wishDialog.wish-create-mode .wish-sheet-actions>#saveWishBtn{flex:0 1 44%;width:auto!important;max-width:190px;min-width:0}\n#wishDialog.wish-create-mode .wish-sheet-actions>#deleteWishBtn,\n#wishDialog.wish-create-mode .wish-sheet-actions>#purchaseWishBtn{display:none!important}\n@media(max-width:410px){#wishDialog.wish-create-mode .wish-sheet-actions{gap:8px}#wishDialog.wish-create-mode .wish-sheet-actions>#cancelWishBtn,#wishDialog.wish-create-mode .wish-sheet-actions>#saveWishBtn{flex-basis:47%;font-size:11.5px!important;padding-left:7px!important;padding-right:7px!important}}\n
+/* v13.15-dev8.4 — Wishlist action stack + balanced create/capture actions */
+.wishlist-head-actions{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+  justify-content:flex-start;
+  gap:5px;
+}
+.wishlist-head-actions .wishlist-sessions-toggle,
+.wishlist-head-actions .wishlist-quick-capture{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:5px;
+  padding:2px 1px;
+  border:0;
+  background:transparent;
+  font-size:11.5px;
+  font-weight:520;
+  line-height:1.2;
+  letter-spacing:.02em;
+}
+.wishlist-head-actions .wishlist-sessions-toggle{color:var(--olive)}
+.wishlist-head-actions .wishlist-quick-capture{color:var(--burgundy)}
+.wishlist-head-actions .wishlist-sessions-toggle.hidden{display:none!important}
+
+/* New wish: two equal, centered actions spanning the usable action row. */
+#wishDialog.wish-create-mode .wish-sheet-actions{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;
+  gap:9px!important;
+  width:100%;
+  align-items:stretch;
+}
+#wishDialog.wish-create-mode .wish-sheet-actions>#cancelWishBtn,
+#wishDialog.wish-create-mode .wish-sheet-actions>#saveWishBtn{
+  width:100%!important;
+  max-width:none!important;
+  min-width:0!important;
+  justify-self:stretch!important;
+  text-align:center;
+}
+
+/* Quick Capture: equal-width actions across the bottom row. */
+#quickCaptureDialog .quick-capture-actions{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;
+  gap:9px!important;
+  width:100%;
+  align-items:stretch;
+}
+#quickCaptureDialog .quick-capture-actions button{
+  width:100%!important;
+  max-width:none!important;
+  min-width:0!important;
+  text-align:center;
+}
+
+@media(max-width:410px){
+  .wishlist-head-actions{gap:4px}
+  .wishlist-head-actions .wishlist-sessions-toggle,
+  .wishlist-head-actions .wishlist-quick-capture{font-size:11px}
+  #wishDialog.wish-create-mode .wish-sheet-actions,
+  #quickCaptureDialog .quick-capture-actions{gap:8px!important}
+}
