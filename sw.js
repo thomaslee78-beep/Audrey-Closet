@@ -1,8 +1,8 @@
-const CACHE='audrey-closet-v13.16-dev4';
+const CACHE='audrey-closet-v13.16-dev5';
 const ASSETS=['./','./index.html','./styles.css','./app.js','./manifest.webmanifest','./icon-192.png','./icon-512.png'];
 
 /*
- * v13.16-dev4 Tier ribbon refinement.
+ * v13.16-dev5 Tier interaction refinement.
  *
  * The current app is a single large classic app.js file. For this dev branch we
  * append the isolated tier feature when app.js is served so the stable v13.15
@@ -10,12 +10,36 @@ const ASSETS=['./','./index.html','./styles.css','./app.js','./manifest.webmanif
  * promoted, it can be folded into app.js/styles.css in the next stable release.
  */
 const TIER_PATCH=String.raw`
-;/* v13.16-dev4 — tier ribbon hierarchy + filter layout */
+;/* v13.16-dev5 — multi-tier filter + tier reactions */
 (function(){
   const CLOSET_TIERS=['S','A','B','C','D'];
   function normalizeClosetTier(value){
     const tier=String(value||'').trim().toUpperCase();
     return CLOSET_TIERS.includes(tier)?tier:'';
+  }
+  const TIER_REACTIONS={
+    S:['Amazing find!','Can’t live without it','Closet MVP','Instant favorite','This one stays','Worth the hype','Main character piece','Always a yes','Perfect find','Top shelf','Never letting go','The one','Closet legend','No notes','Absolute keeper'],
+    A:['Really good one','Easy favorite','Strong pick','Glad we found this','Almost perfect','Gets a lot right','Reliable win','Definitely keeping','Great choice','A regular in rotation','So close to S','Worth reaching for','Easy yes','Solid favorite','Good closet energy'],
+    B:['Solid choice','Gets the job done','Good in rotation','Nice to have','Dependable','Works well','Still earning its spot','Pretty good','Useful piece','A steady pick','Nothing wrong here','Good supporting cast','Makes sense','Worth keeping around','Comfortable middle'],
+    C:['It has its moments','Maybe with the right outfit','Still figuring this one out','Could grow on you','Needs a little help','Occasional pick','Not bad','Depends on the day','There’s potential','Maybe later','Keep experimenting','Needs the right mood','On the fence','Could work','Give it another shot'],
+    D:['Meh','Try again','Not feeling it','Probably not the one','Closet benchwarmer','Maybe it’s time','Hard pass today','Not earning its space','Needs a comeback','Could be better','One more chance?','Not quite working','Low rotation','Maybe let this one go','Thanks for playing']
+  };
+  const tierReactionByItem=new Map();
+  const lastTierReaction={S:'',A:'',B:'',C:'',D:''};
+  function pickTierReaction(tier){
+    const pool=TIER_REACTIONS[tier]||[];
+    if(!pool.length)return'';
+    const candidates=pool.length>1?pool.filter(x=>x!==lastTierReaction[tier]):pool;
+    const message=candidates[Math.floor(Math.random()*candidates.length)]||pool[0]||'';
+    lastTierReaction[tier]=message;
+    return message;
+  }
+  function tierReactionFor(item,tier,{force=false}={}){
+    const itemId=item&&item.id?item.id:$('#itemId')?.value||'';
+    if(!itemId||!tier)return'';
+    const key=itemId+'|'+tier;
+    if(force||!tierReactionByItem.has(key))tierReactionByItem.set(key,pickTierReaction(tier));
+    return tierReactionByItem.get(key)||'';
   }
   function installClosetTierStyles(){
     if(document.getElementById('closetTierStyles'))return;
@@ -42,7 +66,12 @@ const TIER_PATCH=String.raw`
       '#catalogGrid .tier-ribbon.tier-b{--tier-a:#7d8d76;--tier-b:#718269;--tier-tail:#5f7058;--tier-text:#fff}',
       '#catalogGrid .tier-ribbon.tier-c{--tier-a:#99a591;--tier-b:#8e9b87;--tier-tail:#7c8975;--tier-text:#253026}',
       '#catalogGrid .tier-ribbon.tier-d{--tier-a:#b9c2b4;--tier-b:#adb8a8;--tier-tail:#98a493;--tier-text:#253026}',
-      '#filterTier{min-width:0}',
+      '#tierFilterWrap{display:grid;gap:6px;grid-column:1/-1;padding:2px 0}',
+      '#tierFilterWrap .tier-filter-label{font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#817568}',
+      '#tierFilterOptions{display:flex;flex-wrap:wrap;gap:6px}',
+      '#tierFilterOptions .tier-filter-chip{min-width:38px;height:32px;padding:0 10px;border:1px solid rgba(108,81,66,.2);border-radius:10px;background:#fffaf0;color:#74695d;font:800 11px/1 var(--sans);cursor:pointer;-webkit-tap-highlight-color:transparent}',
+      '#tierFilterOptions .tier-filter-chip.active{background:var(--olive);border-color:var(--olive-dark);color:#fff;box-shadow:0 2px 5px rgba(63,73,55,.12)}',
+      '#tierFilterOptions .tier-filter-chip[data-tier-filter="unrated"]{min-width:72px}',
       '@media(max-width:410px){#itemDialog .closet-tier-section{padding:8px 9px;gap:7px}#itemDialog .closet-tier-btn{height:34px}#itemDialog .closet-tier-heading small{max-width:125px}}'
     ].join('');
     document.head.appendChild(style);
@@ -62,7 +91,7 @@ const TIER_PATCH=String.raw`
     title.textContent=selected?selected+'-Tier':'Not rated';
     titleWrap.append(kicker,title);
     const hint=document.createElement('small');
-    hint.textContent=selected?'Tap again to clear':'How essential is this piece?';
+    hint.textContent=selected?tierReactionFor(item,selected):'How essential is this piece?';
     heading.append(titleWrap,hint);
     const options=document.createElement('div');
     options.className='closet-tier-options';
@@ -89,6 +118,7 @@ const TIER_PATCH=String.raw`
     const requested=normalizeClosetTier(tier);
     const next=previous===requested?'':requested;
     item.tier=next;
+    if(next)tierReactionFor(item,next,{force:true});
     renderItemReviewDetails(item);
     $$('.closet-tier-btn','#itemReviewDetails').forEach(function(btn){btn.disabled=true});
     const ok=await saveState();
@@ -104,23 +134,54 @@ const TIER_PATCH=String.raw`
 
   installClosetTierStyles();
 
+  const selectedTierFilters=new Set();
+  function syncTierFilterChips(){
+    $$('#tierFilterOptions .tier-filter-chip').forEach(function(btn){
+      const active=selectedTierFilters.has(btn.dataset.tierFilter||'');
+      btn.classList.toggle('active',active);
+      btn.setAttribute('aria-pressed',active?'true':'false');
+    });
+  }
   function installClosetTierFilter(){
     const panel=$('#filterPanel');
-    if(!panel||$('#filterTier'))return;
-    const select=document.createElement('select');
-    select.id='filterTier';
-    select.setAttribute('aria-label','Filter closet by tier');
-    select.innerHTML='<option value="">All tiers</option>'+
-      CLOSET_TIERS.map(function(t){return '<option value="'+t+'">'+t+'-Tier</option>'}).join('')+
-      '<option value="unrated">Not rated</option>';
+    if(!panel||$('#tierFilterWrap'))return;
+    const wrap=document.createElement('div');
+    wrap.id='tierFilterWrap';
+    wrap.innerHTML='<span class="tier-filter-label">Tier</span><div id="tierFilterOptions" role="group" aria-label="Filter closet by tier"></div>';
+    const options=wrap.querySelector('#tierFilterOptions');
+    CLOSET_TIERS.forEach(function(tier){
+      const btn=document.createElement('button');
+      btn.type='button';
+      btn.className='tier-filter-chip';
+      btn.dataset.tierFilter=tier;
+      btn.setAttribute('aria-pressed','false');
+      btn.textContent=tier;
+      options.appendChild(btn);
+    });
+    const unrated=document.createElement('button');
+    unrated.type='button';
+    unrated.className='tier-filter-chip';
+    unrated.dataset.tierFilter='unrated';
+    unrated.setAttribute('aria-pressed','false');
+    unrated.textContent='Not rated';
+    options.appendChild(unrated);
     const archivedToggle=$('#includeArchivedCloset')?.closest('label');
     const clear=$('#clearFilters');
-    if(archivedToggle)panel.insertBefore(select,archivedToggle);
-    else if(clear)panel.insertBefore(select,clear);
-    else panel.appendChild(select);
-    select.addEventListener('change',renderCatalog);
+    if(archivedToggle)panel.insertBefore(wrap,archivedToggle);
+    else if(clear)panel.insertBefore(wrap,clear);
+    else panel.appendChild(wrap);
+    options.querySelectorAll('.tier-filter-chip').forEach(function(btn){
+      btn.addEventListener('click',function(){
+        const value=btn.dataset.tierFilter||'';
+        if(selectedTierFilters.has(value))selectedTierFilters.delete(value);
+        else selectedTierFilters.add(value);
+        syncTierFilterChips();
+        renderCatalog();
+      });
+    });
     clear?.addEventListener('click',function(){
-      select.value='';
+      selectedTierFilters.clear();
+      syncTierFilterChips();
       requestAnimationFrame(renderCatalog);
     });
   }
@@ -140,11 +201,11 @@ const TIER_PATCH=String.raw`
       fc=$('#filterCategory').value,
       fs=$('#filterSeason').value,
       fcol=$('#filterColor').value,
-      ft=$('#filterTier')?.value||'';
+      tierFilters=selectedTierFilters;
     const activeCategory=selectedCategory||fc||'';
     let items=state.items.filter(function(i){
       const tier=normalizeClosetTier(i.tier);
-      const tierMatch=!ft||(ft==='unrated'?!tier:tier===ft);
+      const tierMatch=!tierFilters.size||tierFilters.has(tier)||(tierFilters.has('unrated')&&!tier);
       return (includeArchivedCloset||!isArchived(i))&&
         (!selectedCategory||i.category===selectedCategory)&&
         (!fc||i.category===fc)&&
@@ -164,7 +225,7 @@ const TIER_PATCH=String.raw`
     const eligibleCount=state.items.filter(function(i){return includeArchivedCloset||!isArchived(i)}).length;
     $('#catalogCount').textContent=items.length+' '+(items.length===1?'piece':'pieces');
     $('#catalogGrid').innerHTML=items.map(function(i){return itemCard(i)}).join('');
-    $('#catalogEmpty').classList.toggle('hidden',eligibleCount>0||q||selectedCategory||fc||fs||fcol||ft);
+    $('#catalogEmpty').classList.toggle('hidden',eligibleCount>0||q||selectedCategory||fc||fs||fcol||tierFilters.size);
     $$('.item-card').forEach(function(c){
       c.onclick=function(){
         if(Date.now()<suppressCatalogClickUntil)return;
