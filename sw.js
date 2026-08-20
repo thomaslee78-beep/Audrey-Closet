@@ -1,8 +1,8 @@
-const CACHE='audrey-closet-v13.16-dev5';
+const CACHE='audrey-closet-v13.16-dev6';
 const ASSETS=['./','./index.html','./styles.css','./app.js','./manifest.webmanifest','./icon-192.png','./icon-512.png'];
 
 /*
- * v13.16-dev5 Tier interaction refinement.
+ * v13.16-dev6 Tier display preference.
  *
  * The current app is a single large classic app.js file. For this dev branch we
  * append the isolated tier feature when app.js is served so the stable v13.15
@@ -10,7 +10,7 @@ const ASSETS=['./','./index.html','./styles.css','./app.js','./manifest.webmanif
  * promoted, it can be folded into app.js/styles.css in the next stable release.
  */
 const TIER_PATCH=String.raw`
-;/* v13.16-dev5 — multi-tier filter + tier reactions */
+;/* v13.16-dev6 — tier ribbon preference */
 (function(){
   const CLOSET_TIERS=['S','A','B','C','D'];
   function normalizeClosetTier(value){
@@ -40,6 +40,23 @@ const TIER_PATCH=String.raw`
     const key=itemId+'|'+tier;
     if(force||!tierReactionByItem.has(key))tierReactionByItem.set(key,pickTierReaction(tier));
     return tierReactionByItem.get(key)||'';
+  }
+  function tierRibbonsEnabled(){
+    ensureSettings();
+    return state.settings.showTierRibbons!==false;
+  }
+  async function setTierRibbonsEnabled(enabled){
+    ensureSettings();
+    const previous=state.settings.showTierRibbons!==false;
+    state.settings.showTierRibbons=!!enabled;
+    renderCatalog();
+    const ok=await saveState();
+    if(!ok){
+      state.settings.showTierRibbons=previous;
+      const input=$('#showTierRibbonsSetting');
+      if(input)input.checked=previous;
+      renderCatalog();
+    }
   }
   function installClosetTierStyles(){
     if(document.getElementById('closetTierStyles'))return;
@@ -72,6 +89,13 @@ const TIER_PATCH=String.raw`
       '#tierFilterOptions .tier-filter-chip{min-width:38px;height:32px;padding:0 10px;border:1px solid rgba(108,81,66,.2);border-radius:10px;background:#fffaf0;color:#74695d;font:800 11px/1 var(--sans);cursor:pointer;-webkit-tap-highlight-color:transparent}',
       '#tierFilterOptions .tier-filter-chip.active{background:var(--olive);border-color:var(--olive-dark);color:#fff;box-shadow:0 2px 5px rgba(63,73,55,.12)}',
       '#tierFilterOptions .tier-filter-chip[data-tier-filter="unrated"]{min-width:72px}',
+      '#tierRibbonSettingsCard{margin-top:12px}',
+      '#tierRibbonSettingsCard .tier-setting-row{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:10px 0}',
+      '#tierRibbonSettingsCard .tier-setting-copy{display:grid;gap:3px;min-width:0}',
+      '#tierRibbonSettingsCard .tier-setting-copy strong{font-size:14px;color:var(--ink)}',
+      '#tierRibbonSettingsCard .tier-setting-copy small{font-size:11px;line-height:1.35;color:#817568}',
+      '#tierRibbonSettingsCard .tier-setting-toggle{display:inline-flex;align-items:center;gap:8px;flex:0 0 auto;font-size:12px;font-weight:700;color:#74695d}',
+      '#tierRibbonSettingsCard .tier-setting-toggle input{width:20px;height:20px;accent-color:var(--olive)}',
       '@media(max-width:410px){#itemDialog .closet-tier-section{padding:8px 9px;gap:7px}#itemDialog .closet-tier-btn{height:34px}#itemDialog .closet-tier-heading small{max-width:125px}}'
     ].join('');
     document.head.appendChild(style);
@@ -186,11 +210,25 @@ const TIER_PATCH=String.raw`
     });
   }
 
+  function installTierRibbonSetting(){
+    const screen=document.querySelector('.screen[data-screen="more"]');
+    if(!screen||$('#tierRibbonSettingsCard'))return;
+    const card=document.createElement('div');
+    card.id='tierRibbonSettingsCard';
+    card.className='settings-card';
+    card.innerHTML='<h3>Catalog / Closet</h3>'+ '<p>Choose how tier ratings appear in your Closet. Ratings and Tier filters stay available even when ribbons are hidden.</p>'+ '<div class="tier-setting-row"><div class="tier-setting-copy"><strong>Show Tier ribbons</strong><small>Display S / A / B / C / D ribbons on rated Closet cards.</small></div><label class="tier-setting-toggle"><input type="checkbox" id="showTierRibbonsSetting"> <span>On</span></label></div>';
+    const firstCard=screen.querySelector('.settings-card');
+    if(firstCard)screen.insertBefore(card,firstCard);else screen.appendChild(card);
+    const input=card.querySelector('#showTierRibbonsSetting');
+    input.checked=tierRibbonsEnabled();
+    input.addEventListener('change',function(){setTierRibbonsEnabled(input.checked)});
+  }
+
   const originalItemCard=itemCard;
   itemCard=function(i){
     const html=originalItemCard(i);
     const tier=normalizeClosetTier(i&&i.tier);
-    if(!tier)return html;
+    if(!tier||!tierRibbonsEnabled())return html;
     const tierClass='tier-'+tier.toLowerCase();
     return html.replace('<div class="thumb">','<div class="thumb"><span class="tier-ribbon '+tierClass+'" aria-label="'+tier+'-Tier">'+tier+'-Tier</span>');
   };
@@ -236,6 +274,7 @@ const TIER_PATCH=String.raw`
   };
 
   installClosetTierFilter();
+  installTierRibbonSetting();
 
   const originalRenderItemReviewDetails=renderItemReviewDetails;
   renderItemReviewDetails=function(item){
