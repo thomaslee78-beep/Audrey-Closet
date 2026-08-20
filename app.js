@@ -163,6 +163,7 @@ let wishInputSourceDraft='manual';
 let quickCaptureDraft={item:'',label:'',price:'',itemName:'',labelText:'',priceText:'',barcode:'',ocrAvailable:true,suggestions:{}};
 let quickCapturePickerActive=false;
 let quickCapturePickerStartedAt=0;
+let quickCaptureSessionActive=false;
 let wishDialogScrollY=0;
 let wishDialogMode='create';
 let wishFitDrafts={};
@@ -473,7 +474,7 @@ async function init(){
   $('#settingsBtn').onclick=()=>{renderPortfolioFolderEditor();renderJournalOrderEditor();showScreen('more')};
   $('#addPortfolioFolderBtn').onclick=addPortfolioFolder;
   $('#portfolioNewBtn').onclick=()=>guardBoardSwitch(()=>{startNewOutfit();showScreen('outfits')},'start a new look');  $('#portfolioSearch').oninput=e=>{portfolioSearchQuery=e.target.value||'';renderSavedOutfits()};$('#portfolioSearch').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();e.currentTarget.blur()}});$('#portfolioItemFilterBtn').onclick=()=>{portfolioItemPickerOpen=!portfolioItemPickerOpen;renderPortfolioDiscovery()};
-  if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js?v=13.15-dev8.2',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
+  if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js?v=13.15-dev8.3',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
   renderAll();
 }
 function fillSelects(){
@@ -581,6 +582,7 @@ function bindDialogs(){
   $('#quickCaptureCancelBtn').onclick=closeQuickCapture;
   $('#closeQuickCaptureBtn').onclick=closeQuickCapture;
   $('#quickCaptureDialog').addEventListener('cancel',e=>{e.preventDefault();closeQuickCapture()});
+  $('#quickCaptureDialog').addEventListener('close',()=>{if(quickCaptureSessionActive&&quickCapturePickerActive)restoreAfterQuickCapturePicker()});
   $('#quickCaptureReviewCancelBtn').onclick=closeQuickCaptureReview;
   $('#closeQuickCaptureReviewBtn').onclick=closeQuickCaptureReview;
   $('#quickCaptureApplyBtn').onclick=applyQuickCaptureSuggestions;
@@ -1135,7 +1137,7 @@ function renderShoppingSessions(){
   host.querySelectorAll('[data-session-action]').forEach(btn=>btn.onclick=async()=>{const row=btn.closest('[data-session-id]'),session=shoppingSessionById(row?.dataset.sessionId);if(!session)return;const action=btn.dataset.sessionAction;if(action==='edit'){fillShoppingSessionForm(session);return}if(action==='delete'){await deleteShoppingSession(session);return}ensureSettings();state.settings.activeShoppingSessionId=action==='clear'?'':session.id;await saveState();renderShoppingSessions();renderActiveShoppingSession();populateWishShoppingSessionSelect($('#wishShoppingSession')?.value||'',false);toast(action==='clear'?'Current shopping session cleared':`Current session — ${session.name}`)});
 }
 function renderActiveShoppingSession(){
-  ensureSettings();const box=$('#wishlistActiveSession'),name=$('#wishlistActiveSessionName');if(!box||!name)return;const session=shoppingSessionById(state.settings.activeShoppingSessionId||'');const show=!!session&&session.status!=='closed';box.classList.toggle('hidden',!show);name.textContent=show?shoppingSessionLabel(session):'';
+  ensureSettings();const box=$('#wishlistActiveSession'),name=$('#wishlistActiveSessionName'),startBtn=$('#wishlistSessionsBtn');if(!box||!name)return;const session=shoppingSessionById(state.settings.activeShoppingSessionId||'');const show=!!session&&session.status!=='closed';box.classList.toggle('hidden',!show);name.textContent=show?shoppingSessionLabel(session):'';if(startBtn)startBtn.classList.toggle('hidden',show);
 }
 async function clearActiveShoppingSession(){
   ensureSettings();if(!state.settings.activeShoppingSessionId)return;state.settings.activeShoppingSessionId='';await saveState();renderActiveShoppingSession();renderShoppingSessions();populateWishShoppingSessionSelect($('#wishShoppingSession')?.value||'',false);toast('Current shopping session cleared');
@@ -1195,21 +1197,24 @@ function quickCaptureNoPhotoMessage(){
 }
 function openQuickCapture(){
   resetQuickCaptureDraft();
+  quickCaptureSessionActive=true;
   ensureSettings();const session=shoppingSessionById(state.settings.activeShoppingSessionId||'');
   const note=$('#quickCaptureSessionNote');if(note){note.textContent=session?`Current session — ${shoppingSessionLabel(session)}`:'No current shopping session. You can still capture a wish now.';note.classList.toggle('no-session',!session)}
   const d=$('#quickCaptureDialog');if(d&&!d.open){lockPageForQuickCapture();d.showModal()}
 }
-function closeQuickCapture(){quickCapturePickerActive=false;document.body.classList.remove('quick-capture-picker-active');const d=$('#quickCaptureDialog');if(d?.open)d.close();resetQuickCaptureDraft();unlockPageForQuickCapture()}
+function closeQuickCapture(){quickCaptureSessionActive=false;quickCapturePickerActive=false;document.body.classList.remove('quick-capture-picker-active');const d=$('#quickCaptureDialog');if(d?.open)d.close();resetQuickCaptureDraft();unlockPageForQuickCapture()}
 function restoreAfterQuickCapturePicker(){
-  if(!quickCapturePickerActive)return;
-  const wait=Math.max(180,520-(Date.now()-quickCapturePickerStartedAt));
-  setTimeout(()=>{
-    if(!quickCapturePickerActive||Date.now()-quickCapturePickerStartedAt<480)return;
+  if(!quickCapturePickerActive||!quickCaptureSessionActive)return;
+  const restore=()=>{
+    if(!quickCaptureSessionActive)return;
+    const review=$('#quickCaptureReviewDialog');
+    if(review?.open)return;
     const d=$('#quickCaptureDialog');
     if(d&&!d.open){try{d.showModal()}catch{}}
     lockPageForQuickCapture();
-    quickCapturePickerActive=false;document.body.classList.remove('quick-capture-picker-active');
-  },wait);
+    if(d?.open){quickCapturePickerActive=false;document.body.classList.remove('quick-capture-picker-active')}
+  };
+  [80,240,520,900].forEach(ms=>setTimeout(restore,ms));
 }
 async function handleQuickCapturePhoto(e,inputId){
   const f=e.target.files&&e.target.files[0];if(!f){e.target.value='';setTimeout(()=>{quickCapturePickerActive=false;document.body.classList.remove('quick-capture-picker-active');const d=$('#quickCaptureDialog');if(d&&!d.open){try{d.showModal()}catch{}}lockPageForQuickCapture()},240);return}
@@ -1282,7 +1287,7 @@ function renderQuickCaptureReview(){
   const fields=$('#quickCaptureReviewFields');if(!fields)return;
   fields.innerHTML=[quickCaptureReviewField('itemName','Item description','text',{defaultChecked:true,placeholder:'e.g. Denim jacket'}),quickCaptureReviewField('brand','Brand'),quickCaptureReviewField('size','Size / label text'),quickCaptureReviewField('color','Color','select-color'),quickCaptureReviewField('pattern','Pattern','select-pattern'),quickCapturePriceCurrencyField(),quickCaptureReviewField('store','Store')].join('');
   const brandInput=$('#quickCaptureReviewFields [data-qc-value="brand"]');if(brandInput){const render=()=>renderQuickCaptureBrandSuggestions();brandInput.addEventListener('input',render);brandInput.addEventListener('focus',render);brandInput.addEventListener('blur',()=>setTimeout(()=>$('#quickCaptureBrandSuggestions')?.classList.add('hidden'),140))}
-  const itemNameInput=$('#quickCaptureReviewFields [data-qc-value="itemName"]');if(itemNameInput)itemNameInput.addEventListener('input',()=>{quickCaptureDraft.itemName=itemNameInput.value;const check=$('#quickCaptureReviewFields [data-qc-apply="itemName"]');if(check)check.checked=!!itemNameInput.value.trim()});
+  ['itemName','brand','size','store'].forEach(key=>{const input=$(`#quickCaptureReviewFields [data-qc-value="${key}"]`),check=$(`#quickCaptureReviewFields [data-qc-apply="${key}"]`);if(input&&check){input.addEventListener('input',()=>{check.checked=!!String(input.value||'').trim();if(key==='itemName')quickCaptureDraft.itemName=input.value});input.addEventListener('change',()=>{check.checked=!!String(input.value||'').trim()})}});
   const barcode=quickCaptureDraft.suggestions.barcode?.value||'';const ocrNote=quickCaptureDraft.ocrAvailable?'':' Text recognition was unavailable or could not confidently read the tag; you can enter the values manually.';$('#quickCaptureBarcodeNote').textContent=(barcode?`Code detected: ${barcode}.`:'No barcode or QR code detected. That’s okay — the photos are still saved with the wish.')+ocrNote;
 }
 function closeQuickCaptureReview(){const d=$('#quickCaptureReviewDialog');if(d?.open)d.close();if(!$('#quickCaptureDialog').open)$('#quickCaptureDialog').showModal()}
@@ -1308,6 +1313,7 @@ function applyQuickCaptureSuggestions(){
   if(picked.store)$('#wishStore').value=picked.store;
   if(currentSessionId)$('#wishShoppingSession').value=currentSessionId;
   $('#wishScanStatus').textContent='Quick Capture suggestions applied. Review or override any field before saving.';
+  quickCaptureSessionActive=false;quickCapturePickerActive=false;document.body.classList.remove('quick-capture-picker-active');
   quickCaptureDraft={item:'',label:'',price:'',itemName:'',labelText:'',priceText:'',barcode:'',ocrAvailable:true,suggestions:{}};
 }
 
@@ -1316,6 +1322,7 @@ function openWish(w=null,mode='review'){
   wishDialogMode=w?(mode==='edit'?'edit':'review'):'create';
   $('#wishDialog').classList.toggle('wish-review-mode',wishDialogMode==='review');
   $('#wishDialog').classList.toggle('wish-edit-mode',wishDialogMode!=='review');
+  $('#wishDialog').classList.toggle('wish-create-mode',wishDialogMode==='create');
   $('#wishDialogKicker').textContent=wishDialogMode==='review'?'Wish List':'future find';
   $('#wishDialogTitle').textContent=w?(wishDialogMode==='review'?(w.name||displayItemType(w)||'Wishlist item'):'Edit wish'):'Add a wish';
   $('#wishId').value=w?.id||'';wishWorkingPhoto=w?.photo||'';wishOriginalPhoto=w?.originalPhoto||w?.photo||'';wishStudioState=w?.photoStudioState?JSON.parse(JSON.stringify(w.photoStudioState)):null;
@@ -1353,13 +1360,13 @@ function applyWishDialogMode(w=null){
   $('#newWishPhotoActions').classList.toggle('hidden',existing||!!wishWorkingPhoto);
   $('#wishCardUtilityActions').classList.toggle('hidden',!existing&&!wishWorkingPhoto);$('#wishPhotoMenuWrap').classList.toggle('hidden',!existing&&!wishWorkingPhoto);$('#wishSmartScanBtn').classList.toggle('hidden',!wishWorkingPhoto);$('#wishRestoreOriginalBtn').classList.toggle('hidden',!wishOriginalPhoto||wishWorkingPhoto===wishOriginalPhoto);
   const current=existing?state.wishlist.find(x=>x.id===$('#wishId').value):null,status=current?.wishlistStatus||'active',dismissed=status==='dismissed';
-  $('#saveWishBtn').textContent=reviewing?'Edit':'Save';$('#cancelWishBtn').textContent=reviewing?'Close':'Cancel';
+  $('#saveWishBtn').textContent=reviewing?'Edit':(existing?'Save':'Add to Wishlist');$('#cancelWishBtn').textContent=reviewing?'Close':'Cancel';
   $('#deleteWishBtn').classList.toggle('hidden',!existing);$('#deleteWishBtn').textContent=dismissed?'Restore':'Remove';
   $('#purchaseWishBtn').classList.toggle('hidden',!existing||!reviewing||status!=='active');
   $('#saveWishBtn').classList.toggle('hidden',status==='purchased');
   if(reviewing)renderWishReviewDetails();else renderWishDesirePickers();
 }
-function enterWishEditMode(){if(wishDialogMode!=='review')return;wishDialogMode='edit';$('#wishDialog').classList.remove('wish-review-mode');$('#wishDialog').classList.add('wish-edit-mode');$('#wishDialogKicker').textContent='future find';$('#wishDialogTitle').textContent='Edit wish';applyWishDialogMode()}
+function enterWishEditMode(){if(wishDialogMode!=='review')return;wishDialogMode='edit';$('#wishDialog').classList.remove('wish-review-mode','wish-create-mode');$('#wishDialog').classList.add('wish-edit-mode');$('#wishDialogKicker').textContent='future find';$('#wishDialogTitle').textContent='Edit wish';applyWishDialogMode()}
 function cancelWishEditToReview(){const wid=$('#wishId').value,live=state.wishlist.find(x=>x.id===wid);if(!live)return closeWishWithoutSaving();openWish(live,'review')}
 async function handleWishPhotoSelection(e,source='library'){const f=e.target.files&&e.target.files[0];if(!f){e.target.value='';return}if(wishDialogMode==='review')enterWishEditMode();wishWorkingPhoto=await fileToDataURL(f,900,.74);if(!wishOriginalPhoto)wishOriginalPhoto=wishWorkingPhoto;wishStudioState=null;if(!$('#wishId').value&&wishInputSourceDraft==='manual')wishInputSourceDraft=source;showPhoto('#wishPhotoPreview','#wishPhotoPlaceholder',wishWorkingPhoto);$('#wishScanStatus').textContent='Photo ready. Review or edit it before saving.';$('#wishPhotoMenu').classList.add('hidden');applyWishDialogMode();e.target.value=''}
 function restoreWishlistViewport(){const active=document.activeElement;if(active&&typeof active.blur==='function')active.blur();requestAnimationFrame(()=>{window.scrollTo(0,wishDialogScrollY||0);setTimeout(()=>window.scrollTo(0,wishDialogScrollY||0),80)})}

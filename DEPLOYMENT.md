@@ -411,3 +411,6 @@ Wishlist Quick Capture groundwork: item/label/price-tag photo bundle, review-bef
 
 ## v13.15-dev8.1
 Quick Capture polish: locks the background, validates missing item photos, adds currency to scan review, preserves raw/custom size text for future international sizing, improves recognition fallback messaging, and adds optional shopping-session tripId groundwork.
+
+## v13.15-dev8.3
+Deploy all files together. Quick Capture camera cancel now restores the active capture session when iOS returns control to the PWA.
