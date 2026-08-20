@@ -1,8 +1,8 @@
-const CACHE='audrey-closet-v13.16-dev3';
+const CACHE='audrey-closet-v13.16-dev4';
 const ASSETS=['./','./index.html','./styles.css','./app.js','./manifest.webmanifest','./icon-192.png','./icon-512.png'];
 
 /*
- * v13.16-dev3 S-Tier extension.
+ * v13.16-dev4 Tier ribbon refinement.
  *
  * The current app is a single large classic app.js file. For this dev branch we
  * append the isolated tier feature when app.js is served so the stable v13.15
@@ -10,7 +10,7 @@ const ASSETS=['./','./index.html','./styles.css','./app.js','./manifest.webmanif
  * promoted, it can be folded into app.js/styles.css in the next stable release.
  */
 const TIER_PATCH=String.raw`
-;/* v13.16-dev3 — S-Tier ribbon refinement */
+;/* v13.16-dev4 — tier ribbon hierarchy + filter layout */
 (function(){
   const CLOSET_TIERS=['S','A','B','C','D'];
   function normalizeClosetTier(value){
@@ -35,8 +35,13 @@ const TIER_PATCH=String.raw`
       '#itemDialog .closet-tier-btn:focus-visible{outline:3px solid rgba(77,142,138,.3);outline-offset:2px}',
       '#itemDialog .closet-tier-btn:disabled{opacity:.58}',
       '#catalogGrid .thumb{position:relative;overflow:hidden}',
-      '#catalogGrid .s-tier-ribbon{position:absolute;left:0;top:10px;z-index:3;display:inline-flex;align-items:center;height:22px;padding:0 12px 0 12px;background:linear-gradient(135deg,#b8944e,#b38a3d 55%,#8b6a2b);color:#fff8ea;font:800 10px/1 var(--sans);letter-spacing:.08em;text-transform:uppercase;border-radius:0 10px 10px 0;box-shadow:0 2px 8px rgba(88,65,22,.22)}',
-      '#catalogGrid .s-tier-ribbon::after{content:"";position:absolute;right:-7px;top:0;border-top:11px solid transparent;border-bottom:11px solid transparent;border-left:7px solid #8b6a2b}',
+      '#catalogGrid .tier-ribbon{--tier-a:#65745d;--tier-b:#53624c;--tier-tail:#465440;--tier-text:#fff;position:absolute;left:0;top:10px;z-index:3;display:inline-flex;align-items:center;height:22px;padding:0 12px;background:linear-gradient(135deg,var(--tier-a),var(--tier-b) 60%,var(--tier-tail));color:var(--tier-text);font:800 10px/1 var(--sans);letter-spacing:.08em;text-transform:uppercase;border-radius:0 10px 10px 0;box-shadow:0 2px 8px rgba(52,63,48,.18)}',
+      '#catalogGrid .tier-ribbon::after{content:"";position:absolute;right:-7px;top:0;border-top:11px solid transparent;border-bottom:11px solid transparent;border-left:7px solid var(--tier-tail)}',
+      '#catalogGrid .tier-ribbon.tier-s{--tier-a:#b8944e;--tier-b:#b38a3d;--tier-tail:#8b6a2b;--tier-text:#fff8ea;box-shadow:0 2px 8px rgba(88,65,22,.22)}',
+      '#catalogGrid .tier-ribbon.tier-a{--tier-a:#66785f;--tier-b:#596b53;--tier-tail:#465840;--tier-text:#fff}',
+      '#catalogGrid .tier-ribbon.tier-b{--tier-a:#7d8d76;--tier-b:#718269;--tier-tail:#5f7058;--tier-text:#fff}',
+      '#catalogGrid .tier-ribbon.tier-c{--tier-a:#99a591;--tier-b:#8e9b87;--tier-tail:#7c8975;--tier-text:#253026}',
+      '#catalogGrid .tier-ribbon.tier-d{--tier-a:#b9c2b4;--tier-b:#adb8a8;--tier-tail:#98a493;--tier-text:#253026}',
       '#filterTier{min-width:0}',
       '@media(max-width:410px){#itemDialog .closet-tier-section{padding:8px 9px;gap:7px}#itemDialog .closet-tier-btn{height:34px}#itemDialog .closet-tier-heading small{max-width:125px}}'
     ].join('');
@@ -108,8 +113,11 @@ const TIER_PATCH=String.raw`
     select.innerHTML='<option value="">All tiers</option>'+
       CLOSET_TIERS.map(function(t){return '<option value="'+t+'">'+t+'-Tier</option>'}).join('')+
       '<option value="unrated">Not rated</option>';
+    const archivedToggle=$('#includeArchivedCloset')?.closest('label');
     const clear=$('#clearFilters');
-    if(clear)panel.insertBefore(select,clear);else panel.appendChild(select);
+    if(archivedToggle)panel.insertBefore(select,archivedToggle);
+    else if(clear)panel.insertBefore(select,clear);
+    else panel.appendChild(select);
     select.addEventListener('change',renderCatalog);
     clear?.addEventListener('click',function(){
       select.value='';
@@ -121,8 +129,9 @@ const TIER_PATCH=String.raw`
   itemCard=function(i){
     const html=originalItemCard(i);
     const tier=normalizeClosetTier(i&&i.tier);
-    if(tier!=='S')return html;
-    return html.replace('<div class="thumb">','<div class="thumb"><span class="s-tier-ribbon" aria-label="S-Tier">S-Tier</span>');
+    if(!tier)return html;
+    const tierClass='tier-'+tier.toLowerCase();
+    return html.replace('<div class="thumb">','<div class="thumb"><span class="tier-ribbon '+tierClass+'" aria-label="'+tier+'-Tier">'+tier+'-Tier</span>');
   };
 
   renderCatalog=function(){
