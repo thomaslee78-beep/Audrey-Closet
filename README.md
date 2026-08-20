@@ -518,3 +518,9 @@ Quick Capture polish: locks the background, validates missing item photos, adds 
 - Price and Currency now share one compact row.
 
 - v13.15-dev8.4: Wishlist header/session polish, Add-to-Wishlist create action, full-width review link, Quick Capture checkbox/camera-cancel hardening, centered action rows.
+
+
+## v13.15-dev8.5
+- Stabilized the Wish granted / Made it to the Closet layout so photos cannot overlap the message or rating.
+- Refined Wishlist title positioning and hierarchy.
+- Lowered the Reorder control slightly to separate it from Wishlist creation actions.

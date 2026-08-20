@@ -2226,3 +2226,77 @@ body.quick-capture-open{position:fixed!important;left:0;right:0;width:100%;overf
   #wishDialog.wish-create-mode .wish-sheet-actions,
   #quickCaptureDialog .quick-capture-actions{gap:8px!important}
 }
+
+/* v13.15-dev8.5 — Wishlist header + acquisition moment layout polish */
+
+/* Keep the Wish-granted content in a stable vertical flow so the item image can
+   never overlap the message/rating area, even with unusually shaped images. */
+.acquisition-moment-card{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  isolation:isolate;
+}
+.acquisition-moment-card>.script,
+.acquisition-moment-card>h2,
+.acquisition-moment-heart,
+.acquisition-moment-photo,
+.acquisition-moment-card>h3,
+.acquisition-moment-rating,
+.acquisition-moment-meta,
+.acquisition-moment-wait,
+.acquisition-moment-actions{
+  position:relative;
+  z-index:1;
+  flex:0 0 auto;
+}
+.acquisition-moment-photo{
+  overflow:hidden;
+  margin-top:3px;
+}
+.acquisition-moment-photo img{
+  display:block;
+  position:static!important;
+  max-width:100%;
+  max-height:100%;
+  margin:auto;
+  transform:none!important;
+}
+.acquisition-moment-rating{min-height:22px}
+
+/* Give the Wishlist identity a little more presence and use the available
+   upper-left space while keeping its top edge aligned with Start Session. */
+.screen[data-screen="wishlist"]{padding-top:10px}
+.wishlist-page-head{
+  margin-top:0;
+  align-items:flex-start!important;
+}
+.wishlist-title-stack{
+  align-self:flex-start;
+  margin-left:-1px;
+  padding-top:0;
+}
+.wishlist-title-stack .script{
+  margin:0 0 -2px!important;
+  line-height:1.02;
+}
+.wishlist-title-stack h2{
+  margin:0!important;
+  font-size:34px;
+  line-height:1.02;
+}
+.wishlist-head-actions{padding-top:0}
+
+/* Keep Reorder visually attached to the list controls, but slightly lower so
+   it is separated from the Add Wish / Quick Capture action stack above. */
+.wishlist-toolbar-actions{
+  align-self:flex-end;
+  padding-top:7px;
+}
+.wishlist-reorder-toggle{transform:translateY(2px)}
+
+@media(max-width:410px){
+  .screen[data-screen="wishlist"]{padding-top:8px}
+  .wishlist-title-stack h2{font-size:31px}
+  .wishlist-toolbar-actions{padding-top:6px}
+}
