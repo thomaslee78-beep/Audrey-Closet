@@ -1,8 +1,8 @@
-const CACHE='audrey-closet-v13.16-dev2';
+const CACHE='audrey-closet-v13.16-dev3';
 const ASSETS=['./','./index.html','./styles.css','./app.js','./manifest.webmanifest','./icon-192.png','./icon-512.png'];
 
 /*
- * v13.16-dev2 S-Tier extension.
+ * v13.16-dev3 S-Tier extension.
  *
  * The current app is a single large classic app.js file. For this dev branch we
  * append the isolated tier feature when app.js is served so the stable v13.15
@@ -10,7 +10,7 @@ const ASSETS=['./','./index.html','./styles.css','./app.js','./manifest.webmanif
  * promoted, it can be folded into app.js/styles.css in the next stable release.
  */
 const TIER_PATCH=String.raw`
-;/* v13.16-dev2 — S/A/B/C/D Closet tier + catalog integration */
+;/* v13.16-dev3 — S-Tier ribbon refinement */
 (function(){
   const CLOSET_TIERS=['S','A','B','C','D'];
   function normalizeClosetTier(value){
@@ -34,8 +34,9 @@ const TIER_PATCH=String.raw`
       '#itemDialog .closet-tier-btn.active{background:var(--olive);border-color:var(--olive-dark);color:#fff;box-shadow:inset 0 0 0 1px rgba(255,255,255,.13),0 2px 5px rgba(63,73,55,.14)}',
       '#itemDialog .closet-tier-btn:focus-visible{outline:3px solid rgba(77,142,138,.3);outline-offset:2px}',
       '#itemDialog .closet-tier-btn:disabled{opacity:.58}',
-      '#catalogGrid .thumb{position:relative}',
-      '#catalogGrid .closet-tier-card-badge{position:absolute;left:8px;top:8px;z-index:3;display:grid;place-items:center;min-width:27px;height:27px;padding:0 7px;border:1px solid rgba(255,255,255,.62);border-radius:9px;background:rgba(84,94,73,.92);color:#fff;font:800 12px/1 var(--sans);box-shadow:0 2px 7px rgba(43,48,38,.18);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}',
+      '#catalogGrid .thumb{position:relative;overflow:hidden}',
+      '#catalogGrid .s-tier-ribbon{position:absolute;left:0;top:10px;z-index:3;display:inline-flex;align-items:center;height:22px;padding:0 12px 0 12px;background:linear-gradient(135deg,#b8944e,#b38a3d 55%,#8b6a2b);color:#fff8ea;font:800 10px/1 var(--sans);letter-spacing:.08em;text-transform:uppercase;border-radius:0 10px 10px 0;box-shadow:0 2px 8px rgba(88,65,22,.22)}',
+      '#catalogGrid .s-tier-ribbon::after{content:"";position:absolute;right:-7px;top:0;border-top:11px solid transparent;border-bottom:11px solid transparent;border-left:7px solid #8b6a2b}',
       '#filterTier{min-width:0}',
       '@media(max-width:410px){#itemDialog .closet-tier-section{padding:8px 9px;gap:7px}#itemDialog .closet-tier-btn{height:34px}#itemDialog .closet-tier-heading small{max-width:125px}}'
     ].join('');
@@ -120,8 +121,8 @@ const TIER_PATCH=String.raw`
   itemCard=function(i){
     const html=originalItemCard(i);
     const tier=normalizeClosetTier(i&&i.tier);
-    if(!tier)return html;
-    return html.replace('<div class="thumb">','<div class="thumb"><span class="closet-tier-card-badge" aria-label="'+tier+'-Tier">'+tier+'</span>');
+    if(tier!=='S')return html;
+    return html.replace('<div class="thumb">','<div class="thumb"><span class="s-tier-ribbon" aria-label="S-Tier">S-Tier</span>');
   };
 
   renderCatalog=function(){
