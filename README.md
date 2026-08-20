@@ -508,3 +508,11 @@ Wishlist Quick Capture groundwork: item/label/price-tag photo bundle, review-bef
 
 ## v13.15-dev8.1
 Quick Capture polish: locks the background, validates missing item photos, adds currency to scan review, preserves raw/custom size text for future international sizing, improves recognition fallback messaging, and adds optional shopping-session tripId groundwork.
+
+
+## v13.15-dev8.2
+- Quick Capture no-photo validation now stays visible inside the capture sheet.
+- Native camera/photo-picker cancel returns to the active Quick Capture session.
+- Added Item description to scan review.
+- Added learned Brand suggestions in scan review.
+- Price and Currency now share one compact row.

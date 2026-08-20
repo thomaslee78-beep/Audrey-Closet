@@ -161,6 +161,8 @@ let wishCaptureAssetsDraft=[];
 let wishScanDataDraft={};
 let wishInputSourceDraft='manual';
 let quickCaptureDraft={item:'',label:'',price:'',itemName:'',labelText:'',priceText:'',barcode:'',ocrAvailable:true,suggestions:{}};
+let quickCapturePickerActive=false;
+let quickCapturePickerStartedAt=0;
 let wishDialogScrollY=0;
 let wishDialogMode='create';
 let wishFitDrafts={};
@@ -471,7 +473,7 @@ async function init(){
   $('#settingsBtn').onclick=()=>{renderPortfolioFolderEditor();renderJournalOrderEditor();showScreen('more')};
   $('#addPortfolioFolderBtn').onclick=addPortfolioFolder;
   $('#portfolioNewBtn').onclick=()=>guardBoardSwitch(()=>{startNewOutfit();showScreen('outfits')},'start a new look');  $('#portfolioSearch').oninput=e=>{portfolioSearchQuery=e.target.value||'';renderSavedOutfits()};$('#portfolioSearch').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();e.currentTarget.blur()}});$('#portfolioItemFilterBtn').onclick=()=>{portfolioItemPickerOpen=!portfolioItemPickerOpen;renderPortfolioDiscovery()};
-  if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js?v=13.15-dev8.1',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
+  if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js?v=13.15-dev8.2',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
   renderAll();
 }
 function fillSelects(){
@@ -574,7 +576,7 @@ function bindDialogs(){
   $('#wishStudioBtn').onclick=()=>{if(wishDialogMode==='review')enterWishEditMode();$('#wishPhotoMenu').classList.add('hidden');openPhotoStudio('wish')};
   $('#wishRestoreOriginalBtn').onclick=()=>{if(wishDialogMode==='review')enterWishEditMode();$('#wishPhotoMenu').classList.add('hidden');restoreWishCapturedOriginal()};
   $('#wishSmartScanBtn').onclick=()=>{if(wishDialogMode==='review')enterWishEditMode();smartScan('wish')};
-  ['quickCaptureItemPhoto','quickCaptureLabelPhoto','quickCapturePricePhoto'].forEach(inputId=>{const input=$('#'+inputId);if(input)input.onchange=e=>handleQuickCapturePhoto(e,inputId)});
+  ['quickCaptureItemPhoto','quickCaptureLabelPhoto','quickCapturePricePhoto'].forEach(inputId=>{const input=$('#'+inputId);if(input){input.onchange=e=>handleQuickCapturePhoto(e,inputId);input.addEventListener('click',()=>{quickCapturePickerActive=true;quickCapturePickerStartedAt=Date.now();document.body.classList.add('quick-capture-picker-active')})}});
   $('#quickCaptureAnalyzeBtn').onclick=analyzeQuickCapture;
   $('#quickCaptureCancelBtn').onclick=closeQuickCapture;
   $('#closeQuickCaptureBtn').onclick=closeQuickCapture;
@@ -583,6 +585,9 @@ function bindDialogs(){
   $('#closeQuickCaptureReviewBtn').onclick=closeQuickCaptureReview;
   $('#quickCaptureApplyBtn').onclick=applyQuickCaptureSuggestions;
   $('#quickCaptureReviewDialog').addEventListener('cancel',e=>{e.preventDefault();closeQuickCaptureReview()});
+  window.addEventListener('pageshow',restoreAfterQuickCapturePicker);
+  window.addEventListener('focus',restoreAfterQuickCapturePicker);
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')restoreAfterQuickCapturePicker()});
   $('#wishForm').onsubmit=e=>{e.preventDefault();if(wishDialogMode==='review')enterWishEditMode();else saveWish()};
   $('#closeWishDialogBtn').onclick=closeWishWithoutSaving;
   $('#cancelWishBtn').onclick=()=>{if(wishDialogMode==='edit'&&$('#wishId').value)cancelWishEditToReview();else closeWishWithoutSaving()};
@@ -1167,6 +1172,8 @@ function resetQuickCaptureDraft(){
   [['#quickCaptureItemPreview','#quickCaptureItemPlaceholder'],['#quickCaptureLabelPreview','#quickCaptureLabelPlaceholder'],['#quickCapturePricePreview','#quickCapturePricePlaceholder']].forEach(([img,ph])=>showPhoto(img,ph,''));
   const status=$('#quickCaptureStatus');if(status){status.textContent='Take the item photo first. Label and price-tag photos are optional.';status.classList.remove('quick-capture-warning')}
   const analyze=$('#quickCaptureAnalyzeBtn');if(analyze)analyze.disabled=false;
+  const alert=$('#quickCaptureAlert');if(alert){alert.textContent='';alert.classList.add('hidden')}
+  quickCapturePickerActive=false;document.body.classList.remove('quick-capture-picker-active');
 }
 let quickCaptureScrollY=0;
 function lockPageForQuickCapture(){
@@ -1182,8 +1189,9 @@ function unlockPageForQuickCapture(){
   window.scrollTo(0,quickCaptureScrollY||0);
 }
 function quickCaptureNoPhotoMessage(){
-  const status=$('#quickCaptureStatus');if(status){status.textContent='Capture or upload an item photo first, or tap Cancel to exit.';status.classList.add('quick-capture-warning')}
-  toast('Capture or upload an item photo first');
+  const msg='Capture or upload an item photo first, or tap Cancel to exit.';
+  const status=$('#quickCaptureStatus');if(status){status.textContent=msg;status.classList.add('quick-capture-warning')}
+  const alert=$('#quickCaptureAlert');if(alert){alert.textContent=msg;alert.classList.remove('hidden')}
 }
 function openQuickCapture(){
   resetQuickCaptureDraft();
@@ -1191,14 +1199,26 @@ function openQuickCapture(){
   const note=$('#quickCaptureSessionNote');if(note){note.textContent=session?`Current session — ${shoppingSessionLabel(session)}`:'No current shopping session. You can still capture a wish now.';note.classList.toggle('no-session',!session)}
   const d=$('#quickCaptureDialog');if(d&&!d.open){lockPageForQuickCapture();d.showModal()}
 }
-function closeQuickCapture(){const d=$('#quickCaptureDialog');if(d?.open)d.close();resetQuickCaptureDraft();unlockPageForQuickCapture()}
+function closeQuickCapture(){quickCapturePickerActive=false;document.body.classList.remove('quick-capture-picker-active');const d=$('#quickCaptureDialog');if(d?.open)d.close();resetQuickCaptureDraft();unlockPageForQuickCapture()}
+function restoreAfterQuickCapturePicker(){
+  if(!quickCapturePickerActive)return;
+  const wait=Math.max(180,520-(Date.now()-quickCapturePickerStartedAt));
+  setTimeout(()=>{
+    if(!quickCapturePickerActive||Date.now()-quickCapturePickerStartedAt<480)return;
+    const d=$('#quickCaptureDialog');
+    if(d&&!d.open){try{d.showModal()}catch{}}
+    lockPageForQuickCapture();
+    quickCapturePickerActive=false;document.body.classList.remove('quick-capture-picker-active');
+  },wait);
+}
 async function handleQuickCapturePhoto(e,inputId){
-  const f=e.target.files&&e.target.files[0];if(!f){e.target.value='';return}
+  const f=e.target.files&&e.target.files[0];if(!f){e.target.value='';setTimeout(()=>{quickCapturePickerActive=false;document.body.classList.remove('quick-capture-picker-active');const d=$('#quickCaptureDialog');if(d&&!d.open){try{d.showModal()}catch{}}lockPageForQuickCapture()},240);return}
   const role=inputId==='quickCaptureItemPhoto'?'item':inputId==='quickCaptureLabelPhoto'?'label':'price';
   const photo=await fileToDataURL(f,1000,.78);quickCaptureDraft[role]=photo;
   showPhoto(`#quickCapture${role[0].toUpperCase()+role.slice(1)}Preview`,`#quickCapture${role[0].toUpperCase()+role.slice(1)}Placeholder`,photo);
   $('#quickCaptureStatus').textContent=role==='item'?'Item photo ready. Add a label or price tag if useful, then review suggestions.':`${role==='label'?'Label':'Price tag'} photo added.`;
-  e.target.value='';
+  $('#quickCaptureStatus').classList.remove('quick-capture-warning');const alert=$('#quickCaptureAlert');if(alert){alert.textContent='';alert.classList.add('hidden')}
+  e.target.value='';setTimeout(()=>{quickCapturePickerActive=false;document.body.classList.remove('quick-capture-picker-active');const d=$('#quickCaptureDialog');if(d&&!d.open){try{d.showModal()}catch{}}lockPageForQuickCapture()},220);
 }
 function quickCaptureKnownBrands(){
   const learned=[...(state.items||[]).map(x=>x.brand),...(state.wishlist||[]).map(x=>x.brand)].filter(Boolean);
@@ -1227,6 +1247,7 @@ async function analyzeQuickCapture(){
     const allText=`${labelText}\n${priceText}`;
     const session=shoppingSessionById(state.settings?.activeShoppingSessionId||'');
     quickCaptureDraft.suggestions={
+      itemName:quickCaptureSuggestion(quickCaptureDraft.itemName,'manual entry',1),
       brand:quickCaptureSuggestion(quickCaptureExtractBrand(allText),'label',.82),
       size:quickCaptureSuggestion(quickCaptureExtractSize(labelText),'label',.76),
       price:quickCaptureSuggestion(quickCaptureExtractPrice(priceText),'price tag',.86),
@@ -1241,20 +1262,33 @@ async function analyzeQuickCapture(){
   }catch(err){console.error(err);toast('Could not analyze the capture');$('#quickCaptureStatus').textContent='Capture saved. You can retry or add the wish manually.'}
   finally{btn.disabled=false}
 }
-function quickCaptureReviewField(key,label,type='text'){
-  const sug=quickCaptureDraft.suggestions[key],value=sug?.value||'',checked=value?'checked':'';
-  const input=type==='select-pattern'?`<select data-qc-value="${key}">${PATTERNS.map(v=>`<option${v===value?' selected':''}>${esc(v)}</option>`).join('')}</select>`:type==='select-color'?`<select data-qc-value="${key}">${COLORS.map(v=>`<option${v===value?' selected':''}>${esc(v)}</option>`).join('')}</select>`:type==='select-currency'?`<select data-qc-value="${key}">${['USD','EUR','GBP','CAD','JPY','TWD'].map(v=>`<option value="${v}"${v===value?' selected':''}>${v}</option>`).join('')}</select>`:`<input data-qc-value="${key}" value="${esc(value)}" ${key==='price'?'inputmode="decimal"':''}>`;
-  return `<div class="quick-capture-review-row"><label class="quick-capture-apply"><input type="checkbox" data-qc-apply="${key}" ${checked}><span></span></label><div class="quick-capture-review-copy"><strong>${esc(label)}</strong>${sug?.source?`<small>${esc(sug.source)}</small>`:''}${input}</div></div>`;
+function quickCaptureReviewField(key,label,type='text',options={}){
+  const sug=quickCaptureDraft.suggestions[key],value=sug?.value||'',checked=(value||options.defaultChecked)?'checked':'';
+  const input=type==='select-pattern'?`<select data-qc-value="${key}">${PATTERNS.map(v=>`<option${v===value?' selected':''}>${esc(v)}</option>`).join('')}</select>`:type==='select-color'?`<select data-qc-value="${key}">${COLORS.map(v=>`<option${v===value?' selected':''}>${esc(v)}</option>`).join('')}</select>`:`<input data-qc-value="${key}" value="${esc(value)}" ${key==='price'?'inputmode="decimal"':''} ${options.placeholder?`placeholder="${esc(options.placeholder)}"`:''}>`;
+  const extra=key==='brand'?'<div id="quickCaptureBrandSuggestions" class="brand-suggestions quick-capture-brand-suggestions hidden"></div>':'';
+  return `<div class="quick-capture-review-row" data-qc-row="${key}"><label class="quick-capture-apply"><input type="checkbox" data-qc-apply="${key}" ${checked}><span></span></label><div class="quick-capture-review-copy"><strong>${esc(label)}</strong>${sug?.source?`<small>${esc(sug.source)}</small>`:''}${input}${extra}</div></div>`;
+}
+function quickCapturePriceCurrencyField(){
+  const price=quickCaptureDraft.suggestions.price?.value||'',currency=quickCaptureDraft.suggestions.currency?.value||'USD',checked=price?'checked':'';
+  return `<div class="quick-capture-review-row quick-capture-price-row"><label class="quick-capture-apply"><input type="checkbox" data-qc-apply-group="priceCurrency" ${checked}><span></span></label><div class="quick-capture-review-copy"><strong>Price</strong><small>${esc(quickCaptureDraft.suggestions.price?.source||'price tag')}</small><div class="quick-capture-price-currency"><input data-qc-value="price" value="${esc(price)}" inputmode="decimal" placeholder="0.00"><select data-qc-value="currency">${['USD','EUR','GBP','CAD','JPY','TWD'].map(v=>`<option value="${v}"${v===currency?' selected':''}>${v}</option>`).join('')}</select></div></div></div>`;
+}
+function renderQuickCaptureBrandSuggestions(){
+  const input=$('#quickCaptureReviewFields [data-qc-value="brand"]'),box=$('#quickCaptureBrandSuggestions');if(!input||!box)return;
+  const matches=matchingBrandSuggestions(input.value);
+  box.innerHTML=matches.map(b=>`<button type="button" class="brand-suggestion" data-qc-brand="${esc(b.name)}"><span>${esc(b.name)}</span></button>`).join('');box.classList.toggle('hidden',!matches.length);
+  $$('#quickCaptureBrandSuggestions [data-qc-brand]').forEach(btn=>{btn.onpointerdown=e=>e.preventDefault();btn.onclick=()=>{input.value=btn.dataset.qcBrand||'';const check=$('#quickCaptureReviewFields [data-qc-apply="brand"]');if(check)check.checked=true;box.classList.add('hidden');input.focus()}});
 }
 function renderQuickCaptureReview(){
   const fields=$('#quickCaptureReviewFields');if(!fields)return;
-  fields.innerHTML=[quickCaptureReviewField('brand','Brand'),quickCaptureReviewField('size','Size / label text'),quickCaptureReviewField('color','Color','select-color'),quickCaptureReviewField('pattern','Pattern','select-pattern'),quickCaptureReviewField('price','Price'),quickCaptureReviewField('currency','Currency','select-currency'),quickCaptureReviewField('store','Store')].join('');
+  fields.innerHTML=[quickCaptureReviewField('itemName','Item description','text',{defaultChecked:true,placeholder:'e.g. Denim jacket'}),quickCaptureReviewField('brand','Brand'),quickCaptureReviewField('size','Size / label text'),quickCaptureReviewField('color','Color','select-color'),quickCaptureReviewField('pattern','Pattern','select-pattern'),quickCapturePriceCurrencyField(),quickCaptureReviewField('store','Store')].join('');
+  const brandInput=$('#quickCaptureReviewFields [data-qc-value="brand"]');if(brandInput){const render=()=>renderQuickCaptureBrandSuggestions();brandInput.addEventListener('input',render);brandInput.addEventListener('focus',render);brandInput.addEventListener('blur',()=>setTimeout(()=>$('#quickCaptureBrandSuggestions')?.classList.add('hidden'),140))}
+  const itemNameInput=$('#quickCaptureReviewFields [data-qc-value="itemName"]');if(itemNameInput)itemNameInput.addEventListener('input',()=>{quickCaptureDraft.itemName=itemNameInput.value;const check=$('#quickCaptureReviewFields [data-qc-apply="itemName"]');if(check)check.checked=!!itemNameInput.value.trim()});
   const barcode=quickCaptureDraft.suggestions.barcode?.value||'';const ocrNote=quickCaptureDraft.ocrAvailable?'':' Text recognition was unavailable or could not confidently read the tag; you can enter the values manually.';$('#quickCaptureBarcodeNote').textContent=(barcode?`Code detected: ${barcode}.`:'No barcode or QR code detected. That’s okay — the photos are still saved with the wish.')+ocrNote;
 }
 function closeQuickCaptureReview(){const d=$('#quickCaptureReviewDialog');if(d?.open)d.close();if(!$('#quickCaptureDialog').open)$('#quickCaptureDialog').showModal()}
 function setWishSelectValue(selector,value){const sel=$(selector);if(!sel||!value)return;let opt=[...sel.options].find(o=>o.value===value||o.textContent===value);if(!opt){opt=document.createElement('option');opt.value=value;opt.textContent=value;opt.dataset.scanSuggestion='true';sel.appendChild(opt)}sel.value=opt.value}
 function applyQuickCaptureSuggestions(){
-  const picked={};$$('#quickCaptureReviewFields [data-qc-apply]:checked').forEach(box=>{const key=box.dataset.qcApply,val=$(`#quickCaptureReviewFields [data-qc-value="${key}"]`)?.value?.trim?.()||'';if(val)picked[key]=val});
+  const picked={};$$('#quickCaptureReviewFields [data-qc-apply]:checked').forEach(box=>{const key=box.dataset.qcApply,val=$(`#quickCaptureReviewFields [data-qc-value="${key}"]`)?.value?.trim?.()||'';if(val)picked[key]=val});const priceGroup=$('#quickCaptureReviewFields [data-qc-apply-group="priceCurrency"]');if(priceGroup?.checked){const price=$('#quickCaptureReviewFields [data-qc-value="price"]')?.value?.trim?.()||'',currency=$('#quickCaptureReviewFields [data-qc-value="currency"]')?.value||'';if(price)picked.price=price;if(currency)picked.currency=currency}
   const assets=[{role:'item',imageRef:'photo',createdAt:Date.now()},...([['label',quickCaptureDraft.label],['price',quickCaptureDraft.price]].filter(([,image])=>image).map(([role,image])=>({role,image,createdAt:Date.now()})))];
   const scanData={version:2,analyzedAt:Date.now(),itemPhotoStoredAs:'photo',labelText:quickCaptureDraft.labelText,priceText:quickCaptureDraft.priceText,recognitionAvailable:quickCaptureDraft.ocrAvailable,barcode:quickCaptureDraft.barcode?{value:quickCaptureDraft.barcode,source:'barcode / QR',confidence:.95}:null,suggestions:quickCaptureDraft.suggestions};
   const itemPhoto=quickCaptureDraft.item;
@@ -1264,6 +1298,7 @@ function applyQuickCaptureSuggestions(){
   openWish(null,'create');
   wishWorkingPhoto=itemPhoto;wishOriginalPhoto=itemPhoto;wishStudioState=null;wishCaptureAssetsDraft=assets;wishScanDataDraft=scanData;wishInputSourceDraft='quick_capture';
   showPhoto('#wishPhotoPreview','#wishPhotoPlaceholder',wishWorkingPhoto);applyWishDialogMode();
+  if(picked.itemName)$('#wishName').value=picked.itemName;
   if(picked.brand)$('#wishBrand').value=picked.brand;
   if(picked.size){setWishSelectValue('#wishSize',picked.size);wishScanDataDraft.sizeRaw={value:picked.size,source:quickCaptureDraft.suggestions.size?.source||'label',confidence:Number(quickCaptureDraft.suggestions.size?.confidence||0)};}
   if(picked.currency)$('#wishCurrency').value=picked.currency;
