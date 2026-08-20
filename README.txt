@@ -1,37 +1,55 @@
-Audrey Closet — v13.16-dev1 Main Update
+Audrey Closet — v13.16-dev2 Main Update
 
 WHAT CHANGES
 - Replace only sw.js on the main branch.
-- No changes are required to app.js, index.html, styles.css, manifest, or icons.
-- Cache name changes from audrey-closet-v13.15 to audrey-closet-v13.16-dev1.
+- Builds on the v13.16-dev1 S-Tier rating control.
+- Cache/version becomes audrey-closet-v13.16-dev2.
 
-S-TIER BEHAVIOR
-- S / A / B / C / D appears on the existing Piece Details / Closet Review card.
-- One tier can be selected at a time.
+NEW S-TIER FUNCTIONALITY
+1. Closet card tier badge
+   - Rated pieces show a small, restrained S/A/B/C/D badge on the photo.
+   - Unrated pieces remain visually unchanged.
+   - Badge uses the app's existing olive visual language rather than five permanent colors.
+
+2. Tier filter
+   - The existing Closet Filter panel now includes:
+     All tiers
+     S-Tier
+     A-Tier
+     B-Tier
+     C-Tier
+     D-Tier
+     Not rated
+   - Tier works together with category, season, color, search, and archived filters.
+   - Clear Filters also clears the tier filter.
+
+3. Immediate refresh
+   - Changing a tier on a Piece Details card refreshes the Closet behind it so the badge/filter state is current.
+
+UNCHANGED
+- Tap a tier to select it.
 - Tap the selected tier again to clear it.
-- Tier is saved on the existing closet item as item.tier.
-- Existing unrated items require no migration.
+- Tier persists on item.tier.
 - Tier survives normal item edits.
-- No catalog badges, sorting, filtering, or statistics are added in this build.
+- No tier statistics or automatic tier sorting yet.
+- Existing manual closet ordering is preserved.
 
 UPLOAD TO MAIN
-1. Open the Audrey-Closet repository on GitHub.
-2. Stay on the main branch.
-3. Replace the root sw.js with the sw.js from this package.
-4. Commit the change to main using your normal process.
-5. Wait for GitHub Pages to redeploy.
-6. Open the installed iPhone PWA/site once while online, then fully close and reopen it if needed.
+1. Open Audrey-Closet on GitHub.
+2. Stay on main.
+3. Replace root sw.js with this package's sw.js.
+4. Commit using your normal process.
+5. Let GitHub Pages redeploy.
+6. Open the PWA once online; if the old build is still visible, fully close and reopen it.
 
 TEST
-1. Open Closet.
-2. Open an existing piece.
-3. Confirm the S/A/B/C/D control appears at the top of Piece Details.
-4. Select S, close the item, and reopen it.
-5. Confirm S remains selected.
-6. Tap S again and confirm the rating clears.
-7. Select another tier, edit another field on the item, save, and reopen.
-8. Confirm the tier survives the edit.
-9. Swipe between pieces and confirm each piece retains its own tier.
+1. Rate several pieces S/A/B/C/D.
+2. Return to Closet and confirm only rated pieces display badges.
+3. Open Filter and test S-Tier and Not rated.
+4. Combine Tier with Category or Color and confirm both filters apply.
+5. Clear filters and confirm the whole Closet returns.
+6. Change a tier and confirm its badge updates.
+7. Long-press/reorder within a category and confirm manual ordering still works.
 
 ROLLBACK
-Replace sw.js with the prior v13.15 version. Existing item.tier values are harmless if the UI is rolled back.
+Replace sw.js with the prior v13.16-dev1 version. Existing item.tier values remain harmless and preserved.
