@@ -1,56 +1,48 @@
-Audrey Closet — v13.18-dev7 Main Update
+Audrey Closet — v13.18-dev8 Main Update
 
 PURPOSE
-Fix Clear/New confirmation reliability and add one-click reset for Board picker filters.
+Minor Board visual refinement after v13.18-dev7.
 
-1. ROBUST CLEAR CONFIRMATION
-Previous builds replaced the button onclick handler, but the base Board code can re-bind that handler later.
+1. SAVE LABEL SIMPLIFIED
+- "Save outfit" becomes "Save".
+- After editing a saved look, the button becomes "Update".
+- Keeps the Board compose bar compact.
 
-dev7 now uses a capture-phase document guard:
-- intercepts the click BEFORE button onclick handlers run
-- blocks the old handler
-- displays the confirmation
-- only calls clearBoard() after explicit confirmation
+2. SHARE POSITION
+- Share remains beside New in the Board header.
+- This was kept intentionally because Share is an action on the current Board, not a global app action.
+- The global top bar remains reserved for app-wide Add Item and Configuration actions.
 
-Message:
-Clear this board?
+3. FOLDER-TAB WORKSPACE TREATMENT
+Pick Pieces / Tools / Decorate now behave visually more like folder tabs:
+- no outer border around the tab strip
+- tabs have rounded TOP corners only
+- bottoms are square so they visually connect to the open workspace
+- active tab background matches the workspace panel beneath it
+- workspace panel border is removed
+- Tools and Decorate containers also lose their separate card borders
+- spacing between Board and tabs is reduced so the controls sit closer to the canvas
 
-This will remove all items and decorations from the current board.
-This action cannot be undone.
+4. ACTIVE AREA BLENDING
+- Selected tab uses the same warm cream background as its content area.
+- This should make the active tool feel like one connected folder/page rather than a button floating above a separate panel.
 
-Cancel keeps the Board unchanged.
-
-2. ROBUST NEW CONFIRMATION
-The same capture-phase protection is used for New:
-- if current Board has draft content, user must confirm
-- Cancel keeps current Board
-- empty Board opens New immediately
-
-3. RESET PICKER FILTERS
-Adds a compact Reset button beside Search / Color / Tier.
-
-Reset returns Pick Pieces to its normal starting state:
-- Search cleared
-- Color = All
-- Tier = All
-- Source = Closet
-- Category = Recent
-- Color/Tier panels closed
-
-This gives users a simple way to recover after combining several filters.
+UNCHANGED
+- Clear/New confirmations
+- Picker Reset
+- Search / Color / Tier filters
+- Free-Flow picker
+- Portrait Board
+- Portfolio compatibility
+- Share behavior
 
 TEST
-1. Add at least one item to Board.
-2. Tools > Clear.
-3. Confirm dialog MUST appear before anything disappears.
-4. Tap Cancel: Board remains exactly unchanged.
-5. Tap Clear again and confirm: Board empties.
-6. Add items and tap New.
-7. Cancel: current Board remains.
-8. Confirm: new empty Board starts.
-9. In Pick Pieces, apply Search + Color + Tier + Category.
-10. Tap Reset.
-11. Confirm Search clears, Closet is active, Recent is selected and all pieces return.
+1. Confirm Save now reads "Save".
+2. Confirm Share remains beside New.
+3. Switch Pick Pieces / Tools / Decorate.
+4. Confirm active tab visually blends into its content panel.
+5. Confirm tabs only round at the top corners.
+6. Confirm the tab strip sits closer to the Board and no heavy borders remain.
 
 ROLLBACK
-Replace sw.js with v13.18-dev6.
+Replace sw.js with v13.18-dev7.

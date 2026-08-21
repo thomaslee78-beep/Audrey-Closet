@@ -1,8 +1,8 @@
-const CACHE='audrey-closet-v13.18-dev7';
+const CACHE='audrey-closet-v13.18-dev8';
 const ASSETS=['./','./index.html','./styles.css','./app.js','./manifest.webmanifest','./icon-192.png','./icon-512.png'];
 
 /*
- * v13.18-dev7 robust Board confirmations + reset filters.
+ * v13.18-dev8 Board folder-tab polish.
  *
  * The current app is a single large classic app.js file. For this dev branch we
  * append the isolated tier feature when app.js is served so the stable v13.15
@@ -10,7 +10,7 @@ const ASSETS=['./','./index.html','./styles.css','./app.js','./manifest.webmanif
  * promoted, it can be folded into app.js/styles.css in the next stable release.
  */
 const TIER_PATCH=String.raw`
-;/* v13.18-dev7 — robust confirmations + reset filters */
+;/* v13.18-dev8 — Board folder-tab polish */
 (function(){
   const CLOSET_TIERS=['S','A','B','C','D'];
   function normalizeClosetTier(value){
@@ -321,6 +321,18 @@ const TIER_PATCH=String.raw`
       '.screen[data-screen="outfits"] .board-picker-reset-btn{height:38px;padding:0 10px;border:1px solid rgba(108,81,66,.16);border-radius:12px;background:#eee5d3;color:#74695d;font:750 10px/1 var(--sans);white-space:nowrap}',
       '.screen[data-screen="outfits"] .board-picker-reset-btn:active{transform:scale(.97)}',
       '@media(max-width:410px){.screen[data-screen="outfits"] .board-picker-filters{grid-template-columns:minmax(0,1fr) auto auto auto!important}.screen[data-screen="outfits"] .board-picker-reset-btn{padding:0 7px;font-size:9px}}',
+      '.screen[data-screen="outfits"] .board-workspace{margin-top:4px}',
+      '.screen[data-screen="outfits"] .board-workspace-tabs{position:sticky;top:66px;z-index:16;display:flex;align-items:flex-end;gap:3px;border:0!important;border-radius:0!important;overflow:visible;background:transparent!important;box-shadow:none!important;padding:0 2px}',
+      '.screen[data-screen="outfits"] .board-workspace-tab{position:relative;min-width:0;flex:1 1 0;border:0!important;border-radius:13px 13px 0 0!important;background:#e9e0cf;color:#75695c;padding:10px 7px 9px;font:750 11px/1.1 var(--sans);box-shadow:none!important;margin:0}',
+      '.screen[data-screen="outfits"] .board-workspace-tab.active{background:#f5eedf!important;color:var(--ink)!important;z-index:2;padding-bottom:11px}',
+      '.screen[data-screen="outfits"] .board-workspace-panel{display:none;padding:0 0 4px;margin-top:0;border:0!important;border-radius:0 0 14px 14px;background:#f5eedf}',
+      '.screen[data-screen="outfits"] .board-workspace-panel.active{display:block;padding-top:7px}',
+      '.screen[data-screen="outfits"] .board-workspace-panel .board-picker-card{background:transparent!important;border:0!important;box-shadow:none!important;padding-top:0!important}',
+      '.screen[data-screen="outfits"] .board-tools-shell,.screen[data-screen="outfits"] .board-decorate-shell{border:0!important;border-radius:0 0 14px 14px!important;background:#f5eedf!important;box-shadow:none!important;padding-top:8px}',
+      '.screen[data-screen="outfits"] .board-picker-bottom{background:#f5eedf!important}',
+      '.screen[data-screen="outfits"] .board-workspace-panel[data-board-panel="pick"]{padding-left:2px;padding-right:2px}',
+      '.screen[data-screen="outfits"] .board-workspace-tab:not(.active):active{background:#dfd4c1}',
+      '@media(max-width:410px){.screen[data-screen="outfits"] .board-workspace-tabs{top:62px;gap:2px}.screen[data-screen="outfits"] .board-workspace-tab{font-size:10px;padding:9px 5px 8px;border-radius:11px 11px 0 0!important}.screen[data-screen="outfits"] .board-workspace-tab.active{padding-bottom:10px}}',
       '@media(max-width:380px){.closet-view-options{grid-template-columns:1fr}.closet-view-option{min-height:60px}}',
       '@media(max-width:410px){#itemDialog .closet-tier-section{padding:8px 9px;gap:7px}#itemDialog .closet-tier-btn{height:34px}#itemDialog .closet-tier-heading small{max-width:125px}}'
     ].join('');
@@ -535,7 +547,7 @@ const TIER_PATCH=String.raw`
 
     board.innerHTML='<div class="settings-group-empty">Board preferences will live here as customization options are added.</div>';
     wishlist.innerHTML='<div class="settings-group-empty">Wishlist preferences will live here as shopping and capture options expand.</div>';
-    about.innerHTML='<div class="settings-card settings-about-card"><h3>About Audrey’s Closet</h3><p class="settings-about-version">Version v13.18-dev7</p><p>A personal closet journal built around cataloging, outfits, memories and everyday wardrobe decisions.</p><p>Credits and a few hidden extras can grow here in future releases.</p></div>';
+    about.innerHTML='<div class="settings-card settings-about-card"><h3>About Audrey’s Closet</h3><p class="settings-about-version">Version v13.18-dev8</p><p>A personal closet journal built around cataloging, outfits, memories and everyday wardrobe decisions.</p><p>Credits and a few hidden extras can grow here in future releases.</p></div>';
 
     if(pageHead?.nextSibling)screen.insertBefore(groups,pageHead.nextSibling);
     else screen.appendChild(groups);
@@ -650,6 +662,7 @@ const TIER_PATCH=String.raw`
     compose.appendChild(notesBtn);
 
     save.classList.add('board-compose-save');
+    save.textContent=editingOutfitId?'Update':'Save';
     compose.appendChild(save);
 
     const notesDrawer=document.createElement('div');
