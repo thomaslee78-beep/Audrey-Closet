@@ -1,8 +1,8 @@
-const CACHE='audrey-closet-v13.16-dev12';
+const CACHE='audrey-closet-v13.17-dev1';
 const ASSETS=['./','./index.html','./styles.css','./app.js','./manifest.webmanifest','./icon-192.png','./icon-512.png'];
 
 /*
- * v13.16-dev12 Today’s Look blended panel.
+ * v13.17-dev1 Closet view architecture + Modern preview.
  *
  * The current app is a single large classic app.js file. For this dev branch we
  * append the isolated tier feature when app.js is served so the stable v13.15
@@ -10,7 +10,7 @@ const ASSETS=['./','./index.html','./styles.css','./app.js','./manifest.webmanif
  * promoted, it can be folded into app.js/styles.css in the next stable release.
  */
 const TIER_PATCH=String.raw`
-;/* v13.16-dev12 — Today’s Look blended surface */
+;/* v13.17-dev1 — Closet view modes + Modern layout */
 (function(){
   const CLOSET_TIERS=['S','A','B','C','D'];
   function normalizeClosetTier(value){
@@ -55,6 +55,41 @@ const TIER_PATCH=String.raw`
       state.settings.showTierRibbons=previous;
       const input=$('#showTierRibbonsSetting');
       if(input)input.checked=previous;
+      renderCatalog();
+    }
+  }
+  const CLOSET_VIEWS=['classic','modern','free-flow'];
+  function normalizeClosetView(value){
+    const view=String(value||'classic').trim().toLowerCase();
+    return CLOSET_VIEWS.includes(view)?view:'classic';
+  }
+  function currentClosetView(){
+    ensureSettings();
+    return normalizeClosetView(state.settings.closetView);
+  }
+  function applyClosetView(){
+    const screen=document.querySelector('.screen[data-screen="catalog"]');
+    if(!screen)return;
+    const view=currentClosetView();
+    screen.dataset.closetView=view==='free-flow'?'classic':view;
+    $$('.closet-view-option').forEach(function(btn){
+      const active=btn.dataset.closetView===view;
+      btn.classList.toggle('active',active);
+      btn.setAttribute('aria-pressed',active?'true':'false');
+    });
+  }
+  async function setClosetView(view){
+    view=normalizeClosetView(view);
+    if(view==='free-flow')return;
+    ensureSettings();
+    const previous=currentClosetView();
+    state.settings.closetView=view;
+    applyClosetView();
+    renderCatalog();
+    const ok=await saveState();
+    if(!ok){
+      state.settings.closetView=previous;
+      applyClosetView();
       renderCatalog();
     }
   }
@@ -119,6 +154,23 @@ const TIER_PATCH=String.raw`
       '.today-section-toggle small{font-size:10px!important;color:#7b7065!important}',
       '.today-toggle-icon{color:var(--burgundy)!important}',
       '.today-journal-content{margin-top:0!important}',
+      '#closetViewSettingsCard{display:grid;gap:10px}',
+      '.closet-view-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}',
+      '.closet-view-option{min-width:0;min-height:76px;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:4px;padding:10px;border:1px solid var(--line);border-radius:13px;background:#fffdf7;color:var(--ink);font:inherit;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent}',
+      '.closet-view-option strong{font-family:var(--serif);font-size:15px;font-weight:600}',
+      '.closet-view-option small{font-size:9px;line-height:1.3;color:#817568}',
+      '.closet-view-option.active{background:#e1e5da;border-color:var(--olive);box-shadow:inset 0 0 0 1px rgba(102,113,90,.18)}',
+      '.closet-view-option:disabled{opacity:.48;cursor:default}',
+      '.closet-view-note{margin:0!important;font-size:10px!important;color:#817568!important}',
+      '.screen[data-screen="catalog"][data-closet-view="modern"] .hero-card{width:calc(100% + 28px);margin-left:-14px;margin-right:-14px;border-radius:0;box-shadow:none;padding-left:20px;padding-right:20px}',
+      '.screen[data-screen="catalog"][data-closet-view="modern"] .closet-grid{width:calc(100% + 28px);margin-left:-14px;margin-right:-14px;grid-template-columns:repeat(2,minmax(0,1fr));gap:0;background:#fff}',
+      '.screen[data-screen="catalog"][data-closet-view="modern"] .item-card{border-radius:0;border:1px solid rgba(255,255,255,.96);box-shadow:none;background:#fffaf0}',
+      '.screen[data-screen="catalog"][data-closet-view="modern"] .item-card .thumb{aspect-ratio:1/1.08;border-radius:0}',
+      '.screen[data-screen="catalog"][data-closet-view="modern"] .item-card .card-body{padding:8px 9px 9px}',
+      '.screen[data-screen="catalog"][data-closet-view="modern"] .item-card h4{font-size:15px;margin-bottom:2px}',
+      '.screen[data-screen="catalog"][data-closet-view="modern"] .item-card p{font-size:10px}',
+      '.screen[data-screen="catalog"][data-closet-view="modern"] .closet-section-title{margin-top:16px}',
+      '@media(max-width:380px){.closet-view-options{grid-template-columns:1fr}.closet-view-option{min-height:60px}}',
       '@media(max-width:410px){#itemDialog .closet-tier-section{padding:8px 9px;gap:7px}#itemDialog .closet-tier-btn{height:34px}#itemDialog .closet-tier-heading small{max-width:125px}}'
     ].join('');
     document.head.appendChild(style);
@@ -247,6 +299,27 @@ const TIER_PATCH=String.raw`
     input.addEventListener('change',function(){setTierRibbonsEnabled(input.checked)});
   }
 
+  function installClosetViewSetting(){
+    const catalogBody=document.querySelector('.settings-group[data-settings-group="catalog"] .settings-group-body');
+    if(!catalogBody||$('#closetViewSettingsCard'))return;
+    const card=document.createElement('div');
+    card.id='closetViewSettingsCard';
+    card.className='settings-card';
+    card.innerHTML='<h3>Closet view</h3>'+
+      '<p>Choose how the Closet catalog is presented. This changes layout only; your items, filters, tiers and manual order stay the same.</p>'+
+      '<div class="closet-view-options" role="group" aria-label="Closet view mode">'+
+        '<button type="button" class="closet-view-option" data-closet-view="classic" aria-pressed="false"><strong>Classic</strong><small>Current card-based catalog</small></button>'+
+        '<button type="button" class="closet-view-option" data-closet-view="modern" aria-pressed="false"><strong>Modern</strong><small>Full-bleed grid with touching cards</small></button>'+
+        '<button type="button" class="closet-view-option" data-closet-view="free-flow" aria-pressed="false" disabled><strong>Free-Flow</strong><small>Photo-only experimental view — coming next</small></button>'+
+      '</div>'+
+      '<p class="closet-view-note">App Style / themes will remain a separate future setting from Closet View.</p>';
+    catalogBody.prepend(card);
+    card.querySelectorAll('.closet-view-option:not(:disabled)').forEach(function(btn){
+      btn.addEventListener('click',function(){setClosetView(btn.dataset.closetView)});
+    });
+    applyClosetView();
+  }
+
   function installSettingsGroups(){
     const screen=document.querySelector('.screen[data-screen="more"]');
     if(!screen||screen.querySelector('.settings-groups'))return;
@@ -297,7 +370,7 @@ const TIER_PATCH=String.raw`
 
     board.innerHTML='<div class="settings-group-empty">Board preferences will live here as customization options are added.</div>';
     wishlist.innerHTML='<div class="settings-group-empty">Wishlist preferences will live here as shopping and capture options expand.</div>';
-    about.innerHTML='<div class="settings-card settings-about-card"><h3>About Audrey’s Closet</h3><p class="settings-about-version">Version v13.16-dev12</p><p>A personal closet journal built around cataloging, outfits, memories and everyday wardrobe decisions.</p><p>Credits and a few hidden extras can grow here in future releases.</p></div>';
+    about.innerHTML='<div class="settings-card settings-about-card"><h3>About Audrey’s Closet</h3><p class="settings-about-version">Version v13.17-dev1</p><p>A personal closet journal built around cataloging, outfits, memories and everyday wardrobe decisions.</p><p>Credits and a few hidden extras can grow here in future releases.</p></div>';
 
     if(pageHead?.nextSibling)screen.insertBefore(groups,pageHead.nextSibling);
     else screen.appendChild(groups);
@@ -314,6 +387,7 @@ const TIER_PATCH=String.raw`
 
   renderCatalog=function(){
     ensureSettings();
+    applyClosetView();
     const q=$('#catalogSearch').value.toLowerCase().trim(),
       fc=$('#filterCategory').value,
       fs=$('#filterSeason').value,
@@ -355,6 +429,8 @@ const TIER_PATCH=String.raw`
   installClosetTierFilter();
   installTierRibbonSetting();
   installSettingsGroups();
+  installClosetViewSetting();
+  applyClosetView();
 
   const originalRenderItemReviewDetails=renderItemReviewDetails;
   renderItemReviewDetails=function(item){

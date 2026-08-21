@@ -1,49 +1,55 @@
-Audrey Closet — v13.16-dev12 Main Update
+Audrey Closet — v13.17-dev1 Main Update
 
-WHAT CHANGES
-- Replace only sw.js on the main branch.
-- Builds directly on v13.16-dev11.
-- Cache/version becomes audrey-closet-v13.16-dev12.
-- Visual-only Journal refinement.
+PURPOSE
+First step of the Closet View experiment. This build introduces a safe presentation-layer setting while preserving the existing Classic catalog.
 
-TODAY'S LOOK BLENDED PANEL
-- The entire Today's Look section now uses one continuous light warm background:
-  #F2EADB
-- The Today's Look header uses the same exact background color as the section behind it.
-- The visible header border is removed.
-- The header radius is removed so it visually blends into the surrounding section.
-- The outer Today's Look section keeps the rounded 16px shape.
-- The content area beneath the header remains inside the same blended panel.
-- The title/subtitle typography from dev11 is retained.
-- The burgundy expand/collapse icon remains as the accent.
+BASE
+- Built directly on v13.16-dev12.
+- Replace only sw.js.
+- Cache/version: audrey-closet-v13.17-dev1.
 
-DESIGN INTENT
-- Today's Look should feel like one integrated Journal surface rather than a card sitting on another card.
-- The section remains slightly lighter than the other Journal panels so it still feels like the current/today highlight.
-- Individual wear-log rows remain distinct inside the blended panel.
+NEW: CLOSET VIEW SETTING
+Configuration > Catalog / Closet now contains:
 
-UNCHANGED
-- Today's Look behavior and data.
-- Planned looks styling.
-- Wear Log / Wear Insights.
-- Journal ordering.
-- Tier functionality and Configuration styling.
-- All saved closet and journal data.
+Classic
+- Existing Closet design.
+- Remains the default for existing users.
 
-UPLOAD TO MAIN
-1. Open Audrey-Closet on GitHub.
-2. Stay on main.
-3. Replace root sw.js with this package's sw.js.
-4. Commit using your normal process.
-5. Let GitHub Pages redeploy.
-6. Open the PWA once online; fully close/reopen if the old cached version remains.
+Modern
+- First-pass full-bleed catalog experiment.
+- Clothing Catalog hero banner stretches horizontally to the edges of the catalog screen.
+- Closet card grid stretches horizontally to the edges.
+- Cards touch with thin light/white separators instead of open gutters.
+- Card corners and shadows are removed.
+- Photos are slightly more prominent and metadata is compacted.
+- Category/search/filter controls remain inset for comfortable use.
+
+Free-Flow
+- Visible in Configuration as the planned experimental third mode.
+- Disabled in dev1 so the app does not pretend an unfinished layout is ready.
+- Intended for a later dev build with photo-only floating garment presentation.
+
+ARCHITECTURE
+- New setting: state.settings.closetView
+- Supported values: classic / modern / free-flow
+- Missing/invalid setting defaults safely to classic.
+- View mode only controls presentation.
+- Shared catalog filtering, item order, tiers, archived state, click-to-review and drag/reorder logic remain shared.
+- The same manual item order is used across all views.
+- Future App Style / theme selection remains independent from Closet View.
 
 TEST
-1. Open Journal.
-2. Confirm Today's Look header and surrounding panel use the same light warm color.
-3. Confirm there is no visible border around the Today's Look header.
-4. Expand/collapse Today's Look.
-5. Confirm the content still reads clearly inside the blended section.
+1. Open Configuration > Catalog / Closet.
+2. Confirm Closet view selector appears.
+3. Confirm Classic is selected initially.
+4. Switch to Modern.
+5. Return to Closet and confirm hero + catalog grid are full-bleed.
+6. Test Category chips, Search, Filter and multi-tier filtering.
+7. Open a closet card and verify item review still works.
+8. Long-press/reorder items and confirm order persists.
+9. Confirm Tier ribbons still display according to the ribbon setting.
+10. Switch back to Classic and confirm the prior design returns unchanged.
+11. Close/reopen the PWA and confirm the selected view persists.
 
 ROLLBACK
-Replace sw.js with v13.16-dev11.
+Replace sw.js with the stable v13.16-dev12 / v13.16 checkpoint.
