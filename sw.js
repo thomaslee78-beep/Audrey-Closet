@@ -1,8 +1,8 @@
-const CACHE='audrey-closet-v13.17-dev1';
+const CACHE='audrey-closet-v13.17-dev2';
 const ASSETS=['./','./index.html','./styles.css','./app.js','./manifest.webmanifest','./icon-192.png','./icon-512.png'];
 
 /*
- * v13.17-dev1 Closet view architecture + Modern preview.
+ * v13.17-dev2 Modern photo-first refinement.
  *
  * The current app is a single large classic app.js file. For this dev branch we
  * append the isolated tier feature when app.js is served so the stable v13.15
@@ -10,7 +10,7 @@ const ASSETS=['./','./index.html','./styles.css','./app.js','./manifest.webmanif
  * promoted, it can be folded into app.js/styles.css in the next stable release.
  */
 const TIER_PATCH=String.raw`
-;/* v13.17-dev1 — Closet view modes + Modern layout */
+;/* v13.17-dev2 — Modern photo-only cards */
 (function(){
   const CLOSET_TIERS=['S','A','B','C','D'];
   function normalizeClosetTier(value){
@@ -167,6 +167,7 @@ const TIER_PATCH=String.raw`
       '.screen[data-screen="catalog"][data-closet-view="modern"] .item-card{border-radius:0;border:1px solid rgba(255,255,255,.96);box-shadow:none;background:#fffaf0}',
       '.screen[data-screen="catalog"][data-closet-view="modern"] .item-card .thumb{aspect-ratio:1/1.08;border-radius:0}',
       '.screen[data-screen="catalog"][data-closet-view="modern"] .item-card .card-body{padding:8px 9px 9px}',
+      '.screen[data-screen="catalog"][data-closet-view="modern"] .item-card .card-body{display:none!important}',
       '.screen[data-screen="catalog"][data-closet-view="modern"] .item-card h4{font-size:15px;margin-bottom:2px}',
       '.screen[data-screen="catalog"][data-closet-view="modern"] .item-card p{font-size:10px}',
       '.screen[data-screen="catalog"][data-closet-view="modern"] .closet-section-title{margin-top:16px}',
@@ -370,7 +371,7 @@ const TIER_PATCH=String.raw`
 
     board.innerHTML='<div class="settings-group-empty">Board preferences will live here as customization options are added.</div>';
     wishlist.innerHTML='<div class="settings-group-empty">Wishlist preferences will live here as shopping and capture options expand.</div>';
-    about.innerHTML='<div class="settings-card settings-about-card"><h3>About Audrey’s Closet</h3><p class="settings-about-version">Version v13.17-dev1</p><p>A personal closet journal built around cataloging, outfits, memories and everyday wardrobe decisions.</p><p>Credits and a few hidden extras can grow here in future releases.</p></div>';
+    about.innerHTML='<div class="settings-card settings-about-card"><h3>About Audrey’s Closet</h3><p class="settings-about-version">Version v13.17-dev2</p><p>A personal closet journal built around cataloging, outfits, memories and everyday wardrobe decisions.</p><p>Credits and a few hidden extras can grow here in future releases.</p></div>';
 
     if(pageHead?.nextSibling)screen.insertBefore(groups,pageHead.nextSibling);
     else screen.appendChild(groups);
