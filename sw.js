@@ -1,8 +1,8 @@
-const CACHE='audrey-closet-v13.17-dev5';
+const CACHE='audrey-closet-v13.17-dev6';
 const ASSETS=['./','./index.html','./styles.css','./app.js','./manifest.webmanifest','./icon-192.png','./icon-512.png'];
 
 /*
- * v13.17-dev5 Modern reorder + empty-cell refinement.
+ * v13.17-dev6 Modern reorder outline fix.
  *
  * The current app is a single large classic app.js file. For this dev branch we
  * append the isolated tier feature when app.js is served so the stable v13.15
@@ -10,7 +10,7 @@ const ASSETS=['./','./index.html','./styles.css','./app.js','./manifest.webmanif
  * promoted, it can be folded into app.js/styles.css in the next stable release.
  */
 const TIER_PATCH=String.raw`
-;/* v13.17-dev5 — Modern square reorder + empty card cell */
+;/* v13.17-dev6 — Modern drag overlay square-corner fix */
 (function(){
   const CLOSET_TIERS=['S','A','B','C','D'];
   function normalizeClosetTier(value){
@@ -72,6 +72,8 @@ const TIER_PATCH=String.raw`
     if(!screen)return;
     const view=currentClosetView();
     screen.dataset.closetView=view==='free-flow'?'classic':view;
+    document.body.classList.toggle('closet-view-modern',view==='modern');
+    document.body.classList.toggle('closet-view-classic',view==='classic'||view==='free-flow');
     $$('.closet-view-option').forEach(function(btn){
       const active=btn.dataset.closetView===view;
       btn.classList.toggle('active',active);
@@ -181,8 +183,8 @@ const TIER_PATCH=String.raw`
       '.screen[data-screen="catalog"][data-closet-view="modern"] .hero-card .primary{border-radius:0!important}',
       '.screen[data-screen="catalog"][data-closet-view="modern"] .closet-grid{background:transparent!important}',
       '.screen[data-screen="catalog"][data-closet-view="modern"] .closet-grid:has(.item-card:last-child:nth-child(odd))::after{content:"";display:block;aspect-ratio:1/1.08;background:linear-gradient(140deg,#e7dfcd,#f8f3e8);border:1px solid rgba(255,255,255,.96);box-sizing:border-box}',
-      '.screen[data-screen="catalog"][data-closet-view="modern"] .closet-drop-outline{border-radius:0!important}',
-      '.screen[data-screen="catalog"][data-closet-view="modern"] .closet-drag-ghost{border-radius:0!important}',
+      'body.closet-view-modern .closet-drop-outline{border-radius:0!important}',
+      'body.closet-view-modern .closet-drag-ghost{border-radius:0!important}',
       '@media(max-width:380px){.closet-view-options{grid-template-columns:1fr}.closet-view-option{min-height:60px}}',
       '@media(max-width:410px){#itemDialog .closet-tier-section{padding:8px 9px;gap:7px}#itemDialog .closet-tier-btn{height:34px}#itemDialog .closet-tier-heading small{max-width:125px}}'
     ].join('');
@@ -383,7 +385,7 @@ const TIER_PATCH=String.raw`
 
     board.innerHTML='<div class="settings-group-empty">Board preferences will live here as customization options are added.</div>';
     wishlist.innerHTML='<div class="settings-group-empty">Wishlist preferences will live here as shopping and capture options expand.</div>';
-    about.innerHTML='<div class="settings-card settings-about-card"><h3>About Audrey’s Closet</h3><p class="settings-about-version">Version v13.17-dev5</p><p>A personal closet journal built around cataloging, outfits, memories and everyday wardrobe decisions.</p><p>Credits and a few hidden extras can grow here in future releases.</p></div>';
+    about.innerHTML='<div class="settings-card settings-about-card"><h3>About Audrey’s Closet</h3><p class="settings-about-version">Version v13.17-dev6</p><p>A personal closet journal built around cataloging, outfits, memories and everyday wardrobe decisions.</p><p>Credits and a few hidden extras can grow here in future releases.</p></div>';
 
     if(pageHead?.nextSibling)screen.insertBefore(groups,pageHead.nextSibling);
     else screen.appendChild(groups);
