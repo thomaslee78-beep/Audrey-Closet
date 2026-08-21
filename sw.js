@@ -1,8 +1,8 @@
-const CACHE='audrey-closet-v13.17-dev10';
+const CACHE='audrey-closet-v13.17-dev11';
 const ASSETS=['./','./index.html','./styles.css','./app.js','./manifest.webmanifest','./icon-192.png','./icon-512.png'];
 
 /*
- * v13.17-dev10 Free-Flow organic layout experiment.
+ * v13.17-dev11 Free-Flow dynamic scatter experiment.
  *
  * The current app is a single large classic app.js file. For this dev branch we
  * append the isolated tier feature when app.js is served so the stable v13.15
@@ -10,7 +10,7 @@ const ASSETS=['./','./index.html','./styles.css','./app.js','./manifest.webmanif
  * promoted, it can be folded into app.js/styles.css in the next stable release.
  */
 const TIER_PATCH=String.raw`
-;/* v13.17-dev10 — Free-Flow organic spacing + rotation */
+;/* v13.17-dev11 — Free-Flow larger garments + dynamic scatter */
 (function(){
   const CLOSET_TIERS=['S','A','B','C','D'];
   function normalizeClosetTier(value){
@@ -66,6 +66,35 @@ const TIER_PATCH=String.raw`
   function currentClosetView(){
     ensureSettings();
     return normalizeClosetView(state.settings.closetView);
+  }
+  let freeFlowScatterNonce=0;
+  function freeFlowHash(text){
+    let h=2166136261;
+    const s=String(text||'');
+    for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}
+    return h>>>0;
+  }
+  function freeFlowRand(id,salt){
+    const h=freeFlowHash(String(id)+'|'+String(freeFlowScatterNonce)+'|'+String(salt));
+    return (h%10000)/9999;
+  }
+  function applyFreeFlowScatter(){
+    if(currentClosetView()!=='free-flow')return;
+    $$('#catalogGrid .item-card[data-id]').forEach(function(card,index){
+      const id=card.dataset.id||String(index);
+      const x=Math.round(-10+freeFlowRand(id,'x')*20);
+      const y=Math.round(-12+freeFlowRand(id,'y')*24);
+      const scale=(1.08+freeFlowRand(id,'s')*.10).toFixed(3);
+      const thumb=card.querySelector('.thumb');
+      if(!thumb)return;
+      thumb.style.setProperty('--ff-x',x+'px');
+      thumb.style.setProperty('--ff-y',y+'px');
+      thumb.style.setProperty('--ff-scale',scale);
+    });
+  }
+  function reshuffleFreeFlowScatter(){
+    freeFlowScatterNonce++;
+    applyFreeFlowScatter();
   }
   function applyClosetView(){
     const screen=document.querySelector('.screen[data-screen="catalog"]');
@@ -189,20 +218,8 @@ const TIER_PATCH=String.raw`
       '.screen[data-screen="catalog"][data-closet-view="free-flow"] .item-card{position:relative;overflow:visible;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;min-height:186px;display:flex;align-items:center;justify-content:center}',
       '.screen[data-screen="catalog"][data-closet-view="free-flow"] .item-card .card-body{display:none!important}',
       '.screen[data-screen="catalog"][data-closet-view="free-flow"] .item-card .count-badge{display:none!important}',
-      '.screen[data-screen="catalog"][data-closet-view="free-flow"] .item-card .thumb{width:104%;aspect-ratio:1/1.10;background:transparent!important;border:0!important;overflow:visible!important;display:flex;align-items:center;justify-content:center;transform-origin:center center}',
+      '.screen[data-screen="catalog"][data-closet-view="free-flow"] .item-card .thumb{width:112%;aspect-ratio:1/1.06;background:transparent!important;border:0!important;overflow:visible!important;display:flex;align-items:center;justify-content:center;transform-origin:center center;transform:translate(var(--ff-x,0px),var(--ff-y,0px)) scale(var(--ff-scale,1.10))}',
       '.screen[data-screen="catalog"][data-closet-view="free-flow"] .item-card img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 7px 8px rgba(68,55,37,.10));transition:transform .14s ease}',
-      '.screen[data-screen="catalog"][data-closet-view="free-flow"] .item-card:nth-child(12n+1) .thumb{transform:translate(-5px,5px) rotate(-1.2deg) scale(.99)}',
-      '.screen[data-screen="catalog"][data-closet-view="free-flow"] .item-card:nth-child(12n+2) .thumb{transform:translate(4px,-5px) rotate(.8deg) scale(1.07)}',
-      '.screen[data-screen="catalog"][data-closet-view="free-flow"] .item-card:nth-child(12n+3) .thumb{transform:translate(2px,-8px) rotate(.5deg) scale(1.03)}',
-      '.screen[data-screen="catalog"][data-closet-view="free-flow"] .item-card:nth-child(12n+4) .thumb{transform:translate(-6px,7px) rotate(-1deg) scale(1.06)}',
-      '.screen[data-screen="catalog"][data-closet-view="free-flow"] .item-card:nth-child(12n+5) .thumb{transform:translate(-2px,1px) rotate(1.1deg) scale(1.01)}',
-      '.screen[data-screen="catalog"][data-closet-view="free-flow"] .item-card:nth-child(12n+6) .thumb{transform:translate(6px,-3px) rotate(-.6deg) scale(1.08)}',
-      '.screen[data-screen="catalog"][data-closet-view="free-flow"] .item-card:nth-child(12n+7) .thumb{transform:translate(5px,9px) rotate(.7deg) scale(1.04)}',
-      '.screen[data-screen="catalog"][data-closet-view="free-flow"] .item-card:nth-child(12n+8) .thumb{transform:translate(-4px,-6px) rotate(-1.3deg) scale(1.02)}',
-      '.screen[data-screen="catalog"][data-closet-view="free-flow"] .item-card:nth-child(12n+9) .thumb{transform:translate(-6px,-1px) rotate(.9deg) scale(1.07)}',
-      '.screen[data-screen="catalog"][data-closet-view="free-flow"] .item-card:nth-child(12n+10) .thumb{transform:translate(3px,6px) rotate(-.5deg) scale(1.00)}',
-      '.screen[data-screen="catalog"][data-closet-view="free-flow"] .item-card:nth-child(12n+11) .thumb{transform:translate(1px,-9px) rotate(-.9deg) scale(1.05)}',
-      '.screen[data-screen="catalog"][data-closet-view="free-flow"] .item-card:nth-child(12n) .thumb{transform:translate(-5px,4px) rotate(1.2deg) scale(1.08)}',
       '.screen[data-screen="catalog"][data-closet-view="free-flow"] .tier-ribbon{top:12px;left:5px;transform:scale(.86);transform-origin:left top}',
       '.screen[data-screen="catalog"][data-closet-view="free-flow"] .archived-badge{transform:scale(.88);transform-origin:right top}',
       '.screen[data-screen="catalog"][data-closet-view="free-flow"] .closet-section-title{margin-bottom:3px}',
@@ -269,6 +286,20 @@ const TIER_PATCH=String.raw`
     if(live&&itemDialogMode==='review'&&$('#itemId').value===itemId)renderItemReviewDetails(live);
     renderCatalog();
   }
+
+  const originalFinishCatalogDrag=finishCatalogDrag;
+  finishCatalogDrag=async function(){
+    const freeFlowBefore=currentClosetView()==='free-flow';
+    const beforeOrder=freeFlowBefore?state.items.map(function(i){return i.id}).join('|'):'';
+    const result=await originalFinishCatalogDrag.apply(this,arguments);
+    if(freeFlowBefore){
+      const afterOrder=state.items.map(function(i){return i.id}).join('|');
+      if(beforeOrder!==afterOrder){
+        reshuffleFreeFlowScatter();
+      }
+    }
+    return result;
+  };
 
   installClosetTierStyles();
 
@@ -409,7 +440,7 @@ const TIER_PATCH=String.raw`
 
     board.innerHTML='<div class="settings-group-empty">Board preferences will live here as customization options are added.</div>';
     wishlist.innerHTML='<div class="settings-group-empty">Wishlist preferences will live here as shopping and capture options expand.</div>';
-    about.innerHTML='<div class="settings-card settings-about-card"><h3>About Audrey’s Closet</h3><p class="settings-about-version">Version v13.17-dev10</p><p>A personal closet journal built around cataloging, outfits, memories and everyday wardrobe decisions.</p><p>Credits and a few hidden extras can grow here in future releases.</p></div>';
+    about.innerHTML='<div class="settings-card settings-about-card"><h3>About Audrey’s Closet</h3><p class="settings-about-version">Version v13.17-dev11</p><p>A personal closet journal built around cataloging, outfits, memories and everyday wardrobe decisions.</p><p>Credits and a few hidden extras can grow here in future releases.</p></div>';
 
     if(pageHead?.nextSibling)screen.insertBefore(groups,pageHead.nextSibling);
     else screen.appendChild(groups);
@@ -463,6 +494,7 @@ const TIER_PATCH=String.raw`
       };
     });
     bindCatalogReorder(activeCategory);
+    applyFreeFlowScatter();
   };
 
   installClosetTierFilter();

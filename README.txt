@@ -1,37 +1,52 @@
-Audrey Closet — v13.17-dev10 Main Update
+Audrey Closet — v13.17-dev11 Main Update
 
 PURPOSE
-Push the Free-Flow experiment slightly further toward an organic "laid out on a surface" look.
+Free-Flow experiment: larger garments, no rotation, and a dynamic scatter that changes after a successful closet reorder.
 
-FREE-FLOW REFINEMENTS
-- Garment image footprint is slightly larger overall.
-- Average grid spacing is tighter.
-- Repeating variation pattern expanded from 6 items to 12 items.
-- Each pattern position now mixes:
-  - slight horizontal offset
-  - slight vertical offset
-  - slightly different scale
-  - very small rotation
-- Rotation is intentionally restrained (roughly +/- 1.3 degrees).
-- Some pieces sit closer together, while others leave a little more breathing room.
-- Pattern is deterministic, not truly random, so the Closet does not reshuffle visually every render.
+CHANGES
+
+1. LARGER GARMENTS
+- Free-Flow garment footprint increased again.
+- Photo area is now 112% of the nominal card width.
+- Scale varies approximately from 1.08 to 1.18.
+- This intentionally lets garments feel closer and occasionally visually overlap the invisible grid space.
+
+2. ROTATION REMOVED
+- All Free-Flow rotations are removed.
+- Garments stay upright.
+- Organic feeling now comes only from scale and X/Y position.
+
+3. DYNAMIC X/Y SCATTER
+- Each Free-Flow card receives a controlled horizontal and vertical offset.
+- X varies roughly +/-10 px.
+- Y varies roughly +/-12 px.
+- Initial arrangement is stable during normal renders.
+
+4. REORDER CAUSES A NEW SETTLE
+- After a successful Free-Flow drag/reorder, the scatter pattern is regenerated.
+- This means the garments do more than simply swap slots: the whole visible layout subtly settles into a different arrangement.
+- The underlying closet order is still the only data order being changed.
+- No arbitrary X/Y coordinates are stored on individual items yet.
+
+WHY THIS APPROACH
+This tests the emotional/visual idea of items shifting around after you move one without introducing a permanent spatial-position data model.
 
 UNCHANGED
-- No metadata text.
-- No wear count.
-- Tier ribbons remain.
-- Tap-to-open remains.
-- Search/category/filter/Tier filters remain.
-- Drag still means reorder.
-- Same closet order across Classic, Modern and Free-Flow.
-- Modern and Classic are unchanged.
+- Classic view.
+- Modern view.
+- Search/category/filter/Tier filtering.
+- Tier ribbons.
+- Tap-to-open.
+- Drag/reorder semantics: dragging still changes closet order.
 
-WHAT TO EVALUATE
-1. Does Free-Flow now feel more like garments casually laid out rather than a hidden grid?
-2. Are the larger images better, or do they begin to crowd each other?
-3. Do the tiny rotations add personality without looking messy?
-4. Does the mix of tighter and looser spacing feel natural?
-5. Does drag/reorder remain understandable despite the visual offsets?
+TEST
+1. Choose Free-Flow.
+2. Notice garments are larger and upright.
+3. Long-press an item and move it to another position.
+4. After the reorder completes, confirm the surrounding garments subtly change X/Y spacing too.
+5. Reorder again and confirm a different scatter appears.
+6. Verify the actual closet order remains correct when switching to Classic or Modern.
+7. Test filters and category changes to ensure cards still render correctly.
 
 ROLLBACK
-Replace sw.js with v13.17-dev8.
+Replace sw.js with v13.17-dev10.
