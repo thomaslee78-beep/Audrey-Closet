@@ -1,8 +1,8 @@
-const CACHE='audrey-closet-v13.17-dev8';
+const CACHE='audrey-closet-v13.17-dev10';
 const ASSETS=['./','./index.html','./styles.css','./app.js','./manifest.webmanifest','./icon-192.png','./icon-512.png'];
 
 /*
- * v13.17-dev8 Free-Flow experiment.
+ * v13.17-dev10 Free-Flow organic layout experiment.
  *
  * The current app is a single large classic app.js file. For this dev branch we
  * append the isolated tier feature when app.js is served so the stable v13.15
@@ -10,7 +10,7 @@ const ASSETS=['./','./index.html','./styles.css','./app.js','./manifest.webmanif
  * promoted, it can be folded into app.js/styles.css in the next stable release.
  */
 const TIER_PATCH=String.raw`
-;/* v13.17-dev8 — Free-Flow photo-first experiment */
+;/* v13.17-dev10 — Free-Flow organic spacing + rotation */
 (function(){
   const CLOSET_TIERS=['S','A','B','C','D'];
   function normalizeClosetTier(value){
@@ -185,18 +185,24 @@ const TIER_PATCH=String.raw`
       '.screen[data-screen="catalog"][data-closet-view="modern"] .closet-grid:has(.item-card:last-child:nth-child(odd))::after{content:"";display:block;aspect-ratio:1/1.08;background:linear-gradient(140deg,#e7dfcd,#f8f3e8);border:1px solid rgba(255,255,255,.96);box-sizing:border-box}',
       'body.closet-view-modern .closet-drop-outline{border-radius:0!important}',
       'body.closet-view-modern .closet-drag-ghost{border-radius:0!important}',
-      '.screen[data-screen="catalog"][data-closet-view="free-flow"] .closet-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:2px 4px;background:transparent!important}',
-      '.screen[data-screen="catalog"][data-closet-view="free-flow"] .item-card{position:relative;overflow:visible;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;min-height:190px;display:flex;align-items:center;justify-content:center}',
+      '.screen[data-screen="catalog"][data-closet-view="free-flow"] .closet-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:0 1px;background:transparent!important}',
+      '.screen[data-screen="catalog"][data-closet-view="free-flow"] .item-card{position:relative;overflow:visible;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;min-height:186px;display:flex;align-items:center;justify-content:center}',
       '.screen[data-screen="catalog"][data-closet-view="free-flow"] .item-card .card-body{display:none!important}',
       '.screen[data-screen="catalog"][data-closet-view="free-flow"] .item-card .count-badge{display:none!important}',
-      '.screen[data-screen="catalog"][data-closet-view="free-flow"] .item-card .thumb{width:100%;aspect-ratio:1/1.14;background:transparent!important;border:0!important;overflow:visible!important;display:flex;align-items:center;justify-content:center}',
+      '.screen[data-screen="catalog"][data-closet-view="free-flow"] .item-card .thumb{width:104%;aspect-ratio:1/1.10;background:transparent!important;border:0!important;overflow:visible!important;display:flex;align-items:center;justify-content:center;transform-origin:center center}',
       '.screen[data-screen="catalog"][data-closet-view="free-flow"] .item-card img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 7px 8px rgba(68,55,37,.10));transition:transform .14s ease}',
-      '.screen[data-screen="catalog"][data-closet-view="free-flow"] .item-card:nth-child(6n+1) .thumb{transform:translateY(7px) scale(.92)}',
-      '.screen[data-screen="catalog"][data-closet-view="free-flow"] .item-card:nth-child(6n+2) .thumb{transform:translateY(-3px) scale(1.02)}',
-      '.screen[data-screen="catalog"][data-closet-view="free-flow"] .item-card:nth-child(6n+3) .thumb{transform:translateY(-7px) scale(.96)}',
-      '.screen[data-screen="catalog"][data-closet-view="free-flow"] .item-card:nth-child(6n+4) .thumb{transform:translateY(6px) scale(1.01)}',
-      '.screen[data-screen="catalog"][data-closet-view="free-flow"] .item-card:nth-child(6n+5) .thumb{transform:translateY(1px) scale(.94)}',
-      '.screen[data-screen="catalog"][data-closet-view="free-flow"] .item-card:nth-child(6n) .thumb{transform:translateY(-5px) scale(.99)}',
+      '.screen[data-screen="catalog"][data-closet-view="free-flow"] .item-card:nth-child(12n+1) .thumb{transform:translate(-5px,5px) rotate(-1.2deg) scale(.99)}',
+      '.screen[data-screen="catalog"][data-closet-view="free-flow"] .item-card:nth-child(12n+2) .thumb{transform:translate(4px,-5px) rotate(.8deg) scale(1.07)}',
+      '.screen[data-screen="catalog"][data-closet-view="free-flow"] .item-card:nth-child(12n+3) .thumb{transform:translate(2px,-8px) rotate(.5deg) scale(1.03)}',
+      '.screen[data-screen="catalog"][data-closet-view="free-flow"] .item-card:nth-child(12n+4) .thumb{transform:translate(-6px,7px) rotate(-1deg) scale(1.06)}',
+      '.screen[data-screen="catalog"][data-closet-view="free-flow"] .item-card:nth-child(12n+5) .thumb{transform:translate(-2px,1px) rotate(1.1deg) scale(1.01)}',
+      '.screen[data-screen="catalog"][data-closet-view="free-flow"] .item-card:nth-child(12n+6) .thumb{transform:translate(6px,-3px) rotate(-.6deg) scale(1.08)}',
+      '.screen[data-screen="catalog"][data-closet-view="free-flow"] .item-card:nth-child(12n+7) .thumb{transform:translate(5px,9px) rotate(.7deg) scale(1.04)}',
+      '.screen[data-screen="catalog"][data-closet-view="free-flow"] .item-card:nth-child(12n+8) .thumb{transform:translate(-4px,-6px) rotate(-1.3deg) scale(1.02)}',
+      '.screen[data-screen="catalog"][data-closet-view="free-flow"] .item-card:nth-child(12n+9) .thumb{transform:translate(-6px,-1px) rotate(.9deg) scale(1.07)}',
+      '.screen[data-screen="catalog"][data-closet-view="free-flow"] .item-card:nth-child(12n+10) .thumb{transform:translate(3px,6px) rotate(-.5deg) scale(1.00)}',
+      '.screen[data-screen="catalog"][data-closet-view="free-flow"] .item-card:nth-child(12n+11) .thumb{transform:translate(1px,-9px) rotate(-.9deg) scale(1.05)}',
+      '.screen[data-screen="catalog"][data-closet-view="free-flow"] .item-card:nth-child(12n) .thumb{transform:translate(-5px,4px) rotate(1.2deg) scale(1.08)}',
       '.screen[data-screen="catalog"][data-closet-view="free-flow"] .tier-ribbon{top:12px;left:5px;transform:scale(.86);transform-origin:left top}',
       '.screen[data-screen="catalog"][data-closet-view="free-flow"] .archived-badge{transform:scale(.88);transform-origin:right top}',
       '.screen[data-screen="catalog"][data-closet-view="free-flow"] .closet-section-title{margin-bottom:3px}',
@@ -403,7 +409,7 @@ const TIER_PATCH=String.raw`
 
     board.innerHTML='<div class="settings-group-empty">Board preferences will live here as customization options are added.</div>';
     wishlist.innerHTML='<div class="settings-group-empty">Wishlist preferences will live here as shopping and capture options expand.</div>';
-    about.innerHTML='<div class="settings-card settings-about-card"><h3>About Audrey’s Closet</h3><p class="settings-about-version">Version v13.17-dev8</p><p>A personal closet journal built around cataloging, outfits, memories and everyday wardrobe decisions.</p><p>Credits and a few hidden extras can grow here in future releases.</p></div>';
+    about.innerHTML='<div class="settings-card settings-about-card"><h3>About Audrey’s Closet</h3><p class="settings-about-version">Version v13.17-dev10</p><p>A personal closet journal built around cataloging, outfits, memories and everyday wardrobe decisions.</p><p>Credits and a few hidden extras can grow here in future releases.</p></div>';
 
     if(pageHead?.nextSibling)screen.insertBefore(groups,pageHead.nextSibling);
     else screen.appendChild(groups);
