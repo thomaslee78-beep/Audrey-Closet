@@ -1,8 +1,8 @@
-const CACHE='audrey-closet-v13.17-dev11';
+const CACHE='audrey-closet-v13.17-dev12';
 const ASSETS=['./','./index.html','./styles.css','./app.js','./manifest.webmanifest','./icon-192.png','./icon-512.png'];
 
 /*
- * v13.17-dev11 Free-Flow dynamic scatter experiment.
+ * v13.17-dev12 Final Free-Flow refinement.
  *
  * The current app is a single large classic app.js file. For this dev branch we
  * append the isolated tier feature when app.js is served so the stable v13.15
@@ -10,7 +10,7 @@ const ASSETS=['./','./index.html','./styles.css','./app.js','./manifest.webmanif
  * promoted, it can be folded into app.js/styles.css in the next stable release.
  */
 const TIER_PATCH=String.raw`
-;/* v13.17-dev11 — Free-Flow larger garments + dynamic scatter */
+;/* v13.17-dev12 — balanced Free-Flow scatter */
 (function(){
   const CLOSET_TIERS=['S','A','B','C','D'];
   function normalizeClosetTier(value){
@@ -82,14 +82,20 @@ const TIER_PATCH=String.raw`
     if(currentClosetView()!=='free-flow')return;
     $$('#catalogGrid .item-card[data-id]').forEach(function(card,index){
       const id=card.dataset.id||String(index);
-      const x=Math.round(-10+freeFlowRand(id,'x')*20);
-      const y=Math.round(-12+freeFlowRand(id,'y')*24);
-      const scale=(1.08+freeFlowRand(id,'s')*.10).toFixed(3);
+      const xBase=-8+freeFlowRand(id,'x')*16;
+      const yBase=-9+freeFlowRand(id,'y')*18;
+      const edgeBias=(index%4===0?-3:(index%4===1?2.5:(index%4===2?-1.5:3)));
+      const rowBreath=(Math.floor(index/2)%3===0?-2:(Math.floor(index/2)%3===1?1.5:3));
+      const x=Math.round(xBase+edgeBias);
+      const y=Math.round(yBase+rowBreath);
+      const scale=(1.02+freeFlowRand(id,'s')*.08).toFixed(3);
+      const rotate=(-.55+freeFlowRand(id,'r')*1.10).toFixed(2);
       const thumb=card.querySelector('.thumb');
       if(!thumb)return;
       thumb.style.setProperty('--ff-x',x+'px');
       thumb.style.setProperty('--ff-y',y+'px');
       thumb.style.setProperty('--ff-scale',scale);
+      thumb.style.setProperty('--ff-r',rotate+'deg');
     });
   }
   function reshuffleFreeFlowScatter(){
@@ -218,7 +224,7 @@ const TIER_PATCH=String.raw`
       '.screen[data-screen="catalog"][data-closet-view="free-flow"] .item-card{position:relative;overflow:visible;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;min-height:186px;display:flex;align-items:center;justify-content:center}',
       '.screen[data-screen="catalog"][data-closet-view="free-flow"] .item-card .card-body{display:none!important}',
       '.screen[data-screen="catalog"][data-closet-view="free-flow"] .item-card .count-badge{display:none!important}',
-      '.screen[data-screen="catalog"][data-closet-view="free-flow"] .item-card .thumb{width:112%;aspect-ratio:1/1.06;background:transparent!important;border:0!important;overflow:visible!important;display:flex;align-items:center;justify-content:center;transform-origin:center center;transform:translate(var(--ff-x,0px),var(--ff-y,0px)) scale(var(--ff-scale,1.10))}',
+      '.screen[data-screen="catalog"][data-closet-view="free-flow"] .item-card .thumb{width:107%;aspect-ratio:1/1.08;background:transparent!important;border:0!important;overflow:visible!important;display:flex;align-items:center;justify-content:center;transform-origin:center center;transform:translate(var(--ff-x,0px),var(--ff-y,0px)) rotate(var(--ff-r,0deg)) scale(var(--ff-scale,1.04))}',
       '.screen[data-screen="catalog"][data-closet-view="free-flow"] .item-card img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 7px 8px rgba(68,55,37,.10));transition:transform .14s ease}',
       '.screen[data-screen="catalog"][data-closet-view="free-flow"] .tier-ribbon{top:12px;left:5px;transform:scale(.86);transform-origin:left top}',
       '.screen[data-screen="catalog"][data-closet-view="free-flow"] .archived-badge{transform:scale(.88);transform-origin:right top}',
@@ -440,7 +446,7 @@ const TIER_PATCH=String.raw`
 
     board.innerHTML='<div class="settings-group-empty">Board preferences will live here as customization options are added.</div>';
     wishlist.innerHTML='<div class="settings-group-empty">Wishlist preferences will live here as shopping and capture options expand.</div>';
-    about.innerHTML='<div class="settings-card settings-about-card"><h3>About Audrey’s Closet</h3><p class="settings-about-version">Version v13.17-dev11</p><p>A personal closet journal built around cataloging, outfits, memories and everyday wardrobe decisions.</p><p>Credits and a few hidden extras can grow here in future releases.</p></div>';
+    about.innerHTML='<div class="settings-card settings-about-card"><h3>About Audrey’s Closet</h3><p class="settings-about-version">Version v13.17-dev12</p><p>A personal closet journal built around cataloging, outfits, memories and everyday wardrobe decisions.</p><p>Credits and a few hidden extras can grow here in future releases.</p></div>';
 
     if(pageHead?.nextSibling)screen.insertBefore(groups,pageHead.nextSibling);
     else screen.appendChild(groups);
