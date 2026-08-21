@@ -1,8 +1,8 @@
-const CACHE='audrey-closet-v13.16-dev10';
+const CACHE='audrey-closet-v13.16-dev11';
 const ASSETS=['./','./index.html','./styles.css','./app.js','./manifest.webmanifest','./icon-192.png','./icon-512.png'];
 
 /*
- * v13.16-dev10 Journal planned-look visual refinement.
+ * v13.16-dev11 Journal panel consistency.
  *
  * The current app is a single large classic app.js file. For this dev branch we
  * append the isolated tier feature when app.js is served so the stable v13.15
@@ -10,7 +10,7 @@ const ASSETS=['./','./index.html','./styles.css','./app.js','./manifest.webmanif
  * promoted, it can be folded into app.js/styles.css in the next stable release.
  */
 const TIER_PATCH=String.raw`
-;/* v13.16-dev10 — Planned looks panel color alignment */
+;/* v13.16-dev11 — Today’s Look panel alignment */
 (function(){
   const CLOSET_TIERS=['S','A','B','C','D'];
   function normalizeClosetTier(value){
@@ -113,6 +113,10 @@ const TIER_PATCH=String.raw`
       '.planned-section-toggle{border-color:var(--line)!important;background:#efe6d5!important}',
       '.planned-section-toggle small{color:#7b7065!important}',
       '.planned-toggle-icon{color:var(--burgundy)!important}',
+      '.today-section-toggle{border:1px solid var(--line)!important;background:#efe6d5!important;border-radius:16px!important;padding:10px 12px!important}',
+      '.today-section-toggle strong{font-family:var(--serif)!important;font-size:19px!important;font-weight:600!important;color:var(--ink)!important}',
+      '.today-section-toggle small{font-size:10px!important;color:#7b7065!important}',
+      '.today-toggle-icon{color:var(--burgundy)!important}',
       '@media(max-width:410px){#itemDialog .closet-tier-section{padding:8px 9px;gap:7px}#itemDialog .closet-tier-btn{height:34px}#itemDialog .closet-tier-heading small{max-width:125px}}'
     ].join('');
     document.head.appendChild(style);
@@ -291,7 +295,7 @@ const TIER_PATCH=String.raw`
 
     board.innerHTML='<div class="settings-group-empty">Board preferences will live here as customization options are added.</div>';
     wishlist.innerHTML='<div class="settings-group-empty">Wishlist preferences will live here as shopping and capture options expand.</div>';
-    about.innerHTML='<div class="settings-card settings-about-card"><h3>About Audrey’s Closet</h3><p class="settings-about-version">Version v13.16-dev10</p><p>A personal closet journal built around cataloging, outfits, memories and everyday wardrobe decisions.</p><p>Credits and a few hidden extras can grow here in future releases.</p></div>';
+    about.innerHTML='<div class="settings-card settings-about-card"><h3>About Audrey’s Closet</h3><p class="settings-about-version">Version v13.16-dev11</p><p>A personal closet journal built around cataloging, outfits, memories and everyday wardrobe decisions.</p><p>Credits and a few hidden extras can grow here in future releases.</p></div>';
 
     if(pageHead?.nextSibling)screen.insertBefore(groups,pageHead.nextSibling);
     else screen.appendChild(groups);
