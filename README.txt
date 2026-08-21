@@ -1,34 +1,38 @@
-Audrey Closet — v13.17-dev4 Main Update
+Audrey Closet — v13.17-dev5 Main Update
 
 PURPOSE
-Small Modern-only visual cleanup on top of v13.17-dev3.
+Small Modern-only refinement after testing v13.17-dev4.
 
 CHANGES
 
-1. ADD PIECE BUTTON
-- The Add piece button in the Modern Clothing Catalog banner now uses hard/square edges.
-- Classic keeps its existing rounded button styling.
+1. MODERN DRAG / REORDER OUTLINE
+- The dotted drop-target outline now has hard 0px corners in Modern.
+- The drag ghost is also squared off so the reorder interaction matches the Modern design language.
+- Classic reorder styling is unchanged.
 
-2. ODD-ROW GRID BACKGROUND
-- The Modern full-bleed Closet grid background now uses the same warm card tone (#FFFAF0) instead of white.
-- When a filtered/category result has an odd number of items, the unused half of the last row no longer appears as a stark white block.
-- Existing item cards and separators remain unchanged.
+2. ODD-ROW EMPTY CARD
+- Instead of simply coloring the entire grid background, Modern now creates a visual empty card cell when the final row contains one item.
+- The empty cell uses the same photo-tile background as a Modern closet card:
+  linear-gradient(140deg,#E7DFCD,#F8F3E8)
+- It also uses the same thin light separator/border.
+- This should make the unused half of the row look like an intentional empty card slot rather than page background.
 
 UNCHANGED
-- Modern category row behavior.
-- Search and Filter behavior.
-- Tier ribbons.
-- Wear-count remains hidden in Modern.
-- Tap/open and drag/reorder behavior.
+- Add piece hard-edge styling.
+- Modern category/search/filter hard-edge controls.
+- Wear count remains hidden in Modern.
+- Tier ribbons remain.
+- Tap/open and reorder behavior.
 - Classic view.
 - Free-Flow remains disabled.
 
 TEST
 1. Switch to Modern.
-2. Confirm Add piece has square corners.
-3. Filter/select a category with an odd number of items.
-4. Confirm the empty space in the last row blends with the warm card background rather than showing white.
-5. Switch to Classic and confirm its styling is unchanged.
+2. Long-press an item and drag over another card.
+3. Confirm the dotted target outline has square corners.
+4. Select/filter to a category with an odd number of items.
+5. Confirm the unused last-row cell looks like an empty Modern photo card.
+6. Switch to Classic and confirm its rounded reorder visuals remain unchanged.
 
 ROLLBACK
-Replace sw.js with v13.17-dev3.
+Replace sw.js with v13.17-dev4.
