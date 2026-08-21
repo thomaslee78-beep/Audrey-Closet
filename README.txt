@@ -1,25 +1,26 @@
-Audrey Closet — v13.16-dev9 Main Update
+Audrey Closet — v13.16-dev10 Main Update
 
 WHAT CHANGES
 - Replace only sw.js on the main branch.
-- Builds directly on v13.16-dev8.
-- Cache/version becomes audrey-closet-v13.16-dev9.
-- Visual-only adjustment.
+- Builds directly on v13.16-dev9.
+- Cache/version becomes audrey-closet-v13.16-dev10.
+- Visual-only Journal adjustment.
 
-SETTINGS HEADER REFINEMENT
-- Collapsed Settings headers remain muted sage: #E1E5DA.
-- Expanded Settings headers now use the exact same muted sage: #E1E5DA.
-- Expanded content remains light/cream.
-- The + / − indicator and revealed content continue to communicate open vs. closed state.
-- Pressed state remains #D4DACD.
+PLANNED LOOKS COLOR REFINEMENT
+- The Planned looks collapsible header now matches the warmer Journal panel palette used by Wear Log / Wear Insights.
+- Header background: #EFE6D5
+- Border: var(--line)
+- Helper/subtitle text: #7B7065
+- Expand/collapse icon now uses the app burgundy accent.
+- Planned-look rows themselves keep their existing subtle turquoise/future-look treatment, so future entries remain visually distinguishable.
 
 UNCHANGED
-- All Settings grouping and behavior.
+- Planned looks behavior and collapse state.
+- Journal ordering.
+- Wear Log and Wear Insights.
 - Tier functionality.
-- Multi-select Tier filtering.
-- Tier reactions and ribbons.
-- Portfolio and Journal settings.
-- Data export/import and reset.
+- Configuration styling and behavior.
+- All saved closet/journal data.
 
 UPLOAD TO MAIN
 1. Open Audrey-Closet on GitHub.
@@ -27,14 +28,14 @@ UPLOAD TO MAIN
 3. Replace root sw.js with this package's sw.js.
 4. Commit using your normal process.
 5. Let GitHub Pages redeploy.
-6. Open the PWA once online; fully close/reopen if the prior cached version remains.
+6. Open the PWA once online; fully close/reopen if the old cached version remains.
 
 TEST
-1. Open Settings.
-2. Compare a collapsed section with an expanded section.
-3. Confirm both headers use the same muted sage.
-4. Confirm expanded content remains light and readable.
-5. Confirm all configuration controls still behave normally.
+1. Open Journal.
+2. Compare Planned looks against Wear Log / Wear Insights.
+3. Confirm the Planned looks collapsible header feels consistent with the other panels.
+4. Expand/collapse Planned looks.
+5. Confirm planned individual rows still retain their future-look visual distinction.
 
 ROLLBACK
-Replace sw.js with v13.16-dev8.
+Replace sw.js with v13.16-dev9.
