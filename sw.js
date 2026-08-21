@@ -1,8 +1,8 @@
-const CACHE='audrey-closet-v13.18-dev1';
+const CACHE='audrey-closet-v13.18-dev2';
 const ASSETS=['./','./index.html','./styles.css','./app.js','./manifest.webmanifest','./icon-192.png','./icon-512.png'];
 
 /*
- * v13.18-dev1 Board picker Free-Flow treatment.
+ * v13.18-dev2 Board picker selector fix.
  *
  * The current app is a single large classic app.js file. For this dev branch we
  * append the isolated tier feature when app.js is served so the stable v13.15
@@ -10,7 +10,7 @@ const ASSETS=['./','./index.html','./styles.css','./app.js','./manifest.webmanif
  * promoted, it can be folded into app.js/styles.css in the next stable release.
  */
 const TIER_PATCH=String.raw`
-;/* v13.18-dev1 — Board picker Free-Flow */
+;/* v13.18-dev2 — Board picker Free-Flow selector fix */
 (function(){
   const CLOSET_TIERS=['S','A','B','C','D'];
   function normalizeClosetTier(value){
@@ -232,25 +232,25 @@ const TIER_PATCH=String.raw`
       'body.closet-view-free-flow .closet-drag-ghost{border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;overflow:visible!important}',
       'body.closet-view-free-flow .closet-drag-ghost .card-body,body.closet-view-free-flow .closet-drag-ghost .count-badge{display:none!important}',
       'body.closet-view-free-flow .closet-drop-outline{border-radius:0!important;background:rgba(125,53,71,.035)!important}',
-      '.screen[data-screen="board"] .board-picker-card{background:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important;padding-left:0!important;padding-right:0!important}',
-      '.screen[data-screen="board"] .piece-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:0 2px!important;padding:2px 0 8px!important;overflow:visible!important;max-height:none!important}',
-      '.screen[data-screen="board"] .piece-grid .tray-piece{position:relative;width:auto!important;min-width:0!important;border:0!important;background:transparent!important;padding:0!important;overflow:visible!important;min-height:118px;display:flex;align-items:center;justify-content:center}',
-      '.screen[data-screen="board"] .piece-grid .tray-piece .mini-photo{width:108%!important;height:auto!important;aspect-ratio:1/1.04!important;border:0!important;border-radius:0!important;background:transparent!important;padding:0!important;box-shadow:none!important;overflow:visible!important;display:flex;align-items:center;justify-content:center;transform-origin:center center}',
-      '.screen[data-screen="board"] .piece-grid .tray-piece .mini-photo img{width:100%!important;height:100%!important;max-width:none!important;max-height:none!important;object-fit:contain!important;filter:drop-shadow(0 6px 7px rgba(68,55,37,.10))}',
-      '.screen[data-screen="board"] .piece-grid .tray-piece small,.screen[data-screen="board"] .piece-grid .tray-piece em{display:none!important}',
-      '.screen[data-screen="board"] .piece-grid .tray-piece:nth-child(10n+1) .mini-photo{transform:translate(-5px,5px) rotate(-.35deg) scale(1.03)}',
-      '.screen[data-screen="board"] .piece-grid .tray-piece:nth-child(10n+2) .mini-photo{transform:translate(4px,-3px) rotate(.25deg) scale(1.07)}',
-      '.screen[data-screen="board"] .piece-grid .tray-piece:nth-child(10n+3) .mini-photo{transform:translate(1px,3px) rotate(.15deg) scale(1.04)}',
-      '.screen[data-screen="board"] .piece-grid .tray-piece:nth-child(10n+4) .mini-photo{transform:translate(-3px,-4px) rotate(-.30deg) scale(1.08)}',
-      '.screen[data-screen="board"] .piece-grid .tray-piece:nth-child(10n+5) .mini-photo{transform:translate(5px,2px) rotate(.20deg) scale(1.02)}',
-      '.screen[data-screen="board"] .piece-grid .tray-piece:nth-child(10n+6) .mini-photo{transform:translate(-2px,6px) rotate(-.20deg) scale(1.06)}',
-      '.screen[data-screen="board"] .piece-grid .tray-piece:nth-child(10n+7) .mini-photo{transform:translate(3px,-5px) rotate(.32deg) scale(1.05)}',
-      '.screen[data-screen="board"] .piece-grid .tray-piece:nth-child(10n+8) .mini-photo{transform:translate(-4px,1px) rotate(-.18deg) scale(1.03)}',
-      '.screen[data-screen="board"] .piece-grid .tray-piece:nth-child(10n+9) .mini-photo{transform:translate(2px,5px) rotate(.28deg) scale(1.07)}',
-      '.screen[data-screen="board"] .piece-grid .tray-piece:nth-child(10n) .mini-photo{transform:translate(-1px,-2px) rotate(-.22deg) scale(1.04)}',
-      '.screen[data-screen="board"] .picker-head{margin-left:2px;margin-right:2px}',
-      '.screen[data-screen="board"] .picker-head span{display:none!important}',
-      '@media(max-width:410px){.screen[data-screen="board"] .piece-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:0!important}.screen[data-screen="board"] .piece-grid .tray-piece{min-height:108px}}',
+      '.screen[data-screen="outfits"] .board-picker-card{background:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important;padding-left:0!important;padding-right:0!important}',
+      '.screen[data-screen="outfits"] .piece-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:0 2px!important;padding:2px 0 8px!important;overflow:visible!important;max-height:none!important}',
+      '.screen[data-screen="outfits"] .piece-grid .tray-piece{position:relative;width:auto!important;min-width:0!important;border:0!important;background:transparent!important;padding:0!important;overflow:visible!important;min-height:118px;display:flex;align-items:center;justify-content:center}',
+      '.screen[data-screen="outfits"] .piece-grid .tray-piece .mini-photo{width:108%!important;height:auto!important;aspect-ratio:1/1.04!important;border:0!important;border-radius:0!important;background:transparent!important;padding:0!important;box-shadow:none!important;overflow:visible!important;display:flex;align-items:center;justify-content:center;transform-origin:center center}',
+      '.screen[data-screen="outfits"] .piece-grid .tray-piece .mini-photo img{width:100%!important;height:100%!important;max-width:none!important;max-height:none!important;object-fit:contain!important;filter:drop-shadow(0 6px 7px rgba(68,55,37,.10))}',
+      '.screen[data-screen="outfits"] .piece-grid .tray-piece small,.screen[data-screen="outfits"] .piece-grid .tray-piece em{display:none!important}',
+      '.screen[data-screen="outfits"] .piece-grid .tray-piece:nth-child(10n+1) .mini-photo{transform:translate(-5px,5px) rotate(-.35deg) scale(1.03)}',
+      '.screen[data-screen="outfits"] .piece-grid .tray-piece:nth-child(10n+2) .mini-photo{transform:translate(4px,-3px) rotate(.25deg) scale(1.07)}',
+      '.screen[data-screen="outfits"] .piece-grid .tray-piece:nth-child(10n+3) .mini-photo{transform:translate(1px,3px) rotate(.15deg) scale(1.04)}',
+      '.screen[data-screen="outfits"] .piece-grid .tray-piece:nth-child(10n+4) .mini-photo{transform:translate(-3px,-4px) rotate(-.30deg) scale(1.08)}',
+      '.screen[data-screen="outfits"] .piece-grid .tray-piece:nth-child(10n+5) .mini-photo{transform:translate(5px,2px) rotate(.20deg) scale(1.02)}',
+      '.screen[data-screen="outfits"] .piece-grid .tray-piece:nth-child(10n+6) .mini-photo{transform:translate(-2px,6px) rotate(-.20deg) scale(1.06)}',
+      '.screen[data-screen="outfits"] .piece-grid .tray-piece:nth-child(10n+7) .mini-photo{transform:translate(3px,-5px) rotate(.32deg) scale(1.05)}',
+      '.screen[data-screen="outfits"] .piece-grid .tray-piece:nth-child(10n+8) .mini-photo{transform:translate(-4px,1px) rotate(-.18deg) scale(1.03)}',
+      '.screen[data-screen="outfits"] .piece-grid .tray-piece:nth-child(10n+9) .mini-photo{transform:translate(2px,5px) rotate(.28deg) scale(1.07)}',
+      '.screen[data-screen="outfits"] .piece-grid .tray-piece:nth-child(10n) .mini-photo{transform:translate(-1px,-2px) rotate(-.22deg) scale(1.04)}',
+      '.screen[data-screen="outfits"] .picker-head{margin-left:2px;margin-right:2px}',
+      '.screen[data-screen="outfits"] .picker-head span{display:none!important}',
+      '@media(max-width:410px){.screen[data-screen="outfits"] .piece-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:0!important}.screen[data-screen="outfits"] .piece-grid .tray-piece{min-height:108px}}',
       '@media(max-width:380px){.closet-view-options{grid-template-columns:1fr}.closet-view-option{min-height:60px}}',
       '@media(max-width:410px){#itemDialog .closet-tier-section{padding:8px 9px;gap:7px}#itemDialog .closet-tier-btn{height:34px}#itemDialog .closet-tier-heading small{max-width:125px}}'
     ].join('');
@@ -465,7 +465,7 @@ const TIER_PATCH=String.raw`
 
     board.innerHTML='<div class="settings-group-empty">Board preferences will live here as customization options are added.</div>';
     wishlist.innerHTML='<div class="settings-group-empty">Wishlist preferences will live here as shopping and capture options expand.</div>';
-    about.innerHTML='<div class="settings-card settings-about-card"><h3>About Audrey’s Closet</h3><p class="settings-about-version">Version v13.18-dev1</p><p>A personal closet journal built around cataloging, outfits, memories and everyday wardrobe decisions.</p><p>Credits and a few hidden extras can grow here in future releases.</p></div>';
+    about.innerHTML='<div class="settings-card settings-about-card"><h3>About Audrey’s Closet</h3><p class="settings-about-version">Version v13.18-dev2</p><p>A personal closet journal built around cataloging, outfits, memories and everyday wardrobe decisions.</p><p>Credits and a few hidden extras can grow here in future releases.</p></div>';
 
     if(pageHead?.nextSibling)screen.insertBefore(groups,pageHead.nextSibling);
     else screen.appendChild(groups);

@@ -1,58 +1,39 @@
-Audrey Closet — v13.18-dev1 Main Update
+Audrey Closet — v13.18-dev2 Main Update
 
 PURPOSE
-Apply the successful Free-Flow visual idea to the Board piece picker so selecting garments feels visual and photo-first.
+Fix the Board picker Free-Flow treatment from v13.18-dev1.
 
-WHY A NEW VERSION LINE
-v13.17 focused on Catalog/Closet view modes.
-v13.18 begins applying successful visual ideas to other app areas, starting with Board.
+ROOT CAUSE
+The deployed Board tab is:
+  <section class="screen" data-screen="outfits">
 
-BOARD PICKER CHANGES
+v13.18-dev1 incorrectly scoped the new picker CSS under:
+  .screen[data-screen="board"]
 
-1. PHOTO-FIRST PICKER
-- Removes visible mini-card borders/backgrounds around garment choices.
-- Removes mini-card shadows and rounded corners.
-- Garment photos become the primary picker content.
+As a result, the CSS existed in the code but never matched the actual Board screen.
 
-2. REMOVE ITEM TEXT
-- Item name/type text is hidden beneath each Board picker garment.
-- Secondary description/meta text is hidden.
-- The picker is intentionally visual: tap the garment image to add/select it.
+FIX
+- Updated all 21 Board Free-Flow selectors from data-screen="board" to data-screen="outfits".
+- This now targets the live "Pick your pieces" section (#pieceTray).
 
-3. LARGER GARMENTS
-- Picker garment photos are enlarged.
-- Images can extend slightly beyond their invisible grid cells.
-- A light drop shadow helps separate transparent garment cutouts from the page.
-
-4. FREE-FLOW FEEL
-- Subtle repeating X/Y offsets.
-- Very small rotations.
-- Slight scale variation.
-- Some pieces sit tighter together; some have slightly more breathing room.
-- Underlying picker grid and item order are unchanged for reliability.
-
-5. PICKER CONTAINER CLEANUP
-- The Board picker card itself loses its visible rounded card shell.
-- The result should feel more like garments laid out for selection rather than a list of product cards.
-
-UNCHANGED
-- Board canvas/design functionality.
-- Tap garment to add to the Board.
-- Closet/Wishlist source switching.
-- Category filtering.
-- Existing item order/source logic.
-- Classic/Modern/Free-Flow Catalog views.
+EXPECTED RESULT
+In Board > Pick your pieces:
+- no visible rounded mini-card outline/background around each garment
+- no item-name text beneath the garment
+- no secondary description/meta text
+- larger garment images
+- subtle free-flow offsets/scale/rotation
+- tapping a garment still adds it to the design board
+- Closet/Wishlist and category filtering still work
 
 TEST
 1. Open Board.
-2. Scroll to the piece picker.
-3. Confirm garment choices no longer show item names/descriptions beneath them.
-4. Confirm there are no visible rounded mini-card borders around each garment.
-5. Confirm garments appear larger and slightly irregular in position.
-6. Tap several garments and confirm they still add to the design board normally.
-7. Test Closet vs Wishlist source.
-8. Test category filters.
-9. Confirm the Board canvas itself is unchanged.
+2. Scroll to Pick your pieces.
+3. Confirm only garment images are visually prominent.
+4. Confirm text beneath each garment is gone.
+5. Confirm the rounded card/outline around each picker item is gone.
+6. Tap several garments and confirm they still add to the Board.
+7. Test Closet/Wishlist and category filters.
 
 ROLLBACK
-Replace sw.js with v13.17-dev12.
+Replace sw.js with v13.18-dev1 or v13.17-dev12.
