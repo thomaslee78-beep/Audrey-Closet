@@ -1,35 +1,56 @@
-Audrey Closet — v13.18-dev6 Main Update
+Audrey Closet — v13.18-dev7 Main Update
 
-FIXES
+PURPOSE
+Fix Clear/New confirmation reliability and add one-click reset for Board picker filters.
 
-1. CLEAR CONFIRMATION
-- Reworked the Clear button handler to explicitly replace the existing click behavior.
-- Uses stopImmediatePropagation so the old clear action cannot fire first.
-- Confirmation warns that all Board items/decorations will be removed and cannot be undone.
-- Cancel leaves the Board untouched.
+1. ROBUST CLEAR CONFIRMATION
+Previous builds replaced the button onclick handler, but the base Board code can re-bind that handler later.
 
-2. NEW BOARD CONFIRMATION
-- If the current Board has content/draft state, tapping New now asks:
-  "Start a new board?"
-- Warns that the current unsaved Board will be cleared.
-- Cancel keeps the current Board.
-- If Board is empty, New opens immediately.
+dev7 now uses a capture-phase document guard:
+- intercepts the click BEFORE button onclick handlers run
+- blocks the old handler
+- displays the confirmation
+- only calls clearBoard() after explicit confirmation
 
-3. COMPACT PICKER HEADER
-- Removed the redundant "Pick your pieces" text.
-- Closet / Wishlist remain aligned at the top-right of the picker.
-- Category/filter controls are pulled upward.
-- Reduced vertical spacing before the garment grid.
-- Goal: show clothing sooner and make the picker feel more like a compact workspace toolbar.
+Message:
+Clear this board?
+
+This will remove all items and decorations from the current board.
+This action cannot be undone.
+
+Cancel keeps the Board unchanged.
+
+2. ROBUST NEW CONFIRMATION
+The same capture-phase protection is used for New:
+- if current Board has draft content, user must confirm
+- Cancel keeps current Board
+- empty Board opens New immediately
+
+3. RESET PICKER FILTERS
+Adds a compact Reset button beside Search / Color / Tier.
+
+Reset returns Pick Pieces to its normal starting state:
+- Search cleared
+- Color = All
+- Tier = All
+- Source = Closet
+- Category = Recent
+- Color/Tier panels closed
+
+This gives users a simple way to recover after combining several filters.
 
 TEST
-1. Add items to Board.
-2. Tools > Clear -> Cancel: Board remains.
-3. Tools > Clear -> Confirm: Board clears.
-4. Add items again.
-5. Tap New -> Cancel: Board remains.
-6. Tap New -> Confirm: new empty Board starts.
-7. Open Pick Pieces and confirm garments begin higher on screen.
+1. Add at least one item to Board.
+2. Tools > Clear.
+3. Confirm dialog MUST appear before anything disappears.
+4. Tap Cancel: Board remains exactly unchanged.
+5. Tap Clear again and confirm: Board empties.
+6. Add items and tap New.
+7. Cancel: current Board remains.
+8. Confirm: new empty Board starts.
+9. In Pick Pieces, apply Search + Color + Tier + Category.
+10. Tap Reset.
+11. Confirm Search clears, Closet is active, Recent is selected and all pieces return.
 
 ROLLBACK
-Replace sw.js with v13.18-dev5.
+Replace sw.js with v13.18-dev6.
