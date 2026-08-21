@@ -1,8 +1,8 @@
-const CACHE='audrey-closet-v13.16-dev7';
+const CACHE='audrey-closet-v13.16-dev8';
 const ASSETS=['./','./index.html','./styles.css','./app.js','./manifest.webmanifest','./icon-192.png','./icon-512.png'];
 
 /*
- * v13.16-dev7 Settings organization.
+ * v13.16-dev8 Settings visual refinement.
  *
  * The current app is a single large classic app.js file. For this dev branch we
  * append the isolated tier feature when app.js is served so the stable v13.15
@@ -10,7 +10,7 @@ const ASSETS=['./','./index.html','./styles.css','./app.js','./manifest.webmanif
  * promoted, it can be folded into app.js/styles.css in the next stable release.
  */
 const TIER_PATCH=String.raw`
-;/* v13.16-dev7 — expandable Settings groups */
+;/* v13.16-dev8 — Settings accordion visual refinement */
 (function(){
   const CLOSET_TIERS=['S','A','B','C','D'];
   function normalizeClosetTier(value){
@@ -97,13 +97,15 @@ const TIER_PATCH=String.raw`
       '#tierRibbonSettingsCard .tier-setting-toggle{display:inline-flex;align-items:center;gap:8px;flex:0 0 auto;font-size:12px;font-weight:700;color:#74695d}',
       '#tierRibbonSettingsCard .tier-setting-toggle input{width:20px;height:20px;accent-color:var(--olive)}',
       '.settings-groups{display:grid;gap:10px}',
-      '.settings-group{border:1px solid rgba(108,81,66,.14);border-radius:16px;background:rgba(255,250,240,.7);overflow:hidden}',
-      '.settings-group>summary{list-style:none;display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:54px;padding:0 15px;cursor:pointer;font-weight:800;color:var(--ink);-webkit-tap-highlight-color:transparent}',
+      '.settings-group{border:1px solid rgba(108,81,66,.16);border-radius:16px;background:#e1e5da;overflow:hidden;box-shadow:0 1px 0 rgba(255,255,255,.45) inset}',
+      '.settings-group>summary{list-style:none;display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:56px;padding:0 15px;cursor:pointer;font-weight:800;color:var(--ink);background:#e1e5da;-webkit-tap-highlight-color:transparent;transition:background .14s ease}',
       '.settings-group>summary::-webkit-details-marker{display:none}',
-      '.settings-group>summary::after{content:"＋";font-size:18px;line-height:1;color:#817568;font-weight:500}',
+      '.settings-group>summary:active{background:#d4dacd}',
+      '.settings-group>summary::after{content:"＋";font-size:18px;line-height:1;color:#6f7868;font-weight:600}',
+      '.settings-group[open]>summary{background:#f0f1ea;border-bottom:1px solid rgba(108,81,66,.10)}',
       '.settings-group[open]>summary::after{content:"−"}',
-      '.settings-group>summary small{display:block;font-size:10px;line-height:1.25;font-weight:500;color:#8a7c6e;margin-top:2px}',
-      '.settings-group-body{display:grid;gap:10px;padding:0 10px 10px}',
+      '.settings-group>summary small{display:block;font-size:10px;line-height:1.25;font-weight:600;color:#716b61;margin-top:3px}',
+      '.settings-group-body{display:grid;gap:10px;padding:10px;background:rgba(255,250,240,.76)}',
       '.settings-group-body>.settings-card{margin:0}',
       '.settings-group-empty{padding:14px;border:1px dashed rgba(108,81,66,.16);border-radius:12px;background:rgba(255,255,255,.48);font-size:12px;line-height:1.45;color:#817568}',
       '.settings-about-card{display:grid;gap:6px}',
@@ -286,7 +288,7 @@ const TIER_PATCH=String.raw`
 
     board.innerHTML='<div class="settings-group-empty">Board preferences will live here as customization options are added.</div>';
     wishlist.innerHTML='<div class="settings-group-empty">Wishlist preferences will live here as shopping and capture options expand.</div>';
-    about.innerHTML='<div class="settings-card settings-about-card"><h3>About Audrey’s Closet</h3><p class="settings-about-version">Version v13.16-dev7</p><p>A personal closet journal built around cataloging, outfits, memories and everyday wardrobe decisions.</p><p>Credits and a few hidden extras can grow here in future releases.</p></div>';
+    about.innerHTML='<div class="settings-card settings-about-card"><h3>About Audrey’s Closet</h3><p class="settings-about-version">Version v13.16-dev8</p><p>A personal closet journal built around cataloging, outfits, memories and everyday wardrobe decisions.</p><p>Credits and a few hidden extras can grow here in future releases.</p></div>';
 
     if(pageHead?.nextSibling)screen.insertBefore(groups,pageHead.nextSibling);
     else screen.appendChild(groups);
