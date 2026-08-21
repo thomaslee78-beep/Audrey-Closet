@@ -1,88 +1,53 @@
-Audrey Closet — v13.18-dev3 Main Update
+Audrey Closet — v13.18-dev4 Main Update
 
 PURPOSE
-Structural redesign of the Outfit Board workspace.
+Board usability polish after testing v13.18-dev3.
 
-MAIN LAYOUT
+1. PREVENT IPHONE INPUT ZOOM
+Safari auto-zooms focused form controls when their text size is too small.
+Board text-entry controls are now explicitly 16px on phone:
+- Board name
+- Board notes
+- Decorate text input
 
-1. BOARD COMPOSE BAR
-- Outfit/board name moved above the canvas.
-- Notes moved behind a compact notebook button.
-- Save Outfit moved beside the name/notes controls so the most common save action stays near the Board.
-- Existing save-to-Portfolio-folder dialog remains unchanged.
+This should prevent the app view from zooming in when tapping these controls.
 
-2. PORTRAIT BOARD
-- Board becomes a responsive Portrait 4:5 canvas.
-- It fills the phone width but is capped at 620px wide on larger screens.
-- This gives noticeably more vertical composition room while keeping workspace controls nearby.
-- Existing move/resize/rotate/doodle behavior still uses the live Board dimensions.
+2. NOTES PANEL
+- Notes textarea stretches across the full available width.
+- Notes remains under the notebook button.
+- The layout should stay at the current page scale instead of forcing the user to zoom back out.
 
-3. BOARD FORMAT FOUNDATION
-The code now defines future Board formats:
-- Portrait 4:5 (current default)
-- Portrait 3:4
-- Square
-- Landscape 4:3
+3. SHARE MOVED BESIDE NEW
+- Share is removed from Tools.
+- Share now sits in the upper-right Board header beside New.
+- Makes Share available immediately after creating a look.
 
-The selector is NOT exposed to users yet. This is architecture for a future phone/iPad setting.
+4. CLEAR INTEGRATED INTO TOOLS
+- Clear is moved into the same Board edit-control row as:
+  Send Back / Bring Front / Undo / Rotate / Duplicate / Delete.
+- It now reads visually as one of the Tools options rather than a separate action below them.
 
-4. EXISTING PORTFOLIO COMPATIBILITY
-- Existing saved looks continue to retain their original boardWidth/boardHeight.
-- Portfolio thumbnails already calculate positions proportionally using those saved dimensions.
-- When an older saved look is loaded for editing or duplication, dev3 rescales its piece coordinates/sizes to the current portrait editing canvas.
-- Existing Portfolio data is not migrated or rewritten simply by installing this update.
-
-5. CONTEXTUAL WORKSPACE DIRECTLY BELOW THE BOARD
-A new three-tab workspace sits immediately under the canvas:
-- Pick Pieces
-- Tools
-- Decorate
-
-Only one workspace is visible at a time.
-The tab bar is sticky while scrolling within the work area, so switching tasks does not require scrolling between separate sections.
-
-6. PICK PIECES
-- Default open workspace.
-- Reuses the v13.18 Free-Flow visual picker.
-- Existing Closet/Wishlist and category filtering continue to work.
-- Search/color/Tier filtering is planned for the next iteration.
-
-7. TOOLS
-Moves the existing Board editing controls into one expandable workspace:
-- Send Back
-- Bring Front
-- Undo
-- Rotate
-- Duplicate
-- Delete
-Also moves Share and Clear into this workspace.
-
-8. DECORATE
-Moves the current text/sticker/shape/doodle controls into the Decorate workspace.
-This is a relocation only; a visual redesign of Decorate can happen later.
+5. COMPACT PICK PIECES HEADER
+- Closet / Wishlist source tabs are moved beside the "Pick your pieces" heading.
+- Saves vertical space and keeps source switching physically closer to the picker.
+- Category filters and garment grid remain below.
 
 UNCHANGED
-- Existing saved Portfolio looks.
-- Board piece data model.
-- Save-to-folder dialog.
-- Share logic.
-- Tap-to-add from picker.
-- Board item move/resize/rotate/layer behavior.
-- Closet Catalog views.
+- Portrait Board canvas.
+- Name / Notes / Save placement.
+- Pick Pieces / Tools / Decorate workspace.
+- Free-Flow picker visuals.
+- Existing Portfolio compatibility logic.
+- Save/share behavior.
 
 TEST
-1. Open Board.
-2. Confirm name + notes icon + Save Outfit appear above the canvas.
-3. Confirm canvas is taller/portrait.
-4. Add and move several pieces around the taller Board.
-5. Confirm Pick Pieces is directly beneath the canvas and open by default.
-6. Switch Pick Pieces -> Tools -> Decorate and confirm each occupies the same workspace position.
-7. Test Send Back / Front / Rotate / Duplicate / Delete / Undo.
-8. Test Decorate text/stickers/doodle.
-9. Save a new look and inspect it in Portfolio.
-10. Load an older Portfolio look for editing and confirm its composition scales onto the new portrait canvas.
-11. Duplicate an older Portfolio look and confirm the composition also scales.
-12. Test on iPhone/PWA close + reopen.
+1. Tap Notes on iPhone/PWA. Confirm the page does NOT zoom in.
+2. Confirm Notes spans the full panel width.
+3. Open Decorate and tap the text field. Confirm the page does NOT zoom.
+4. Confirm Share is beside New at the top-right.
+5. Open Tools and confirm Clear is integrated into the control row.
+6. Confirm Closet/Wishlist sit beside Pick your pieces.
+7. Add garments, decorate, save, share, and confirm the app stays at normal scale throughout.
 
 ROLLBACK
-Replace sw.js with v13.18-dev2.
+Replace sw.js with v13.18-dev3.

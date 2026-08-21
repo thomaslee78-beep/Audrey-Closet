@@ -1,8 +1,8 @@
-const CACHE='audrey-closet-v13.18-dev3';
+const CACHE='audrey-closet-v13.18-dev4';
 const ASSETS=['./','./index.html','./styles.css','./app.js','./manifest.webmanifest','./icon-192.png','./icon-512.png'];
 
 /*
- * v13.18-dev3 Board workspace redesign.
+ * v13.18-dev4 Board workspace usability polish.
  *
  * The current app is a single large classic app.js file. For this dev branch we
  * append the isolated tier feature when app.js is served so the stable v13.15
@@ -10,7 +10,7 @@ const ASSETS=['./','./index.html','./styles.css','./app.js','./manifest.webmanif
  * promoted, it can be folded into app.js/styles.css in the next stable release.
  */
 const TIER_PATCH=String.raw`
-;/* v13.18-dev3 — Board workspace redesign */
+;/* v13.18-dev4 — Board workspace usability polish */
 (function(){
   const CLOSET_TIERS=['S','A','B','C','D'];
   function normalizeClosetTier(value){
@@ -283,6 +283,18 @@ const TIER_PATCH=String.raw`
       '.screen[data-screen="outfits"] .board-decorate-shell #creativeTools.hidden{display:grid!important}',
       '.screen[data-screen="outfits"] .board-controls-top{display:none!important}',
       '@media(max-width:410px){.screen[data-screen="outfits"] .board-compose-bar{grid-template-columns:minmax(0,1fr) 40px auto;gap:6px}.screen[data-screen="outfits"] .board-compose-save{padding-left:10px;padding-right:10px;font-size:12px}.screen[data-screen="outfits"] #outfitBoard{border-radius:15px}.screen[data-screen="outfits"] .board-workspace-tabs{top:62px}.screen[data-screen="outfits"] .board-workspace-tab{font-size:10px;padding:10px 4px}}',
+      '.screen[data-screen="outfits"] .board-notes-drawer{width:100%}',
+      '.screen[data-screen="outfits"] .board-notes-drawer textarea{width:100%!important;display:block;box-sizing:border-box;font-size:16px!important;line-height:1.35}',
+      '.screen[data-screen="outfits"] #boardTextInput{font-size:16px!important}',
+      '.screen[data-screen="outfits"] .board-picker-bottom .picker-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:5px}',
+      '.screen[data-screen="outfits"] .board-picker-bottom .picker-head .tabs-small{margin:0!important;flex:0 0 auto;display:flex;gap:5px}',
+      '.screen[data-screen="outfits"] .board-picker-bottom .picker-head .tabs-small button{padding:6px 9px;font-size:10px;border-radius:12px}',
+      '.screen[data-screen="outfits"] .board-tools-main .board-editbar{display:flex;gap:5px;flex-wrap:wrap;overflow:visible}',
+      '.screen[data-screen="outfits"] .board-tools-main .board-editbar button{flex:1 1 92px}',
+      '.screen[data-screen="outfits"] .board-tools-main #clearBoardBtn{display:inline-flex;align-items:center;justify-content:center}',
+      '.screen[data-screen="outfits"] .board-page-head .board-head-actions{display:flex;gap:7px;align-items:center}',
+      '.screen[data-screen="outfits"] .board-page-head .board-head-actions #shareOutfitBtn{white-space:nowrap}',
+      '@media(max-width:410px){.screen[data-screen="outfits"] .board-notes-drawer textarea,.screen[data-screen="outfits"] #boardTextInput,.screen[data-screen="outfits"] .board-compose-name{font-size:16px!important}.screen[data-screen="outfits"] .board-picker-bottom .picker-head{gap:6px}.screen[data-screen="outfits"] .board-picker-bottom .picker-head strong{font-size:17px}.screen[data-screen="outfits"] .board-picker-bottom .picker-head .tabs-small button{padding:6px 7px;font-size:9px}.screen[data-screen="outfits"] .board-page-head .board-head-actions{gap:5px}}',
       '@media(max-width:380px){.closet-view-options{grid-template-columns:1fr}.closet-view-option{min-height:60px}}',
       '@media(max-width:410px){#itemDialog .closet-tier-section{padding:8px 9px;gap:7px}#itemDialog .closet-tier-btn{height:34px}#itemDialog .closet-tier-heading small{max-width:125px}}'
     ].join('');
@@ -497,7 +509,7 @@ const TIER_PATCH=String.raw`
 
     board.innerHTML='<div class="settings-group-empty">Board preferences will live here as customization options are added.</div>';
     wishlist.innerHTML='<div class="settings-group-empty">Wishlist preferences will live here as shopping and capture options expand.</div>';
-    about.innerHTML='<div class="settings-card settings-about-card"><h3>About Audrey’s Closet</h3><p class="settings-about-version">Version v13.18-dev3</p><p>A personal closet journal built around cataloging, outfits, memories and everyday wardrobe decisions.</p><p>Credits and a few hidden extras can grow here in future releases.</p></div>';
+    about.innerHTML='<div class="settings-card settings-about-card"><h3>About Audrey’s Closet</h3><p class="settings-about-version">Version v13.18-dev4</p><p>A personal closet journal built around cataloging, outfits, memories and everyday wardrobe decisions.</p><p>Credits and a few hidden extras can grow here in future releases.</p></div>';
 
     if(pageHead?.nextSibling)screen.insertBefore(groups,pageHead.nextSibling);
     else screen.appendChild(groups);
@@ -636,17 +648,39 @@ const TIER_PATCH=String.raw`
         '<button type="button" class="board-workspace-tab" data-board-panel="decorate" role="tab" aria-selected="false">Decorate</button>'+
       '</div>'+
       '<div class="board-workspace-panel active" data-board-panel="pick"></div>'+
-      '<div class="board-workspace-panel" data-board-panel="tools"><div class="board-tools-shell"><div class="board-tools-main"></div><div class="board-tools-actions"></div></div></div>'+
+      '<div class="board-workspace-panel" data-board-panel="tools"><div class="board-tools-shell"><div class="board-tools-main"></div></div></div>'+
       '<div class="board-workspace-panel" data-board-panel="decorate"><div class="board-decorate-shell"></div></div>';
     shell.insertAdjacentElement('afterend',workspace);
 
-    workspace.querySelector('[data-board-panel="pick"].board-workspace-panel').appendChild(picker);
+    const pickPanel=workspace.querySelector('[data-board-panel="pick"].board-workspace-panel');
+    pickPanel.appendChild(picker);
+
+    const pickerHead=picker.querySelector('.picker-head');
+    const sourceTabs=picker.querySelector('.tabs-small');
+    if(pickerHead&&sourceTabs)pickerHead.appendChild(sourceTabs);
+
     const toolsMain=workspace.querySelector('.board-tools-main');
     if(editbar)toolsMain.appendChild(editbar);
-    const toolsActions=workspace.querySelector('.board-tools-actions');
-    const share=$('#shareOutfitBtn'),clear=$('#clearBoardBtn');
-    if(share)toolsActions.appendChild(share);
-    if(clear)toolsActions.appendChild(clear);
+    const clear=$('#clearBoardBtn');
+    if(clear&&editbar){
+      clear.className='soft-btn';
+      clear.textContent='Clear';
+      editbar.appendChild(clear);
+    }
+
+    const head=screen.querySelector('.board-page-head');
+    const newBtn=$('#newBoardBtn');
+    const share=$('#shareOutfitBtn');
+    if(head&&newBtn){
+      let headActions=head.querySelector('.board-head-actions');
+      if(!headActions){
+        headActions=document.createElement('div');
+        headActions.className='board-head-actions';
+        head.appendChild(headActions);
+      }
+      headActions.appendChild(newBtn);
+      if(share)headActions.insertBefore(share,newBtn);
+    }
 
     const decorateShell=workspace.querySelector('.board-decorate-shell');
     if(decorateToggle)decorateShell.appendChild(decorateToggle);
