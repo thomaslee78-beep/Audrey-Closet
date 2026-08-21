@@ -1,8 +1,8 @@
-const CACHE='audrey-closet-v13.17-dev6';
+const CACHE='audrey-closet-v13.17-dev8';
 const ASSETS=['./','./index.html','./styles.css','./app.js','./manifest.webmanifest','./icon-192.png','./icon-512.png'];
 
 /*
- * v13.17-dev6 Modern reorder outline fix.
+ * v13.17-dev8 Free-Flow experiment.
  *
  * The current app is a single large classic app.js file. For this dev branch we
  * append the isolated tier feature when app.js is served so the stable v13.15
@@ -10,7 +10,7 @@ const ASSETS=['./','./index.html','./styles.css','./app.js','./manifest.webmanif
  * promoted, it can be folded into app.js/styles.css in the next stable release.
  */
 const TIER_PATCH=String.raw`
-;/* v13.17-dev6 — Modern drag overlay square-corner fix */
+;/* v13.17-dev8 — Free-Flow photo-first experiment */
 (function(){
   const CLOSET_TIERS=['S','A','B','C','D'];
   function normalizeClosetTier(value){
@@ -71,9 +71,10 @@ const TIER_PATCH=String.raw`
     const screen=document.querySelector('.screen[data-screen="catalog"]');
     if(!screen)return;
     const view=currentClosetView();
-    screen.dataset.closetView=view==='free-flow'?'classic':view;
+    screen.dataset.closetView=view;
     document.body.classList.toggle('closet-view-modern',view==='modern');
-    document.body.classList.toggle('closet-view-classic',view==='classic'||view==='free-flow');
+    document.body.classList.toggle('closet-view-free-flow',view==='free-flow');
+    document.body.classList.toggle('closet-view-classic',view==='classic');
     $$('.closet-view-option').forEach(function(btn){
       const active=btn.dataset.closetView===view;
       btn.classList.toggle('active',active);
@@ -82,7 +83,6 @@ const TIER_PATCH=String.raw`
   }
   async function setClosetView(view){
     view=normalizeClosetView(view);
-    if(view==='free-flow')return;
     ensureSettings();
     const previous=currentClosetView();
     state.settings.closetView=view;
@@ -185,6 +185,24 @@ const TIER_PATCH=String.raw`
       '.screen[data-screen="catalog"][data-closet-view="modern"] .closet-grid:has(.item-card:last-child:nth-child(odd))::after{content:"";display:block;aspect-ratio:1/1.08;background:linear-gradient(140deg,#e7dfcd,#f8f3e8);border:1px solid rgba(255,255,255,.96);box-sizing:border-box}',
       'body.closet-view-modern .closet-drop-outline{border-radius:0!important}',
       'body.closet-view-modern .closet-drag-ghost{border-radius:0!important}',
+      '.screen[data-screen="catalog"][data-closet-view="free-flow"] .closet-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:2px 4px;background:transparent!important}',
+      '.screen[data-screen="catalog"][data-closet-view="free-flow"] .item-card{position:relative;overflow:visible;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;min-height:190px;display:flex;align-items:center;justify-content:center}',
+      '.screen[data-screen="catalog"][data-closet-view="free-flow"] .item-card .card-body{display:none!important}',
+      '.screen[data-screen="catalog"][data-closet-view="free-flow"] .item-card .count-badge{display:none!important}',
+      '.screen[data-screen="catalog"][data-closet-view="free-flow"] .item-card .thumb{width:100%;aspect-ratio:1/1.14;background:transparent!important;border:0!important;overflow:visible!important;display:flex;align-items:center;justify-content:center}',
+      '.screen[data-screen="catalog"][data-closet-view="free-flow"] .item-card img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 7px 8px rgba(68,55,37,.10));transition:transform .14s ease}',
+      '.screen[data-screen="catalog"][data-closet-view="free-flow"] .item-card:nth-child(6n+1) .thumb{transform:translateY(7px) scale(.92)}',
+      '.screen[data-screen="catalog"][data-closet-view="free-flow"] .item-card:nth-child(6n+2) .thumb{transform:translateY(-3px) scale(1.02)}',
+      '.screen[data-screen="catalog"][data-closet-view="free-flow"] .item-card:nth-child(6n+3) .thumb{transform:translateY(-7px) scale(.96)}',
+      '.screen[data-screen="catalog"][data-closet-view="free-flow"] .item-card:nth-child(6n+4) .thumb{transform:translateY(6px) scale(1.01)}',
+      '.screen[data-screen="catalog"][data-closet-view="free-flow"] .item-card:nth-child(6n+5) .thumb{transform:translateY(1px) scale(.94)}',
+      '.screen[data-screen="catalog"][data-closet-view="free-flow"] .item-card:nth-child(6n) .thumb{transform:translateY(-5px) scale(.99)}',
+      '.screen[data-screen="catalog"][data-closet-view="free-flow"] .tier-ribbon{top:12px;left:5px;transform:scale(.86);transform-origin:left top}',
+      '.screen[data-screen="catalog"][data-closet-view="free-flow"] .archived-badge{transform:scale(.88);transform-origin:right top}',
+      '.screen[data-screen="catalog"][data-closet-view="free-flow"] .closet-section-title{margin-bottom:3px}',
+      'body.closet-view-free-flow .closet-drag-ghost{border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;overflow:visible!important}',
+      'body.closet-view-free-flow .closet-drag-ghost .card-body,body.closet-view-free-flow .closet-drag-ghost .count-badge{display:none!important}',
+      'body.closet-view-free-flow .closet-drop-outline{border-radius:0!important;background:rgba(125,53,71,.035)!important}',
       '@media(max-width:380px){.closet-view-options{grid-template-columns:1fr}.closet-view-option{min-height:60px}}',
       '@media(max-width:410px){#itemDialog .closet-tier-section{padding:8px 9px;gap:7px}#itemDialog .closet-tier-btn{height:34px}#itemDialog .closet-tier-heading small{max-width:125px}}'
     ].join('');
@@ -325,9 +343,9 @@ const TIER_PATCH=String.raw`
       '<div class="closet-view-options" role="group" aria-label="Closet view mode">'+
         '<button type="button" class="closet-view-option" data-closet-view="classic" aria-pressed="false"><strong>Classic</strong><small>Current card-based catalog</small></button>'+
         '<button type="button" class="closet-view-option" data-closet-view="modern" aria-pressed="false"><strong>Modern</strong><small>Full-bleed grid with touching cards</small></button>'+
-        '<button type="button" class="closet-view-option" data-closet-view="free-flow" aria-pressed="false" disabled><strong>Free-Flow</strong><small>Photo-only experimental view — coming next</small></button>'+
+        '<button type="button" class="closet-view-option" data-closet-view="free-flow" aria-pressed="false"><strong>Free-Flow</strong><small>Photo-only experimental closet</small></button>'+
       '</div>'+
-      '<p class="closet-view-note">App Style / themes will remain a separate future setting from Closet View.</p>';
+      '<p class="closet-view-note">Free-Flow is experimental. App Style / themes remain a separate future setting from Closet View.</p>';
     catalogBody.prepend(card);
     card.querySelectorAll('.closet-view-option:not(:disabled)').forEach(function(btn){
       btn.addEventListener('click',function(){setClosetView(btn.dataset.closetView)});
@@ -385,7 +403,7 @@ const TIER_PATCH=String.raw`
 
     board.innerHTML='<div class="settings-group-empty">Board preferences will live here as customization options are added.</div>';
     wishlist.innerHTML='<div class="settings-group-empty">Wishlist preferences will live here as shopping and capture options expand.</div>';
-    about.innerHTML='<div class="settings-card settings-about-card"><h3>About Audrey’s Closet</h3><p class="settings-about-version">Version v13.17-dev6</p><p>A personal closet journal built around cataloging, outfits, memories and everyday wardrobe decisions.</p><p>Credits and a few hidden extras can grow here in future releases.</p></div>';
+    about.innerHTML='<div class="settings-card settings-about-card"><h3>About Audrey’s Closet</h3><p class="settings-about-version">Version v13.17-dev8</p><p>A personal closet journal built around cataloging, outfits, memories and everyday wardrobe decisions.</p><p>Credits and a few hidden extras can grow here in future releases.</p></div>';
 
     if(pageHead?.nextSibling)screen.insertBefore(groups,pageHead.nextSibling);
     else screen.appendChild(groups);
