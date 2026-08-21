@@ -1,8 +1,8 @@
-const CACHE='audrey-closet-v13.18-dev4';
+const CACHE='audrey-closet-v13.18-dev5';
 const ASSETS=['./','./index.html','./styles.css','./app.js','./manifest.webmanifest','./icon-192.png','./icon-512.png'];
 
 /*
- * v13.18-dev4 Board workspace usability polish.
+ * v13.18-dev5 Board picker filters + Clear confirmation.
  *
  * The current app is a single large classic app.js file. For this dev branch we
  * append the isolated tier feature when app.js is served so the stable v13.15
@@ -10,7 +10,7 @@ const ASSETS=['./','./index.html','./styles.css','./app.js','./manifest.webmanif
  * promoted, it can be folded into app.js/styles.css in the next stable release.
  */
 const TIER_PATCH=String.raw`
-;/* v13.18-dev4 — Board workspace usability polish */
+;/* v13.18-dev5 — Board picker filters + feedback */
 (function(){
   const CLOSET_TIERS=['S','A','B','C','D'];
   function normalizeClosetTier(value){
@@ -295,6 +295,23 @@ const TIER_PATCH=String.raw`
       '.screen[data-screen="outfits"] .board-page-head .board-head-actions{display:flex;gap:7px;align-items:center}',
       '.screen[data-screen="outfits"] .board-page-head .board-head-actions #shareOutfitBtn{white-space:nowrap}',
       '@media(max-width:410px){.screen[data-screen="outfits"] .board-notes-drawer textarea,.screen[data-screen="outfits"] #boardTextInput,.screen[data-screen="outfits"] .board-compose-name{font-size:16px!important}.screen[data-screen="outfits"] .board-picker-bottom .picker-head{gap:6px}.screen[data-screen="outfits"] .board-picker-bottom .picker-head strong{font-size:17px}.screen[data-screen="outfits"] .board-picker-bottom .picker-head .tabs-small button{padding:6px 7px;font-size:9px}.screen[data-screen="outfits"] .board-page-head .board-head-actions{gap:5px}}',
+      '.screen[data-screen="outfits"] .board-picker-filters{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:6px;align-items:center;margin:5px 0 6px}',
+      '.screen[data-screen="outfits"] .board-picker-search{min-width:0;height:38px;border:1px solid var(--line);border-radius:12px;background:#fffdf7;padding:0 10px;font:16px/1 var(--sans);color:var(--ink);outline:none}',
+      '.screen[data-screen="outfits"] .board-picker-search:focus{border-color:var(--turq);box-shadow:0 0 0 3px rgba(77,142,138,.12)}',
+      '.screen[data-screen="outfits"] .board-picker-filter-btn{height:38px;padding:0 10px;border:1px solid var(--line);border-radius:12px;background:#fffaf0;color:#74695d;font:750 10px/1 var(--sans);white-space:nowrap}',
+      '.screen[data-screen="outfits"] .board-picker-filter-btn.active{background:var(--olive);border-color:var(--olive);color:#fff}',
+      '.screen[data-screen="outfits"] .board-picker-filter-panel{display:none;grid-column:1/-1;padding:8px;border:1px solid var(--line);border-radius:12px;background:#f5eedf}',
+      '.screen[data-screen="outfits"] .board-picker-filter-panel.open{display:grid;gap:7px}',
+      '.screen[data-screen="outfits"] .board-picker-filter-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap}',
+      '.screen[data-screen="outfits"] .board-picker-filter-row>span{min-width:42px;font-size:9px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:#817568}',
+      '.screen[data-screen="outfits"] .board-picker-chip{min-height:30px;padding:0 9px;border:1px solid rgba(108,81,66,.18);border-radius:10px;background:#fffaf0;color:#74695d;font:750 10px/1 var(--sans)}',
+      '.screen[data-screen="outfits"] .board-picker-chip.active{background:var(--olive);border-color:var(--olive);color:#fff}',
+      '.screen[data-screen="outfits"] .piece-grid .tray-piece.board-picker-added .mini-photo{animation:boardPickerAdded .52s ease-out}',
+      '.screen[data-screen="outfits"] #outfitBoard .board-piece.board-piece-added{animation:boardPieceArrive .42s ease-out}',
+      '@keyframes boardPickerAdded{0%{filter:none}35%{filter:drop-shadow(0 0 8px rgba(77,142,138,.55));transform:scale(1.07)}100%{filter:none}}',
+      '@keyframes boardPieceArrive{0%{opacity:.35}45%{opacity:1;filter:drop-shadow(0 0 10px rgba(77,142,138,.42))}100%{filter:none}}',
+      '.screen[data-screen="outfits"] #clearBoardBtn{border-color:rgba(125,53,71,.22)!important;color:var(--burgundy)!important}',
+      '@media(max-width:410px){.screen[data-screen="outfits"] .board-picker-filters{grid-template-columns:minmax(0,1fr) auto auto;gap:5px}.screen[data-screen="outfits"] .board-picker-filter-btn{padding:0 8px;font-size:9px}}',
       '@media(max-width:380px){.closet-view-options{grid-template-columns:1fr}.closet-view-option{min-height:60px}}',
       '@media(max-width:410px){#itemDialog .closet-tier-section{padding:8px 9px;gap:7px}#itemDialog .closet-tier-btn{height:34px}#itemDialog .closet-tier-heading small{max-width:125px}}'
     ].join('');
@@ -509,7 +526,7 @@ const TIER_PATCH=String.raw`
 
     board.innerHTML='<div class="settings-group-empty">Board preferences will live here as customization options are added.</div>';
     wishlist.innerHTML='<div class="settings-group-empty">Wishlist preferences will live here as shopping and capture options expand.</div>';
-    about.innerHTML='<div class="settings-card settings-about-card"><h3>About Audrey’s Closet</h3><p class="settings-about-version">Version v13.18-dev4</p><p>A personal closet journal built around cataloging, outfits, memories and everyday wardrobe decisions.</p><p>Credits and a few hidden extras can grow here in future releases.</p></div>';
+    about.innerHTML='<div class="settings-card settings-about-card"><h3>About Audrey’s Closet</h3><p class="settings-about-version">Version v13.18-dev5</p><p>A personal closet journal built around cataloging, outfits, memories and everyday wardrobe decisions.</p><p>Credits and a few hidden extras can grow here in future releases.</p></div>';
 
     if(pageHead?.nextSibling)screen.insertBefore(groups,pageHead.nextSibling);
     else screen.appendChild(groups);
@@ -730,6 +747,189 @@ const TIER_PATCH=String.raw`
   };
 
   installBoardWorkspaceV3();
+
+  let boardPickerSearch='';
+  let boardPickerColor='';
+  let boardPickerTier='';
+
+  function boardPickerObjectForButton(btn){
+    const source=btn?.dataset?.source||traySource;
+    const arr=source==='closet'?state.items:state.wishlist;
+    return arr.find(function(x){return x.id===btn.dataset.id})||null;
+  }
+
+  function boardPickerMatches(obj){
+    if(!obj)return false;
+    const q=String(boardPickerSearch||'').trim().toLowerCase();
+    if(q){
+      const hay=[
+        obj.type,obj.name,obj.category,obj.brand,obj.color,obj.pattern,obj.notes
+      ].filter(Boolean).join(' ').toLowerCase();
+      if(!hay.includes(q))return false;
+    }
+    if(boardPickerColor&&String(obj.color||'').toLowerCase()!==boardPickerColor.toLowerCase())return false;
+    if(boardPickerTier){
+      const tier=normalizeClosetTier(obj.tier);
+      if(boardPickerTier==='unrated'){
+        if(tier)return false;
+      }else if(tier!==boardPickerTier)return false;
+    }
+    return true;
+  }
+
+  function applyBoardPickerFilters(){
+    const tray=$('#pieceTray');
+    if(!tray)return;
+    let visible=0;
+    tray.querySelectorAll('.tray-piece').forEach(function(btn){
+      const show=boardPickerMatches(boardPickerObjectForButton(btn));
+      btn.style.display=show?'':'none';
+      if(show)visible++;
+    });
+    let empty=tray.querySelector('.board-picker-filter-empty');
+    if(!visible&&tray.querySelector('.tray-piece')){
+      if(!empty){
+        empty=document.createElement('p');
+        empty.className='tray-empty board-picker-filter-empty';
+        empty.textContent='No pieces match these filters.';
+        tray.appendChild(empty);
+      }
+    }else if(empty)empty.remove();
+  }
+
+  function refreshBoardPickerFilterUi(){
+    const colorBtn=$('#boardPickerColorBtn');
+    const tierBtn=$('#boardPickerTierBtn');
+    if(colorBtn){
+      colorBtn.textContent=boardPickerColor||'Color';
+      colorBtn.classList.toggle('active',!!boardPickerColor);
+    }
+    if(tierBtn){
+      tierBtn.textContent=boardPickerTier?(boardPickerTier==='unrated'?'Unrated':boardPickerTier+'-Tier'):'Tier';
+      tierBtn.classList.toggle('active',!!boardPickerTier);
+    }
+    $$('#boardPickerColorPanel .board-picker-chip').forEach(function(btn){
+      btn.classList.toggle('active',(btn.dataset.color||'')===boardPickerColor);
+    });
+    $$('#boardPickerTierPanel .board-picker-chip').forEach(function(btn){
+      btn.classList.toggle('active',(btn.dataset.tier||'')===boardPickerTier);
+    });
+  }
+
+  function installBoardPickerFiltersV5(){
+    const picker=document.querySelector('.screen[data-screen="outfits"] .board-picker-bottom');
+    const category=$('#outfitCategoryFilter');
+    if(!picker||!category||$('#boardPickerFilters'))return;
+
+    const filters=document.createElement('div');
+    filters.id='boardPickerFilters';
+    filters.className='board-picker-filters';
+    filters.innerHTML=
+      '<input id="boardPickerSearch" class="board-picker-search" type="search" inputmode="search" autocomplete="off" placeholder="Search pieces…">'+
+      '<button type="button" id="boardPickerColorBtn" class="board-picker-filter-btn">Color</button>'+
+      '<button type="button" id="boardPickerTierBtn" class="board-picker-filter-btn">Tier</button>'+
+      '<div id="boardPickerColorPanel" class="board-picker-filter-panel">'+
+        '<div class="board-picker-filter-row"><span>Color</span>'+
+          '<button type="button" class="board-picker-chip" data-color="">All</button>'+
+          COLORS.map(function(c){return '<button type="button" class="board-picker-chip" data-color="'+esc(c)+'">'+esc(c)+'</button>'}).join('')+
+        '</div>'+
+      '</div>'+
+      '<div id="boardPickerTierPanel" class="board-picker-filter-panel">'+
+        '<div class="board-picker-filter-row"><span>Tier</span>'+
+          '<button type="button" class="board-picker-chip" data-tier="">All</button>'+
+          CLOSET_TIERS.map(function(t){return '<button type="button" class="board-picker-chip" data-tier="'+t+'">'+t+'</button>'}).join('')+
+          '<button type="button" class="board-picker-chip" data-tier="unrated">Unrated</button>'+
+        '</div>'+
+      '</div>';
+    category.insertAdjacentElement('afterend',filters);
+
+    const search=$('#boardPickerSearch');
+    search.value=boardPickerSearch;
+    search.oninput=function(){
+      boardPickerSearch=search.value||'';
+      applyBoardPickerFilters();
+    };
+
+    $('#boardPickerColorBtn').onclick=function(){
+      $('#boardPickerColorPanel').classList.toggle('open');
+      $('#boardPickerTierPanel').classList.remove('open');
+    };
+    $('#boardPickerTierBtn').onclick=function(){
+      $('#boardPickerTierPanel').classList.toggle('open');
+      $('#boardPickerColorPanel').classList.remove('open');
+    };
+    $$('#boardPickerColorPanel .board-picker-chip').forEach(function(btn){
+      btn.onclick=function(){
+        boardPickerColor=btn.dataset.color||'';
+        $('#boardPickerColorPanel').classList.remove('open');
+        refreshBoardPickerFilterUi();
+        applyBoardPickerFilters();
+      };
+    });
+    $$('#boardPickerTierPanel .board-picker-chip').forEach(function(btn){
+      btn.onclick=function(){
+        boardPickerTier=btn.dataset.tier||'';
+        $('#boardPickerTierPanel').classList.remove('open');
+        refreshBoardPickerFilterUi();
+        applyBoardPickerFilters();
+      };
+    });
+    refreshBoardPickerFilterUi();
+    applyBoardPickerFilters();
+  }
+
+  const originalRenderPieceTrayV5=renderPieceTray;
+  renderPieceTray=function(){
+    const result=originalRenderPieceTrayV5.apply(this,arguments);
+    installBoardPickerFiltersV5();
+    applyBoardPickerFilters();
+    return result;
+  };
+
+  const originalAddBoardPieceV5=addBoardPiece;
+  addBoardPiece=function(pid,source){
+    const beforeUid=selectedBoardUid;
+    const result=originalAddBoardPieceV5.apply(this,arguments);
+    applyBoardPickerFilters();
+    const trayBtn=document.querySelector('#pieceTray .tray-piece[data-id="'+CSS.escape(String(pid))+'"][data-source="'+CSS.escape(String(source))+'"]');
+    if(trayBtn){
+      trayBtn.classList.add('board-picker-added');
+      setTimeout(function(){trayBtn.classList.remove('board-picker-added')},560);
+    }
+    if(selectedBoardUid&&selectedBoardUid!==beforeUid){
+      const piece=document.querySelector('#outfitBoard .board-piece[data-uid="'+CSS.escape(String(selectedBoardUid))+'"]');
+      if(piece){
+        piece.classList.add('board-piece-added');
+        setTimeout(function(){piece.classList.remove('board-piece-added')},480);
+      }
+      toast('Added to board');
+    }
+    return result;
+  };
+
+  function installClearBoardConfirmationV5(){
+    const clear=$('#clearBoardBtn');
+    if(!clear||clear.dataset.confirmInstalled==='true')return;
+    clear.dataset.confirmInstalled='true';
+    clear.onclick=function(e){
+      e.preventDefault();
+      e.stopPropagation();
+      if(!boardItems.length){
+        toast('Board is already clear');
+        return;
+      }
+      const ok=confirm('Clear this board?\n\nThis will remove all items and decorations from the current board. This action cannot be undone.');
+      if(!ok){
+        toast('Clear canceled');
+        return;
+      }
+      clearBoard();
+      toast('Board cleared');
+    };
+  }
+
+  installBoardPickerFiltersV5();
+  installClearBoardConfirmationV5();
 
   installClosetTierFilter();
   installTierRibbonSetting();

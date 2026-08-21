@@ -1,53 +1,86 @@
-Audrey Closet — v13.18-dev4 Main Update
+Audrey Closet — v13.18-dev5 Main Update
 
 PURPOSE
-Board usability polish after testing v13.18-dev3.
+Next Board iteration: improve Pick Pieces usability and protect the destructive Clear action.
 
-1. PREVENT IPHONE INPUT ZOOM
-Safari auto-zooms focused form controls when their text size is too small.
-Board text-entry controls are now explicitly 16px on phone:
-- Board name
-- Board notes
-- Decorate text input
+WHAT WAS PLANNED AFTER DEV4
+- Improve Pick Pieces discovery/filtering.
+- Add clearer feedback when a garment is added.
+- Then continue with Tools polish, Decorate redesign, and final Board/iPad polish.
 
-This should prevent the app view from zooming in when tapping these controls.
+DEV5 CHANGES
 
-2. NOTES PANEL
-- Notes textarea stretches across the full available width.
-- Notes remains under the notebook button.
-- The layout should stay at the current page scale instead of forcing the user to zoom back out.
+1. CLEAR CONFIRMATION
+Tools > Clear now asks:
+"Clear this board?
 
-3. SHARE MOVED BESIDE NEW
-- Share is removed from Tools.
-- Share now sits in the upper-right Board header beside New.
-- Makes Share available immediately after creating a look.
+This will remove all items and decorations from the current board.
+This action cannot be undone."
 
-4. CLEAR INTEGRATED INTO TOOLS
-- Clear is moved into the same Board edit-control row as:
-  Send Back / Bring Front / Undo / Rotate / Duplicate / Delete.
-- It now reads visually as one of the Tools options rather than a separate action below them.
+User can Cancel or continue.
+Cancel leaves the Board untouched.
+If Board is already empty, no confirmation is needed.
 
-5. COMPACT PICK PIECES HEADER
-- Closet / Wishlist source tabs are moved beside the "Pick your pieces" heading.
-- Saves vertical space and keeps source switching physically closer to the picker.
-- Category filters and garment grid remain below.
+2. PICK PIECES SEARCH
+Adds a Search Pieces field.
+Search checks common item information including:
+- item/type/name
+- category
+- brand
+- color
+- pattern
+- notes
+
+3. COLOR FILTER
+Adds a compact Color filter beside Search.
+Uses the app's existing color taxonomy.
+Can be combined with category, search and Tier.
+
+4. TIER FILTER
+Adds Tier filtering:
+- S
+- A
+- B
+- C
+- D
+- Unrated
+Can be combined with existing Board category filtering, Color and Search.
+
+5. ADD-TO-BOARD FEEDBACK
+When a garment is tapped:
+- picker garment briefly highlights/pulses
+- newly added Board piece briefly animates
+- short "Added to board" message appears
+
+This keeps feedback visible without adding a persistent selected state that could imply the garment can only be used once.
 
 UNCHANGED
-- Portrait Board canvas.
-- Name / Notes / Save placement.
-- Pick Pieces / Tools / Decorate workspace.
-- Free-Flow picker visuals.
-- Existing Portfolio compatibility logic.
-- Save/share behavior.
+- Portrait Board geometry
+- Board name/notes/save header
+- Share beside New
+- Pick Pieces / Tools / Decorate workspace
+- Free-Flow garment picker appearance
+- Existing Portfolio compatibility
+- Closet/Wishlist picker source
+- Existing category filters
+
+NEXT PLANNED ITERATIONS
+- Tools polish: selection states, disabled/enabled clarity, potentially icon/layout cleanup.
+- Decorate redesign: simplify text/sticker/shape/doodle workflow.
+- Final Board polish: spacing, animations, sticky behavior, iPhone/iPad responsiveness and optional Board format selector.
 
 TEST
-1. Tap Notes on iPhone/PWA. Confirm the page does NOT zoom in.
-2. Confirm Notes spans the full panel width.
-3. Open Decorate and tap the text field. Confirm the page does NOT zoom.
-4. Confirm Share is beside New at the top-right.
-5. Open Tools and confirm Clear is integrated into the control row.
-6. Confirm Closet/Wishlist sit beside Pick your pieces.
-7. Add garments, decorate, save, share, and confirm the app stays at normal scale throughout.
+1. Open Board > Pick Pieces.
+2. Search by a brand/type/color term.
+3. Filter by Color.
+4. Filter by Tier, including Unrated.
+5. Combine category + search + color + tier.
+6. Switch Closet/Wishlist and confirm filters still behave.
+7. Tap a piece and confirm visual/message feedback.
+8. Open Tools > Clear.
+9. Tap Cancel and verify nothing is removed.
+10. Tap Clear again and confirm; verify all Board objects are removed and Undo cannot restore them.
+11. Verify app scale remains stable when using Search.
 
 ROLLBACK
-Replace sw.js with v13.18-dev3.
+Replace sw.js with v13.18-dev4.
