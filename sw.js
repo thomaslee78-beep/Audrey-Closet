@@ -1,8 +1,8 @@
-const CACHE='audrey-closet-v13.16-dev8';
+const CACHE='audrey-closet-v13.16-dev9';
 const ASSETS=['./','./index.html','./styles.css','./app.js','./manifest.webmanifest','./icon-192.png','./icon-512.png'];
 
 /*
- * v13.16-dev8 Settings visual refinement.
+ * v13.16-dev9 Settings header consistency.
  *
  * The current app is a single large classic app.js file. For this dev branch we
  * append the isolated tier feature when app.js is served so the stable v13.15
@@ -10,7 +10,7 @@ const ASSETS=['./','./index.html','./styles.css','./app.js','./manifest.webmanif
  * promoted, it can be folded into app.js/styles.css in the next stable release.
  */
 const TIER_PATCH=String.raw`
-;/* v13.16-dev8 — Settings accordion visual refinement */
+;/* v13.16-dev9 — consistent Settings accordion headers */
 (function(){
   const CLOSET_TIERS=['S','A','B','C','D'];
   function normalizeClosetTier(value){
@@ -102,7 +102,7 @@ const TIER_PATCH=String.raw`
       '.settings-group>summary::-webkit-details-marker{display:none}',
       '.settings-group>summary:active{background:#d4dacd}',
       '.settings-group>summary::after{content:"＋";font-size:18px;line-height:1;color:#6f7868;font-weight:600}',
-      '.settings-group[open]>summary{background:#f0f1ea;border-bottom:1px solid rgba(108,81,66,.10)}',
+      '.settings-group[open]>summary{background:#e1e5da;border-bottom:1px solid rgba(108,81,66,.10)}',
       '.settings-group[open]>summary::after{content:"−"}',
       '.settings-group>summary small{display:block;font-size:10px;line-height:1.25;font-weight:600;color:#716b61;margin-top:3px}',
       '.settings-group-body{display:grid;gap:10px;padding:10px;background:rgba(255,250,240,.76)}',
@@ -288,7 +288,7 @@ const TIER_PATCH=String.raw`
 
     board.innerHTML='<div class="settings-group-empty">Board preferences will live here as customization options are added.</div>';
     wishlist.innerHTML='<div class="settings-group-empty">Wishlist preferences will live here as shopping and capture options expand.</div>';
-    about.innerHTML='<div class="settings-card settings-about-card"><h3>About Audrey’s Closet</h3><p class="settings-about-version">Version v13.16-dev8</p><p>A personal closet journal built around cataloging, outfits, memories and everyday wardrobe decisions.</p><p>Credits and a few hidden extras can grow here in future releases.</p></div>';
+    about.innerHTML='<div class="settings-card settings-about-card"><h3>About Audrey’s Closet</h3><p class="settings-about-version">Version v13.16-dev9</p><p>A personal closet journal built around cataloging, outfits, memories and everyday wardrobe decisions.</p><p>Credits and a few hidden extras can grow here in future releases.</p></div>';
 
     if(pageHead?.nextSibling)screen.insertBefore(groups,pageHead.nextSibling);
     else screen.appendChild(groups);

@@ -1,39 +1,25 @@
-Audrey Closet — v13.16-dev8 Main Update
+Audrey Closet — v13.16-dev9 Main Update
 
 WHAT CHANGES
 - Replace only sw.js on the main branch.
-- Builds directly on v13.16-dev7.
-- Cache/version becomes audrey-closet-v13.16-dev8.
-- This release is visual refinement only; settings behavior is unchanged.
+- Builds directly on v13.16-dev8.
+- Cache/version becomes audrey-closet-v13.16-dev9.
+- Visual-only adjustment.
 
-SETTINGS ACCORDION VISUAL REFINEMENT
-- Collapsed Settings groups now use a muted sage background:
-  #E1E5DA
-- Pressed state uses a slightly deeper sage:
-  #D4DACD
-- Expanded section headers use a lighter cream-sage:
-  #F0F1EA
-- Expanded content area remains light/cream for readability.
-- Borders are slightly stronger:
-  rgba(108,81,66,.16)
-- Subtitle contrast is increased slightly.
-- The plus/minus affordance is a little stronger for easier scanning.
-
-DESIGN INTENT
-- Collapsed sections should be easier to distinguish from the page background.
-- Expanded areas should still feel open and light.
-- All sections share one restrained sage treatment so Settings remains cohesive.
-- No section-specific rainbow colors were introduced.
+SETTINGS HEADER REFINEMENT
+- Collapsed Settings headers remain muted sage: #E1E5DA.
+- Expanded Settings headers now use the exact same muted sage: #E1E5DA.
+- Expanded content remains light/cream.
+- The + / − indicator and revealed content continue to communicate open vs. closed state.
+- Pressed state remains #D4DACD.
 
 UNCHANGED
-- General / Catalog / Closet / Board / Portfolio / Journal / Wishlist / About grouping
-- General opens by default
-- Tier ribbon preference
-- Multi-select Tier filtering
-- Randomized Tier reactions
-- Portfolio folder editing
-- Journal layout editing
-- Export / import and reset behavior
+- All Settings grouping and behavior.
+- Tier functionality.
+- Multi-select Tier filtering.
+- Tier reactions and ribbons.
+- Portfolio and Journal settings.
+- Data export/import and reset.
 
 UPLOAD TO MAIN
 1. Open Audrey-Closet on GitHub.
@@ -44,13 +30,11 @@ UPLOAD TO MAIN
 6. Open the PWA once online; fully close/reopen if the prior cached version remains.
 
 TEST
-1. Open Settings / Configuration.
-2. Confirm collapsed sections have clear muted-sage contrast.
-3. Expand a section and confirm the header becomes lighter.
-4. Confirm the expanded content remains easy to read.
-5. Check the plus/minus affordance.
-6. Confirm no settings behavior changed.
-7. Confirm Tier, Portfolio, Journal and data controls still work normally.
+1. Open Settings.
+2. Compare a collapsed section with an expanded section.
+3. Confirm both headers use the same muted sage.
+4. Confirm expanded content remains light and readable.
+5. Confirm all configuration controls still behave normally.
 
 ROLLBACK
-Replace sw.js with v13.16-dev7.
+Replace sw.js with v13.16-dev8.
