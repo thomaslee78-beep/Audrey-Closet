@@ -1,8 +1,8 @@
-const CACHE='audrey-closet-v13.16-dev6';
+const CACHE='audrey-closet-v13.16-dev7';
 const ASSETS=['./','./index.html','./styles.css','./app.js','./manifest.webmanifest','./icon-192.png','./icon-512.png'];
 
 /*
- * v13.16-dev6 Tier display preference.
+ * v13.16-dev7 Settings organization.
  *
  * The current app is a single large classic app.js file. For this dev branch we
  * append the isolated tier feature when app.js is served so the stable v13.15
@@ -10,7 +10,7 @@ const ASSETS=['./','./index.html','./styles.css','./app.js','./manifest.webmanif
  * promoted, it can be folded into app.js/styles.css in the next stable release.
  */
 const TIER_PATCH=String.raw`
-;/* v13.16-dev6 — tier ribbon preference */
+;/* v13.16-dev7 — expandable Settings groups */
 (function(){
   const CLOSET_TIERS=['S','A','B','C','D'];
   function normalizeClosetTier(value){
@@ -96,6 +96,18 @@ const TIER_PATCH=String.raw`
       '#tierRibbonSettingsCard .tier-setting-copy small{font-size:11px;line-height:1.35;color:#817568}',
       '#tierRibbonSettingsCard .tier-setting-toggle{display:inline-flex;align-items:center;gap:8px;flex:0 0 auto;font-size:12px;font-weight:700;color:#74695d}',
       '#tierRibbonSettingsCard .tier-setting-toggle input{width:20px;height:20px;accent-color:var(--olive)}',
+      '.settings-groups{display:grid;gap:10px}',
+      '.settings-group{border:1px solid rgba(108,81,66,.14);border-radius:16px;background:rgba(255,250,240,.7);overflow:hidden}',
+      '.settings-group>summary{list-style:none;display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:54px;padding:0 15px;cursor:pointer;font-weight:800;color:var(--ink);-webkit-tap-highlight-color:transparent}',
+      '.settings-group>summary::-webkit-details-marker{display:none}',
+      '.settings-group>summary::after{content:"＋";font-size:18px;line-height:1;color:#817568;font-weight:500}',
+      '.settings-group[open]>summary::after{content:"−"}',
+      '.settings-group>summary small{display:block;font-size:10px;line-height:1.25;font-weight:500;color:#8a7c6e;margin-top:2px}',
+      '.settings-group-body{display:grid;gap:10px;padding:0 10px 10px}',
+      '.settings-group-body>.settings-card{margin:0}',
+      '.settings-group-empty{padding:14px;border:1px dashed rgba(108,81,66,.16);border-radius:12px;background:rgba(255,255,255,.48);font-size:12px;line-height:1.45;color:#817568}',
+      '.settings-about-card{display:grid;gap:6px}',
+      '.settings-about-version{font-weight:800;color:var(--ink)}',
       '@media(max-width:410px){#itemDialog .closet-tier-section{padding:8px 9px;gap:7px}#itemDialog .closet-tier-btn{height:34px}#itemDialog .closet-tier-heading small{max-width:125px}}'
     ].join('');
     document.head.appendChild(style);
@@ -224,6 +236,62 @@ const TIER_PATCH=String.raw`
     input.addEventListener('change',function(){setTierRibbonsEnabled(input.checked)});
   }
 
+  function installSettingsGroups(){
+    const screen=document.querySelector('.screen[data-screen="more"]');
+    if(!screen||screen.querySelector('.settings-groups'))return;
+
+    const pageHead=screen.querySelector('.page-head');
+    const allCards=[...screen.querySelectorAll(':scope > .settings-card')];
+
+    const appIdentity=screen.querySelector('.app-identity-card');
+    const portfolio=screen.querySelector('.portfolio-settings-card');
+    const journal=screen.querySelector('.journal-order-settings-card');
+    const tier=screen.querySelector('#tierRibbonSettingsCard');
+
+    const dataCard=allCards.find(card=>card.querySelector('h3')?.textContent.trim()==='Data');
+    const smartScan=allCards.find(card=>card.querySelector('h3')?.textContent.trim()==='Smart photo scan');
+    const resetCard=allCards.find(card=>card.classList.contains('danger-zone')||card.querySelector('h3')?.textContent.trim()==='Reset');
+
+    const groups=document.createElement('div');
+    groups.className='settings-groups';
+
+    function makeGroup(id,label,subtitle,{open=false}={}){
+      const details=document.createElement('details');
+      details.className='settings-group';
+      details.dataset.settingsGroup=id;
+      if(open)details.open=true;
+      const summary=document.createElement('summary');
+      const copy=document.createElement('span');
+      copy.innerHTML='<span>'+label+'</span>'+(subtitle?'<small>'+subtitle+'</small>':'');
+      summary.appendChild(copy);
+      const body=document.createElement('div');
+      body.className='settings-group-body';
+      details.append(summary,body);
+      groups.appendChild(details);
+      return body;
+    }
+
+    const general=makeGroup('general','General','App identity, data and reset',{open:true});
+    const catalog=makeGroup('catalog','Catalog / Closet','Closet display and photo preferences');
+    const board=makeGroup('board','Board','Outfit Board preferences');
+    const portfolioGroup=makeGroup('portfolio','Portfolio','Saved-look organization');
+    const journalGroup=makeGroup('journal','Journal','Wear-log layout and preferences');
+    const wishlist=makeGroup('wishlist','Wishlist','Shopping and wishlist preferences');
+    const about=makeGroup('about','About','Version, credits and future extras');
+
+    [appIdentity,dataCard,resetCard].filter(Boolean).forEach(card=>general.appendChild(card));
+    [tier,smartScan].filter(Boolean).forEach(card=>catalog.appendChild(card));
+    if(portfolio)portfolioGroup.appendChild(portfolio);
+    if(journal)journalGroup.appendChild(journal);
+
+    board.innerHTML='<div class="settings-group-empty">Board preferences will live here as customization options are added.</div>';
+    wishlist.innerHTML='<div class="settings-group-empty">Wishlist preferences will live here as shopping and capture options expand.</div>';
+    about.innerHTML='<div class="settings-card settings-about-card"><h3>About Audrey’s Closet</h3><p class="settings-about-version">Version v13.16-dev7</p><p>A personal closet journal built around cataloging, outfits, memories and everyday wardrobe decisions.</p><p>Credits and a few hidden extras can grow here in future releases.</p></div>';
+
+    if(pageHead?.nextSibling)screen.insertBefore(groups,pageHead.nextSibling);
+    else screen.appendChild(groups);
+  }
+
   const originalItemCard=itemCard;
   itemCard=function(i){
     const html=originalItemCard(i);
@@ -275,6 +343,7 @@ const TIER_PATCH=String.raw`
 
   installClosetTierFilter();
   installTierRibbonSetting();
+  installSettingsGroups();
 
   const originalRenderItemReviewDetails=renderItemReviewDetails;
   renderItemReviewDetails=function(item){
