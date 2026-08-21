@@ -1,8 +1,8 @@
-const CACHE='audrey-closet-v13.18-dev5';
+const CACHE='audrey-closet-v13.18-dev6';
 const ASSETS=['./','./index.html','./styles.css','./app.js','./manifest.webmanifest','./icon-192.png','./icon-512.png'];
 
 /*
- * v13.18-dev5 Board picker filters + Clear confirmation.
+ * v13.18-dev6 Board confirmations + compact picker header.
  *
  * The current app is a single large classic app.js file. For this dev branch we
  * append the isolated tier feature when app.js is served so the stable v13.15
@@ -10,7 +10,7 @@ const ASSETS=['./','./index.html','./styles.css','./app.js','./manifest.webmanif
  * promoted, it can be folded into app.js/styles.css in the next stable release.
  */
 const TIER_PATCH=String.raw`
-;/* v13.18-dev5 — Board picker filters + feedback */
+;/* v13.18-dev6 — confirmations + compact picker */
 (function(){
   const CLOSET_TIERS=['S','A','B','C','D'];
   function normalizeClosetTier(value){
@@ -312,6 +312,12 @@ const TIER_PATCH=String.raw`
       '@keyframes boardPieceArrive{0%{opacity:.35}45%{opacity:1;filter:drop-shadow(0 0 10px rgba(77,142,138,.42))}100%{filter:none}}',
       '.screen[data-screen="outfits"] #clearBoardBtn{border-color:rgba(125,53,71,.22)!important;color:var(--burgundy)!important}',
       '@media(max-width:410px){.screen[data-screen="outfits"] .board-picker-filters{grid-template-columns:minmax(0,1fr) auto auto;gap:5px}.screen[data-screen="outfits"] .board-picker-filter-btn{padding:0 8px;font-size:9px}}',
+      '.screen[data-screen="outfits"] .board-picker-bottom .picker-head>strong{display:none!important}',
+      '.screen[data-screen="outfits"] .board-picker-bottom .picker-head{justify-content:flex-end;margin-bottom:2px}',
+      '.screen[data-screen="outfits"] .board-picker-bottom .picker-head .tabs-small{margin-left:auto!important}',
+      '.screen[data-screen="outfits"] .outfit-category-filter{margin-top:2px!important;margin-bottom:4px!important}',
+      '.screen[data-screen="outfits"] .board-picker-filters{margin-top:2px!important;margin-bottom:4px!important}',
+      '.screen[data-screen="outfits"] .piece-grid{padding-top:0!important}',
       '@media(max-width:380px){.closet-view-options{grid-template-columns:1fr}.closet-view-option{min-height:60px}}',
       '@media(max-width:410px){#itemDialog .closet-tier-section{padding:8px 9px;gap:7px}#itemDialog .closet-tier-btn{height:34px}#itemDialog .closet-tier-heading small{max-width:125px}}'
     ].join('');
@@ -526,7 +532,7 @@ const TIER_PATCH=String.raw`
 
     board.innerHTML='<div class="settings-group-empty">Board preferences will live here as customization options are added.</div>';
     wishlist.innerHTML='<div class="settings-group-empty">Wishlist preferences will live here as shopping and capture options expand.</div>';
-    about.innerHTML='<div class="settings-card settings-about-card"><h3>About Audrey’s Closet</h3><p class="settings-about-version">Version v13.18-dev5</p><p>A personal closet journal built around cataloging, outfits, memories and everyday wardrobe decisions.</p><p>Credits and a few hidden extras can grow here in future releases.</p></div>';
+    about.innerHTML='<div class="settings-card settings-about-card"><h3>About Audrey’s Closet</h3><p class="settings-about-version">Version v13.18-dev6</p><p>A personal closet journal built around cataloging, outfits, memories and everyday wardrobe decisions.</p><p>Credits and a few hidden extras can grow here in future releases.</p></div>';
 
     if(pageHead?.nextSibling)screen.insertBefore(groups,pageHead.nextSibling);
     else screen.appendChild(groups);
@@ -747,6 +753,7 @@ const TIER_PATCH=String.raw`
   };
 
   installBoardWorkspaceV3();
+  setTimeout(installBoardConfirmationsV6,0);
 
   let boardPickerSearch='';
   let boardPickerColor='';
@@ -907,29 +914,45 @@ const TIER_PATCH=String.raw`
     return result;
   };
 
-  function installClearBoardConfirmationV5(){
+  function confirmClearBoardV6(){
+    if(!boardItems.length){
+      toast('Board is already clear');
+      return false;
+    }
+    return window.confirm('Clear this board?\n\nThis will remove all items and decorations from the current board. This action cannot be undone.');
+  }
+
+  function installBoardConfirmationsV6(){
     const clear=$('#clearBoardBtn');
-    if(!clear||clear.dataset.confirmInstalled==='true')return;
-    clear.dataset.confirmInstalled='true';
-    clear.onclick=function(e){
-      e.preventDefault();
-      e.stopPropagation();
-      if(!boardItems.length){
-        toast('Board is already clear');
-        return;
-      }
-      const ok=confirm('Clear this board?\n\nThis will remove all items and decorations from the current board. This action cannot be undone.');
-      if(!ok){
-        toast('Clear canceled');
-        return;
-      }
-      clearBoard();
-      toast('Board cleared');
-    };
+    if(clear){
+      clear.onclick=function(e){
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        if(!confirmClearBoardV6())return;
+        clearBoard();
+        toast('Board cleared');
+      };
+    }
+
+    const newBtn=$('#newBoardBtn');
+    if(newBtn){
+      newBtn.onclick=function(e){
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        if(boardHasDraft()){
+          const ok=window.confirm('Start a new board?\n\nYour current unsaved board will be cleared. Save it first if you want to keep this look.');
+          if(!ok){
+            toast('Kept current board');
+            return;
+          }
+        }
+        startNewOutfit();
+      };
+    }
   }
 
   installBoardPickerFiltersV5();
-  installClearBoardConfirmationV5();
+  installBoardConfirmationsV6();
 
   installClosetTierFilter();
   installTierRibbonSetting();
