@@ -1,30 +1,34 @@
-Audrey Closet — v13.16-dev11 Main Update
+Audrey Closet — v13.16-dev12 Main Update
 
 WHAT CHANGES
 - Replace only sw.js on the main branch.
-- Builds directly on v13.16-dev10.
-- Cache/version becomes audrey-closet-v13.16-dev11.
+- Builds directly on v13.16-dev11.
+- Cache/version becomes audrey-closet-v13.16-dev12.
 - Visual-only Journal refinement.
 
-TODAY'S LOOK PANEL REFINEMENT
-- Today's Look now uses the same warm Journal panel treatment as Wear Log / Wear Insights / Planned looks.
-- Background: #EFE6D5
-- Border: var(--line)
-- Border radius: 16px
-- Padding aligned to the other Journal section headers.
-- Heading uses the app serif font at 19px / 600 weight.
-- Heading color changes from burgundy to the normal dark ink for consistency.
-- Subtitle uses the same muted Journal text color: #7B7065.
-- Expand/collapse icon remains burgundy as the accent.
+TODAY'S LOOK BLENDED PANEL
+- The entire Today's Look section now uses one continuous light warm background:
+  #F2EADB
+- The Today's Look header uses the same exact background color as the section behind it.
+- The visible header border is removed.
+- The header radius is removed so it visually blends into the surrounding section.
+- The outer Today's Look section keeps the rounded 16px shape.
+- The content area beneath the header remains inside the same blended panel.
+- The title/subtitle typography from dev11 is retained.
+- The burgundy expand/collapse icon remains as the accent.
+
+DESIGN INTENT
+- Today's Look should feel like one integrated Journal surface rather than a card sitting on another card.
+- The section remains slightly lighter than the other Journal panels so it still feels like the current/today highlight.
+- Individual wear-log rows remain distinct inside the blended panel.
 
 UNCHANGED
-- Today's Look expand/collapse behavior.
-- Today's Look content.
-- Planned looks styling from dev10.
+- Today's Look behavior and data.
+- Planned looks styling.
 - Wear Log / Wear Insights.
-- Journal ordering and saved state.
+- Journal ordering.
 - Tier functionality and Configuration styling.
-- All closet and journal data.
+- All saved closet and journal data.
 
 UPLOAD TO MAIN
 1. Open Audrey-Closet on GitHub.
@@ -36,10 +40,10 @@ UPLOAD TO MAIN
 
 TEST
 1. Open Journal.
-2. Compare Today's Look with Planned looks, Wear Log and Wear Insights.
-3. Confirm the background, border and typography now feel consistent.
+2. Confirm Today's Look header and surrounding panel use the same light warm color.
+3. Confirm there is no visible border around the Today's Look header.
 4. Expand/collapse Today's Look.
-5. Confirm its content and behavior are unchanged.
+5. Confirm the content still reads clearly inside the blended section.
 
 ROLLBACK
-Replace sw.js with v13.16-dev10.
+Replace sw.js with v13.16-dev11.
