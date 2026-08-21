@@ -1,8 +1,8 @@
-const CACHE='audrey-closet-v13.18-dev2';
+const CACHE='audrey-closet-v13.18-dev3';
 const ASSETS=['./','./index.html','./styles.css','./app.js','./manifest.webmanifest','./icon-192.png','./icon-512.png'];
 
 /*
- * v13.18-dev2 Board picker selector fix.
+ * v13.18-dev3 Board workspace redesign.
  *
  * The current app is a single large classic app.js file. For this dev branch we
  * append the isolated tier feature when app.js is served so the stable v13.15
@@ -10,7 +10,7 @@ const ASSETS=['./','./index.html','./styles.css','./app.js','./manifest.webmanif
  * promoted, it can be folded into app.js/styles.css in the next stable release.
  */
 const TIER_PATCH=String.raw`
-;/* v13.18-dev2 — Board picker Free-Flow selector fix */
+;/* v13.18-dev3 — Board workspace redesign */
 (function(){
   const CLOSET_TIERS=['S','A','B','C','D'];
   function normalizeClosetTier(value){
@@ -251,6 +251,38 @@ const TIER_PATCH=String.raw`
       '.screen[data-screen="outfits"] .picker-head{margin-left:2px;margin-right:2px}',
       '.screen[data-screen="outfits"] .picker-head span{display:none!important}',
       '@media(max-width:410px){.screen[data-screen="outfits"] .piece-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:0!important}.screen[data-screen="outfits"] .piece-grid .tray-piece{min-height:108px}}',
+      '.screen[data-screen="outfits"]{--board-format-ratio:4/5}',
+      '.screen[data-screen="outfits"] .board-page-head{margin-bottom:8px}',
+      '.screen[data-screen="outfits"] .board-compose-bar{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:7px;align-items:center;margin:0 0 10px}',
+      '.screen[data-screen="outfits"] .board-compose-name{min-width:0;font:inherit;color:var(--ink);border:1px solid var(--line);background:#fffdf7;border-radius:13px;padding:11px 12px;width:100%;outline:none}',
+      '.screen[data-screen="outfits"] .board-compose-name:focus{border-color:var(--turq);box-shadow:0 0 0 3px rgba(77,142,138,.12)}',
+      '.screen[data-screen="outfits"] .board-notes-btn{width:42px;height:42px;padding:0;border:1px solid rgba(108,81,66,.16);border-radius:13px;background:#eee4d0;color:var(--coffee);font-size:19px;font-weight:800}',
+      '.screen[data-screen="outfits"] .board-compose-save{min-height:42px;padding:10px 13px;white-space:nowrap}',
+      '.screen[data-screen="outfits"] .board-notes-drawer{display:none;margin:-3px 0 10px;padding:9px;border:1px solid var(--line);border-radius:13px;background:#f3ead8}',
+      '.screen[data-screen="outfits"] .board-notes-drawer.open{display:block}',
+      '.screen[data-screen="outfits"] .board-notes-drawer textarea{min-height:78px;margin:0!important}',
+      '.screen[data-screen="outfits"] .board-shell.board-first{display:block!important;margin:0}',
+      '.screen[data-screen="outfits"] .board-first>div:first-child{width:100%}',
+      '.screen[data-screen="outfits"] #outfitBoard{width:min(100%,620px);height:auto!important;aspect-ratio:var(--board-format-ratio);margin:0 auto;border-radius:18px}',
+      '.screen[data-screen="outfits"] .board-save-panel{display:none!important}',
+      '.screen[data-screen="outfits"] #boardEditbar{margin:0;padding:0;overflow-x:auto}',
+      '.screen[data-screen="outfits"] .board-workspace{margin-top:10px}',
+      '.screen[data-screen="outfits"] .board-workspace-tabs{position:sticky;top:66px;z-index:16;display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#f8f2e4;box-shadow:0 4px 12px rgba(65,52,37,.08)}',
+      '.screen[data-screen="outfits"] .board-workspace-tab{min-width:0;border:0;border-right:1px solid var(--line);background:#f8f2e4;color:#786c5e;padding:11px 6px;font:750 11px/1.1 var(--sans)}',
+      '.screen[data-screen="outfits"] .board-workspace-tab:last-child{border-right:0}',
+      '.screen[data-screen="outfits"] .board-workspace-tab.active{background:var(--olive);color:#fff}',
+      '.screen[data-screen="outfits"] .board-workspace-panel{display:none;padding-top:9px}',
+      '.screen[data-screen="outfits"] .board-workspace-panel.active{display:block}',
+      '.screen[data-screen="outfits"] .board-workspace-panel .board-picker-card{margin:0!important}',
+      '.screen[data-screen="outfits"] .board-tools-shell{display:grid;gap:9px;padding:10px;border:1px solid var(--line);border-radius:14px;background:rgba(255,250,240,.78)}',
+      '.screen[data-screen="outfits"] .board-tools-actions{display:flex;gap:7px;flex-wrap:wrap}',
+      '.screen[data-screen="outfits"] .board-tools-actions .soft-btn{flex:1 1 120px}',
+      '.screen[data-screen="outfits"] .board-decorate-shell{padding:10px;border:1px solid var(--line);border-radius:14px;background:rgba(255,250,240,.78)}',
+      '.screen[data-screen="outfits"] .board-decorate-shell #decorateToggle{display:none!important}',
+      '.screen[data-screen="outfits"] .board-decorate-shell #creativeTools{display:grid!important}',
+      '.screen[data-screen="outfits"] .board-decorate-shell #creativeTools.hidden{display:grid!important}',
+      '.screen[data-screen="outfits"] .board-controls-top{display:none!important}',
+      '@media(max-width:410px){.screen[data-screen="outfits"] .board-compose-bar{grid-template-columns:minmax(0,1fr) 40px auto;gap:6px}.screen[data-screen="outfits"] .board-compose-save{padding-left:10px;padding-right:10px;font-size:12px}.screen[data-screen="outfits"] #outfitBoard{border-radius:15px}.screen[data-screen="outfits"] .board-workspace-tabs{top:62px}.screen[data-screen="outfits"] .board-workspace-tab{font-size:10px;padding:10px 4px}}',
       '@media(max-width:380px){.closet-view-options{grid-template-columns:1fr}.closet-view-option{min-height:60px}}',
       '@media(max-width:410px){#itemDialog .closet-tier-section{padding:8px 9px;gap:7px}#itemDialog .closet-tier-btn{height:34px}#itemDialog .closet-tier-heading small{max-width:125px}}'
     ].join('');
@@ -465,7 +497,7 @@ const TIER_PATCH=String.raw`
 
     board.innerHTML='<div class="settings-group-empty">Board preferences will live here as customization options are added.</div>';
     wishlist.innerHTML='<div class="settings-group-empty">Wishlist preferences will live here as shopping and capture options expand.</div>';
-    about.innerHTML='<div class="settings-card settings-about-card"><h3>About Audrey’s Closet</h3><p class="settings-about-version">Version v13.18-dev2</p><p>A personal closet journal built around cataloging, outfits, memories and everyday wardrobe decisions.</p><p>Credits and a few hidden extras can grow here in future releases.</p></div>';
+    about.innerHTML='<div class="settings-card settings-about-card"><h3>About Audrey’s Closet</h3><p class="settings-about-version">Version v13.18-dev3</p><p>A personal closet journal built around cataloging, outfits, memories and everyday wardrobe decisions.</p><p>Credits and a few hidden extras can grow here in future releases.</p></div>';
 
     if(pageHead?.nextSibling)screen.insertBefore(groups,pageHead.nextSibling);
     else screen.appendChild(groups);
@@ -522,11 +554,155 @@ const TIER_PATCH=String.raw`
     applyFreeFlowScatter();
   };
 
+
+  const BOARD_FORMATS={
+    'portrait-4x5':{label:'Portrait 4:5',ratio:'4 / 5'},
+    'portrait-3x4':{label:'Portrait 3:4',ratio:'3 / 4'},
+    'square':{label:'Square',ratio:'1 / 1'},
+    'landscape-4x3':{label:'Landscape 4:3',ratio:'4 / 3'}
+  };
+  function currentBoardFormat(){
+    ensureSettings();
+    const value=state.settings.boardFormat||'portrait-4x5';
+    return BOARD_FORMATS[value]?value:'portrait-4x5';
+  }
+  function applyBoardFormat(){
+    const screen=document.querySelector('.screen[data-screen="outfits"]');
+    if(!screen)return;
+    const format=currentBoardFormat(),def=BOARD_FORMATS[format];
+    screen.dataset.boardFormat=format;
+    screen.style.setProperty('--board-format-ratio',def.ratio);
+  }
+  function setBoardWorkspacePanel(name){
+    const root=$('#boardWorkspace');
+    if(!root)return;
+    root.querySelectorAll('.board-workspace-tab').forEach(function(btn){
+      const active=btn.dataset.boardPanel===name;
+      btn.classList.toggle('active',active);
+      btn.setAttribute('aria-selected',active?'true':'false');
+    });
+    root.querySelectorAll('.board-workspace-panel').forEach(function(panel){
+      panel.classList.toggle('active',panel.dataset.boardPanel===name);
+    });
+  }
+  function installBoardWorkspaceV3(){
+    const screen=document.querySelector('.screen[data-screen="outfits"]');
+    const shell=screen?.querySelector('.board-shell.board-first');
+    const picker=screen?.querySelector('.board-picker-card.board-picker-bottom');
+    const board=$('#outfitBoard'),name=$('#outfitName'),notes=$('#outfitNotes'),save=$('#saveOutfitBtn');
+    const editbar=$('#boardEditbar'),decorateToggle=$('#decorateToggle'),creative=$('#creativeTools');
+    if(!screen||!shell||!picker||!board||!name||!notes||!save||$('#boardWorkspace'))return;
+
+    applyBoardFormat();
+
+    const compose=document.createElement('div');
+    compose.className='board-compose-bar';
+    shell.parentNode.insertBefore(compose,shell);
+    name.classList.add('board-compose-name');
+    name.placeholder='Name this board';
+    compose.appendChild(name);
+
+    const notesBtn=document.createElement('button');
+    notesBtn.type='button';
+    notesBtn.id='boardNotesBtn';
+    notesBtn.className='board-notes-btn';
+    notesBtn.setAttribute('aria-label','Board notes');
+    notesBtn.setAttribute('aria-expanded','false');
+    notesBtn.textContent='▤';
+    compose.appendChild(notesBtn);
+
+    save.classList.add('board-compose-save');
+    compose.appendChild(save);
+
+    const notesDrawer=document.createElement('div');
+    notesDrawer.id='boardNotesDrawer';
+    notesDrawer.className='board-notes-drawer';
+    notesDrawer.appendChild(notes);
+    compose.insertAdjacentElement('afterend',notesDrawer);
+    notesBtn.onclick=function(){
+      const open=!notesDrawer.classList.contains('open');
+      notesDrawer.classList.toggle('open',open);
+      notesBtn.setAttribute('aria-expanded',open?'true':'false');
+      if(open)notes.focus();
+    };
+
+    const workspace=document.createElement('section');
+    workspace.id='boardWorkspace';
+    workspace.className='board-workspace';
+    workspace.innerHTML=
+      '<div class="board-workspace-tabs" role="tablist" aria-label="Board workspace">'+
+        '<button type="button" class="board-workspace-tab active" data-board-panel="pick" role="tab" aria-selected="true">Pick Pieces</button>'+
+        '<button type="button" class="board-workspace-tab" data-board-panel="tools" role="tab" aria-selected="false">Tools</button>'+
+        '<button type="button" class="board-workspace-tab" data-board-panel="decorate" role="tab" aria-selected="false">Decorate</button>'+
+      '</div>'+
+      '<div class="board-workspace-panel active" data-board-panel="pick"></div>'+
+      '<div class="board-workspace-panel" data-board-panel="tools"><div class="board-tools-shell"><div class="board-tools-main"></div><div class="board-tools-actions"></div></div></div>'+
+      '<div class="board-workspace-panel" data-board-panel="decorate"><div class="board-decorate-shell"></div></div>';
+    shell.insertAdjacentElement('afterend',workspace);
+
+    workspace.querySelector('[data-board-panel="pick"].board-workspace-panel').appendChild(picker);
+    const toolsMain=workspace.querySelector('.board-tools-main');
+    if(editbar)toolsMain.appendChild(editbar);
+    const toolsActions=workspace.querySelector('.board-tools-actions');
+    const share=$('#shareOutfitBtn'),clear=$('#clearBoardBtn');
+    if(share)toolsActions.appendChild(share);
+    if(clear)toolsActions.appendChild(clear);
+
+    const decorateShell=workspace.querySelector('.board-decorate-shell');
+    if(decorateToggle)decorateShell.appendChild(decorateToggle);
+    if(creative){
+      creative.classList.remove('hidden');
+      decorateShell.appendChild(creative);
+    }
+
+    workspace.querySelectorAll('.board-workspace-tab').forEach(function(btn){
+      btn.onclick=function(){setBoardWorkspacePanel(btn.dataset.boardPanel)};
+    });
+    setBoardWorkspacePanel('pick');
+  }
+
+  function refitSavedBoardToCurrent(outfit){
+    if(!outfit)return;
+    setTimeout(function(){
+      const board=$('#outfitBoard');
+      if(!board||!boardItems.length)return;
+      const oldW=Number(outfit.boardWidth)||board.clientWidth;
+      const oldH=Number(outfit.boardHeight)||board.clientHeight;
+      const newW=board.clientWidth,newH=board.clientHeight;
+      if(!oldW||!oldH||!newW||!newH)return;
+      const sx=newW/oldW,sy=newH/oldH;
+      if(Math.abs(sx-1)<.01&&Math.abs(sy-1)<.01)return;
+      boardItems=boardItems.map(function(piece){
+        const p=normalizeBoardItem({...piece});
+        return {...p,x:p.x*sx,y:p.y*sy,w:p.w*sx,h:p.h*sy};
+      });
+      drawBoard();
+    },120);
+  }
+
+  const originalLoadOutfitForEditingV318=loadOutfitForEditing;
+  loadOutfitForEditing=function(oid){
+    const outfit=state.outfits.find(function(x){return x.id===oid});
+    const result=originalLoadOutfitForEditingV318.apply(this,arguments);
+    refitSavedBoardToCurrent(outfit);
+    return result;
+  };
+  const originalLoadOutfitAsDuplicateV318=loadOutfitAsDuplicate;
+  loadOutfitAsDuplicate=function(oid){
+    const outfit=state.outfits.find(function(x){return x.id===oid});
+    const result=originalLoadOutfitAsDuplicateV318.apply(this,arguments);
+    refitSavedBoardToCurrent(outfit);
+    return result;
+  };
+
+  installBoardWorkspaceV3();
+
   installClosetTierFilter();
   installTierRibbonSetting();
   installSettingsGroups();
   installClosetViewSetting();
   applyClosetView();
+  applyBoardFormat();
 
   const originalRenderItemReviewDetails=renderItemReviewDetails;
   renderItemReviewDetails=function(item){
