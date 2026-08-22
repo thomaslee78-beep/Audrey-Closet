@@ -1,8 +1,8 @@
-const CACHE='audrey-closet-v13.20-dev2';
+const CACHE='audrey-closet-v13.20-dev3';
 const ASSETS=['./','./index.html','./styles.css','./app.js','./manifest.webmanifest','./icon-192.png','./icon-512.png'];
 
 /*
- * v13.20-dev2 Canvas persistence across Portfolio and Share.
+ * v13.20-dev3 Faithful Portfolio board thumbnails.
  *
  * The current app is a single large classic app.js file. For this dev branch we
  * append the isolated tier feature when app.js is served so the stable v13.15
@@ -10,7 +10,7 @@ const ASSETS=['./','./index.html','./styles.css','./app.js','./manifest.webmanif
  * promoted, it can be folded into app.js/styles.css in the next stable release.
  */
 const TIER_PATCH=String.raw`
-;/* v13.20-dev2 — Canvas persistence across Portfolio and Share */
+;/* v13.20-dev3 — Faithful Portfolio board thumbnails */
 (function(){
   const CLOSET_TIERS=['S','A','B','C','D'];
   function normalizeClosetTier(value){
@@ -418,6 +418,12 @@ const TIER_PATCH=String.raw`
       '.screen[data-screen="outfits"] #outfitBoard .board-piece.selected.board-piece-locked .board-lock-indicator{display:grid}',
       '.screen[data-screen="outfits"] .board-tool-action.lock-toggle .board-tool-icon{font-size:20px!important}',
       '.screen[data-screen="outfits"] .board-tool-action.lock-toggle.locked{background:#eef0e8!important;border-color:rgba(102,113,90,.30)!important;color:#4f5a49!important}',
+      '.screen[data-screen="portfolio"] .outfit-mini{height:auto!important;aspect-ratio:var(--portfolio-board-ratio,4/5);position:relative;overflow:hidden}',
+      '.screen[data-screen="portfolio"] .outfit-mini .snapshot-piece{position:absolute;transform-origin:center center;display:flex;align-items:center;justify-content:center;pointer-events:none}',
+      '.screen[data-screen="portfolio"] .outfit-mini .snapshot-piece img{position:static!important;width:100%!important;height:100%!important;object-fit:contain!important}',
+      '.screen[data-screen="portfolio"] .outfit-mini .snapshot-piece .board-text{font-size:12px!important}',
+      '.screen[data-screen="portfolio"] .outfit-mini .snapshot-piece .board-sticker{font-size:22px!important}',
+      '.screen[data-screen="portfolio"] .outfit-mini .snapshot-piece .doodle-svg polyline{stroke-width:2!important}',
       '.screen[data-screen="outfits"] .board-workspace-tabs{grid-template-columns:repeat(4,minmax(0,1fr))!important}',
       '.screen[data-screen="outfits"] .board-canvas-shell{padding:9px 7px 12px;display:grid;gap:9px}',
       '.screen[data-screen="outfits"] .canvas-category-row{display:flex;gap:5px;overflow-x:auto;padding:0 0 2px;scrollbar-width:none}',
@@ -651,7 +657,7 @@ const TIER_PATCH=String.raw`
 
     board.innerHTML='<div class="settings-group-empty">Board preferences will live here as customization options are added.</div>';
     wishlist.innerHTML='<div class="settings-group-empty">Wishlist preferences will live here as shopping and capture options expand.</div>';
-    about.innerHTML='<div class="settings-card settings-about-card"><h3>About Audrey’s Closet</h3><p class="settings-about-version">Version v13.20-dev2</p><p>A personal closet journal built around cataloging, outfits, memories and everyday wardrobe decisions.</p><p>Credits and a few hidden extras can grow here in future releases.</p></div>';
+    about.innerHTML='<div class="settings-card settings-about-card"><h3>About Audrey’s Closet</h3><p class="settings-about-version">Version v13.20-dev3</p><p>A personal closet journal built around cataloging, outfits, memories and everyday wardrobe decisions.</p><p>Credits and a few hidden extras can grow here in future releases.</p></div>';
 
     if(pageHead?.nextSibling)screen.insertBefore(groups,pageHead.nextSibling);
     else screen.appendChild(groups);
@@ -1131,7 +1137,31 @@ const TIER_PATCH=String.raw`
     document.querySelectorAll('#savedOutfits .portfolio-card[data-id]').forEach(function(card){
       const outfit=state.outfits.find(function(o){return String(o.id)===String(card.dataset.id)});
       const mini=card.querySelector('.outfit-mini');
-      if(outfit&&mini)boardCanvasElementStyleV13202(mini,outfit.canvasBackground);
+      if(!outfit||!mini)return;
+
+      const sourceW=Number(outfit.boardWidth)||390;
+      const sourceH=Number(outfit.boardHeight)||420;
+      mini.style.setProperty('--portfolio-board-ratio',sourceW+' / '+sourceH);
+      mini.style.aspectRatio=sourceW+' / '+sourceH;
+      boardCanvasElementStyleV13202(mini,outfit.canvasBackground);
+
+      // Rebuild the small card as a true scaled copy of the saved Board.
+      mini.innerHTML='';
+      requestAnimationFrame(function(){
+        const live=card.querySelector('.outfit-mini');
+        if(!live)return;
+        const bw=live.clientWidth||sourceW;
+        const bh=live.clientHeight||sourceH;
+        const scale=Math.min(bw/sourceW,bh/sourceH);
+        const offsetX=(bw-sourceW*scale)/2;
+        const offsetY=(bh-sourceH*scale)/2;
+        (outfit.pieces||[])
+          .slice()
+          .sort(function(a,b){return (a.z||0)-(b.z||0)})
+          .forEach(function(piece){
+            renderSnapshotPiece(live,piece,scale,scale,offsetX,offsetY);
+          });
+      });
     });
   }
 
