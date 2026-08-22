@@ -1,8 +1,8 @@
-const CACHE='audrey-closet-v13.18-dev12';
+const CACHE='audrey-closet-v13.19-dev1';
 const ASSETS=['./','./index.html','./styles.css','./app.js','./manifest.webmanifest','./icon-192.png','./icon-512.png'];
 
 /*
- * v13.18-dev12 Board rectangular tabs.
+ * v13.19-dev1 Board Tools Studio-style redesign.
  *
  * The current app is a single large classic app.js file. For this dev branch we
  * append the isolated tier feature when app.js is served so the stable v13.15
@@ -10,7 +10,7 @@ const ASSETS=['./','./index.html','./styles.css','./app.js','./manifest.webmanif
  * promoted, it can be folded into app.js/styles.css in the next stable release.
  */
 const TIER_PATCH=String.raw`
-;/* v13.18-dev12 — Board rectangular tabs */
+;/* v13.19-dev1 — Board Tools Studio-style redesign */
 (function(){
   const CLOSET_TIERS=['S','A','B','C','D'];
   function normalizeClosetTier(value){
@@ -361,6 +361,25 @@ const TIER_PATCH=String.raw`
       '.screen[data-screen="outfits"] .board-workspace-tabs{gap:5px!important}',
       '.screen[data-screen="outfits"] .board-workspace-tab{border-radius:0!important}',
       '@media(max-width:410px){.screen[data-screen="outfits"] .board-workspace-tabs{gap:4px!important}.screen[data-screen="outfits"] .board-workspace-tab{border-radius:0!important}}',
+      '.screen[data-screen="outfits"] .board-tools-shell{display:grid;gap:10px;padding:10px 8px 12px!important}',
+      '.screen[data-screen="outfits"] .board-tools-group{display:grid;gap:7px}',
+      '.screen[data-screen="outfits"] .board-tools-group-title{font-family:var(--serif);font-size:14px;font-weight:600;color:#5d5247;margin:0 2px}',
+      '.screen[data-screen="outfits"] .board-tools-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}',
+      '.screen[data-screen="outfits"] .board-tools-grid.board-tools-grid-3{grid-template-columns:repeat(3,minmax(0,1fr))}',
+      '.screen[data-screen="outfits"] .board-tool-action{min-width:0;min-height:58px;display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid rgba(108,81,66,.17);border-radius:12px;background:#fffaf0;color:var(--ink);font:inherit;text-align:left;box-shadow:0 2px 5px rgba(63,52,40,.05);-webkit-tap-highlight-color:transparent}',
+      '.screen[data-screen="outfits"] .board-tool-action .board-tool-icon{flex:0 0 28px;width:28px;height:28px;display:grid;place-items:center;border-radius:9px;background:#e5dccb;color:#675b50;font-size:16px;font-weight:800}',
+      '.screen[data-screen="outfits"] .board-tool-action .board-tool-copy{min-width:0;display:grid;gap:1px}',
+      '.screen[data-screen="outfits"] .board-tool-action .board-tool-copy strong{font-size:12px;line-height:1.1;font-weight:800}',
+      '.screen[data-screen="outfits"] .board-tool-action .board-tool-copy small{font-size:9px;line-height:1.2;color:#877b6e}',
+      '.screen[data-screen="outfits"] .board-tool-action:active:not(:disabled){transform:scale(.98)}',
+      '.screen[data-screen="outfits"] .board-tool-action:disabled{opacity:.42;filter:saturate(.5);box-shadow:none}',
+      '.screen[data-screen="outfits"] .board-tool-action.danger{color:var(--burgundy);border-color:rgba(125,53,71,.2)}',
+      '.screen[data-screen="outfits"] .board-tool-action.danger .board-tool-icon{background:#efe1df;color:var(--burgundy)}',
+      '.screen[data-screen="outfits"] .board-tool-action.clear-board{background:#f5ebe6}',
+      '.screen[data-screen="outfits"] #outfitBoard .board-piece.selected{outline:2px solid rgba(77,142,138,.78)!important;outline-offset:3px;filter:drop-shadow(0 4px 8px rgba(77,142,138,.13))}',
+      '.screen[data-screen="outfits"] #outfitBoard .board-piece.selected .resize-handle,.screen[data-screen="outfits"] #outfitBoard .board-piece.selected .board-remove-handle{opacity:1!important}',
+      '.screen[data-screen="outfits"] .board-tools-empty{padding:9px 10px;border:1px dashed rgba(108,81,66,.18);border-radius:11px;background:rgba(255,255,255,.42);font-size:10px;line-height:1.35;color:#817568}',
+      '@media(max-width:410px){.screen[data-screen="outfits"] .board-tool-action{min-height:56px;padding:7px 8px}.screen[data-screen="outfits"] .board-tool-action .board-tool-copy strong{font-size:11px}.screen[data-screen="outfits"] .board-tool-action .board-tool-copy small{font-size:8px}}',
       '@media(max-width:380px){.closet-view-options{grid-template-columns:1fr}.closet-view-option{min-height:60px}}',
       '@media(max-width:410px){#itemDialog .closet-tier-section{padding:8px 9px;gap:7px}#itemDialog .closet-tier-btn{height:34px}#itemDialog .closet-tier-heading small{max-width:125px}}'
     ].join('');
@@ -575,7 +594,7 @@ const TIER_PATCH=String.raw`
 
     board.innerHTML='<div class="settings-group-empty">Board preferences will live here as customization options are added.</div>';
     wishlist.innerHTML='<div class="settings-group-empty">Wishlist preferences will live here as shopping and capture options expand.</div>';
-    about.innerHTML='<div class="settings-card settings-about-card"><h3>About Audrey’s Closet</h3><p class="settings-about-version">Version v13.18-dev12</p><p>A personal closet journal built around cataloging, outfits, memories and everyday wardrobe decisions.</p><p>Credits and a few hidden extras can grow here in future releases.</p></div>';
+    about.innerHTML='<div class="settings-card settings-about-card"><h3>About Audrey’s Closet</h3><p class="settings-about-version">Version v13.19-dev1</p><p>A personal closet journal built around cataloging, outfits, memories and everyday wardrobe decisions.</p><p>Credits and a few hidden extras can grow here in future releases.</p></div>';
 
     if(pageHead?.nextSibling)screen.insertBefore(groups,pageHead.nextSibling);
     else screen.appendChild(groups);
@@ -734,12 +753,72 @@ const TIER_PATCH=String.raw`
     if(pickerHead&&sourceTabs)pickerHead.appendChild(sourceTabs);
 
     const toolsMain=workspace.querySelector('.board-tools-main');
-    if(editbar)toolsMain.appendChild(editbar);
     const clear=$('#clearBoardBtn');
-    if(clear&&editbar){
-      clear.className='soft-btn';
-      clear.textContent='Clear';
-      editbar.appendChild(clear);
+    if(toolsMain&&editbar){
+      editbar.style.display='none';
+      if(clear)clear.style.display='none';
+
+      const selectionHint=document.createElement('div');
+      selectionHint.id='boardToolsSelectionHint';
+      selectionHint.className='board-tools-empty';
+      selectionHint.textContent='Select an item on the board to use editing tools.';
+      toolsMain.appendChild(selectionHint);
+
+      const groups=[
+        {
+          title:'Layer',
+          cls:'board-tools-grid',
+          items:[
+            ['sendBackBtn','⇩','Send Back','Move behind'],
+            ['bringFrontBtn','⇧','Bring Front','Move in front']
+          ]
+        },
+        {
+          title:'Transform',
+          cls:'board-tools-grid board-tools-grid-3',
+          items:[
+            ['rotateLeftBtn','↶','Rotate Left','Turn counterclockwise'],
+            ['rotateRightBtn','↷','Rotate Right','Turn clockwise'],
+            ['duplicateBoardBtn','⧉','Duplicate','Make a copy']
+          ]
+        },
+        {
+          title:'Edit',
+          cls:'board-tools-grid board-tools-grid-3',
+          items:[
+            ['deleteBoardBtn','×','Delete','Remove selected'],
+            ['undoBoardBtn','↶','Undo','Restore last removal'],
+            ['clearBoardBtn','⌫','Clear','Clear entire board']
+          ]
+        }
+      ];
+
+      groups.forEach(function(group){
+        const wrap=document.createElement('section');
+        wrap.className='board-tools-group';
+        const h=document.createElement('h4');
+        h.className='board-tools-group-title';
+        h.textContent=group.title;
+        wrap.appendChild(h);
+        const grid=document.createElement('div');
+        grid.className=group.cls;
+        group.items.forEach(function(item){
+          const original=$('#'+item[0]);
+          if(!original)return;
+          const btn=document.createElement('button');
+          btn.type='button';
+          btn.className='board-tool-action'+(item[0]==='deleteBoardBtn'?' danger':'')+(item[0]==='clearBoardBtn'?' danger clear-board':'');
+          btn.dataset.proxyFor=item[0];
+          btn.innerHTML='<span class="board-tool-icon" aria-hidden="true">'+item[1]+'</span><span class="board-tool-copy"><strong>'+item[2]+'</strong><small>'+item[3]+'</small></span>';
+          btn.onclick=function(e){
+            e.preventDefault();
+            original.click();
+          };
+          grid.appendChild(btn);
+        });
+        wrap.appendChild(grid);
+        toolsMain.appendChild(wrap);
+      });
     }
 
     const head=screen.querySelector('.board-page-head');
@@ -787,6 +866,78 @@ const TIER_PATCH=String.raw`
       drawBoard();
     },120);
   }
+
+
+  function syncBoardToolProxyStates(){
+    const selected=!!selectedBoardUid;
+    const hint=$('#boardToolsSelectionHint');
+    if(hint)hint.style.display=selected?'none':'block';
+    $$('.board-tool-action[data-proxy-for]').forEach(function(proxy){
+      const id=proxy.dataset.proxyFor;
+      const original=$('#'+id);
+      if(!original)return;
+      proxy.disabled=!!original.disabled;
+      if(id==='clearBoardBtn')proxy.disabled=!boardItems.length;
+      if(id==='undoBoardBtn')proxy.disabled=!boardUndoStack.length;
+    });
+  }
+
+  const originalUpdateBoardEditControlsV319=updateBoardEditControls;
+  updateBoardEditControls=function(hasSelection){
+    const result=originalUpdateBoardEditControlsV319.apply(this,arguments);
+    syncBoardToolProxyStates();
+    return result;
+  };
+
+  const originalUpdateUndoButtonV319=updateUndoButton;
+  updateUndoButton=function(){
+    const result=originalUpdateUndoButtonV319.apply(this,arguments);
+    syncBoardToolProxyStates();
+    return result;
+  };
+
+  const originalDrawBoardV319=drawBoard;
+  drawBoard=function(){
+    const previous=selectedBoardUid;
+    const result=originalDrawBoardV319.apply(this,arguments);
+    syncBoardToolProxyStates();
+    if(previous){
+      const el=document.querySelector('#outfitBoard .board-piece[data-uid="'+CSS.escape(String(previous))+'"]');
+      if(el)el.classList.add('selected');
+    }
+    return result;
+  };
+
+  function installBoardToolFeedbackV319(){
+    const feedbackMap={
+      sendBackBtn:'Sent behind',
+      bringFrontBtn:'Brought to front',
+      rotateLeftBtn:'Rotated left',
+      rotateRightBtn:'Rotated right',
+      duplicateBoardBtn:'Duplicated',
+      deleteBoardBtn:'Removed from board',
+      undoBoardBtn:'Item restored'
+    };
+    Object.keys(feedbackMap).forEach(function(id){
+      const original=$('#'+id);
+      if(!original||original.dataset.feedbackV319==='true')return;
+      original.dataset.feedbackV319='true';
+      original.addEventListener('click',function(){
+        setTimeout(function(){
+          if(id==='deleteBoardBtn'&&!selectedBoardUid){
+            toast(feedbackMap[id]);
+          }else if(id!=='deleteBoardBtn'){
+            toast(feedbackMap[id]);
+          }
+        },0);
+      });
+    });
+  }
+
+  setTimeout(function(){
+    syncBoardToolProxyStates();
+    installBoardToolFeedbackV319();
+  },0);
 
   const originalLoadOutfitForEditingV318=loadOutfitForEditing;
   loadOutfitForEditing=function(oid){
