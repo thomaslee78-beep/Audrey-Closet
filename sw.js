@@ -1,8 +1,8 @@
-const CACHE='audrey-closet-v13.18-dev10';
+const CACHE='audrey-closet-v13.18-dev11';
 const ASSETS=['./','./index.html','./styles.css','./app.js','./manifest.webmanifest','./icon-192.png','./icon-512.png'];
 
 /*
- * v13.18-dev10 Board folder surface cleanup.
+ * v13.18-dev11 Board folder spacing + blend.
  *
  * The current app is a single large classic app.js file. For this dev branch we
  * append the isolated tier feature when app.js is served so the stable v13.15
@@ -10,7 +10,7 @@ const ASSETS=['./','./index.html','./styles.css','./app.js','./manifest.webmanif
  * promoted, it can be folded into app.js/styles.css in the next stable release.
  */
 const TIER_PATCH=String.raw`
-;/* v13.18-dev10 — Board folder surface cleanup */
+;/* v13.18-dev11 — Board folder spacing + blend */
 (function(){
   const CLOSET_TIERS=['S','A','B','C','D'];
   function normalizeClosetTier(value){
@@ -352,6 +352,12 @@ const TIER_PATCH=String.raw`
       '.screen[data-screen="outfits"] .piece-grid .tray-piece{transform:translateY(2px)}',
       '.screen[data-screen="outfits"] .piece-grid .tray-piece:nth-child(10n+2) .mini-photo,.screen[data-screen="outfits"] .piece-grid .tray-piece:nth-child(10n+4) .mini-photo,.screen[data-screen="outfits"] .piece-grid .tray-piece:nth-child(10n+7) .mini-photo{margin-top:4px}',
       '@media(max-width:410px){.screen[data-screen="outfits"] .piece-grid{padding-top:10px!important}}',
+      '.screen[data-screen="outfits"] .board-workspace-tabs{background:transparent!important;padding:5px 0 0!important;gap:8px!important;border-radius:0!important}',
+      '.screen[data-screen="outfits"] .board-workspace-tab{margin:0!important}',
+      '.screen[data-screen="outfits"] .board-workspace-tab:first-child{margin-left:0!important}',
+      '.screen[data-screen="outfits"] .board-workspace-tab:last-child{margin-right:0!important}',
+      '.screen[data-screen="outfits"] .board-workspace-panel{margin-left:0!important;margin-right:0!important}',
+      '@media(max-width:410px){.screen[data-screen="outfits"] .board-workspace-tabs{gap:6px!important}}',
       '@media(max-width:380px){.closet-view-options{grid-template-columns:1fr}.closet-view-option{min-height:60px}}',
       '@media(max-width:410px){#itemDialog .closet-tier-section{padding:8px 9px;gap:7px}#itemDialog .closet-tier-btn{height:34px}#itemDialog .closet-tier-heading small{max-width:125px}}'
     ].join('');
@@ -566,7 +572,7 @@ const TIER_PATCH=String.raw`
 
     board.innerHTML='<div class="settings-group-empty">Board preferences will live here as customization options are added.</div>';
     wishlist.innerHTML='<div class="settings-group-empty">Wishlist preferences will live here as shopping and capture options expand.</div>';
-    about.innerHTML='<div class="settings-card settings-about-card"><h3>About Audrey’s Closet</h3><p class="settings-about-version">Version v13.18-dev10</p><p>A personal closet journal built around cataloging, outfits, memories and everyday wardrobe decisions.</p><p>Credits and a few hidden extras can grow here in future releases.</p></div>';
+    about.innerHTML='<div class="settings-card settings-about-card"><h3>About Audrey’s Closet</h3><p class="settings-about-version">Version v13.18-dev11</p><p>A personal closet journal built around cataloging, outfits, memories and everyday wardrobe decisions.</p><p>Credits and a few hidden extras can grow here in future releases.</p></div>';
 
     if(pageHead?.nextSibling)screen.insertBefore(groups,pageHead.nextSibling);
     else screen.appendChild(groups);
