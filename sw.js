@@ -1,8 +1,8 @@
-const CACHE='audrey-closet-v13.19-dev3';
+const CACHE='audrey-closet-v13.19-dev4';
 const ASSETS=['./','./index.html','./styles.css','./app.js','./manifest.webmanifest','./icon-192.png','./icon-512.png'];
 
 /*
- * v13.19-dev3 Board Tools cleanup + item locking.
+ * v13.19-dev4 Board lock-selection refinement + larger tool labels.
  *
  * The current app is a single large classic app.js file. For this dev branch we
  * append the isolated tier feature when app.js is served so the stable v13.15
@@ -10,7 +10,7 @@ const ASSETS=['./','./index.html','./styles.css','./app.js','./manifest.webmanif
  * promoted, it can be folded into app.js/styles.css in the next stable release.
  */
 const TIER_PATCH=String.raw`
-;/* v13.19-dev3 — Board Tools cleanup + item locking */
+;/* v13.19-dev4 — lock-selection refinement + larger labels */
 (function(){
   const CLOSET_TIERS=['S','A','B','C','D'];
   function normalizeClosetTier(value){
@@ -406,6 +406,13 @@ const TIER_PATCH=String.raw`
       '.screen[data-screen="outfits"] #outfitBoard .board-piece.board-piece-locked{cursor:default}',
       '.screen[data-screen="outfits"] #outfitBoard .board-piece.board-piece-locked .resize-handle,.screen[data-screen="outfits"] #outfitBoard .board-piece.board-piece-locked .board-remove-handle{display:none!important}',
       '.screen[data-screen="outfits"] #outfitBoard .board-piece.board-piece-locked::after{content:"";position:absolute;inset:0;border:1px dashed rgba(102,113,90,.34);border-radius:inherit;pointer-events:none}',
+      '.screen[data-screen="outfits"] #outfitBoard .board-piece .board-lock-handle{display:none!important}',
+      '.screen[data-screen="outfits"] #outfitBoard .board-piece.selected .board-lock-handle{display:grid!important}',
+      '.screen[data-screen="outfits"] #outfitBoard .board-piece.board-piece-locked.selected .board-lock-handle{display:grid!important}',
+      '.screen[data-screen="outfits"] #outfitBoard .board-piece.board-piece-locked{pointer-events:auto!important}',
+      '.screen[data-screen="outfits"] #outfitBoard .board-piece.board-piece-locked .board-object{pointer-events:none!important}',
+      '.screen[data-screen="outfits"] .board-tool-action .board-tool-copy strong{font-size:14px!important;line-height:1!important}',
+      '@media(max-width:410px){.screen[data-screen="outfits"] .board-tool-action .board-tool-copy strong{font-size:13px!important}}',
       '@media(max-width:380px){.closet-view-options{grid-template-columns:1fr}.closet-view-option{min-height:60px}}',
       '@media(max-width:410px){#itemDialog .closet-tier-section{padding:8px 9px;gap:7px}#itemDialog .closet-tier-btn{height:34px}#itemDialog .closet-tier-heading small{max-width:125px}}'
     ].join('');
@@ -620,7 +627,7 @@ const TIER_PATCH=String.raw`
 
     board.innerHTML='<div class="settings-group-empty">Board preferences will live here as customization options are added.</div>';
     wishlist.innerHTML='<div class="settings-group-empty">Wishlist preferences will live here as shopping and capture options expand.</div>';
-    about.innerHTML='<div class="settings-card settings-about-card"><h3>About Audrey’s Closet</h3><p class="settings-about-version">Version v13.19-dev3</p><p>A personal closet journal built around cataloging, outfits, memories and everyday wardrobe decisions.</p><p>Credits and a few hidden extras can grow here in future releases.</p></div>';
+    about.innerHTML='<div class="settings-card settings-about-card"><h3>About Audrey’s Closet</h3><p class="settings-about-version">Version v13.19-dev4</p><p>A personal closet journal built around cataloging, outfits, memories and everyday wardrobe decisions.</p><p>Credits and a few hidden extras can grow here in future releases.</p></div>';
 
     if(pageHead?.nextSibling)screen.insertBefore(groups,pageHead.nextSibling);
     else screen.appendChild(groups);
@@ -802,11 +809,11 @@ const TIER_PATCH=String.raw`
 
       const rows=[
         {cls:'board-tools-grid board-tools-row-primary',items:[
-          ['sendBackBtn','⇩','Send Back'],
-          ['bringFrontBtn','⇧','Bring Front'],
-          ['rotateLeftBtn','↶','Rotate Left'],
-          ['rotateRightBtn','↷','Rotate Right'],
-          ['duplicateBoardBtn','⧉','Duplicate']
+          ['sendBackBtn','⇩','Back'],
+          ['bringFrontBtn','⇧','Front'],
+          ['rotateLeftBtn','↶','Left'],
+          ['rotateRightBtn','↷','Right'],
+          ['duplicateBoardBtn','⧉','Copy']
         ]},
         {cls:'board-tools-grid board-tools-row-secondary',items:[
           ['deleteBoardBtn','×','Delete'],
@@ -884,6 +891,8 @@ const TIER_PATCH=String.raw`
 
   function syncBoardToolProxyStates(){
     const selected=!!selectedBoardUid;
+    const selectedModel=selected?boardItems.find(function(x){return String(x.uid)===String(selectedBoardUid)}):null;
+    const locked=!!selectedModel?.locked;
     const hint=$('#boardToolsSelectionHint');
     if(hint)hint.style.display=selected?'none':'block';
     $$('.board-tool-action[data-proxy-for]').forEach(function(proxy){
@@ -893,6 +902,9 @@ const TIER_PATCH=String.raw`
       proxy.disabled=!!original.disabled;
       if(id==='clearBoardBtn')proxy.disabled=!boardItems.length;
       if(id==='undoBoardBtn')proxy.disabled=!boardUndoStack.length;
+      if(locked&&['sendBackBtn','bringFrontBtn','rotateLeftBtn','rotateRightBtn','duplicateBoardBtn','deleteBoardBtn'].includes(id)){
+        proxy.disabled=true;
+      }
     });
   }
 
@@ -985,13 +997,8 @@ const TIER_PATCH=String.raw`
     const model=boardModelByUidV3193(uid);
     if(!model)return;
     model.locked=!model.locked;
-    if(model.locked){
-      if(String(selectedBoardUid)===String(model.uid))selectedBoardUid=null;
-      toast('Item locked');
-    }else{
-      selectedBoardUid=model.uid;
-      toast('Item unlocked');
-    }
+    selectedBoardUid=model.uid;
+    toast(model.locked?'Item locked':'Item unlocked');
     drawBoard();
   }
 
@@ -1011,12 +1018,18 @@ const TIER_PATCH=String.raw`
         return;
       }
 
-      const lockedPiece=e.target.closest&&e.target.closest('.board-piece.board-piece-locked');
-      if(lockedPiece){
-        e.preventDefault();
-        e.stopPropagation();
-        e.stopImmediatePropagation();
-      }
+      const piece=e.target.closest&&e.target.closest('.board-piece[data-uid]');
+      if(!piece)return;
+      const model=boardModelByUidV3193(piece.dataset.uid);
+      if(!model||!model.locked)return;
+
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      selectedBoardUid=model.uid;
+      drawSelectionOnly(model.uid);
+      decorateBoardLocksV3193();
+      syncBoardToolProxyStates();
     },true);
   }
 
