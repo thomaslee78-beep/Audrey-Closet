@@ -1,8 +1,8 @@
-const CACHE='audrey-closet-v13.20-dev8';
+const CACHE='audrey-closet-v13.20-dev9';
 const ASSETS=['./','./index.html','./styles.css','./app.js','./manifest.webmanifest','./icon-192.png','./icon-512.png'];
 
 /*
- * v13.20-dev8 Decorate Studio grouping.
+ * v13.20-dev9 Decorate Studio mapping fix.
  *
  * The current app is a single large classic app.js file. For this dev branch we
  * append the isolated tier feature when app.js is served so the stable v13.15
@@ -10,7 +10,7 @@ const ASSETS=['./','./index.html','./styles.css','./app.js','./manifest.webmanif
  * promoted, it can be folded into app.js/styles.css in the next stable release.
  */
 const TIER_PATCH=String.raw`
-;/* v13.20-dev8 — Decorate Studio grouping */
+;/* v13.20-dev9 — Decorate Studio mapping fix */
 (function(){
   const CLOSET_TIERS=['S','A','B','C','D'];
   function normalizeClosetTier(value){
@@ -296,6 +296,12 @@ const TIER_PATCH=String.raw`
       '.screen[data-screen="outfits"] .board-decorate-shell .decorate-tool-card>*:last-child{margin-bottom:0!important}',
       '.screen[data-screen="outfits"] .board-decorate-shell .decorate-tool-card h4{margin:0 0 6px;font-size:12px;color:#5f554a}',
       '.screen[data-screen="outfits"] .board-decorate-shell .decorate-empty-note{padding:12px 10px;border:1px dashed rgba(108,81,66,.20);border-radius:14px;background:#fcf7ed;color:#7a6d60;font-size:12px;line-height:1.35}',
+      '.screen[data-screen="outfits"] .board-decorate-shell .decorate-studio-shared-help{margin:0!important;padding:8px 4px 1px;color:#7b7064;text-align:center}',
+      '.screen[data-screen="outfits"] .board-decorate-shell .decorate-draw-current{margin:0}',
+      '.screen[data-screen="outfits"] .board-decorate-shell .decorate-draw-current #drawModeBtn{min-width:120px;font-size:12px}',
+      '.screen[data-screen="outfits"] .board-decorate-shell .decorate-tool-card .tool-row{margin:0}',
+      '.screen[data-screen="outfits"] .board-decorate-shell .decorate-tool-card .sticker-row{margin:0}',
+      '.screen[data-screen="outfits"] .board-decorate-shell .decorate-tool-card .shape-row{margin:0}',
       '@media(max-width:410px){.screen[data-screen="outfits"] .board-decorate-shell .decorate-studio-tabs{gap:5px}.screen[data-screen="outfits"] .board-decorate-shell .decorate-studio-tab{padding:8px 4px;font-size:10px}.screen[data-screen="outfits"] .board-decorate-shell .decorate-studio-intro strong{font-size:17px}.screen[data-screen="outfits"] .board-decorate-shell .decorate-studio-intro p{font-size:11px}}',
       '.screen[data-screen="outfits"] .board-decorate-shell #decorateToggle{display:none!important}',
       '.screen[data-screen="outfits"] .board-decorate-shell #creativeTools{display:grid!important}',
@@ -681,7 +687,7 @@ const TIER_PATCH=String.raw`
 
     board.innerHTML='<div class="settings-group-empty">Board preferences will live here as customization options are added.</div>';
     wishlist.innerHTML='<div class="settings-group-empty">Wishlist preferences will live here as shopping and capture options expand.</div>';
-    about.innerHTML='<div class="settings-card settings-about-card"><h3>About Audrey’s Closet</h3><p class="settings-about-version">Version v13.20-dev8</p><p>A personal closet journal built around cataloging, outfits, memories and everyday wardrobe decisions.</p><p>Credits and a few hidden extras can grow here in future releases.</p></div>';
+    about.innerHTML='<div class="settings-card settings-about-card"><h3>About Audrey’s Closet</h3><p class="settings-about-version">Version v13.20-dev9</p><p>A personal closet journal built around cataloging, outfits, memories and everyday wardrobe decisions.</p><p>Credits and a few hidden extras can grow here in future releases.</p></div>';
 
     if(pageHead?.nextSibling)screen.insertBefore(groups,pageHead.nextSibling);
     else screen.appendChild(groups);
@@ -1752,7 +1758,6 @@ const TIER_PATCH=String.raw`
 
   installBoardWorkspaceV3();
   installBoardCanvasV1320();
-  installDecorateStudioV13208();
   installBoardGestureUndoV13205();
   installBoardToolUndoV13205();
   repairBottomNavigationV13205();
@@ -2133,23 +2138,24 @@ const TIER_PATCH=String.raw`
     const shell=document.querySelector('.screen[data-screen="outfits"] .board-decorate-shell');
     const creative=$('#creativeTools');
     if(!shell||!creative)return;
+
     if(shell.dataset.decorateStudioV13208==='true'){
       setDecorateStudioGroupV13208(decorateStudioGroupV13208);
       return;
     }
     shell.dataset.decorateStudioV13208='true';
 
-    let toggle=$('#decorateToggle');
+    const toggle=$('#decorateToggle');
     if(toggle)toggle.style.display='none';
 
-    // Preserve current control logic while reorganizing the presentation.
-    creative.classList.remove('hidden');
-    creative.hidden=false;
-    creative.style.display='block';
-    creative.style.padding='0';
-    creative.style.border='0';
-    creative.style.background='transparent';
+    // Capture the ORIGINAL controls before moving anything.
+    const textRow=creative.querySelector('.tool-row');
+    const stickerRow=creative.querySelector('.sticker-row');
+    const shapeRow=creative.querySelector('.shape-row');
+    const drawBtn=creative.querySelector('#drawModeBtn');
+    const help=creative.querySelector('#boardHelp');
 
+    // New studio tabs.
     const tabs=document.createElement('div');
     tabs.className='decorate-studio-tabs';
     tabs.setAttribute('role','tablist');
@@ -2166,7 +2172,9 @@ const TIER_PATCH=String.raw`
       btn.dataset.decorateGroup=group.key;
       btn.setAttribute('role','tab');
       btn.setAttribute('aria-selected','false');
-      btn.innerHTML='<span class="tab-icon" aria-hidden="true">'+group.icon+'</span><span>'+group.label+'</span>';
+      btn.innerHTML=
+        '<span class="tab-icon" aria-hidden="true">'+group.icon+'</span>'+
+        '<span>'+group.label+'</span>';
       btn.onclick=function(){setDecorateStudioGroupV13208(group.key)};
       tabs.appendChild(btn);
 
@@ -2175,39 +2183,73 @@ const TIER_PATCH=String.raw`
       panelMap[group.key]=panel.querySelector('.decorate-studio-content');
     });
 
-    // Insert the new shell above the existing creative tool content,
-    // then redistribute existing sections into the new groups.
-    shell.insertBefore(tabs, creative);
-    shell.insertBefore(panelsWrap, creative);
+    shell.insertBefore(tabs,creative);
+    shell.insertBefore(panelsWrap,creative);
 
-    const originalChildren=Array.from(creative.children);
-    originalChildren.forEach(function(node){
-      const group=decorateNodeGroupV13208(node);
+    function moveIntoCard(node,group,label){
+      if(!node||!panelMap[group])return;
       const card=document.createElement('div');
       card.className='decorate-tool-card';
       card.dataset.decorateCard=group;
+      if(label){
+        const heading=document.createElement('h4');
+        heading.textContent=label;
+        card.appendChild(heading);
+      }
       card.appendChild(node);
-      (panelMap[group]||panelMap.text).appendChild(card);
-    });
+      panelMap[group].appendChild(card);
+    }
 
-    // If there were stray text nodes or the creative tool area used direct text content,
-    // keep the original container available but visually empty.
+    // EXPLICIT mapping of the current Decorate tools.
+    //
+    // TEXT = input + Add text button.
+    moveIntoCard(textRow,'text','Add text');
+
+    // STICKERS = all existing sticker buttons.
+    moveIntoCard(stickerRow,'stickers','Stickers');
+
+    // DRAW = move the Doodle button OUT of the mixed shape row.
+    if(drawBtn){
+      const drawWrap=document.createElement('div');
+      drawWrap.className='shape-row decorate-draw-current';
+      drawWrap.appendChild(drawBtn);
+      moveIntoCard(drawWrap,'draw','Draw');
+    }
+
+    // SHAPES = remaining Circle / Line / Tape controls.
+    if(shapeRow){
+      moveIntoCard(shapeRow,'shapes','Shapes');
+    }
+
+    // Shared contextual help belongs below all four creative groups.
+    if(help){
+      help.classList.add('decorate-studio-shared-help');
+      shell.appendChild(help);
+    }
+
+    // Hide the now-empty legacy container without removing it from the DOM.
+    // Existing handlers remain attached to the controls that were moved.
     creative.innerHTML='';
+    creative.hidden=true;
     creative.style.display='none';
 
-    // Helpful placeholder notes for groups with little or no current tooling yet.
     DECORATE_GROUPS_V13208.forEach(function(group){
       const content=panelMap[group.key];
       if(content && !content.children.length){
         const note=document.createElement('div');
         note.className='decorate-empty-note';
-        note.textContent='This studio section is ready for the next iteration. The grouped layout is now in place so new '+group.label.toLowerCase()+' tools can be added here without redesigning the Board again.';
+        note.textContent='This section is ready for the next '+group.label+
+          ' iteration. Its expanded tools will be added here.';
         content.appendChild(note);
       }
     });
 
     setDecorateStudioGroupV13208('text');
   }
+
+  // Install only AFTER DECORATE_GROUPS_V13208 and all Decorate Studio functions
+  // have initialized. dev8 called this too early and could leave the old UI visible.
+  installDecorateStudioV13208();
 
   installBoardCaptureGuardV7();
 
