@@ -1,38 +1,33 @@
-Audrey Closet — v13.18-dev11 Main Update
+Audrey Closet — v13.18-dev12 Main Update
 
 PURPOSE
-Final spacing/blending refinement for the Board folder tabs.
+Final folder-tab treatment adjustment before moving to the next Board redesign area.
 
 CHANGES
 
-1. LEFT EDGE ALIGNMENT
-- Add Items begins flush with the left edge of the workspace panel.
+1. RECTANGULAR FOLDER TABS
+- Add Items / Tools / Decorate now use square corners.
+- Removes the rounded top-tab treatment.
+- Creates stronger visual contrast against the rounded Design Board canvas.
 
-2. RIGHT EDGE ALIGNMENT
-- Decorate ends flush with the right edge of the workspace panel.
-
-3. MORE TAB SEPARATION
-- Increased horizontal gap between Add Items / Tools / Decorate.
-- Keeps them visually distinct while retaining the folder-tab treatment.
-
-4. OUTER TAB CONTAINER BLENDS INTO APP
-- Removed the slightly darker tab-strip background.
-- The container behind the tabs is now transparent so the app background shows through.
-- Individual tabs and the active workspace provide the visual structure instead.
+2. SLIGHTLY TIGHTER TAB SPACING
+- Desktop/tablet gap reduced to 5px.
+- Narrow-phone gap reduced to 4px.
+- Keeps separation visible without making the tabs feel too far apart.
 
 UNCHANGED
 - Centered serif labels
-- Active workspace background
+- Left/right edge alignment
+- Transparent outer tab container
+- Active workspace blending
 - Add Items filters
-- Free-Flow picker
 - Clear/New confirmations
-- Reset filters
+- Free-Flow picker
 
 TEST
-1. Confirm Add Items left edge aligns with panel.
-2. Confirm Decorate right edge aligns with panel.
-3. Confirm tabs have more breathing room between them.
-4. Confirm the strip behind the tabs visually disappears into the app background.
+1. Confirm all three tabs are rectangular.
+2. Compare the hard-edged tabs against the rounded Board canvas.
+3. Confirm spacing feels tighter but still distinct.
 
 ROLLBACK
-Replace sw.js with v13.18-dev10.
+Replace sw.js with v13.18-dev11.
