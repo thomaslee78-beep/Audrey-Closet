@@ -1,8 +1,8 @@
-const CACHE='audrey-closet-v13.19-dev5';
+const CACHE='audrey-closet-v13.20-dev1';
 const ASSETS=['./','./index.html','./styles.css','./app.js','./manifest.webmanifest','./icon-192.png','./icon-512.png'];
 
 /*
- * v13.19-dev5 Tools-based Lock/Unlock.
+ * v13.20-dev1 Canvas backgrounds.
  *
  * The current app is a single large classic app.js file. For this dev branch we
  * append the isolated tier feature when app.js is served so the stable v13.15
@@ -10,7 +10,7 @@ const ASSETS=['./','./index.html','./styles.css','./app.js','./manifest.webmanif
  * promoted, it can be folded into app.js/styles.css in the next stable release.
  */
 const TIER_PATCH=String.raw`
-;/* v13.19-dev5 — Tools-based Lock/Unlock */
+;/* v13.20-dev1 — Canvas backgrounds */
 (function(){
   const CLOSET_TIERS=['S','A','B','C','D'];
   function normalizeClosetTier(value){
@@ -418,6 +418,25 @@ const TIER_PATCH=String.raw`
       '.screen[data-screen="outfits"] #outfitBoard .board-piece.selected.board-piece-locked .board-lock-indicator{display:grid}',
       '.screen[data-screen="outfits"] .board-tool-action.lock-toggle .board-tool-icon{font-size:20px!important}',
       '.screen[data-screen="outfits"] .board-tool-action.lock-toggle.locked{background:#eef0e8!important;border-color:rgba(102,113,90,.30)!important;color:#4f5a49!important}',
+      '.screen[data-screen="outfits"] .board-workspace-tabs{grid-template-columns:repeat(4,minmax(0,1fr))!important}',
+      '.screen[data-screen="outfits"] .board-canvas-shell{padding:9px 7px 12px;display:grid;gap:9px}',
+      '.screen[data-screen="outfits"] .canvas-category-row{display:flex;gap:5px;overflow-x:auto;padding:0 0 2px;scrollbar-width:none}',
+      '.screen[data-screen="outfits"] .canvas-category-row::-webkit-scrollbar{display:none}',
+      '.screen[data-screen="outfits"] .canvas-category-chip{flex:0 0 auto;border:1px solid rgba(108,81,66,.16);border-radius:999px;background:#f8f0df;color:#62584d;padding:6px 10px;font-size:11px;font-weight:700}',
+      '.screen[data-screen="outfits"] .canvas-category-chip.active{background:#6d7863;color:#fff;border-color:#6d7863}',
+      '.screen[data-screen="outfits"] .canvas-custom-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:2px 1px}',
+      '.screen[data-screen="outfits"] .canvas-custom-row span{font-family:var(--serif);font-size:13px;color:#665b50}',
+      '.screen[data-screen="outfits"] .canvas-color-wrap{display:flex;align-items:center;gap:7px}',
+      '.screen[data-screen="outfits"] .canvas-color-input{width:38px;height:30px;border:0;background:transparent;padding:0}',
+      '.screen[data-screen="outfits"] .canvas-color-btn{border:1px solid rgba(108,81,66,.18);border-radius:10px;background:#fffaf0;padding:6px 9px;font-size:10px;font-weight:800;color:#5f554a}',
+      '.screen[data-screen="outfits"] .canvas-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}',
+      '.screen[data-screen="outfits"] .canvas-choice{position:relative;min-width:0;border:1px solid rgba(108,81,66,.15);border-radius:12px;background:#fffaf0;padding:4px 4px 6px;display:grid;gap:4px;text-align:center;color:#5d544a}',
+      '.screen[data-screen="outfits"] .canvas-choice.active{border-color:#6d7863;box-shadow:0 0 0 2px rgba(109,120,99,.17)}',
+      '.screen[data-screen="outfits"] .canvas-choice.active::after{content:"✓";position:absolute;right:5px;top:5px;width:18px;height:18px;border-radius:50%;display:grid;place-items:center;background:#6d7863;color:#fff;font-size:10px;font-weight:900}',
+      '.screen[data-screen="outfits"] .canvas-swatch{display:block;width:100%;aspect-ratio:1/1;border-radius:9px;border:1px solid rgba(108,81,66,.10);overflow:hidden}',
+      '.screen[data-screen="outfits"] .canvas-choice strong{font-size:9.5px;line-height:1.1;font-weight:800;white-space:normal}',
+      '.screen[data-screen="outfits"] #outfitBoard[data-canvas-dark="true"] .board-tip{color:rgba(255,255,255,.78)}',
+      '@media(max-width:410px){.screen[data-screen="outfits"] .canvas-grid{gap:5px}.screen[data-screen="outfits"] .canvas-choice{padding:3px 3px 5px}.screen[data-screen="outfits"] .canvas-choice strong{font-size:8.8px}.screen[data-screen="outfits"] .board-workspace-tab{font-size:14px!important}}',
       '@media(max-width:380px){.closet-view-options{grid-template-columns:1fr}.closet-view-option{min-height:60px}}',
       '@media(max-width:410px){#itemDialog .closet-tier-section{padding:8px 9px;gap:7px}#itemDialog .closet-tier-btn{height:34px}#itemDialog .closet-tier-heading small{max-width:125px}}'
     ].join('');
@@ -632,7 +651,7 @@ const TIER_PATCH=String.raw`
 
     board.innerHTML='<div class="settings-group-empty">Board preferences will live here as customization options are added.</div>';
     wishlist.innerHTML='<div class="settings-group-empty">Wishlist preferences will live here as shopping and capture options expand.</div>';
-    about.innerHTML='<div class="settings-card settings-about-card"><h3>About Audrey’s Closet</h3><p class="settings-about-version">Version v13.19-dev5</p><p>A personal closet journal built around cataloging, outfits, memories and everyday wardrobe decisions.</p><p>Credits and a few hidden extras can grow here in future releases.</p></div>';
+    about.innerHTML='<div class="settings-card settings-about-card"><h3>About Audrey’s Closet</h3><p class="settings-about-version">Version v13.20-dev1</p><p>A personal closet journal built around cataloging, outfits, memories and everyday wardrobe decisions.</p><p>Credits and a few hidden extras can grow here in future releases.</p></div>';
 
     if(pageHead?.nextSibling)screen.insertBefore(groups,pageHead.nextSibling);
     else screen.appendChild(groups);
@@ -777,10 +796,12 @@ const TIER_PATCH=String.raw`
         '<button type="button" class="board-workspace-tab active" data-board-panel="pick" role="tab" aria-selected="true">Add Items</button>'+
         '<button type="button" class="board-workspace-tab" data-board-panel="tools" role="tab" aria-selected="false">Tools</button>'+
         '<button type="button" class="board-workspace-tab" data-board-panel="decorate" role="tab" aria-selected="false">Decorate</button>'+
+        '<button type="button" class="board-workspace-tab" data-board-panel="canvas" role="tab" aria-selected="false">Canvas</button>'+
       '</div>'+
       '<div class="board-workspace-panel active" data-board-panel="pick"></div>'+
       '<div class="board-workspace-panel" data-board-panel="tools"><div class="board-tools-shell"><div class="board-tools-main"></div></div></div>'+
-      '<div class="board-workspace-panel" data-board-panel="decorate"><div class="board-decorate-shell"></div></div>';
+      '<div class="board-workspace-panel" data-board-panel="decorate"><div class="board-decorate-shell"></div></div>'+
+      '<div class="board-workspace-panel" data-board-panel="canvas"><div class="board-canvas-shell"></div></div>';
     shell.insertAdjacentElement('afterend',workspace);
 
     const pickPanel=workspace.querySelector('[data-board-panel="pick"].board-workspace-panel');
@@ -880,6 +901,109 @@ const TIER_PATCH=String.raw`
       btn.onclick=function(){setBoardWorkspacePanel(btn.dataset.boardPanel)};
     });
     setBoardWorkspacePanel('pick');
+  }
+
+
+  const BOARD_CANVAS_BACKGROUNDS_V1320=[
+    {id:'none',name:'Original',category:'All',color:'#fbf6ec',image:'none',size:'auto',dark:false},
+    {id:'blush',name:'Blush',category:'Color',color:'#f2dfdf',image:'none',size:'auto',dark:false},
+    {id:'sage',name:'Sage',category:'Color',color:'#dbe2d2',image:'none',size:'auto',dark:false},
+    {id:'powder-blue',name:'Powder Blue',category:'Color',color:'#dce8ef',image:'none',size:'auto',dark:false},
+    {id:'charcoal',name:'Charcoal',category:'Color',color:'#454646',image:'none',size:'auto',dark:true},
+
+    {id:'sketchbook',name:'Sketchbook',category:'Paper',color:'#f7f1e5',image:'repeating-linear-gradient(0deg,rgba(93,82,67,.07) 0,rgba(93,82,67,.07) 1px,transparent 1px,transparent 5px)',size:'auto',dark:false},
+    {id:'kraft',name:'Kraft',category:'Paper',color:'#c6a47a',image:'radial-gradient(circle at 18% 22%,rgba(83,60,38,.12) 0 1px,transparent 1.5px),radial-gradient(circle at 72% 66%,rgba(255,255,255,.12) 0 1px,transparent 1.4px)',size:'18px 18px,23px 23px',dark:false},
+    {id:'graph',name:'Graph Paper',category:'Paper',color:'#f8f4e9',image:'linear-gradient(rgba(82,119,132,.13) 1px,transparent 1px),linear-gradient(90deg,rgba(82,119,132,.13) 1px,transparent 1px)',size:'18px 18px',dark:false},
+
+    {id:'linen',name:'Linen',category:'Fabric',color:'#e9dfcd',image:'repeating-linear-gradient(0deg,rgba(103,87,67,.07) 0 1px,transparent 1px 4px),repeating-linear-gradient(90deg,rgba(255,255,255,.18) 0 1px,transparent 1px 5px)',size:'auto',dark:false},
+    {id:'denim',name:'Denim',category:'Fabric',color:'#667b91',image:'repeating-linear-gradient(45deg,rgba(255,255,255,.07) 0 1px,transparent 1px 4px),repeating-linear-gradient(-45deg,rgba(22,39,58,.09) 0 1px,transparent 1px 5px)',size:'auto',dark:true},
+    {id:'leather',name:'Leather',category:'Fabric',color:'#765444',image:'radial-gradient(ellipse at 20% 30%,rgba(255,255,255,.06),transparent 35%),radial-gradient(ellipse at 80% 70%,rgba(34,19,13,.12),transparent 42%)',size:'100% 100%',dark:true},
+
+    {id:'gingham',name:'Gingham',category:'Pattern',color:'#f6eee0',image:'linear-gradient(90deg,rgba(125,70,83,.14) 50%,transparent 50%),linear-gradient(rgba(125,70,83,.14) 50%,transparent 50%)',size:'22px 22px',dark:false},
+    {id:'plaid',name:'Plaid',category:'Pattern',color:'#d8c8a7',image:'repeating-linear-gradient(0deg,transparent 0 13px,rgba(91,70,53,.15) 13px 17px,transparent 17px 27px,rgba(125,53,71,.11) 27px 31px),repeating-linear-gradient(90deg,transparent 0 15px,rgba(91,70,53,.15) 15px 19px,transparent 19px 30px,rgba(125,53,71,.11) 30px 34px)',size:'auto',dark:false},
+    {id:'checker',name:'Checker',category:'Pattern',color:'#efe7d8',image:'conic-gradient(from 90deg,rgba(74,67,60,.20) 25%,transparent 0 50%,rgba(74,67,60,.20) 0 75%,transparent 0)',size:'28px 28px',dark:false},
+
+    {id:'tic-tac-toe',name:'Tic-Tac-Toe',category:'Fun',color:'#f4eddc',image:'linear-gradient(90deg,transparent 32%,rgba(109,120,99,.15) 32% 34%,transparent 34% 65%,rgba(109,120,99,.15) 65% 67%,transparent 67%),linear-gradient(0deg,transparent 32%,rgba(109,120,99,.15) 32% 34%,transparent 34% 65%,rgba(109,120,99,.15) 65% 67%,transparent 67%)',size:'76px 76px',dark:false},
+    {id:'postcard',name:'Postcard',category:'Fun',color:'#f6efdf',image:'repeating-linear-gradient(135deg,rgba(125,53,71,.12) 0 5px,transparent 5px 10px,rgba(83,111,146,.12) 10px 15px,transparent 15px 20px)',size:'100% 12px',position:'0 0',dark:false}
+  ];
+  let boardCanvasBackgroundV1320={id:'none',color:''};
+  let boardCanvasCategoryV1320='All';
+
+  function normalizedBoardCanvasV1320(value){
+    if(typeof value==='string')return {id:value,color:''};
+    if(value&&typeof value==='object')return {id:value.id||'none',color:value.color||''};
+    return {id:'none',color:''};
+  }
+  function boardCanvasDefV1320(value=boardCanvasBackgroundV1320){
+    const v=normalizedBoardCanvasV1320(value);
+    if(v.id==='custom')return {id:'custom',name:'Custom',category:'Color',color:v.color||'#e9dfcd',image:'none',size:'auto',dark:false};
+    return BOARD_CANVAS_BACKGROUNDS_V1320.find(function(x){return x.id===v.id})||BOARD_CANVAS_BACKGROUNDS_V1320[0];
+  }
+  function applyBoardCanvasV1320(value=boardCanvasBackgroundV1320){
+    boardCanvasBackgroundV1320=normalizedBoardCanvasV1320(value);
+    const board=$('#outfitBoard');if(!board)return;
+    const def=boardCanvasDefV1320();
+    board.style.backgroundColor=def.color||'#fbf6ec';
+    board.style.backgroundImage=def.image||'none';
+    board.style.backgroundSize=def.size||'auto';
+    board.style.backgroundPosition=def.position||'0 0';
+    board.style.backgroundRepeat=def.id==='postcard'?'repeat-x':'repeat';
+    board.dataset.canvasBackground=def.id;
+    board.dataset.canvasDark=def.dark?'true':'false';
+    renderBoardCanvasChoicesV1320();
+  }
+  function setBoardCanvasV1320(id,color=''){
+    boardCanvasBackgroundV1320={id:id||'none',color:color||''};
+    applyBoardCanvasV1320();
+  }
+  function canvasPreviewStyleV1320(def){
+    return 'background-color:'+def.color+';background-image:'+def.image+';background-size:'+(def.size||'auto')+';background-position:'+(def.position||'0 0')+';';
+  }
+  function renderBoardCanvasChoicesV1320(){
+    const grid=$('#boardCanvasGrid');if(!grid)return;
+    const visible=BOARD_CANVAS_BACKGROUNDS_V1320.filter(function(def){
+      return boardCanvasCategoryV1320==='All'||def.category===boardCanvasCategoryV1320||def.id==='none';
+    });
+    const current=normalizedBoardCanvasV1320(boardCanvasBackgroundV1320);
+    grid.innerHTML=visible.map(function(def){
+      const active=current.id===def.id;
+      return '<button type="button" class="canvas-choice '+(active?'active':'')+'" data-canvas-id="'+def.id+'">'+
+        '<span class="canvas-swatch" style="'+canvasPreviewStyleV1320(def)+'"></span>'+
+        '<strong>'+def.name+'</strong></button>';
+    }).join('');
+    grid.querySelectorAll('.canvas-choice').forEach(function(btn){
+      btn.onclick=function(){setBoardCanvasV1320(btn.dataset.canvasId);};
+    });
+    const picker=$('#boardCanvasCustomColor');
+    if(picker&&current.id==='custom'&&current.color)picker.value=current.color;
+  }
+  function installBoardCanvasV1320(){
+    const workspace=$('#boardWorkspace');
+    const shell=workspace?.querySelector('.board-canvas-shell');
+    if(!workspace||!shell||shell.dataset.installed==='true')return;
+    shell.dataset.installed='true';
+    shell.innerHTML=
+      '<div class="canvas-category-row" id="boardCanvasCategories"></div>'+
+      '<div class="canvas-custom-row"><span>Custom color</span><div class="canvas-color-wrap"><input id="boardCanvasCustomColor" class="canvas-color-input" type="color" value="#e9dfcd" aria-label="Choose canvas color"><button type="button" class="canvas-color-btn" id="boardCanvasUseColor">Use color</button></div></div>'+
+      '<div class="canvas-grid" id="boardCanvasGrid"></div>';
+    const cats=['All','Color','Paper','Fabric','Pattern','Fun'];
+    const row=$('#boardCanvasCategories');
+    row.innerHTML=cats.map(function(cat){return '<button type="button" class="canvas-category-chip '+(cat==='All'?'active':'')+'" data-canvas-category="'+cat+'">'+cat+'</button>';}).join('');
+    row.querySelectorAll('.canvas-category-chip').forEach(function(btn){
+      btn.onclick=function(){
+        boardCanvasCategoryV1320=btn.dataset.canvasCategory;
+        row.querySelectorAll('.canvas-category-chip').forEach(function(x){x.classList.toggle('active',x===btn)});
+        renderBoardCanvasChoicesV1320();
+      };
+    });
+    $('#boardCanvasUseColor').onclick=function(){
+      setBoardCanvasV1320('custom',$('#boardCanvasCustomColor').value||'#e9dfcd');
+    };
+    $('#boardCanvasCustomColor').oninput=function(){
+      setBoardCanvasV1320('custom',this.value||'#e9dfcd');
+    };
+    renderBoardCanvasChoicesV1320();
+    applyBoardCanvasV1320();
   }
 
   function refitSavedBoardToCurrent(outfit){
@@ -1102,7 +1226,57 @@ const TIER_PATCH=String.raw`
     return result;
   };
 
+  const originalLoadOutfitForEditingV1320=loadOutfitForEditing;
+  loadOutfitForEditing=function(oid){
+    const outfit=state.outfits.find(function(x){return x.id===oid});
+    const result=originalLoadOutfitForEditingV1320.apply(this,arguments);
+    boardCanvasBackgroundV1320=normalizedBoardCanvasV1320(outfit?.canvasBackground);
+    applyBoardCanvasV1320();
+    return result;
+  };
+
+  const originalLoadOutfitAsDuplicateV1320=loadOutfitAsDuplicate;
+  loadOutfitAsDuplicate=function(oid){
+    const outfit=state.outfits.find(function(x){return x.id===oid});
+    const result=originalLoadOutfitAsDuplicateV1320.apply(this,arguments);
+    boardCanvasBackgroundV1320=normalizedBoardCanvasV1320(outfit?.canvasBackground);
+    applyBoardCanvasV1320();
+    return result;
+  };
+
+  const originalStartNewOutfitV1320=startNewOutfit;
+  startNewOutfit=function(){
+    const result=originalStartNewOutfitV1320.apply(this,arguments);
+    boardCanvasBackgroundV1320={id:'none',color:''};
+    applyBoardCanvasV1320();
+    return result;
+  };
+
+  const originalClearBoardV1320=clearBoard;
+  clearBoard=function(){
+    const result=originalClearBoardV1320.apply(this,arguments);
+    boardCanvasBackgroundV1320={id:'none',color:''};
+    applyBoardCanvasV1320();
+    return result;
+  };
+
+  const originalSaveOutfitV1320=saveOutfit;
+  saveOutfit=async function(){
+    const result=await originalSaveOutfitV1320.apply(this,arguments);
+    if(editingOutfitId){
+      const outfit=state.outfits.find(function(x){return x.id===editingOutfitId});
+      if(outfit){
+        outfit.canvasBackground={...boardCanvasBackgroundV1320};
+        await saveState();
+        renderSavedOutfits();
+      }
+    }
+    return result;
+  };
+  if($('#confirmSaveOutfitBtn'))$('#confirmSaveOutfitBtn').onclick=saveOutfit;
+
   installBoardWorkspaceV3();
+  installBoardCanvasV1320();
   setTimeout(installBoardConfirmationsV6,0);
 
   let boardPickerSearch='';
