@@ -1,31 +1,44 @@
-Audrey Closet — v13.18-dev9 Main Update
+Audrey Closet — v13.18-dev10 Main Update
 
 PURPOSE
-Refine the Board folder-tab treatment for readability, contrast and more stable navigation.
+Refine the Board folder-tab surface and Add Items layout.
 
 CHANGES
-- Tab labels left aligned.
-- Larger serif tab typography for a more Classic/Times-like feel.
-- "Pick Pieces" renamed to "Add Items".
-- Darker warm-neutral tab strip and inactive tabs for stronger contrast.
-- Active tab and content panel share a lighter warm paper background.
-- Switching Add Items / Tools / Decorate preserves the user's screen position instead of jumping back toward the Board top.
+
+1. CATEGORY AREA BLENDS WITH ADD ITEMS
+- Category filter row now uses the same warm active-folder background as the Add Items workspace.
+- Removed extra border/shadow treatment so the whole picker reads as one continuous surface.
+
+2. WORKSPACE PANEL LIGHTENED
+- The strip/panel behind Add Items / Tools / Decorate is lightened.
+- Active folder tab, active panel, picker, tools and decorate surfaces now use closely matched warm tones.
+- Goal: one connected folder/workspace rather than a dark panel behind lighter pieces.
+
+3. TAB LABELS CENTERED
+- Add Items / Tools / Decorate labels are centered for this experiment.
+- Serif type and larger size are retained.
+
+4. MORE SPACE ABOVE FREE-FLOW GARMENTS
+- Adds extra top padding before the garment grid.
+- Slightly lowers the garment field so large/offset photos are less likely to bleed into Search / Color / Tier controls.
+- A few of the most upward-biased Free-Flow positions get an additional small downward correction.
 
 UNCHANGED
-- Clear/New confirmations.
-- Reset filters.
-- Share beside New.
-- Save/Update labels.
-- Portrait Board.
-- Portfolio compatibility.
+- Clear/New confirmations
+- Reset filters
+- Search / Color / Tier
+- Share beside New
+- Save/Update
+- Portrait Board
+- Portfolio compatibility
 
 TEST
-1. Scroll until the folder tabs are near the top of the screen.
-2. Switch Add Items -> Tools -> Decorate.
-3. Confirm the page stays in place.
-4. Confirm labels are left aligned and easier to read.
-5. Confirm serif font feels cohesive.
-6. Confirm darker folder treatment provides more contrast.
+1. Open Board > Add Items.
+2. Confirm category row and filter area visually blend into the active folder panel.
+3. Confirm background behind tabs/panels feels lighter and more unified.
+4. Compare centered labels against the prior left-aligned treatment.
+5. Confirm first row of garment photos no longer intrudes into the search/filter row.
+6. Scroll through enough items to verify the Free-Flow layout still feels organic.
 
 ROLLBACK
-Replace sw.js with v13.18-dev8.
+Replace sw.js with v13.18-dev9.
