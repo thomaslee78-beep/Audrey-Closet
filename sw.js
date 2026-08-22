@@ -1,8 +1,8 @@
-const CACHE='audrey-closet-v13.20-dev3';
+const CACHE='audrey-closet-v13.20-dev4';
 const ASSETS=['./','./index.html','./styles.css','./app.js','./manifest.webmanifest','./icon-192.png','./icon-512.png'];
 
 /*
- * v13.20-dev3 Faithful Portfolio board thumbnails.
+ * v13.20-dev4 Canvas default + Share export fix.
  *
  * The current app is a single large classic app.js file. For this dev branch we
  * append the isolated tier feature when app.js is served so the stable v13.15
@@ -10,7 +10,7 @@ const ASSETS=['./','./index.html','./styles.css','./app.js','./manifest.webmanif
  * promoted, it can be folded into app.js/styles.css in the next stable release.
  */
 const TIER_PATCH=String.raw`
-;/* v13.20-dev3 — Faithful Portfolio board thumbnails */
+;/* v13.20-dev4 — Canvas default + Share export fix */
 (function(){
   const CLOSET_TIERS=['S','A','B','C','D'];
   function normalizeClosetTier(value){
@@ -442,6 +442,9 @@ const TIER_PATCH=String.raw`
       '.screen[data-screen="outfits"] .canvas-swatch{display:block;width:100%;aspect-ratio:1/1;border-radius:9px;border:1px solid rgba(108,81,66,.10);overflow:hidden}',
       '.screen[data-screen="outfits"] .canvas-choice strong{font-size:9.5px;line-height:1.1;font-weight:800;white-space:normal}',
       '.screen[data-screen="outfits"] #outfitBoard[data-canvas-dark="true"] .board-tip{color:rgba(255,255,255,.78)}',
+      '.screen[data-screen="outfits"] #outfitBoard:before{display:none!important}',
+      '.screen[data-screen="outfits"] #outfitBoard[data-canvas-background="default"]{box-shadow:inset 0 0 45px rgba(108,81,66,.08)!important}',
+      '.screen[data-screen="outfits"] #outfitBoard:not([data-canvas-background="default"]){box-shadow:inset 0 0 24px rgba(108,81,66,.035)!important}',
       '@media(max-width:410px){.screen[data-screen="outfits"] .canvas-grid{gap:5px}.screen[data-screen="outfits"] .canvas-choice{padding:3px 3px 5px}.screen[data-screen="outfits"] .canvas-choice strong{font-size:8.8px}.screen[data-screen="outfits"] .board-workspace-tab{font-size:14px!important}}',
       '@media(max-width:380px){.closet-view-options{grid-template-columns:1fr}.closet-view-option{min-height:60px}}',
       '@media(max-width:410px){#itemDialog .closet-tier-section{padding:8px 9px;gap:7px}#itemDialog .closet-tier-btn{height:34px}#itemDialog .closet-tier-heading small{max-width:125px}}'
@@ -657,7 +660,7 @@ const TIER_PATCH=String.raw`
 
     board.innerHTML='<div class="settings-group-empty">Board preferences will live here as customization options are added.</div>';
     wishlist.innerHTML='<div class="settings-group-empty">Wishlist preferences will live here as shopping and capture options expand.</div>';
-    about.innerHTML='<div class="settings-card settings-about-card"><h3>About Audrey’s Closet</h3><p class="settings-about-version">Version v13.20-dev3</p><p>A personal closet journal built around cataloging, outfits, memories and everyday wardrobe decisions.</p><p>Credits and a few hidden extras can grow here in future releases.</p></div>';
+    about.innerHTML='<div class="settings-card settings-about-card"><h3>About Audrey’s Closet</h3><p class="settings-about-version">Version v13.20-dev4</p><p>A personal closet journal built around cataloging, outfits, memories and everyday wardrobe decisions.</p><p>Credits and a few hidden extras can grow here in future releases.</p></div>';
 
     if(pageHead?.nextSibling)screen.insertBefore(groups,pageHead.nextSibling);
     else screen.appendChild(groups);
@@ -911,7 +914,8 @@ const TIER_PATCH=String.raw`
 
 
   const BOARD_CANVAS_BACKGROUNDS_V1320=[
-    {id:'none',name:'Original',category:'All',color:'#fbf6ec',image:'none',size:'auto',dark:false},
+    {id:'default',name:'Default',category:'All',color:'#efe9d9',image:'linear-gradient(135deg,transparent 70%,rgba(125,53,71,.08) 70% 73%,transparent 73%),linear-gradient(45deg,transparent 85%,rgba(77,142,138,.10) 85%),linear-gradient(rgba(108,81,66,.055) 1px,transparent 1px),linear-gradient(90deg,rgba(108,81,66,.055) 1px,transparent 1px)',size:'100% 100%,100% 100%,24px 24px,24px 24px',dark:false},
+    {id:'none',name:'Original',category:'All',color:'#fffdf8',image:'none',size:'auto',dark:false},
     {id:'blush',name:'Blush',category:'Color',color:'#f2dfdf',image:'none',size:'auto',dark:false},
     {id:'sage',name:'Sage',category:'Color',color:'#dbe2d2',image:'none',size:'auto',dark:false},
     {id:'powder-blue',name:'Powder Blue',category:'Color',color:'#dce8ef',image:'none',size:'auto',dark:false},
@@ -932,13 +936,13 @@ const TIER_PATCH=String.raw`
     {id:'tic-tac-toe',name:'Tic-Tac-Toe',category:'Fun',color:'#f4eddc',image:'linear-gradient(90deg,transparent 32%,rgba(109,120,99,.15) 32% 34%,transparent 34% 65%,rgba(109,120,99,.15) 65% 67%,transparent 67%),linear-gradient(0deg,transparent 32%,rgba(109,120,99,.15) 32% 34%,transparent 34% 65%,rgba(109,120,99,.15) 65% 67%,transparent 67%)',size:'76px 76px',dark:false},
     {id:'postcard',name:'Postcard',category:'Fun',color:'#f6efdf',image:'repeating-linear-gradient(135deg,rgba(125,53,71,.12) 0 5px,transparent 5px 10px,rgba(83,111,146,.12) 10px 15px,transparent 15px 20px)',size:'100% 12px',position:'0 0',dark:false}
   ];
-  let boardCanvasBackgroundV1320={id:'none',color:''};
+  let boardCanvasBackgroundV1320={id:'default',color:''};
   let boardCanvasCategoryV1320='All';
 
   function normalizedBoardCanvasV1320(value){
-    if(typeof value==='string')return {id:value,color:''};
-    if(value&&typeof value==='object')return {id:value.id||'none',color:value.color||''};
-    return {id:'none',color:''};
+    if(typeof value==='string')return {id:value||'default',color:''};
+    if(value&&typeof value==='object')return {id:value.id||'default',color:value.color||''};
+    return {id:'default',color:''};
   }
   function boardCanvasDefV1320(value=boardCanvasBackgroundV1320){
     const v=normalizedBoardCanvasV1320(value);
@@ -959,7 +963,7 @@ const TIER_PATCH=String.raw`
     renderBoardCanvasChoicesV1320();
   }
   function setBoardCanvasV1320(id,color=''){
-    boardCanvasBackgroundV1320={id:id||'none',color:color||''};
+    boardCanvasBackgroundV1320={id:id||'default',color:color||''};
     applyBoardCanvasV1320();
   }
   function canvasPreviewStyleV1320(def){
@@ -1015,7 +1019,8 @@ const TIER_PATCH=String.raw`
 
   function boardCanvasElementStyleV13202(el,value){
     if(!el)return;
-    const def=boardCanvasDefV1320(value);
+    const safeValue=(value===undefined||value===null)?{id:'default',color:''}:value;
+    const def=boardCanvasDefV1320(safeValue);
     el.style.backgroundColor=def.color||'#fbf6ec';
     el.style.backgroundImage=def.image||'none';
     el.style.backgroundSize=def.size||'auto';
@@ -1026,7 +1031,8 @@ const TIER_PATCH=String.raw`
   }
 
   function paintBoardCanvasToContextV13202(ctx,x,y,w,h,value){
-    const def=boardCanvasDefV1320(value);
+    const safeValue=(value===undefined||value===null)?{id:'default',color:''}:value;
+    const def=boardCanvasDefV1320(safeValue);
     const id=def.id;
     ctx.save();
     ctx.beginPath();
@@ -1036,7 +1042,29 @@ const TIER_PATCH=String.raw`
     ctx.fillStyle=def.color||'#fbf6ec';
     ctx.fillRect(x,y,w,h);
 
-    if(id==='sketchbook'){
+    if(id==='default'){
+      ctx.strokeStyle='rgba(108,81,66,.075)';
+      ctx.lineWidth=1;
+      const grid=Math.max(18,w/38);
+      for(let xx=x;xx<=x+w;xx+=grid){ctx.beginPath();ctx.moveTo(xx,y);ctx.lineTo(xx,y+h);ctx.stroke()}
+      for(let yy=y;yy<=y+h;yy+=grid){ctx.beginPath();ctx.moveTo(x,yy);ctx.lineTo(x+w,yy);ctx.stroke()}
+
+      ctx.save();
+      ctx.globalAlpha=.55;
+      ctx.strokeStyle='rgba(125,53,71,.22)';
+      ctx.lineWidth=Math.max(2,w/260);
+      ctx.beginPath();
+      ctx.moveTo(x+w*.70,y+h*.12);
+      ctx.lineTo(x+w*.93,y+h*.35);
+      ctx.stroke();
+
+      ctx.strokeStyle='rgba(77,142,138,.22)';
+      ctx.beginPath();
+      ctx.moveTo(x+w*.78,y+h*.76);
+      ctx.lineTo(x+w*.96,y+h*.94);
+      ctx.stroke();
+      ctx.restore();
+    }else if(id==='sketchbook'){
       ctx.strokeStyle='rgba(93,82,67,.10)';
       ctx.lineWidth=1;
       const step=Math.max(8,w/90);
@@ -1132,6 +1160,9 @@ const TIER_PATCH=String.raw`
 
     ctx.restore();
   }
+
+  window.__audreyPaintBoardCanvasV1320=paintBoardCanvasToContextV13202;
+  window.__audreyGetCurrentCanvasV1320=function(){return {...boardCanvasBackgroundV1320};};
 
   function refreshPortfolioCanvasBackgroundsV13202(){
     document.querySelectorAll('#savedOutfits .portfolio-card[data-id]').forEach(function(card){
@@ -1421,7 +1452,7 @@ const TIER_PATCH=String.raw`
   const originalStartNewOutfitV1320=startNewOutfit;
   startNewOutfit=function(){
     const result=originalStartNewOutfitV1320.apply(this,arguments);
-    boardCanvasBackgroundV1320={id:'none',color:''};
+    boardCanvasBackgroundV1320={id:'default',color:''};
     applyBoardCanvasV1320();
     return result;
   };
@@ -1429,7 +1460,7 @@ const TIER_PATCH=String.raw`
   const originalClearBoardV1320=clearBoard;
   clearBoard=function(){
     const result=originalClearBoardV1320.apply(this,arguments);
-    boardCanvasBackgroundV1320={id:'none',color:''};
+    boardCanvasBackgroundV1320={id:'default',color:''};
     applyBoardCanvasV1320();
     return result;
   };
@@ -1771,7 +1802,7 @@ function withTierPatch(resp){
     // rather than hard-coding the legacy cream/grid board.
     const shareOld=`ctx.fillStyle='#f7f0df';ctx.fillRect(0,0,W,H);ctx.fillStyle='#efe9d9';roundRectPath(ctx,pad,boardTop,drawW,drawH,42);ctx.fill();
   ctx.save();roundRectPath(ctx,pad,boardTop,drawW,drawH,42);ctx.clip();ctx.strokeStyle='rgba(108,81,66,.10)';ctx.lineWidth=2;const grid=24*scale;for(let x=pad;x<=pad+drawW;x+=grid){ctx.beginPath();ctx.moveTo(x,boardTop);ctx.lineTo(x,boardTop+drawH);ctx.stroke()}for(let y=boardTop;y<=boardTop+drawH;y+=grid){ctx.beginPath();ctx.moveTo(pad,y);ctx.lineTo(pad+drawW,y);ctx.stroke()}`;
-    const shareNew=`ctx.fillStyle='#f7f0df';ctx.fillRect(0,0,W,H);roundRectPath(ctx,pad,boardTop,drawW,drawH,42);ctx.save();ctx.clip();paintBoardCanvasToContextV13202(ctx,pad,boardTop,drawW,drawH,outfit?.canvasBackground||(!outfit?boardCanvasBackgroundV1320:null));ctx.restore();
+    const shareNew=`ctx.fillStyle='#f7f0df';ctx.fillRect(0,0,W,H);roundRectPath(ctx,pad,boardTop,drawW,drawH,42);ctx.save();ctx.clip();window.__audreyPaintBoardCanvasV1320(ctx,pad,boardTop,drawW,drawH,outfit?.canvasBackground||(!outfit?(window.__audreyGetCurrentCanvasV1320?.()||{id:'default'}):{id:'default'}));ctx.restore();
   ctx.save();roundRectPath(ctx,pad,boardTop,drawW,drawH,42);ctx.clip();`;
     if(text.includes(shareOld))text=text.replace(shareOld,shareNew);
     const headers=new Headers(resp.headers);

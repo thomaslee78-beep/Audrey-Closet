@@ -1,62 +1,86 @@
-Audrey Closet — v13.20-dev3 Main Update
-Faithful Style Portfolio Board Thumbnails
+Audrey Closet — v13.20-dev4 Main Update
+Canvas Default + Share Export Bug Fix
 
-ISSUE
-Some Style Portfolio cards showed only part of the saved outfit — for example a shirt
-could appear while the pants were missing — even though opening the full Board showed
-all pieces correctly.
+1. SHARE / EXPORT RESTORED
 
-ROOT CAUSE
-The small Portfolio card was not a true scaled copy of the Board.
+Issue:
+All three Share export modes failed with "Could not create the outfit image."
 
-The old thumbnail renderer:
-- converted every piece independently into percentages
-- clamped its X/Y position
-- clamped its width/height
-- placed everything into a fixed 130px-high thumbnail
+Root cause:
+The original app's share renderer was patched to call the new Canvas drawing helper,
+but the Canvas helper lives inside the injected patch scope. The original share function
+could not see that helper at runtime.
 
-The redesigned Design Board is a taller portrait canvas, so those independent clamps
-could crop or distort lower/larger pieces in the Portfolio card.
+Fix:
+- Canvas export painter is now exposed through a controlled global bridge.
+- Unsaved Board shares use the current live Canvas.
+- Saved Portfolio shares use that outfit's saved Canvas.
+- Legacy saved outfits with no Canvas use Default.
+- All three existing export modes continue using the same Share workflow.
 
-FIX
-Portfolio cards now use the same proportional snapshot approach as the full Portfolio
-Board preview.
+2. PORTFOLIO CANVAS BLEED FIXED
 
-For each saved look:
-1. Read the original saved boardWidth / boardHeight.
-2. Give the Portfolio thumbnail the same aspect ratio.
-3. Apply the saved Canvas background.
-4. Calculate one uniform scale for the entire Board.
-5. Render every saved Board object using that same scale.
-6. Preserve original X/Y positions, size, rotation and z-order.
+Issue:
+Choosing a Canvas on the current Design Board could make older Portfolio looks appear
+to use that same Canvas even though no Canvas had been selected for those looks.
 
-EXPECTED RESULT
-The Portfolio card should now be a miniature of the complete Design Board:
-- tops
-- bottoms
-- shoes/accessories
-- duplicate pieces
-- text/stickers/doodles
-- layering
-- rotations
-- Canvas background
+Root cause:
+When outfit.canvasBackground was undefined, the helper's JavaScript default parameter
+fell back to the currently active Design Board Canvas.
 
-No garment should disappear merely because it was positioned lower on the Board.
+Fix:
+- Missing / undefined saved Canvas now explicitly resolves to Default.
+- A live Board Canvas can no longer leak into unrelated Portfolio cards or previews.
 
-BACKWARD COMPATIBILITY
-Older saved Boards use their saved dimensions.
-Looks without saved dimensions fall back to the original legacy dimensions.
-No saved outfit data is migrated or changed.
+3. DEFAULT VS ORIGINAL
+
+Canvas now has two separate concepts:
+
+DEFAULT
+- Restores the original pre-Canvas Design Board surface.
+- Warm cream board.
+- Fine grid.
+- Subtle design accents/arrows.
+- New outfits start on Default.
+- Clear Board returns to Default.
+- Older saved looks with no Canvas information render as Default.
+
+ORIGINAL
+- Clean white-paper Canvas.
+- No grid or design pattern.
+- Useful when the user wants a plain neutral sheet.
+
+The existing empty-board instructional text still appears naturally on a new/empty
+Default Board because it is part of the original Design Board UI rather than the Canvas asset.
+
+4. BACKWARD COMPATIBILITY
+
+- Existing looks explicitly saved with a Canvas continue to use it.
+- Existing looks saved before Canvas was introduced use Default.
+- Existing looks explicitly saved as the former "Original" preset remain Original
+  and now appear as clean white paper.
+- No closet, Portfolio, or Board item data migration is required.
 
 TEST
-1. Find a saved look where the Portfolio card previously showed a shirt but not pants.
-2. Confirm both now appear in the small Portfolio card.
-3. Open the look and compare the small card to the full preview.
-4. Test a look with pieces near all four Board edges.
-5. Test overlapping/layered pieces.
-6. Test rotated pieces.
-7. Test a Canvas background.
-8. Confirm tapping the Portfolio card still opens the look normally.
+
+A. Share
+1. Create a Board with Default Canvas and export each of the 3 modes.
+2. Repeat with Plaid or Denim.
+3. Repeat with Custom Color.
+4. Share a saved Portfolio look.
+
+B. Portfolio isolation
+1. Pick Plaid on the current Design Board.
+2. Open Portfolio.
+3. Confirm older looks without Canvas do NOT become Plaid.
+4. Confirm looks explicitly saved with Plaid still show Plaid.
+
+C. Default / Original
+1. Start New Board -> should show Default original-board design.
+2. Confirm empty-board instructional text is present.
+3. Select Original -> should become clean white paper.
+4. Select Default -> should restore cream/grid/design accents.
+5. Clear Board -> should return to Default.
 
 ROLLBACK
-Replace sw.js with v13.20-dev2.
+Replace sw.js with v13.20-dev3.
