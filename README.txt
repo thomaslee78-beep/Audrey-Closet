@@ -1,42 +1,63 @@
-Audrey Closet — v13.19-dev4 Main Update
+Audrey Closet — v13.19-dev5 Main Update
 
 PURPOSE
-Refine Board locking behavior and simplify/enlarge Tools labels.
+Move Lock / Unlock from the Board object corner into the Tools panel.
 
-LOCK / UNLOCK CHANGES
-- Lock control is hidden on unselected items.
-- Select an item and the Lock/Unlock control appears.
-- If an item is locked, it can still be selected.
-- Selecting a locked item does NOT allow drag, resize, rotate, delete, duplicate, front/back actions.
-- While the locked item is selected, the Lock control remains visible so it can be unlocked.
-- Locked items can therefore remain fixed while the user selects and arranges other pieces.
+CHANGES
 
-TOOLS LABEL CHANGES
-Row 1 now reads:
-- Back
-- Front
-- Left
-- Right
-- Copy
-
-Row 2 remains:
+1. LOCK / UNLOCK MOVED INTO TOOLS
+Second Tools row is now:
 - Delete
 - Undo
+- Lock / Unlock
 - Clear
 
-- Tool label font size increased for easier reading.
-- Icon-over-label Studio-style layout is unchanged.
+The button dynamically changes:
+- selected unlocked item -> Lock
+- selected locked item -> Unlock
+- no selected item -> disabled
+
+2. CORNER CONTROL REMOVED
+- No clickable Lock / Unlock button appears on the Board object itself.
+- This avoids the problem of trying to reach a tiny lock control on an item that is partially covered.
+
+3. PASSIVE LOCK INDICATOR
+- If the selected item is locked, a small lock indicator appears on the item.
+- Unlocked items show no lock indicator.
+- Unselected locked items also show no indicator, keeping the Board visually clean.
+
+4. LOCKED ITEM BEHAVIOR
+A locked item can still be selected.
+While locked:
+- drag disabled
+- resize disabled
+- rotate disabled
+- Back / Front disabled
+- Copy disabled
+- Delete disabled
+- Lock button changes to Unlock
+
+After Unlock:
+- normal editing actions immediately return.
+
+5. TOOL LAYOUT
+Row 1 remains:
+Back / Front / Left / Right / Copy
+
+Row 2 becomes:
+Delete / Undo / Lock-or-Unlock / Clear
 
 TEST
-1. Add two pieces.
-2. Select one piece: lock icon appears.
-3. Lock it: it remains selected and lock icon remains visible.
-4. Try moving/resizing/rotating locked piece: nothing should happen.
-5. Tap another piece and edit it normally.
-6. Tap the locked piece again: it should select even though locked.
-7. Unlock it and confirm normal editing returns.
-8. Confirm lock icon disappears when item is not selected.
-9. Confirm Tools labels are larger and simplified.
+1. Add two overlapping items.
+2. Select one item and open Tools.
+3. Tap Lock.
+4. Confirm passive lock indicator appears on selected item.
+5. Confirm Back/Front/Left/Right/Copy/Delete disable.
+6. Tap another item and edit it normally.
+7. Reselect the locked item; it should still be selectable.
+8. Tools should show Unlock.
+9. Tap Unlock and confirm normal editing returns.
+10. Confirm no clickable lock control appears directly on the object.
 
 ROLLBACK
-Replace sw.js with v13.19-dev3.
+Replace sw.js with v13.19-dev4.
