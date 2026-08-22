@@ -1,8 +1,8 @@
-const CACHE='audrey-closet-v13.19-dev1';
+const CACHE='audrey-closet-v13.19-dev2';
 const ASSETS=['./','./index.html','./styles.css','./app.js','./manifest.webmanifest','./icon-192.png','./icon-512.png'];
 
 /*
- * v13.19-dev1 Board Tools Studio-style redesign.
+ * v13.19-dev2 Compact Studio-style Board Tools.
  *
  * The current app is a single large classic app.js file. For this dev branch we
  * append the isolated tier feature when app.js is served so the stable v13.15
@@ -10,7 +10,7 @@ const ASSETS=['./','./index.html','./styles.css','./app.js','./manifest.webmanif
  * promoted, it can be folded into app.js/styles.css in the next stable release.
  */
 const TIER_PATCH=String.raw`
-;/* v13.19-dev1 — Board Tools Studio-style redesign */
+;/* v13.19-dev2 — Compact Studio-style Board Tools */
 (function(){
   const CLOSET_TIERS=['S','A','B','C','D'];
   function normalizeClosetTier(value){
@@ -380,6 +380,25 @@ const TIER_PATCH=String.raw`
       '.screen[data-screen="outfits"] #outfitBoard .board-piece.selected .resize-handle,.screen[data-screen="outfits"] #outfitBoard .board-piece.selected .board-remove-handle{opacity:1!important}',
       '.screen[data-screen="outfits"] .board-tools-empty{padding:9px 10px;border:1px dashed rgba(108,81,66,.18);border-radius:11px;background:rgba(255,255,255,.42);font-size:10px;line-height:1.35;color:#817568}',
       '@media(max-width:410px){.screen[data-screen="outfits"] .board-tool-action{min-height:56px;padding:7px 8px}.screen[data-screen="outfits"] .board-tool-action .board-tool-copy strong{font-size:11px}.screen[data-screen="outfits"] .board-tool-action .board-tool-copy small{font-size:8px}}',
+      '.screen[data-screen="outfits"] .board-tools-shell{gap:8px!important;padding:8px 5px 10px!important}',
+      '.screen[data-screen="outfits"] .board-tools-main>#boardEditbar{display:none!important}',
+      '.screen[data-screen="outfits"] .board-tools-empty{display:none!important}',
+      '.screen[data-screen="outfits"] .board-tools-group-title{display:none!important}',
+      '.screen[data-screen="outfits"] .board-tools-group{display:contents!important}',
+      '.screen[data-screen="outfits"] .board-tools-main{display:grid;gap:8px}',
+      '.screen[data-screen="outfits"] .board-tools-main .board-tools-grid{display:grid!important;gap:6px!important}',
+      '.screen[data-screen="outfits"] .board-tools-row-primary{grid-template-columns:repeat(5,minmax(0,1fr))!important}',
+      '.screen[data-screen="outfits"] .board-tools-row-secondary{grid-template-columns:repeat(3,minmax(0,1fr))!important}',
+      '.screen[data-screen="outfits"] .board-tool-action{min-height:78px!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:6px!important;padding:7px 4px!important;border:1px solid rgba(108,81,66,.2)!important;border-radius:15px!important;background:#fffaf0!important;color:#4f473f!important;font:inherit!important;text-align:center!important;box-shadow:none!important}',
+      '.screen[data-screen="outfits"] .board-tool-action .board-tool-icon{width:auto!important;height:auto!important;min-width:0!important;flex:0 0 auto!important;border-radius:0!important;background:transparent!important;color:#675f56!important;font-size:23px!important;font-weight:500!important;line-height:1!important}',
+      '.screen[data-screen="outfits"] .board-tool-action .board-tool-copy{display:block!important;min-width:0!important}',
+      '.screen[data-screen="outfits"] .board-tool-action .board-tool-copy strong{display:block!important;font-family:var(--sans)!important;font-size:11px!important;line-height:1.05!important;font-weight:800!important;color:inherit!important;white-space:normal!important}',
+      '.screen[data-screen="outfits"] .board-tool-action .board-tool-copy small{display:none!important}',
+      '.screen[data-screen="outfits"] .board-tool-action:disabled{opacity:.36!important;filter:none!important}',
+      '.screen[data-screen="outfits"] .board-tool-action.danger{background:#fffaf0!important;color:var(--burgundy)!important;border-color:rgba(125,53,71,.2)!important}',
+      '.screen[data-screen="outfits"] .board-tool-action.danger .board-tool-icon{color:var(--burgundy)!important}',
+      '.screen[data-screen="outfits"] .board-tool-action.clear-board{background:#fffaf0!important}',
+      '@media(max-width:410px){.screen[data-screen="outfits"] .board-tool-action{min-height:72px!important;padding:6px 2px!important;border-radius:14px!important}.screen[data-screen="outfits"] .board-tool-action .board-tool-icon{font-size:21px!important}.screen[data-screen="outfits"] .board-tool-action .board-tool-copy strong{font-size:9.5px!important}}',
       '@media(max-width:380px){.closet-view-options{grid-template-columns:1fr}.closet-view-option{min-height:60px}}',
       '@media(max-width:410px){#itemDialog .closet-tier-section{padding:8px 9px;gap:7px}#itemDialog .closet-tier-btn{height:34px}#itemDialog .closet-tier-heading small{max-width:125px}}'
     ].join('');
@@ -594,7 +613,7 @@ const TIER_PATCH=String.raw`
 
     board.innerHTML='<div class="settings-group-empty">Board preferences will live here as customization options are added.</div>';
     wishlist.innerHTML='<div class="settings-group-empty">Wishlist preferences will live here as shopping and capture options expand.</div>';
-    about.innerHTML='<div class="settings-card settings-about-card"><h3>About Audrey’s Closet</h3><p class="settings-about-version">Version v13.19-dev1</p><p>A personal closet journal built around cataloging, outfits, memories and everyday wardrobe decisions.</p><p>Credits and a few hidden extras can grow here in future releases.</p></div>';
+    about.innerHTML='<div class="settings-card settings-about-card"><h3>About Audrey’s Closet</h3><p class="settings-about-version">Version v13.19-dev2</p><p>A personal closet journal built around cataloging, outfits, memories and everyday wardrobe decisions.</p><p>Credits and a few hidden extras can grow here in future releases.</p></div>';
 
     if(pageHead?.nextSibling)screen.insertBefore(groups,pageHead.nextSibling);
     else screen.appendChild(groups);
@@ -764,56 +783,34 @@ const TIER_PATCH=String.raw`
       selectionHint.textContent='Select an item on the board to use editing tools.';
       toolsMain.appendChild(selectionHint);
 
-      const groups=[
-        {
-          title:'Layer',
-          cls:'board-tools-grid',
-          items:[
-            ['sendBackBtn','⇩','Send Back','Move behind'],
-            ['bringFrontBtn','⇧','Bring Front','Move in front']
-          ]
-        },
-        {
-          title:'Transform',
-          cls:'board-tools-grid board-tools-grid-3',
-          items:[
-            ['rotateLeftBtn','↶','Rotate Left','Turn counterclockwise'],
-            ['rotateRightBtn','↷','Rotate Right','Turn clockwise'],
-            ['duplicateBoardBtn','⧉','Duplicate','Make a copy']
-          ]
-        },
-        {
-          title:'Edit',
-          cls:'board-tools-grid board-tools-grid-3',
-          items:[
-            ['deleteBoardBtn','×','Delete','Remove selected'],
-            ['undoBoardBtn','↶','Undo','Restore last removal'],
-            ['clearBoardBtn','⌫','Clear','Clear entire board']
-          ]
-        }
+      const rows=[
+        {cls:'board-tools-grid board-tools-row-primary',items:[
+          ['sendBackBtn','⇩','Send Back'],
+          ['bringFrontBtn','⇧','Bring Front'],
+          ['rotateLeftBtn','↶','Rotate Left'],
+          ['rotateRightBtn','↷','Rotate Right'],
+          ['duplicateBoardBtn','⧉','Duplicate']
+        ]},
+        {cls:'board-tools-grid board-tools-row-secondary',items:[
+          ['deleteBoardBtn','×','Delete'],
+          ['undoBoardBtn','↶','Undo'],
+          ['clearBoardBtn','⌫','Clear']
+        ]}
       ];
-
-      groups.forEach(function(group){
+      rows.forEach(function(row){
         const wrap=document.createElement('section');
         wrap.className='board-tools-group';
-        const h=document.createElement('h4');
-        h.className='board-tools-group-title';
-        h.textContent=group.title;
-        wrap.appendChild(h);
         const grid=document.createElement('div');
-        grid.className=group.cls;
-        group.items.forEach(function(item){
+        grid.className=row.cls;
+        row.items.forEach(function(item){
           const original=$('#'+item[0]);
           if(!original)return;
           const btn=document.createElement('button');
           btn.type='button';
           btn.className='board-tool-action'+(item[0]==='deleteBoardBtn'?' danger':'')+(item[0]==='clearBoardBtn'?' danger clear-board':'');
           btn.dataset.proxyFor=item[0];
-          btn.innerHTML='<span class="board-tool-icon" aria-hidden="true">'+item[1]+'</span><span class="board-tool-copy"><strong>'+item[2]+'</strong><small>'+item[3]+'</small></span>';
-          btn.onclick=function(e){
-            e.preventDefault();
-            original.click();
-          };
+          btn.innerHTML='<span class="board-tool-icon" aria-hidden="true">'+item[1]+'</span><span class="board-tool-copy"><strong>'+item[2]+'</strong></span>';
+          btn.onclick=function(e){e.preventDefault();original.click();};
           grid.appendChild(btn);
         });
         wrap.appendChild(grid);
