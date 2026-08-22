@@ -1,86 +1,85 @@
-Audrey Closet — v13.20-dev4 Main Update
-Canvas Default + Share Export Bug Fix
+Audrey Closet — v13.20-dev5 Main Update
+Share Return Navigation Repair + Full Board Undo
 
-1. SHARE / EXPORT RESTORED
-
-Issue:
-All three Share export modes failed with "Could not create the outfit image."
-
-Root cause:
-The original app's share renderer was patched to call the new Canvas drawing helper,
-but the Canvas helper lives inside the injected patch scope. The original share function
-could not see that helper at runtime.
-
-Fix:
-- Canvas export painter is now exposed through a controlled global bridge.
-- Unsaved Board shares use the current live Canvas.
-- Saved Portfolio shares use that outfit's saved Canvas.
-- Legacy saved outfits with no Canvas use Default.
-- All three existing export modes continue using the same Share workflow.
-
-2. PORTFOLIO CANVAS BLEED FIXED
+1. BOTTOM NAVIGATION / SHARE RETURN
 
 Issue:
-Choosing a Canvas on the current Design Board could make older Portfolio looks appear
-to use that same Canvas even though no Canvas had been selected for those looks.
+After using Share and returning to the installed PWA, the bottom navigation could become
+detached from the bottom of the viewport and appear to float in the middle of the screen.
 
 Root cause:
-When outfit.canvasBackground was undefined, the helper's JavaScript default parameter
-fell back to the currently active Design Board Canvas.
+Portfolio preview uses a body-level fixed-position scroll lock. iOS Safari / installed PWAs
+can preserve or mis-compose that fixed layer across native Share-sheet and visibility changes.
+Because the bottom navigation is also fixed, it can then render relative to the stale frozen
+body instead of the current viewport.
 
 Fix:
-- Missing / undefined saved Canvas now explicitly resolves to Default.
-- A live Board Canvas can no longer leak into unrelated Portfolio cards or previews.
+- Detect and clear stale portfolio body-lock state when no Portfolio modal is actually open.
+- Rebuild the bottom navigation's fixed compositing layer after:
+  * returning from the native Share sheet
+  * closing Share preview
+  * opening the fallback share image
+  * pageshow
+  * app visibility returning to visible
+  * visual viewport resize
+- Preserve the existing responsive bottom-nav behavior and scroll position.
 
-3. DEFAULT VS ORIGINAL
+2. BOARD UNDO UPGRADED
 
-Canvas now has two separate concepts:
+Issue:
+Undo appeared inconsistent after loading an existing Portfolio look. Moving or resizing an
+item did not enable Undo.
 
-DEFAULT
-- Restores the original pre-Canvas Design Board surface.
-- Warm cream board.
-- Fine grid.
-- Subtle design accents/arrows.
-- New outfits start on Default.
-- Clear Board returns to Default.
-- Older saved looks with no Canvas information render as Default.
+Root cause:
+The original Board Undo implementation was delete-only. boardUndoStack received entries when
+an object was removed, but drag, resize, pinch, rotate and layering actions did not create
+history.
 
-ORIGINAL
-- Clean white-paper Canvas.
-- No grid or design pattern.
-- Useful when the user wants a plain neutral sheet.
+Fix:
+Undo is now Board-state based for editing actions.
 
-The existing empty-board instructional text still appears naturally on a new/empty
-Default Board because it is part of the original Design Board UI rather than the Canvas asset.
+Undo now supports:
+- drag / move
+- resize handle
+- pinch resize
+- pinch rotation / movement
+- Rotate Left / Right
+- Back / Front layer changes
+- Copy
+- Delete (existing delete history remains compatible)
 
-4. BACKWARD COMPATIBILITY
+How it works:
+- A Board snapshot is captured before a gesture/action.
+- If the Board actually changes, the prior state is placed in Undo history.
+- Up to 20 recent Board actions are retained.
+- Undo restores the full previous Board state including position, size, rotation, z-order,
+  lock state and selection.
 
-- Existing looks explicitly saved with a Canvas continue to use it.
-- Existing looks saved before Canvas was introduced use Default.
-- Existing looks explicitly saved as the former "Original" preset remain Original
-  and now appear as clean white paper.
-- No closet, Portfolio, or Board item data migration is required.
+Loaded Portfolio looks:
+- Loading a saved look intentionally starts with a clean Undo history.
+- The first edit made after loading (move/resize/etc.) should immediately enable Undo.
+- Undo then returns the look to the state it had immediately before that edit.
 
 TEST
 
-A. Share
-1. Create a Board with Default Canvas and export each of the 3 modes.
-2. Repeat with Plaid or Denim.
-3. Repeat with Custom Color.
-4. Share a saved Portfolio look.
+Bottom Nav:
+1. Share from the active Board.
+2. Use each Share mode and return to Audrey Closet.
+3. Confirm bottom navigation remains attached to the viewport bottom.
+4. Repeat sharing from a Portfolio preview.
+5. Close the Share preview and Portfolio preview in different orders.
 
-B. Portfolio isolation
-1. Pick Plaid on the current Design Board.
-2. Open Portfolio.
-3. Confirm older looks without Canvas do NOT become Plaid.
-4. Confirm looks explicitly saved with Plaid still show Plaid.
-
-C. Default / Original
-1. Start New Board -> should show Default original-board design.
-2. Confirm empty-board instructional text is present.
-3. Select Original -> should become clean white paper.
-4. Select Default -> should restore cream/grid/design accents.
-5. Clear Board -> should return to Default.
+Undo:
+1. Load an existing look from Portfolio.
+2. Move a garment -> Undo should enable.
+3. Undo -> garment returns to previous position.
+4. Resize a garment -> Undo -> previous size returns.
+5. Pinch resize/rotate -> Undo.
+6. Rotate Left / Right -> Undo.
+7. Front / Back -> Undo.
+8. Copy -> Undo removes the copied-state change.
+9. Delete -> Undo restores the item.
+10. Perform several edits and Undo them one by one.
 
 ROLLBACK
-Replace sw.js with v13.20-dev3.
+Replace sw.js with v13.20-dev4.

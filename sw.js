@@ -1,8 +1,8 @@
-const CACHE='audrey-closet-v13.20-dev4';
+const CACHE='audrey-closet-v13.20-dev5';
 const ASSETS=['./','./index.html','./styles.css','./app.js','./manifest.webmanifest','./icon-192.png','./icon-512.png'];
 
 /*
- * v13.20-dev4 Canvas default + Share export fix.
+ * v13.20-dev5 Share return nav repair + full Board Undo.
  *
  * The current app is a single large classic app.js file. For this dev branch we
  * append the isolated tier feature when app.js is served so the stable v13.15
@@ -10,7 +10,7 @@ const ASSETS=['./','./index.html','./styles.css','./app.js','./manifest.webmanif
  * promoted, it can be folded into app.js/styles.css in the next stable release.
  */
 const TIER_PATCH=String.raw`
-;/* v13.20-dev4 — Canvas default + Share export fix */
+;/* v13.20-dev5 — Share return nav repair + full Board Undo */
 (function(){
   const CLOSET_TIERS=['S','A','B','C','D'];
   function normalizeClosetTier(value){
@@ -445,6 +445,8 @@ const TIER_PATCH=String.raw`
       '.screen[data-screen="outfits"] #outfitBoard:before{display:none!important}',
       '.screen[data-screen="outfits"] #outfitBoard[data-canvas-background="default"]{box-shadow:inset 0 0 45px rgba(108,81,66,.08)!important}',
       '.screen[data-screen="outfits"] #outfitBoard:not([data-canvas-background="default"]){box-shadow:inset 0 0 24px rgba(108,81,66,.035)!important}',
+      'body:not(.portfolio-modal-open) .bottom-nav{position:fixed!important;top:auto!important;bottom:0!important}',
+      'body.nav-repairing .bottom-nav{visibility:hidden!important}',
       '@media(max-width:410px){.screen[data-screen="outfits"] .canvas-grid{gap:5px}.screen[data-screen="outfits"] .canvas-choice{padding:3px 3px 5px}.screen[data-screen="outfits"] .canvas-choice strong{font-size:8.8px}.screen[data-screen="outfits"] .board-workspace-tab{font-size:14px!important}}',
       '@media(max-width:380px){.closet-view-options{grid-template-columns:1fr}.closet-view-option{min-height:60px}}',
       '@media(max-width:410px){#itemDialog .closet-tier-section{padding:8px 9px;gap:7px}#itemDialog .closet-tier-btn{height:34px}#itemDialog .closet-tier-heading small{max-width:125px}}'
@@ -660,7 +662,7 @@ const TIER_PATCH=String.raw`
 
     board.innerHTML='<div class="settings-group-empty">Board preferences will live here as customization options are added.</div>';
     wishlist.innerHTML='<div class="settings-group-empty">Wishlist preferences will live here as shopping and capture options expand.</div>';
-    about.innerHTML='<div class="settings-card settings-about-card"><h3>About Audrey’s Closet</h3><p class="settings-about-version">Version v13.20-dev4</p><p>A personal closet journal built around cataloging, outfits, memories and everyday wardrobe decisions.</p><p>Credits and a few hidden extras can grow here in future releases.</p></div>';
+    about.innerHTML='<div class="settings-card settings-about-card"><h3>About Audrey’s Closet</h3><p class="settings-about-version">Version v13.20-dev5</p><p>A personal closet journal built around cataloging, outfits, memories and everyday wardrobe decisions.</p><p>Credits and a few hidden extras can grow here in future releases.</p></div>';
 
     if(pageHead?.nextSibling)screen.insertBefore(groups,pageHead.nextSibling);
     else screen.appendChild(groups);
@@ -1161,6 +1163,7 @@ const TIER_PATCH=String.raw`
     ctx.restore();
   }
 
+  window.__audreyRepairBottomNavV13205=repairBottomNavigationV13205;
   window.__audreyPaintBoardCanvasV1320=paintBoardCanvasToContextV13202;
   window.__audreyGetCurrentCanvasV1320=function(){return {...boardCanvasBackgroundV1320};};
 
@@ -1194,6 +1197,177 @@ const TIER_PATCH=String.raw`
           });
       });
     });
+  }
+
+
+  // v13.20-dev5 — recover iOS/PWA viewport state after Share / modal transitions.
+  function portfolioDialogActuallyOpenV13205(){
+    return !!(
+      $('#outfitViewDialog')?.open ||
+      $('#portfolioItemPreviewDialog')?.open
+    );
+  }
+
+  function repairBottomNavigationV13205(){
+    // A stale portfolio scroll-lock can leave fixed descendants positioned relative
+    // to the frozen body after returning from the native iOS share sheet.
+    if(document.body.classList.contains('portfolio-modal-open')&&!portfolioDialogActuallyOpenV13205()){
+      const y=Number(portfolioModalScrollY)||0;
+      document.body.classList.remove('portfolio-modal-open');
+      document.body.style.top='';
+      document.body.style.left='';
+      document.body.style.right='';
+      document.body.style.width='';
+      requestAnimationFrame(function(){window.scrollTo(0,y)});
+    }
+
+    const nav=document.querySelector('.bottom-nav');
+    if(!nav)return;
+
+    // Force Safari to rebuild the fixed layer without changing the responsive
+    // positioning rules already defined in styles.css.
+    document.body.classList.add('nav-repairing');
+    void nav.offsetHeight;
+    requestAnimationFrame(function(){
+      document.body.classList.remove('nav-repairing');
+      void nav.offsetHeight;
+    });
+  }
+
+  window.addEventListener('pageshow',function(){setTimeout(repairBottomNavigationV13205,0)});
+  document.addEventListener('visibilitychange',function(){
+    if(document.visibilityState==='visible'){
+      setTimeout(repairBottomNavigationV13205,40);
+      setTimeout(repairBottomNavigationV13205,260);
+    }
+  });
+  window.visualViewport?.addEventListener('resize',function(){
+    if(document.visibilityState==='visible')setTimeout(repairBottomNavigationV13205,40);
+  });
+
+  // -------- Full Board Undo history --------
+  let boardGestureUndoStartV13205=null;
+
+  function cloneBoardStateV13205(){
+    return boardItems.map(function(item){return {...item}});
+  }
+
+  function boardStateKeyV13205(items){
+    return JSON.stringify((items||[]).map(function(x){
+      return {
+        uid:x.uid,kind:x.kind,source:x.source,id:x.id,value:x.value,shape:x.shape,
+        points:x.points,x:x.x,y:x.y,w:x.w,h:x.h,rotation:x.rotation,z:x.z,locked:!!x.locked
+      };
+    }));
+  }
+
+  function pushBoardStateUndoV13205(items,selectedUid,label='Board change'){
+    if(!items)return;
+    boardUndoStack.push({
+      type:'state',
+      items:items.map(function(x){return {...x}}),
+      selectedUid:selectedUid||null,
+      label
+    });
+    if(boardUndoStack.length>20)boardUndoStack.shift();
+    updateUndoButton();
+    syncBoardToolProxyStates?.();
+  }
+
+  function undoBoardActionV13205(){
+    const last=boardUndoStack.pop();
+    if(!last)return toast('Nothing to undo');
+
+    if(last.type==='state'){
+      boardItems=(last.items||[]).map(function(x){return {...x}});
+      selectedBoardUid=last.selectedUid||null;
+      drawBoard();
+      updateUndoButton();
+      toast('Undid '+String(last.label||'last change').toLowerCase());
+      return;
+    }
+
+    // Preserve compatibility with the original delete-only history entries.
+    if(last.item){
+      const idx=Math.max(0,Math.min(boardItems.length,Number(last.index)||0));
+      boardItems.splice(idx,0,{...last.item});
+      selectedBoardUid=last.item.uid;
+      drawBoard();
+      updateUndoButton();
+      toast('Item restored');
+      return;
+    }
+
+    updateUndoButton();
+    toast('Nothing to undo');
+  }
+
+  function installBoardGestureUndoV13205(){
+    const board=$('#outfitBoard');
+    if(!board||board.dataset.fullUndoV13205==='true')return;
+    board.dataset.fullUndoV13205='true';
+
+    board.addEventListener('pointerdown',function(e){
+      const piece=e.target.closest&&e.target.closest('.board-piece[data-uid]');
+      if(!piece||e.target.closest('.board-remove-handle'))return;
+      const model=boardItems.find(function(x){return String(x.uid)===String(piece.dataset.uid)});
+      if(!model||model.locked)return;
+      if(boardGestureUndoStartV13205)return;
+      boardGestureUndoStartV13205={
+        pointerId:e.pointerId,
+        items:cloneBoardStateV13205(),
+        selectedUid:selectedBoardUid,
+        key:boardStateKeyV13205(boardItems)
+      };
+    },true);
+
+    function finishGesture(){
+      const start=boardGestureUndoStartV13205;
+      if(!start)return;
+      boardGestureUndoStartV13205=null;
+      const after=boardStateKeyV13205(boardItems);
+      if(after!==start.key){
+        pushBoardStateUndoV13205(start.items,start.selectedUid,'move / resize');
+      }
+    }
+
+    board.addEventListener('pointerup',function(){setTimeout(finishGesture,0)},true);
+    board.addEventListener('pointercancel',function(){setTimeout(finishGesture,0)},true);
+  }
+
+  function installBoardToolUndoV13205(){
+    const tracked={
+      sendBackBtn:'layer change',
+      bringFrontBtn:'layer change',
+      rotateLeftBtn:'rotation',
+      rotateRightBtn:'rotation',
+      duplicateBoardBtn:'copy'
+    };
+
+    Object.keys(tracked).forEach(function(id){
+      const btn=$('#'+id);
+      if(!btn||btn.dataset.fullUndoV13205==='true')return;
+      btn.dataset.fullUndoV13205='true';
+      btn.addEventListener('click',function(){
+        if(btn.disabled||!selectedBoardUid)return;
+        const before=cloneBoardStateV13205();
+        const selectedBefore=selectedBoardUid;
+        const key=boardStateKeyV13205(before);
+        setTimeout(function(){
+          if(boardStateKeyV13205(boardItems)!==key){
+            pushBoardStateUndoV13205(before,selectedBefore,tracked[id]);
+          }
+        },0);
+      },true);
+    });
+
+    const undo=$('#undoBoardBtn');
+    if(undo){
+      undo.onclick=function(e){
+        e?.preventDefault?.();
+        undoBoardActionV13205();
+      };
+    }
   }
 
   function refitSavedBoardToCurrent(outfit){
@@ -1482,6 +1656,9 @@ const TIER_PATCH=String.raw`
 
   installBoardWorkspaceV3();
   installBoardCanvasV1320();
+  installBoardGestureUndoV13205();
+  installBoardToolUndoV13205();
+  repairBottomNavigationV13205();
 
   const originalRenderSavedOutfitsV13202=renderSavedOutfits;
   renderSavedOutfits=function(){
@@ -1805,6 +1982,22 @@ function withTierPatch(resp){
     const shareNew=`ctx.fillStyle='#f7f0df';ctx.fillRect(0,0,W,H);roundRectPath(ctx,pad,boardTop,drawW,drawH,42);ctx.save();ctx.clip();window.__audreyPaintBoardCanvasV1320(ctx,pad,boardTop,drawW,drawH,outfit?.canvasBackground||(!outfit?(window.__audreyGetCurrentCanvasV1320?.()||{id:'default'}):{id:'default'}));ctx.restore();
   ctx.save();roundRectPath(ctx,pad,boardTop,drawW,drawH,42);ctx.clip();`;
     if(text.includes(shareOld))text=text.replace(shareOld,shareNew);
+
+    // Repair fixed bottom navigation whenever Share UI closes or the native share
+    // sheet returns control to the PWA.
+    text=text.replace(
+      `function closeSharePreview(){const returnId=shareReturnOutfitId;`,
+      `function closeSharePreview(){window.__audreyRepairBottomNavV13205?.();setTimeout(()=>window.__audreyRepairBottomNavV13205?.(),120);const returnId=shareReturnOutfitId;`
+    );
+    text=text.replace(
+      `async function sharePreparedOutfit(){`,
+      `async function sharePreparedOutfit(){setTimeout(()=>window.__audreyRepairBottomNavV13205?.(),80);`
+    );
+    text=text.replace(
+      `function openPreparedShareImage(){`,
+      `function openPreparedShareImage(){setTimeout(()=>window.__audreyRepairBottomNavV13205?.(),80);`
+    );
+
     const headers=new Headers(resp.headers);
     headers.delete('content-length');
     return new Response(text+'\n'+TIER_PATCH,{status:resp.status,statusText:resp.statusText,headers});
