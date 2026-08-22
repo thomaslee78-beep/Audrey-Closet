@@ -1,8 +1,8 @@
-const CACHE='audrey-closet-v13.20-dev7';
+const CACHE='audrey-closet-v13.20-dev8';
 const ASSETS=['./','./index.html','./styles.css','./app.js','./manifest.webmanifest','./icon-192.png','./icon-512.png'];
 
 /*
- * v13.20-dev7 Photo Studio Original restoration fix.
+ * v13.20-dev8 Decorate Studio grouping.
  *
  * The current app is a single large classic app.js file. For this dev branch we
  * append the isolated tier feature when app.js is served so the stable v13.15
@@ -10,7 +10,7 @@ const ASSETS=['./','./index.html','./styles.css','./app.js','./manifest.webmanif
  * promoted, it can be folded into app.js/styles.css in the next stable release.
  */
 const TIER_PATCH=String.raw`
-;/* v13.20-dev7 — Photo Studio Original restoration fix */
+;/* v13.20-dev8 — Decorate Studio grouping */
 (function(){
   const CLOSET_TIERS=['S','A','B','C','D'];
   function normalizeClosetTier(value){
@@ -278,6 +278,25 @@ const TIER_PATCH=String.raw`
       '.screen[data-screen="outfits"] .board-tools-actions{display:flex;gap:7px;flex-wrap:wrap}',
       '.screen[data-screen="outfits"] .board-tools-actions .soft-btn{flex:1 1 120px}',
       '.screen[data-screen="outfits"] .board-decorate-shell{padding:10px;border:1px solid var(--line);border-radius:14px;background:rgba(255,250,240,.78)}',
+      '.screen[data-screen="outfits"] .board-decorate-shell{display:grid;gap:10px}',
+      '.screen[data-screen="outfits"] .board-decorate-shell .decorate-studio-tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}',
+      '.screen[data-screen="outfits"] .board-decorate-shell .decorate-studio-tab{min-width:0;border:1px solid rgba(108,81,66,.16);border-radius:12px;background:#f8f1e3;color:#6e6357;padding:10px 6px;display:grid;gap:4px;justify-items:center;font:800 11px/1.05 var(--sans)}',
+      '.screen[data-screen="outfits"] .board-decorate-shell .decorate-studio-tab .tab-icon{font-size:16px;line-height:1}',
+      '.screen[data-screen="outfits"] .board-decorate-shell .decorate-studio-tab.active{background:#6d7863;border-color:#6d7863;color:#fff}',
+      '.screen[data-screen="outfits"] .board-decorate-shell .decorate-studio-panel{display:none;gap:10px}',
+      '.screen[data-screen="outfits"] .board-decorate-shell .decorate-studio-panel.active{display:grid}',
+      '.screen[data-screen="outfits"] .board-decorate-shell .decorate-studio-intro{display:grid;gap:7px;padding:10px 11px;border:1px solid rgba(108,81,66,.12);border-radius:14px;background:#fffaf0}',
+      '.screen[data-screen="outfits"] .board-decorate-shell .decorate-studio-intro strong{font-family:var(--serif);font-size:18px;color:#5e5449}',
+      '.screen[data-screen="outfits"] .board-decorate-shell .decorate-studio-intro p{margin:0;color:#75695d;font-size:12px;line-height:1.35}',
+      '.screen[data-screen="outfits"] .board-decorate-shell .decorate-future-chips{display:flex;gap:6px;flex-wrap:wrap}',
+      '.screen[data-screen="outfits"] .board-decorate-shell .decorate-future-chips span{display:inline-flex;align-items:center;justify-content:center;padding:6px 9px;border-radius:999px;background:#f1eadc;border:1px solid rgba(108,81,66,.10);color:#6f6458;font:750 10px/1.1 var(--sans)}',
+      '.screen[data-screen="outfits"] .board-decorate-shell .decorate-studio-content{display:grid;gap:9px}',
+      '.screen[data-screen="outfits"] .board-decorate-shell .decorate-tool-card{padding:10px;border:1px solid rgba(108,81,66,.12);border-radius:14px;background:rgba(255,250,240,.86)}',
+      '.screen[data-screen="outfits"] .board-decorate-shell .decorate-tool-card>*:first-child{margin-top:0!important}',
+      '.screen[data-screen="outfits"] .board-decorate-shell .decorate-tool-card>*:last-child{margin-bottom:0!important}',
+      '.screen[data-screen="outfits"] .board-decorate-shell .decorate-tool-card h4{margin:0 0 6px;font-size:12px;color:#5f554a}',
+      '.screen[data-screen="outfits"] .board-decorate-shell .decorate-empty-note{padding:12px 10px;border:1px dashed rgba(108,81,66,.20);border-radius:14px;background:#fcf7ed;color:#7a6d60;font-size:12px;line-height:1.35}',
+      '@media(max-width:410px){.screen[data-screen="outfits"] .board-decorate-shell .decorate-studio-tabs{gap:5px}.screen[data-screen="outfits"] .board-decorate-shell .decorate-studio-tab{padding:8px 4px;font-size:10px}.screen[data-screen="outfits"] .board-decorate-shell .decorate-studio-intro strong{font-size:17px}.screen[data-screen="outfits"] .board-decorate-shell .decorate-studio-intro p{font-size:11px}}',
       '.screen[data-screen="outfits"] .board-decorate-shell #decorateToggle{display:none!important}',
       '.screen[data-screen="outfits"] .board-decorate-shell #creativeTools{display:grid!important}',
       '.screen[data-screen="outfits"] .board-decorate-shell #creativeTools.hidden{display:grid!important}',
@@ -662,7 +681,7 @@ const TIER_PATCH=String.raw`
 
     board.innerHTML='<div class="settings-group-empty">Board preferences will live here as customization options are added.</div>';
     wishlist.innerHTML='<div class="settings-group-empty">Wishlist preferences will live here as shopping and capture options expand.</div>';
-    about.innerHTML='<div class="settings-card settings-about-card"><h3>About Audrey’s Closet</h3><p class="settings-about-version">Version v13.20-dev7</p><p>A personal closet journal built around cataloging, outfits, memories and everyday wardrobe decisions.</p><p>Credits and a few hidden extras can grow here in future releases.</p></div>';
+    about.innerHTML='<div class="settings-card settings-about-card"><h3>About Audrey’s Closet</h3><p class="settings-about-version">Version v13.20-dev8</p><p>A personal closet journal built around cataloging, outfits, memories and everyday wardrobe decisions.</p><p>Credits and a few hidden extras can grow here in future releases.</p></div>';
 
     if(pageHead?.nextSibling)screen.insertBefore(groups,pageHead.nextSibling);
     else screen.appendChild(groups);
@@ -1733,6 +1752,7 @@ const TIER_PATCH=String.raw`
 
   installBoardWorkspaceV3();
   installBoardCanvasV1320();
+  installDecorateStudioV13208();
   installBoardGestureUndoV13205();
   installBoardToolUndoV13205();
   repairBottomNavigationV13205();
@@ -2014,6 +2034,179 @@ const TIER_PATCH=String.raw`
         startNewOutfit();
       }
     },true);
+  }
+
+
+  // v13.20-dev8 — Decorate Studio reorganization
+  const DECORATE_GROUPS_V13208=[
+    {
+      key:'text',
+      label:'Text',
+      icon:'T',
+      intro:'Add words, titles, captions, labels and mood-board notes.',
+      chips:['More fonts','Adjust text size','Tap text to edit']
+    },
+    {
+      key:'draw',
+      label:'Draw',
+      icon:'✎',
+      intro:'Sketch, circle, underline or doodle directly onto the board.',
+      chips:['Pencil / Pen','Marker / Highlighter','Sharper doodle tools']
+    },
+    {
+      key:'shapes',
+      label:'Shapes',
+      icon:'▣',
+      intro:'Use helpful visual callouts and framed elements to guide the look.',
+      chips:['Captions & arrows','Thought bubbles','Fills / patterns']
+    },
+    {
+      key:'stickers',
+      label:'Stickers',
+      icon:'★',
+      intro:'Add fun accents, emojis and themed decorative elements.',
+      chips:['Sticker themes','Cute / animal packs','Sparkles / stamps']
+    }
+  ];
+  let decorateStudioGroupV13208='text';
+
+  function decorateGroupByKeyV13208(key){
+    return DECORATE_GROUPS_V13208.find(function(g){return g.key===key})||DECORATE_GROUPS_V13208[0];
+  }
+
+  function decorateSignatureV13208(node){
+    return [
+      node.id||'',
+      node.className||'',
+      node.getAttribute?.('aria-label')||'',
+      node.getAttribute?.('title')||'',
+      node.textContent||''
+    ].join(' ').replace(/\s+/g,' ').trim().toLowerCase();
+  }
+
+  function decorateNodeGroupV13208(node){
+    if(!node)return 'text';
+    if(node.querySelector && node.querySelector('#boardTextInput'))return 'text';
+
+    const sig=decorateSignatureV13208(node);
+
+    if(/text|font|typing|caption|title|label/.test(sig))return 'text';
+    if(/draw|doodle|pen|marker|brush|highlight|highlighter|stroke|sketch/.test(sig))return 'draw';
+    if(/shape|bubble|arrow|frame|banner|callout|caption box|thought/.test(sig))return 'shapes';
+    if(/sticker|emoji|stamp|sparkle|smile|heart|star|animal|cute/.test(sig))return 'stickers';
+
+    // Stable fallback order so all controls still remain accessible.
+    return 'text';
+  }
+
+  function decoratePanelTemplateV13208(group){
+    const panel=document.createElement('section');
+    panel.className='decorate-studio-panel';
+    panel.dataset.decorateGroup=group.key;
+    panel.innerHTML=
+      '<div class="decorate-studio-intro">'+
+        '<strong>'+group.label+'</strong>'+
+        '<p>'+group.intro+'</p>'+
+        '<div class="decorate-future-chips">'+
+          group.chips.map(function(chip){return '<span>'+chip+'</span>'}).join('')+
+        '</div>'+
+      '</div>'+
+      '<div class="decorate-studio-content"></div>';
+    return panel;
+  }
+
+  function setDecorateStudioGroupV13208(key){
+    decorateStudioGroupV13208=key;
+    const shell=document.querySelector('.screen[data-screen="outfits"] .board-decorate-shell');
+    if(!shell)return;
+    shell.querySelectorAll('.decorate-studio-tab').forEach(function(btn){
+      const active=btn.dataset.decorateGroup===key;
+      btn.classList.toggle('active',active);
+      btn.setAttribute('aria-selected',active?'true':'false');
+    });
+    shell.querySelectorAll('.decorate-studio-panel').forEach(function(panel){
+      panel.classList.toggle('active',panel.dataset.decorateGroup===key);
+    });
+  }
+
+  function installDecorateStudioV13208(){
+    const shell=document.querySelector('.screen[data-screen="outfits"] .board-decorate-shell');
+    const creative=$('#creativeTools');
+    if(!shell||!creative)return;
+    if(shell.dataset.decorateStudioV13208==='true'){
+      setDecorateStudioGroupV13208(decorateStudioGroupV13208);
+      return;
+    }
+    shell.dataset.decorateStudioV13208='true';
+
+    let toggle=$('#decorateToggle');
+    if(toggle)toggle.style.display='none';
+
+    // Preserve current control logic while reorganizing the presentation.
+    creative.classList.remove('hidden');
+    creative.hidden=false;
+    creative.style.display='block';
+    creative.style.padding='0';
+    creative.style.border='0';
+    creative.style.background='transparent';
+
+    const tabs=document.createElement('div');
+    tabs.className='decorate-studio-tabs';
+    tabs.setAttribute('role','tablist');
+    tabs.setAttribute('aria-label','Decorate groups');
+
+    const panelsWrap=document.createElement('div');
+    panelsWrap.className='decorate-studio-panels';
+
+    const panelMap={};
+    DECORATE_GROUPS_V13208.forEach(function(group){
+      const btn=document.createElement('button');
+      btn.type='button';
+      btn.className='decorate-studio-tab';
+      btn.dataset.decorateGroup=group.key;
+      btn.setAttribute('role','tab');
+      btn.setAttribute('aria-selected','false');
+      btn.innerHTML='<span class="tab-icon" aria-hidden="true">'+group.icon+'</span><span>'+group.label+'</span>';
+      btn.onclick=function(){setDecorateStudioGroupV13208(group.key)};
+      tabs.appendChild(btn);
+
+      const panel=decoratePanelTemplateV13208(group);
+      panelsWrap.appendChild(panel);
+      panelMap[group.key]=panel.querySelector('.decorate-studio-content');
+    });
+
+    // Insert the new shell above the existing creative tool content,
+    // then redistribute existing sections into the new groups.
+    shell.insertBefore(tabs, creative);
+    shell.insertBefore(panelsWrap, creative);
+
+    const originalChildren=Array.from(creative.children);
+    originalChildren.forEach(function(node){
+      const group=decorateNodeGroupV13208(node);
+      const card=document.createElement('div');
+      card.className='decorate-tool-card';
+      card.dataset.decorateCard=group;
+      card.appendChild(node);
+      (panelMap[group]||panelMap.text).appendChild(card);
+    });
+
+    // If there were stray text nodes or the creative tool area used direct text content,
+    // keep the original container available but visually empty.
+    creative.innerHTML='';
+    creative.style.display='none';
+
+    // Helpful placeholder notes for groups with little or no current tooling yet.
+    DECORATE_GROUPS_V13208.forEach(function(group){
+      const content=panelMap[group.key];
+      if(content && !content.children.length){
+        const note=document.createElement('div');
+        note.className='decorate-empty-note';
+        note.textContent='This studio section is ready for the next iteration. The grouped layout is now in place so new '+group.label.toLowerCase()+' tools can be added here without redesigning the Board again.';
+        content.appendChild(note);
+      }
+    });
+
+    setDecorateStudioGroupV13208('text');
   }
 
   installBoardCaptureGuardV7();

@@ -1,82 +1,82 @@
-Audrey Closet — v13.20-dev7 Main Update
-Photo Studio Original Restoration Fix
+Audrey Closet — v13.20-dev8 Main Update
+Decorate Studio Grouping
 
-ISSUE
-In Photo Studio:
-1. Open a garment.
-2. Choose Quick background removal.
-3. Quick removes background but may also remove some garment pixels.
-4. Tap Original.
-5. Some garment pixels remain missing instead of returning to the untouched captured photo.
+PURPOSE
+Reorganize the Board Decorate area into clearer creative groups without changing
+the underlying creative tools yet.
 
-ROOT CAUSE
-The previous Original workflow did this:
-- restore studioBaseCanvas from the original image
-- call rebuildStudioWorkCanvas()
-- rebuildStudioWorkCanvas() then reapplied manual erase/restore masks
+NEW DECORATE STRUCTURE
+Decorate is now presented as a mini creative studio with four grouped sections:
 
-That meant Original was not actually guaranteed to be pristine.
+1. Text
+2. Draw
+3. Shapes
+4. Stickers
 
-There was also a related source-selection problem:
-ensureStudioOriginalCanvas() always referenced itemOriginalPhoto, even when Photo Studio
-was editing a Wishlist item.
+WHAT THIS BUILD DOES
+- Adds a new grouped Decorate Studio layout inside the existing Decorate tab.
+- Keeps the current working creative controls intact.
+- Redistributes the existing creative tool blocks into the new groups.
+- Adds a clearer visual structure so the area feels less like a loose stack of controls
+  and more like a creative studio tray.
+- Adds small roadmap chips in each group to hint at planned improvements.
 
-FIX
+GROUP THEMES
 
-ORIGINAL
-- Original now reconstructs its canvas directly from the correct captured source.
-- It does not apply cutout alpha masks.
-- It does not apply manual Erase/Restore masks.
-- Quick/Clean cutout pixels cannot remain baked into Original.
-- The status clearly says "Original captured photo selected."
+TEXT
+- Existing text-related controls stay functional.
+- Roadmap cues:
+  - More fonts
+  - Adjust text size
+  - Tap text to edit
 
-QUICK / CLEAN
-- Quick and Clean remain non-destructive alternatives.
-- Existing manual Erase/Restore masks remain available when returning to Quick/Clean.
-- Switching to Original does not destroy those retouch edits; it simply bypasses them
-  while Original is selected.
+DRAW
+- Existing doodle / draw-related controls stay functional.
+- Roadmap cues:
+  - Pencil / Pen
+  - Marker / Highlighter
+  - Sharper doodle tools
 
-TARGET CORRECTION
-- Closet Photo Studio uses itemOriginalPhoto / itemWorkingPhoto.
-- Wishlist Photo Studio uses wishOriginalPhoto / wishWorkingPhoto.
-- Each Studio session therefore rebuilds Original from the correct target source.
+SHAPES
+- Existing shape-related controls stay functional.
+- Roadmap cues:
+  - Captions & arrows
+  - Thought bubbles
+  - Fills / patterns
 
-EXPECTED BEHAVIOR
+STICKERS
+- Existing sticker / emoji-related controls stay functional.
+- Roadmap cues:
+  - Sticker themes
+  - Cute / animal packs
+  - Sparkles / stamps
 
-Original:
-Untouched captured/selected source photo.
+TECHNICAL APPROACH
+- Existing creative controls are not rewritten in this build.
+- Instead, the current #creativeTools content is reorganized into grouped panels.
+- This keeps behavior stable while establishing a cleaner structure for future iterations.
+- Empty/future sections now have a designed placeholder instead of just feeling missing.
 
-Quick:
-Automatic fast background removal.
+WHY THIS IS A GOOD DEV8 SCOPE
+This gives the Decorate area stronger information architecture and a more fun,
+intentional feel without combining too many interaction changes into the same build.
+It creates the structure we can now enhance in later dev cycles.
 
-Clean:
-More aggressive/cleaner background removal.
+WHAT TO TEST
+1. Open Board -> Decorate.
+2. Confirm new group tabs: Text / Draw / Shapes / Stickers.
+3. Switch between all four groups.
+4. Confirm the existing creative controls still appear and work.
+5. Add text and confirm current behavior still functions.
+6. Use current doodle/draw behavior if available.
+7. Try any existing sticker/shape controls.
+8. Confirm no Board / Tools / Canvas behavior is affected.
 
-Erase / Restore:
-Retouch the Quick/Clean cutout without altering Original.
-
-TEST
-1. Open an item whose Quick cutout visibly removes part of the garment.
-2. Tap Quick.
-3. Verify pixels/background are removed.
-4. Tap Original.
-Expected:
-- complete original garment returns
-- original background returns
-- no garment pixels remain missing
-5. Tap Quick again.
-Expected:
-- Quick cutout returns
-6. Use Erase or Restore on Quick.
-7. Tap Original.
-Expected:
-- pristine original still appears
-8. Return to Quick.
-Expected:
-- Quick retouch state is still available
-9. Repeat with a Wishlist photo if available.
-
-No closet photo data migration is required.
+NEXT NATURAL ITERATIONS
+- Text: more fonts, text size control, tap-to-edit selected text
+- Draw: tool styles such as pencil / marker / highlighter
+- Shapes: better callouts and bubble / arrow interactions
+- Stickers: theme packs, curated sets, visual browsing
 
 ROLLBACK
-Replace sw.js with v13.20-dev6.
+Replace sw.js with v13.20-dev7.
