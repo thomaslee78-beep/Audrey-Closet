@@ -1,96 +1,82 @@
-Audrey Closet — v13.20-dev6 Main Update
-Unified Board Undo + Safe Per-Item Delete
+Audrey Closet — v13.20-dev7 Main Update
+Photo Studio Original Restoration Fix
 
-ISSUE 1 — MOVE/RESIZE UNDO STILL SHOWED "ITEM RESTORED"
+ISSUE
+In Photo Studio:
+1. Open a garment.
+2. Choose Quick background removal.
+3. Quick removes background but may also remove some garment pixels.
+4. Tap Original.
+5. Some garment pixels remain missing instead of returning to the untouched captured photo.
 
-Observed workflow:
-Portfolio -> saved look -> Edit on Board -> Replace current board -> move an item -> Undo
+ROOT CAUSE
+The previous Original workflow did this:
+- restore studioBaseCanvas from the original image
+- call rebuildStudioWorkCanvas()
+- rebuildStudioWorkCanvas() then reapplied manual erase/restore masks
 
-Observed result:
-Toast said "Item Restored" and the moved item did not return to its previous position.
+That meant Original was not actually guaranteed to be pristine.
 
-Root cause:
-Audrey Closet still had two competing Undo systems.
+There was also a related source-selection problem:
+ensureStudioOriginalCanvas() always referenced itemOriginalPhoto, even when Photo Studio
+was editing a Wishlist item.
 
-Legacy system:
-- undoBoardDelete()
-- knows only how to restore a deleted item
-- emits "Item Restored"
+FIX
 
-New v13.20-dev5 system:
-- stores complete Board-state snapshots
-- supports move / resize / rotate / layer / copy / delete
+ORIGINAL
+- Original now reconstructs its canvas directly from the correct captured source.
+- It does not apply cutout alpha masks.
+- It does not apply manual Erase/Restore masks.
+- Quick/Clean cutout pixels cannot remain baked into Original.
+- The status clearly says "Original captured photo selected."
 
-v13.20-dev5 initially assigned a new onclick handler to #undoBoardBtn, but the normal
-app initialization later ran bindBoard() and assigned the legacy undoBoardDelete handler
-again. The legacy handler therefore won depending on initialization timing.
+QUICK / CLEAN
+- Quick and Clean remain non-destructive alternatives.
+- Existing manual Erase/Restore masks remain available when returning to Quick/Clean.
+- Switching to Original does not destroy those retouch edits; it simply bypasses them
+  while Original is selected.
 
-FIX:
-- v13.20-dev6 adds a capture-phase Undo authority.
-- Clicks on either:
-    * the visible Studio-style Undo proxy
-    * the hidden original #undoBoardBtn
-  are intercepted before any legacy onclick can run.
-- Every Undo now flows through undoBoardActionV13205().
-- The old "Item Restored" handler can no longer take over the visible Undo button.
-- Undoing a movement keeps the edited item selected when possible.
+TARGET CORRECTION
+- Closet Photo Studio uses itemOriginalPhoto / itemWorkingPhoto.
+- Wishlist Photo Studio uses wishOriginalPhoto / wishWorkingPhoto.
+- Each Studio session therefore rebuilds Original from the correct target source.
 
-ISSUE 2 — ITEM X COULD REMOVE THE WHOLE BOARD
+EXPECTED BEHAVIOR
 
-The original Board X removes an item during pointerdown, while later pointer/click events
-can occur after drawBoard() has already rebuilt the Board DOM. With the growing set of
-capture/proxy handlers this created an unsafe event path and could expose another control
-beneath the removed node.
+Original:
+Untouched captured/selected source photo.
 
-FIX:
-- The X is now intercepted before the legacy remove handler.
-- The clicked Board piece UID is resolved explicitly.
-- Exactly one array element is removed with splice(idx, 1).
-- A complete pre-delete Board snapshot is pushed to the unified Undo stack.
-- Pointer propagation is stopped before the old handler sees it.
-- The following synthesized click is swallowed so it cannot hit an underlying Board control.
+Quick:
+Automatic fast background removal.
 
-EXPECTED UNDO MODEL
+Clean:
+More aggressive/cleaner background removal.
 
-Move item -> Undo -> previous position
-Resize -> Undo -> previous size
-Pinch / rotate -> Undo -> previous geometry
-Left / Right -> Undo -> previous rotation
-Back / Front -> Undo -> previous layer
-Copy -> Undo -> removes copy state
-X / Delete -> Undo -> restores previous complete Board
+Erase / Restore:
+Retouch the Quick/Clean cutout without altering Original.
 
-TEST 1 — LOADED BOARD MOVEMENT
-1. Portfolio.
-2. Choose saved Board.
-3. Edit on Board.
-4. Replace current board.
-5. Select shirt.
-6. Move shirt to a visibly different location.
-7. Open Tools.
-8. Undo.
+TEST
+1. Open an item whose Quick cutout visibly removes part of the garment.
+2. Tap Quick.
+3. Verify pixels/background are removed.
+4. Tap Original.
 Expected:
-- shirt returns to previous location
-- toast should say "Undid move / resize"
-- NOT "Item Restored"
-
-TEST 2 — ITEM X
-1. Use a Board with at least 3 pieces.
-2. Select one garment.
-3. Tap its X.
+- complete original garment returns
+- original background returns
+- no garment pixels remain missing
+5. Tap Quick again.
 Expected:
-- only that garment disappears
-- all other Board items remain
-4. Tap Undo.
+- Quick cutout returns
+6. Use Erase or Restore on Quick.
+7. Tap Original.
 Expected:
-- complete prior Board is restored
+- pristine original still appears
+8. Return to Quick.
+Expected:
+- Quick retouch state is still available
+9. Repeat with a Wishlist photo if available.
 
-TEST 3 — MULTIPLE HISTORY
-Move -> resize -> rotate -> X
-Then Undo four times.
-Each action should unwind one at a time in reverse order.
-
-No saved outfit data migration is required.
+No closet photo data migration is required.
 
 ROLLBACK
-Replace sw.js with v13.20-dev5.
+Replace sw.js with v13.20-dev6.

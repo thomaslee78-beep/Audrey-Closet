@@ -1,8 +1,8 @@
-const CACHE='audrey-closet-v13.20-dev6';
+const CACHE='audrey-closet-v13.20-dev7';
 const ASSETS=['./','./index.html','./styles.css','./app.js','./manifest.webmanifest','./icon-192.png','./icon-512.png'];
 
 /*
- * v13.20-dev6 Unified Board Undo + safe item delete.
+ * v13.20-dev7 Photo Studio Original restoration fix.
  *
  * The current app is a single large classic app.js file. For this dev branch we
  * append the isolated tier feature when app.js is served so the stable v13.15
@@ -10,7 +10,7 @@ const ASSETS=['./','./index.html','./styles.css','./app.js','./manifest.webmanif
  * promoted, it can be folded into app.js/styles.css in the next stable release.
  */
 const TIER_PATCH=String.raw`
-;/* v13.20-dev6 — Unified Board Undo + safe item delete */
+;/* v13.20-dev7 — Photo Studio Original restoration fix */
 (function(){
   const CLOSET_TIERS=['S','A','B','C','D'];
   function normalizeClosetTier(value){
@@ -662,7 +662,7 @@ const TIER_PATCH=String.raw`
 
     board.innerHTML='<div class="settings-group-empty">Board preferences will live here as customization options are added.</div>';
     wishlist.innerHTML='<div class="settings-group-empty">Wishlist preferences will live here as shopping and capture options expand.</div>';
-    about.innerHTML='<div class="settings-card settings-about-card"><h3>About Audrey’s Closet</h3><p class="settings-about-version">Version v13.20-dev6</p><p>A personal closet journal built around cataloging, outfits, memories and everyday wardrobe decisions.</p><p>Credits and a few hidden extras can grow here in future releases.</p></div>';
+    about.innerHTML='<div class="settings-card settings-about-card"><h3>About Audrey’s Closet</h3><p class="settings-about-version">Version v13.20-dev7</p><p>A personal closet journal built around cataloging, outfits, memories and everyday wardrobe decisions.</p><p>Credits and a few hidden extras can grow here in future releases.</p></div>';
 
     if(pageHead?.nextSibling)screen.insertBefore(groups,pageHead.nextSibling);
     else screen.appendChild(groups);
@@ -2017,6 +2017,97 @@ const TIER_PATCH=String.raw`
   }
 
   installBoardCaptureGuardV7();
+
+  // v13.20-dev7 — Photo Studio Original must be a pristine source view.
+  //
+  // Prior behavior:
+  // applyStudioMode('original') restored studioBaseCanvas from the captured source,
+  // then rebuildStudioWorkCanvas() reapplied manual erase/restore masks. This meant
+  // "Original" could still have missing garment pixels after a Quick/Clean workflow.
+  //
+  // New behavior:
+  // - Original always rebuilds directly from the correct captured source.
+  // - Original bypasses cutout/manual alpha masks while it is selected.
+  // - Quick/Clean continue to use the saved non-destructive masks.
+  // - Switching back to Quick/Clean preserves the user's retouch masks.
+  // - Closet and Wishlist Studio targets both use their own correct original source.
+
+  ensureStudioOriginalCanvas=async function(){
+    const original=studioTarget==='wish'?wishOriginalPhoto:itemOriginalPhoto;
+    const fallback=studioTarget==='wish'?wishWorkingPhoto:itemWorkingPhoto;
+    const src=original||studioSourcePhoto||fallback;
+    if(!src)return null;
+
+    // Rebuild when needed from the target's true source rather than relying on
+    // a canvas that may have originated from another Studio target/session.
+    if(!studioOriginalCanvas){
+      studioOriginalCanvas=await sourceToStudioCanvas(src);
+    }
+    return studioOriginalCanvas;
+  };
+
+  const originalRebuildStudioWorkCanvasV13207=rebuildStudioWorkCanvas;
+  rebuildStudioWorkCanvas=function(){
+    if(studioMode!=='original'){
+      return originalRebuildStudioWorkCanvasV13207.apply(this,arguments);
+    }
+
+    if(!studioBaseCanvas)return;
+    studioWorkCanvas=newStudioCanvas();
+    studioWorkCanvas.getContext('2d').drawImage(studioBaseCanvas,0,0);
+
+    // Do not apply erase/restore masks to Original. Tone adjustments remain
+    // non-destructive and can still be previewed independently.
+    applyStudioAdjustmentsAndRender();
+  };
+
+  applyStudioMode=async function(mode,{showBusy=true}={}){
+    const original=studioTarget==='wish'?wishOriginalPhoto:itemOriginalPhoto;
+    const working=studioTarget==='wish'?wishWorkingPhoto:itemWorkingPhoto;
+    const src=original||studioSourcePhoto||working;
+    if(!src)return;
+
+    studioMode=mode;
+    studioLegacyMode=false;
+    $$('.studio-mode').forEach(function(b){
+      b.classList.toggle('active',b.dataset.mode===mode);
+    });
+
+    try{
+      if(mode==='original'){
+        if(showBusy){
+          $('#studioStatus').textContent='Original captured photo selected.';
+        }
+
+        // Always regenerate a pristine base from the true captured source.
+        // This avoids any possibility that a prior Quick/Clean canvas or alpha
+        // mask remains baked into the Original preview.
+        studioOriginalCanvas=await sourceToStudioCanvas(src);
+        studioBaseCanvas=newStudioCanvas();
+        studioBaseCanvas.getContext('2d').drawImage(studioOriginalCanvas,0,0);
+        rebuildStudioWorkCanvas();
+        return;
+      }
+
+      if(showBusy){
+        $('#studioStatus').textContent=
+          mode==='clean'?t('studio.cleanBuilding'):t('studio.quickBuilding');
+      }
+
+      studioCutoutPhoto=
+        mode==='clean'
+          ?await removeAdvancedBackground(src,studioEdge)
+          :await removeSimpleBackground(src,studioEdge);
+
+      studioBaseCanvas=await sourceToStudioCanvas(studioCutoutPhoto);
+      rebuildStudioWorkCanvas();
+      $('#studioStatus').textContent=t('studio.cutoutReady');
+    }catch(e){
+      console.error(e);
+      $('#studioStatus').textContent=t('studio.cutoutFailed');
+      toast('Could not remove background');
+    }
+  };
 
   installClosetTierFilter();
   installTierRibbonSetting();
