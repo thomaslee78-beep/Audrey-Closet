@@ -1,8 +1,8 @@
-const CACHE='audrey-closet-v13.18-dev8';
+const CACHE='audrey-closet-v13.18-dev9';
 const ASSETS=['./','./index.html','./styles.css','./app.js','./manifest.webmanifest','./icon-192.png','./icon-512.png'];
 
 /*
- * v13.18-dev8 Board folder-tab polish.
+ * v13.18-dev9 Board folder-tab refinement.
  *
  * The current app is a single large classic app.js file. For this dev branch we
  * append the isolated tier feature when app.js is served so the stable v13.15
@@ -10,7 +10,7 @@ const ASSETS=['./','./index.html','./styles.css','./app.js','./manifest.webmanif
  * promoted, it can be folded into app.js/styles.css in the next stable release.
  */
 const TIER_PATCH=String.raw`
-;/* v13.18-dev8 — Board folder-tab polish */
+;/* v13.18-dev9 — Board folder-tab refinement */
 (function(){
   const CLOSET_TIERS=['S','A','B','C','D'];
   function normalizeClosetTier(value){
@@ -333,6 +333,13 @@ const TIER_PATCH=String.raw`
       '.screen[data-screen="outfits"] .board-workspace-panel[data-board-panel="pick"]{padding-left:2px;padding-right:2px}',
       '.screen[data-screen="outfits"] .board-workspace-tab:not(.active):active{background:#dfd4c1}',
       '@media(max-width:410px){.screen[data-screen="outfits"] .board-workspace-tabs{top:62px;gap:2px}.screen[data-screen="outfits"] .board-workspace-tab{font-size:10px;padding:9px 5px 8px;border-radius:11px 11px 0 0!important}.screen[data-screen="outfits"] .board-workspace-tab.active{padding-bottom:10px}}',
+      '.screen[data-screen="outfits"] .board-workspace-tabs{background:#d8cdb9!important;padding:5px 5px 0;border-radius:14px 14px 0 0!important}',
+      '.screen[data-screen="outfits"] .board-workspace-tab{display:flex;align-items:center;justify-content:flex-start;text-align:left;font-family:var(--serif)!important;font-size:15px!important;font-weight:600!important;letter-spacing:0!important;color:#51483f!important;background:#cbbda6!important;padding:11px 10px 10px!important}',
+      '.screen[data-screen="outfits"] .board-workspace-tab.active{background:#eee4d2!important;color:#302a25!important}',
+      '.screen[data-screen="outfits"] .board-workspace-panel{background:#eee4d2!important}',
+      '.screen[data-screen="outfits"] .board-tools-shell,.screen[data-screen="outfits"] .board-decorate-shell,.screen[data-screen="outfits"] .board-picker-bottom{background:#eee4d2!important}',
+      '.screen[data-screen="outfits"] .board-workspace-tab:not(.active):active{background:#c2b298!important}',
+      '@media(max-width:410px){.screen[data-screen="outfits"] .board-workspace-tab{font-size:14px!important;padding:10px 8px 9px!important}}',
       '@media(max-width:380px){.closet-view-options{grid-template-columns:1fr}.closet-view-option{min-height:60px}}',
       '@media(max-width:410px){#itemDialog .closet-tier-section{padding:8px 9px;gap:7px}#itemDialog .closet-tier-btn{height:34px}#itemDialog .closet-tier-heading small{max-width:125px}}'
     ].join('');
@@ -547,7 +554,7 @@ const TIER_PATCH=String.raw`
 
     board.innerHTML='<div class="settings-group-empty">Board preferences will live here as customization options are added.</div>';
     wishlist.innerHTML='<div class="settings-group-empty">Wishlist preferences will live here as shopping and capture options expand.</div>';
-    about.innerHTML='<div class="settings-card settings-about-card"><h3>About Audrey’s Closet</h3><p class="settings-about-version">Version v13.18-dev8</p><p>A personal closet journal built around cataloging, outfits, memories and everyday wardrobe decisions.</p><p>Credits and a few hidden extras can grow here in future releases.</p></div>';
+    about.innerHTML='<div class="settings-card settings-about-card"><h3>About Audrey’s Closet</h3><p class="settings-about-version">Version v13.18-dev9</p><p>A personal closet journal built around cataloging, outfits, memories and everyday wardrobe decisions.</p><p>Credits and a few hidden extras can grow here in future releases.</p></div>';
 
     if(pageHead?.nextSibling)screen.insertBefore(groups,pageHead.nextSibling);
     else screen.appendChild(groups);
@@ -626,6 +633,8 @@ const TIER_PATCH=String.raw`
   function setBoardWorkspacePanel(name){
     const root=$('#boardWorkspace');
     if(!root)return;
+    const beforeY=window.scrollY||0;
+    const rootTopBefore=root.getBoundingClientRect().top;
     root.querySelectorAll('.board-workspace-tab').forEach(function(btn){
       const active=btn.dataset.boardPanel===name;
       btn.classList.toggle('active',active);
@@ -633,6 +642,11 @@ const TIER_PATCH=String.raw`
     });
     root.querySelectorAll('.board-workspace-panel').forEach(function(panel){
       panel.classList.toggle('active',panel.dataset.boardPanel===name);
+    });
+    requestAnimationFrame(function(){
+      const rootTopAfter=root.getBoundingClientRect().top;
+      const delta=rootTopAfter-rootTopBefore;
+      if(Math.abs(delta)>.5)window.scrollTo(0,beforeY+delta);
     });
   }
   function installBoardWorkspaceV3(){
@@ -682,7 +696,7 @@ const TIER_PATCH=String.raw`
     workspace.className='board-workspace';
     workspace.innerHTML=
       '<div class="board-workspace-tabs" role="tablist" aria-label="Board workspace">'+
-        '<button type="button" class="board-workspace-tab active" data-board-panel="pick" role="tab" aria-selected="true">Pick Pieces</button>'+
+        '<button type="button" class="board-workspace-tab active" data-board-panel="pick" role="tab" aria-selected="true">Add Items</button>'+
         '<button type="button" class="board-workspace-tab" data-board-panel="tools" role="tab" aria-selected="false">Tools</button>'+
         '<button type="button" class="board-workspace-tab" data-board-panel="decorate" role="tab" aria-selected="false">Decorate</button>'+
       '</div>'+
