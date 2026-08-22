@@ -1,8 +1,8 @@
-const CACHE='audrey-closet-v13.20-dev5';
+const CACHE='audrey-closet-v13.20-dev6';
 const ASSETS=['./','./index.html','./styles.css','./app.js','./manifest.webmanifest','./icon-192.png','./icon-512.png'];
 
 /*
- * v13.20-dev5 Share return nav repair + full Board Undo.
+ * v13.20-dev6 Unified Board Undo + safe item delete.
  *
  * The current app is a single large classic app.js file. For this dev branch we
  * append the isolated tier feature when app.js is served so the stable v13.15
@@ -10,7 +10,7 @@ const ASSETS=['./','./index.html','./styles.css','./app.js','./manifest.webmanif
  * promoted, it can be folded into app.js/styles.css in the next stable release.
  */
 const TIER_PATCH=String.raw`
-;/* v13.20-dev5 — Share return nav repair + full Board Undo */
+;/* v13.20-dev6 — Unified Board Undo + safe item delete */
 (function(){
   const CLOSET_TIERS=['S','A','B','C','D'];
   function normalizeClosetTier(value){
@@ -662,7 +662,7 @@ const TIER_PATCH=String.raw`
 
     board.innerHTML='<div class="settings-group-empty">Board preferences will live here as customization options are added.</div>';
     wishlist.innerHTML='<div class="settings-group-empty">Wishlist preferences will live here as shopping and capture options expand.</div>';
-    about.innerHTML='<div class="settings-card settings-about-card"><h3>About Audrey’s Closet</h3><p class="settings-about-version">Version v13.20-dev5</p><p>A personal closet journal built around cataloging, outfits, memories and everyday wardrobe decisions.</p><p>Credits and a few hidden extras can grow here in future releases.</p></div>';
+    about.innerHTML='<div class="settings-card settings-about-card"><h3>About Audrey’s Closet</h3><p class="settings-about-version">Version v13.20-dev6</p><p>A personal closet journal built around cataloging, outfits, memories and everyday wardrobe decisions.</p><p>Credits and a few hidden extras can grow here in future releases.</p></div>';
 
     if(pageHead?.nextSibling)screen.insertBefore(groups,pageHead.nextSibling);
     else screen.appendChild(groups);
@@ -1279,8 +1279,11 @@ const TIER_PATCH=String.raw`
     if(!last)return toast('Nothing to undo');
 
     if(last.type==='state'){
+      const currentSelected=selectedBoardUid;
       boardItems=(last.items||[]).map(function(x){return {...x}});
-      selectedBoardUid=last.selectedUid||null;
+      const selectedExists=boardItems.some(function(x){return String(x.uid)===String(currentSelected)});
+      const priorExists=boardItems.some(function(x){return String(x.uid)===String(last.selectedUid)});
+      selectedBoardUid=selectedExists?currentSelected:(priorExists?last.selectedUid:null);
       drawBoard();
       updateUndoButton();
       toast('Undid '+String(last.label||'last change').toLowerCase());
@@ -1363,12 +1366,86 @@ const TIER_PATCH=String.raw`
 
     const undo=$('#undoBoardBtn');
     if(undo){
+      // Convenience binding only; v13.20-dev6 capture authority remains definitive
+      // even if base bindBoard later replaces this onclick.
       undo.onclick=function(e){
         e?.preventDefault?.();
         undoBoardActionV13205();
       };
     }
   }
+
+
+  // v13.20-dev6 — one authoritative Board history/delete path.
+  // The base app binds undoBoardDelete() during normal initialization after this
+  // patch first runs, so capture-phase interception is required to prevent the
+  // legacy delete-only Undo handler from taking control again.
+  function installBoardHistoryAuthorityV13206(){
+    if(document.documentElement.dataset.boardHistoryAuthorityV13206==='true')return;
+    document.documentElement.dataset.boardHistoryAuthorityV13206='true';
+
+    // Undo: intercept BOTH the visible proxy and the hidden legacy button.
+    document.addEventListener('click',function(e){
+      const proxy=e.target.closest&&e.target.closest('.board-tool-action[data-proxy-for="undoBoardBtn"]');
+      const original=e.target.closest&&e.target.closest('#undoBoardBtn');
+      if(!proxy&&!original)return;
+
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      undoBoardActionV13205();
+    },true);
+
+    // Per-item X: remove exactly one Board object and store a full-state Undo entry.
+    // Intercept pointerdown because the original Board implementation also removes
+    // on pointerdown.
+    document.addEventListener('pointerdown',function(e){
+      const remove=e.target.closest&&e.target.closest('#outfitBoard .board-remove-handle');
+      if(!remove)return;
+
+      const piece=remove.closest('.board-piece[data-uid]');
+      if(!piece)return;
+      const uid=piece.dataset.uid;
+      const idx=boardItems.findIndex(function(x){return String(x.uid)===String(uid)});
+      if(idx<0)return;
+
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+
+      const before=cloneBoardStateV13205();
+      const selectedBefore=selectedBoardUid;
+      const removed=boardItems[idx];
+
+      boardItems.splice(idx,1);
+      if(String(selectedBoardUid)===String(uid))selectedBoardUid=null;
+
+      pushBoardStateUndoV13205(before,selectedBefore,'delete');
+      drawBoard();
+      updateUndoButton();
+      syncBoardToolProxyStates?.();
+      toast('Item removed');
+    },true);
+
+    // Prevent the click synthesized after the pointerdown delete from landing on
+    // newly exposed Board controls underneath the removed DOM node.
+    document.addEventListener('click',function(e){
+      const remove=e.target.closest&&e.target.closest('#outfitBoard .board-remove-handle');
+      if(!remove)return;
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+    },true);
+  }
+
+  installBoardHistoryAuthorityV13206();
+  // Re-run after the app's deferred initialization/bindBoard pass. The capture
+  // listener itself is persistent; this also refreshes button state.
+  setTimeout(function(){
+    installBoardHistoryAuthorityV13206();
+    updateUndoButton();
+    syncBoardToolProxyStates?.();
+  },250);
 
   function refitSavedBoardToCurrent(outfit){
     if(!outfit)return;

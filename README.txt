@@ -1,85 +1,96 @@
-Audrey Closet — v13.20-dev5 Main Update
-Share Return Navigation Repair + Full Board Undo
+Audrey Closet — v13.20-dev6 Main Update
+Unified Board Undo + Safe Per-Item Delete
 
-1. BOTTOM NAVIGATION / SHARE RETURN
+ISSUE 1 — MOVE/RESIZE UNDO STILL SHOWED "ITEM RESTORED"
 
-Issue:
-After using Share and returning to the installed PWA, the bottom navigation could become
-detached from the bottom of the viewport and appear to float in the middle of the screen.
+Observed workflow:
+Portfolio -> saved look -> Edit on Board -> Replace current board -> move an item -> Undo
 
-Root cause:
-Portfolio preview uses a body-level fixed-position scroll lock. iOS Safari / installed PWAs
-can preserve or mis-compose that fixed layer across native Share-sheet and visibility changes.
-Because the bottom navigation is also fixed, it can then render relative to the stale frozen
-body instead of the current viewport.
-
-Fix:
-- Detect and clear stale portfolio body-lock state when no Portfolio modal is actually open.
-- Rebuild the bottom navigation's fixed compositing layer after:
-  * returning from the native Share sheet
-  * closing Share preview
-  * opening the fallback share image
-  * pageshow
-  * app visibility returning to visible
-  * visual viewport resize
-- Preserve the existing responsive bottom-nav behavior and scroll position.
-
-2. BOARD UNDO UPGRADED
-
-Issue:
-Undo appeared inconsistent after loading an existing Portfolio look. Moving or resizing an
-item did not enable Undo.
+Observed result:
+Toast said "Item Restored" and the moved item did not return to its previous position.
 
 Root cause:
-The original Board Undo implementation was delete-only. boardUndoStack received entries when
-an object was removed, but drag, resize, pinch, rotate and layering actions did not create
-history.
+Audrey Closet still had two competing Undo systems.
 
-Fix:
-Undo is now Board-state based for editing actions.
+Legacy system:
+- undoBoardDelete()
+- knows only how to restore a deleted item
+- emits "Item Restored"
 
-Undo now supports:
-- drag / move
-- resize handle
-- pinch resize
-- pinch rotation / movement
-- Rotate Left / Right
-- Back / Front layer changes
-- Copy
-- Delete (existing delete history remains compatible)
+New v13.20-dev5 system:
+- stores complete Board-state snapshots
+- supports move / resize / rotate / layer / copy / delete
 
-How it works:
-- A Board snapshot is captured before a gesture/action.
-- If the Board actually changes, the prior state is placed in Undo history.
-- Up to 20 recent Board actions are retained.
-- Undo restores the full previous Board state including position, size, rotation, z-order,
-  lock state and selection.
+v13.20-dev5 initially assigned a new onclick handler to #undoBoardBtn, but the normal
+app initialization later ran bindBoard() and assigned the legacy undoBoardDelete handler
+again. The legacy handler therefore won depending on initialization timing.
 
-Loaded Portfolio looks:
-- Loading a saved look intentionally starts with a clean Undo history.
-- The first edit made after loading (move/resize/etc.) should immediately enable Undo.
-- Undo then returns the look to the state it had immediately before that edit.
+FIX:
+- v13.20-dev6 adds a capture-phase Undo authority.
+- Clicks on either:
+    * the visible Studio-style Undo proxy
+    * the hidden original #undoBoardBtn
+  are intercepted before any legacy onclick can run.
+- Every Undo now flows through undoBoardActionV13205().
+- The old "Item Restored" handler can no longer take over the visible Undo button.
+- Undoing a movement keeps the edited item selected when possible.
 
-TEST
+ISSUE 2 — ITEM X COULD REMOVE THE WHOLE BOARD
 
-Bottom Nav:
-1. Share from the active Board.
-2. Use each Share mode and return to Audrey Closet.
-3. Confirm bottom navigation remains attached to the viewport bottom.
-4. Repeat sharing from a Portfolio preview.
-5. Close the Share preview and Portfolio preview in different orders.
+The original Board X removes an item during pointerdown, while later pointer/click events
+can occur after drawBoard() has already rebuilt the Board DOM. With the growing set of
+capture/proxy handlers this created an unsafe event path and could expose another control
+beneath the removed node.
 
-Undo:
-1. Load an existing look from Portfolio.
-2. Move a garment -> Undo should enable.
-3. Undo -> garment returns to previous position.
-4. Resize a garment -> Undo -> previous size returns.
-5. Pinch resize/rotate -> Undo.
-6. Rotate Left / Right -> Undo.
-7. Front / Back -> Undo.
-8. Copy -> Undo removes the copied-state change.
-9. Delete -> Undo restores the item.
-10. Perform several edits and Undo them one by one.
+FIX:
+- The X is now intercepted before the legacy remove handler.
+- The clicked Board piece UID is resolved explicitly.
+- Exactly one array element is removed with splice(idx, 1).
+- A complete pre-delete Board snapshot is pushed to the unified Undo stack.
+- Pointer propagation is stopped before the old handler sees it.
+- The following synthesized click is swallowed so it cannot hit an underlying Board control.
+
+EXPECTED UNDO MODEL
+
+Move item -> Undo -> previous position
+Resize -> Undo -> previous size
+Pinch / rotate -> Undo -> previous geometry
+Left / Right -> Undo -> previous rotation
+Back / Front -> Undo -> previous layer
+Copy -> Undo -> removes copy state
+X / Delete -> Undo -> restores previous complete Board
+
+TEST 1 — LOADED BOARD MOVEMENT
+1. Portfolio.
+2. Choose saved Board.
+3. Edit on Board.
+4. Replace current board.
+5. Select shirt.
+6. Move shirt to a visibly different location.
+7. Open Tools.
+8. Undo.
+Expected:
+- shirt returns to previous location
+- toast should say "Undid move / resize"
+- NOT "Item Restored"
+
+TEST 2 — ITEM X
+1. Use a Board with at least 3 pieces.
+2. Select one garment.
+3. Tap its X.
+Expected:
+- only that garment disappears
+- all other Board items remain
+4. Tap Undo.
+Expected:
+- complete prior Board is restored
+
+TEST 3 — MULTIPLE HISTORY
+Move -> resize -> rotate -> X
+Then Undo four times.
+Each action should unwind one at a time in reverse order.
+
+No saved outfit data migration is required.
 
 ROLLBACK
-Replace sw.js with v13.20-dev4.
+Replace sw.js with v13.20-dev5.
