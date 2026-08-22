@@ -1,88 +1,57 @@
-Audrey Closet — v13.20-dev1 Main Update
-Canvas Backgrounds — First Iteration
+Audrey Closet — v13.20-dev2 Main Update
+Canvas Rendering Persistence Fix
 
-WHY "CANVAS"
-Canvas describes the surface underneath the outfit rather than a particular background style.
-The Board workspace is now:
-Add Items | Tools | Decorate | Canvas
+ROOT CAUSE
+v13.20-dev1 correctly applied the Canvas choice to the live Design Board and stored
+the selection on the saved outfit. However, Audrey Closet has several independent
+rendering paths for saved looks:
 
-CANVAS EXPERIENCE
-- New fourth workspace tab: Canvas
-- Visual category chips: All / Color / Paper / Fabric / Pattern / Fun
-- Tap a visual swatch to apply it immediately
-- Active Canvas has a check indicator
-- Custom color picker is available without a separate settings screen
-- Canvas choice saves with the outfit and reloads when editing or duplicating a saved look
-- New Board and Clear reset to Original
+1. Design Board
+2. Portfolio thumbnail
+3. Portfolio full preview
+4. Share/export image
 
-16 STARTER PRESETS
+Only #1 had been updated to consume Canvas styling. #2–#4 were still rebuilding
+the outfit against the old default board surface.
 
-Original
-1. Original cream board
+FIXES
 
-Color
-2. Blush
-3. Sage
-4. Powder Blue
-5. Charcoal
+PORTFOLIO CARDS
+- Saved-look thumbnails now read outfit.canvasBackground.
+- Colors, paper, fabric, patterns and fun Canvas presets appear behind the pieces.
 
-Paper
-6. Sketchbook
-7. Kraft
-8. Graph Paper
+FULL PORTFOLIO PREVIEW
+- #viewOutfitBoard now receives the saved Canvas styling before/while its pieces render.
+- Preview should visually match the Design Board.
 
-Fabric
-9. Linen
-10. Denim
-11. Leather
+SHARE / EXPORT
+- Share image generation no longer hard-codes the old cream/grid board.
+- The JPEG renderer now paints the selected Canvas background before drawing garments.
+- Current CSS-generated Canvas presets have matching Canvas-2D drawing equivalents.
 
-Pattern
-12. Gingham
-13. Plaid
-14. Checker
+SAVE-BEFORE-SWITCH
+- The special workflow that saves a current Board before switching to another look now
+  also persists canvasBackground.
+- Normal Save/Update behavior from dev1 is retained.
 
-Fun
-15. Tic-Tac-Toe
-16. Postcard
+EXPECTED CONSISTENCY
+One saved look should now show the same Canvas in:
+Design Board -> Portfolio card -> Portfolio preview -> Share preview/export.
 
-PLUS
-- Custom Color picker
-
-ARCHITECTURE
-- Canvas is stored as a Board/outfit property, not a draggable Board object.
-- Presets are metadata-driven by id/category/name/style.
-- This makes it possible to add future background packs without changing the core Board object model.
-- Starter backgrounds are generated locally with CSS; no external images or network calls are required.
-
-FUTURE PACK DIRECTION
-- Designer Paper
-- Textile Studio
-- Paris
-- New York
-- Travel
-- Seasonal
-- Y2K / Retro
-- Playground
-- School / Notebook
-- Minimalist
-
-NOT YET PART OF DEV1
-- Intensity / fade control
-- Image/photo scene backgrounds
-- downloadable background packs
-- user-imported custom background images
-- dedicated background management screen
+BACKWARD COMPATIBILITY
+- Looks saved before Canvas existed still use Original.
+- Existing saved looks with canvasBackground from dev1 should begin rendering correctly
+  without needing to be recreated.
 
 TEST
-1. Confirm four folder tabs fit: Add Items / Tools / Decorate / Canvas.
-2. Open Canvas and tap each category.
-3. Apply several presets and confirm the Board updates immediately.
-4. Try Custom Color.
-5. Add garments over light, dark, textured and patterned Canvas choices.
-6. Save a look and reopen it; confirm Canvas selection returns.
-7. Duplicate a saved look; confirm Canvas selection carries over.
-8. Start New or Clear; confirm Canvas resets to Original.
-9. Confirm Add Items, Tools and Decorate behavior is unchanged.
+1. Create look with Plaid Canvas and save.
+2. Verify Plaid in Portfolio tile.
+3. Open look and verify Plaid in full preview.
+4. Share it and verify Plaid in image preview.
+5. Repeat with solid color, Graph Paper, Denim, Tic-Tac-Toe and Custom Color.
+6. Reopen/edit saved look and verify Canvas remains selected.
+7. Test Save Current Board during a board-switch conflict.
+8. Confirm legacy looks still render with Original canvas.
 
 ROLLBACK
-Replace sw.js with v13.19-dev5.
+Replace sw.js with v13.20-dev1.

@@ -1,8 +1,8 @@
-const CACHE='audrey-closet-v13.20-dev1';
+const CACHE='audrey-closet-v13.20-dev2';
 const ASSETS=['./','./index.html','./styles.css','./app.js','./manifest.webmanifest','./icon-192.png','./icon-512.png'];
 
 /*
- * v13.20-dev1 Canvas backgrounds.
+ * v13.20-dev2 Canvas persistence across Portfolio and Share.
  *
  * The current app is a single large classic app.js file. For this dev branch we
  * append the isolated tier feature when app.js is served so the stable v13.15
@@ -10,7 +10,7 @@ const ASSETS=['./','./index.html','./styles.css','./app.js','./manifest.webmanif
  * promoted, it can be folded into app.js/styles.css in the next stable release.
  */
 const TIER_PATCH=String.raw`
-;/* v13.20-dev1 — Canvas backgrounds */
+;/* v13.20-dev2 — Canvas persistence across Portfolio and Share */
 (function(){
   const CLOSET_TIERS=['S','A','B','C','D'];
   function normalizeClosetTier(value){
@@ -651,7 +651,7 @@ const TIER_PATCH=String.raw`
 
     board.innerHTML='<div class="settings-group-empty">Board preferences will live here as customization options are added.</div>';
     wishlist.innerHTML='<div class="settings-group-empty">Wishlist preferences will live here as shopping and capture options expand.</div>';
-    about.innerHTML='<div class="settings-card settings-about-card"><h3>About Audrey’s Closet</h3><p class="settings-about-version">Version v13.20-dev1</p><p>A personal closet journal built around cataloging, outfits, memories and everyday wardrobe decisions.</p><p>Credits and a few hidden extras can grow here in future releases.</p></div>';
+    about.innerHTML='<div class="settings-card settings-about-card"><h3>About Audrey’s Closet</h3><p class="settings-about-version">Version v13.20-dev2</p><p>A personal closet journal built around cataloging, outfits, memories and everyday wardrobe decisions.</p><p>Credits and a few hidden extras can grow here in future releases.</p></div>';
 
     if(pageHead?.nextSibling)screen.insertBefore(groups,pageHead.nextSibling);
     else screen.appendChild(groups);
@@ -1006,6 +1006,135 @@ const TIER_PATCH=String.raw`
     applyBoardCanvasV1320();
   }
 
+
+  function boardCanvasElementStyleV13202(el,value){
+    if(!el)return;
+    const def=boardCanvasDefV1320(value);
+    el.style.backgroundColor=def.color||'#fbf6ec';
+    el.style.backgroundImage=def.image||'none';
+    el.style.backgroundSize=def.size||'auto';
+    el.style.backgroundPosition=def.position||'0 0';
+    el.style.backgroundRepeat=def.id==='postcard'?'repeat-x':'repeat';
+    el.dataset.canvasBackground=def.id;
+    el.dataset.canvasDark=def.dark?'true':'false';
+  }
+
+  function paintBoardCanvasToContextV13202(ctx,x,y,w,h,value){
+    const def=boardCanvasDefV1320(value);
+    const id=def.id;
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(x,y,w,h);
+    ctx.clip();
+
+    ctx.fillStyle=def.color||'#fbf6ec';
+    ctx.fillRect(x,y,w,h);
+
+    if(id==='sketchbook'){
+      ctx.strokeStyle='rgba(93,82,67,.10)';
+      ctx.lineWidth=1;
+      const step=Math.max(8,w/90);
+      for(let yy=y;yy<=y+h;yy+=step){
+        ctx.beginPath();ctx.moveTo(x,yy);ctx.lineTo(x+w,yy);ctx.stroke();
+      }
+    }else if(id==='kraft'){
+      ctx.fillStyle='rgba(83,60,38,.11)';
+      const step=Math.max(14,w/52);
+      for(let yy=y+step*.5,row=0;yy<y+h;yy+=step,row++){
+        for(let xx=x+step*.5;xx<x+w;xx+=step){
+          const jitter=((row+Math.round(xx/step))%3)*.8;
+          ctx.beginPath();ctx.arc(xx+jitter,yy,1.05,0,Math.PI*2);ctx.fill();
+        }
+      }
+    }else if(id==='graph'){
+      ctx.strokeStyle='rgba(82,119,132,.16)';
+      ctx.lineWidth=1;
+      const step=Math.max(16,w/52);
+      for(let xx=x;xx<=x+w;xx+=step){ctx.beginPath();ctx.moveTo(xx,y);ctx.lineTo(xx,y+h);ctx.stroke()}
+      for(let yy=y;yy<=y+h;yy+=step){ctx.beginPath();ctx.moveTo(x,yy);ctx.lineTo(x+w,yy);ctx.stroke()}
+    }else if(id==='linen'){
+      ctx.lineWidth=1;
+      const step=Math.max(5,w/150);
+      ctx.strokeStyle='rgba(103,87,67,.08)';
+      for(let yy=y;yy<=y+h;yy+=step){ctx.beginPath();ctx.moveTo(x,yy);ctx.lineTo(x+w,yy);ctx.stroke()}
+      ctx.strokeStyle='rgba(255,255,255,.20)';
+      for(let xx=x;xx<=x+w;xx+=step*1.2){ctx.beginPath();ctx.moveTo(xx,y);ctx.lineTo(xx,y+h);ctx.stroke()}
+    }else if(id==='denim'){
+      ctx.lineWidth=1;
+      const step=Math.max(6,w/135);
+      ctx.strokeStyle='rgba(255,255,255,.08)';
+      for(let n=-h;n<w+h;n+=step){ctx.beginPath();ctx.moveTo(x+n,y);ctx.lineTo(x+n+h,y+h);ctx.stroke()}
+      ctx.strokeStyle='rgba(22,39,58,.11)';
+      for(let n=0;n<w+h;n+=step*1.25){ctx.beginPath();ctx.moveTo(x+n,y);ctx.lineTo(x+n-h,y+h);ctx.stroke()}
+    }else if(id==='leather'){
+      const g=ctx.createRadialGradient(x+w*.25,y+h*.2,0,x+w*.25,y+h*.2,Math.max(w,h)*.65);
+      g.addColorStop(0,'rgba(255,255,255,.08)');
+      g.addColorStop(1,'rgba(30,17,12,.10)');
+      ctx.fillStyle=g;ctx.fillRect(x,y,w,h);
+    }else if(id==='gingham'){
+      const s=Math.max(26,w/34);
+      ctx.fillStyle='rgba(125,70,83,.13)';
+      for(let xx=x;xx<x+w;xx+=s*2)ctx.fillRect(xx,y,s,w*0+h);
+      for(let yy=y;yy<y+h;yy+=s*2)ctx.fillRect(x,yy,w,s);
+    }else if(id==='plaid'){
+      const s=Math.max(34,w/27);
+      ctx.fillStyle='rgba(91,70,53,.14)';
+      for(let xx=x+s*.7;xx<x+w;xx+=s)ctx.fillRect(xx,y,s*.14,h);
+      for(let yy=y+s*.6;yy<y+h;yy+=s)ctx.fillRect(x,yy,w,s*.14);
+      ctx.fillStyle='rgba(125,53,71,.11)';
+      for(let xx=x+s*.2;xx<x+w;xx+=s*2)ctx.fillRect(xx,y,s*.10,h);
+      for(let yy=y+s*.15;yy<y+h;yy+=s*2)ctx.fillRect(x,yy,w,s*.10);
+    }else if(id==='checker'){
+      const s=Math.max(22,w/34);
+      ctx.fillStyle='rgba(74,67,60,.19)';
+      let row=0;
+      for(let yy=y;yy<y+h;yy+=s,row++){
+        for(let xx=x+(row%2?s:0);xx<x+w;xx+=s*2)ctx.fillRect(xx,yy,s,s);
+      }
+    }else if(id==='tic-tac-toe'){
+      const s=Math.max(76,w/12);
+      ctx.strokeStyle='rgba(109,120,99,.17)';
+      ctx.lineWidth=Math.max(1.5,w/500);
+      for(let ox=x;ox<x+w;ox+=s){
+        for(let oy=y;oy<y+h;oy+=s){
+          ctx.beginPath();ctx.moveTo(ox+s/3,oy);ctx.lineTo(ox+s/3,oy+s);ctx.stroke();
+          ctx.beginPath();ctx.moveTo(ox+2*s/3,oy);ctx.lineTo(ox+2*s/3,oy+s);ctx.stroke();
+          ctx.beginPath();ctx.moveTo(ox,oy+s/3);ctx.lineTo(ox+s,oy+s/3);ctx.stroke();
+          ctx.beginPath();ctx.moveTo(ox,oy+2*s/3);ctx.lineTo(ox+s,oy+2*s/3);ctx.stroke();
+        }
+      }
+    }else if(id==='postcard'){
+      const stripe=Math.max(8,w/100);
+      const band=Math.max(18,h*.035);
+      for(let xx=x-band;xx<x+w+band;xx+=stripe*2){
+        ctx.save();
+        ctx.translate(xx,y+band/2);
+        ctx.rotate(-Math.PI/4);
+        ctx.fillStyle='rgba(125,53,71,.13)';
+        ctx.fillRect(0,-band,stripe,band*2);
+        ctx.restore();
+      }
+      for(let xx=x-band+stripe;xx<x+w+band;xx+=stripe*2){
+        ctx.save();
+        ctx.translate(xx,y+band/2);
+        ctx.rotate(-Math.PI/4);
+        ctx.fillStyle='rgba(83,111,146,.13)';
+        ctx.fillRect(0,-band,stripe,band*2);
+        ctx.restore();
+      }
+    }
+
+    ctx.restore();
+  }
+
+  function refreshPortfolioCanvasBackgroundsV13202(){
+    document.querySelectorAll('#savedOutfits .portfolio-card[data-id]').forEach(function(card){
+      const outfit=state.outfits.find(function(o){return String(o.id)===String(card.dataset.id)});
+      const mini=card.querySelector('.outfit-mini');
+      if(outfit&&mini)boardCanvasElementStyleV13202(mini,outfit.canvasBackground);
+    });
+  }
+
   function refitSavedBoardToCurrent(outfit){
     if(!outfit)return;
     setTimeout(function(){
@@ -1244,6 +1373,21 @@ const TIER_PATCH=String.raw`
     return result;
   };
 
+  const originalSaveCurrentBoardForSwitchV13202=saveCurrentBoardForSwitch;
+  saveCurrentBoardForSwitch=async function(){
+    const result=await originalSaveCurrentBoardForSwitchV13202.apply(this,arguments);
+    if(result===false)return result;
+    if(editingOutfitId){
+      const outfit=state.outfits.find(function(x){return x.id===editingOutfitId});
+      if(outfit){
+        outfit.canvasBackground={...boardCanvasBackgroundV1320};
+        await saveState();
+        renderSavedOutfits();
+      }
+    }
+    return result;
+  };
+
   const originalStartNewOutfitV1320=startNewOutfit;
   startNewOutfit=function(){
     const result=originalStartNewOutfitV1320.apply(this,arguments);
@@ -1277,6 +1421,27 @@ const TIER_PATCH=String.raw`
 
   installBoardWorkspaceV3();
   installBoardCanvasV1320();
+
+  const originalRenderSavedOutfitsV13202=renderSavedOutfits;
+  renderSavedOutfits=function(){
+    const result=originalRenderSavedOutfitsV13202.apply(this,arguments);
+    refreshPortfolioCanvasBackgroundsV13202();
+    return result;
+  };
+
+  const originalViewOutfitV13202=viewOutfit;
+  viewOutfit=function(oid){
+    const outfit=state.outfits.find(function(o){return o.id===oid});
+    const result=originalViewOutfitV13202.apply(this,arguments);
+    const board=$('#viewOutfitBoard');
+    if(board)boardCanvasElementStyleV13202(board,outfit?.canvasBackground);
+    requestAnimationFrame(function(){
+      const live=$('#viewOutfitBoard');
+      if(live)boardCanvasElementStyleV13202(live,outfit?.canvasBackground);
+    });
+    return result;
+  };
+
   setTimeout(installBoardConfirmationsV6,0);
 
   let boardPickerSearch='';
@@ -1572,6 +1737,13 @@ const TIER_PATCH=String.raw`
 
 function withTierPatch(resp){
   return resp.text().then(text=>{
+    // v13.20-dev2: make the share renderer consume the same saved Canvas background
+    // rather than hard-coding the legacy cream/grid board.
+    const shareOld=`ctx.fillStyle='#f7f0df';ctx.fillRect(0,0,W,H);ctx.fillStyle='#efe9d9';roundRectPath(ctx,pad,boardTop,drawW,drawH,42);ctx.fill();
+  ctx.save();roundRectPath(ctx,pad,boardTop,drawW,drawH,42);ctx.clip();ctx.strokeStyle='rgba(108,81,66,.10)';ctx.lineWidth=2;const grid=24*scale;for(let x=pad;x<=pad+drawW;x+=grid){ctx.beginPath();ctx.moveTo(x,boardTop);ctx.lineTo(x,boardTop+drawH);ctx.stroke()}for(let y=boardTop;y<=boardTop+drawH;y+=grid){ctx.beginPath();ctx.moveTo(pad,y);ctx.lineTo(pad+drawW,y);ctx.stroke()}`;
+    const shareNew=`ctx.fillStyle='#f7f0df';ctx.fillRect(0,0,W,H);roundRectPath(ctx,pad,boardTop,drawW,drawH,42);ctx.save();ctx.clip();paintBoardCanvasToContextV13202(ctx,pad,boardTop,drawW,drawH,outfit?.canvasBackground||(!outfit?boardCanvasBackgroundV1320:null));ctx.restore();
+  ctx.save();roundRectPath(ctx,pad,boardTop,drawW,drawH,42);ctx.clip();`;
+    if(text.includes(shareOld))text=text.replace(shareOld,shareNew);
     const headers=new Headers(resp.headers);
     headers.delete('content-length');
     return new Response(text+'\n'+TIER_PATCH,{status:resp.status,statusText:resp.statusText,headers});
