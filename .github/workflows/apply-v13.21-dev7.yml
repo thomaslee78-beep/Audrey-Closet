@@ -1,0 +1,75 @@
+name: Apply v13.21-dev7
+
+on:
+  push:
+    paths:
+      - '.github/workflows/apply-v13.21-dev7.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Add Text Studio Clear / Undo draft control
+        shell: python
+        run: |
+          from pathlib import Path
+
+          sw = Path('sw.js')
+          text = sw.read_text()
+          text = text.replace("const CACHE='audrey-closet-v13.21-dev6';", "const CACHE='audrey-closet-v13.21-dev7';", 1)
+
+          # Temporary edit-only state. This does not change the Board object until Update.
+          anchor = "let textDraftStyleV132011={font:'script',size:'medium',bold:false,italic:false,underline:false,color:'#7d3547',align:'center'};"
+          insert = anchor + "\n  let textEditClearStateV13217={uid:null,original:'',cleared:false};"
+          if anchor not in text:
+            raise SystemExit('Text draft style anchor not found')
+          text = text.replace(anchor, insert, 1)
+
+          old_sync = "function syncTextStudioV132011(){const studio=$('#boardTextStudioV132011');if(!studio)return;const selected=selectedTextPieceV132011(),ta=$('#boardTextInput'),add=$('#addBoardTextBtn');studio.classList.toggle('is-editing',!!selected);if(selected){if(document.activeElement!==ta)ta.value=selected.value||'';textDraftStyleV132011={...selected.textStyle};add.textContent='Update text'}else add.textContent='Add text';const style=selected?selected.textStyle:textDraftStyleV132011;"
+          new_sync = "function syncTextStudioV132011(){const studio=$('#boardTextStudioV132011');if(!studio)return;const selected=selectedTextPieceV132011(),ta=$('#boardTextInput'),add=$('#addBoardTextBtn'),clearBtn=$('#boardTextClearBtnV13217');studio.classList.toggle('is-editing',!!selected);if(selected){if(String(textEditClearStateV13217.uid)!==String(selected.uid)){textEditClearStateV13217={uid:selected.uid,original:selected.value||'',cleared:false}}if(document.activeElement!==ta)ta.value=textEditClearStateV13217.cleared?'':(selected.value||'');textDraftStyleV132011={...selected.textStyle};add.textContent='Update text';if(clearBtn)clearBtn.textContent=textEditClearStateV13217.cleared?'Undo':'Clear'}else{textEditClearStateV13217={uid:null,original:'',cleared:false};add.textContent='Add text';if(clearBtn)clearBtn.textContent='Clear'}const style=selected?selected.textStyle:textDraftStyleV132011;"
+          if old_sync not in text:
+            raise SystemExit('Text sync function anchor not found')
+          text = text.replace(old_sync, new_sync, 1)
+
+          old_update = "function addOrUpdateBoardTextV132011(){const ta=$('#boardTextInput'),value=String(ta?.value||'').trim();if(!value)return toast('Type something first');const selected=selectedTextPieceV132011();if(selected){pushTextUndoV132011('text edit');selected.value=value;drawBoard();toast('Text updated');return}"
+          new_update = "function addOrUpdateBoardTextV132011(){const ta=$('#boardTextInput'),value=String(ta?.value||'').trim();if(!value)return toast('Type something first');const selected=selectedTextPieceV132011();if(selected){pushTextUndoV132011('text edit');selected.value=value;textEditClearStateV13217={uid:selected.uid,original:value,cleared:false};drawBoard();toast('Text updated');return}"
+          if old_update not in text:
+            raise SystemExit('Text update function anchor not found')
+          text = text.replace(old_update, new_update, 1)
+
+          # Add the Clear button between Add/Update and Color in the compact action stack.
+          old_stack = "stack.appendChild(add);\n      let colorInput=$('#boardTextColorInputV13213');"
+          new_stack = "stack.appendChild(add);\n      let clearBtn=$('#boardTextClearBtnV13217');\n      if(!clearBtn){clearBtn=document.createElement('button');clearBtn.type='button';clearBtn.id='boardTextClearBtnV13217';clearBtn.className='text-clear-btn';clearBtn.textContent='Clear';stack.appendChild(clearBtn);clearBtn.onclick=function(e){e.preventDefault();const selected=selectedTextPieceV132011();if(selected){if(String(textEditClearStateV13217.uid)!==String(selected.uid)){textEditClearStateV13217={uid:selected.uid,original:selected.value||'',cleared:false}}if(textEditClearStateV13217.cleared){ta.value=textEditClearStateV13217.original||'';textEditClearStateV13217.cleared=false;clearBtn.textContent='Clear'}else{textEditClearStateV13217.original=selected.value||'';ta.value='';textEditClearStateV13217.cleared=true;clearBtn.textContent='Undo'}ta.focus()}else{ta.value='';clearBtn.textContent='Clear';ta.focus()}}}\n      let colorInput=$('#boardTextColorInputV13213');"
+          if old_stack not in text:
+            raise SystemExit('Text action stack anchor not found')
+          text = text.replace(old_stack, new_stack, 1)
+
+          # Make the action stack three controls tall: Add/Update, Clear/Undo, Color.
+          old_css = "'.screen[data-screen=\"outfits\"] .text-action-stack{display:grid;grid-template-rows:minmax(68px,1fr) 36px;gap:7px;min-width:92px}',"
+          new_css = "'.screen[data-screen=\"outfits\"] .text-action-stack{display:grid;grid-template-rows:minmax(54px,1fr) 34px 36px;gap:6px;min-width:92px}',\n      '.screen[data-screen=\"outfits\"] .text-clear-btn{width:92px;height:34px;border:1px solid rgba(108,81,66,.20);border-radius:10px;background:#f8f1e3;color:#665c50;font:700 12px var(--sans);padding:0 8px}',\n      '.screen[data-screen=\"outfits\"] .text-clear-btn:active{transform:translateY(1px)}',"
+          if old_css not in text:
+            raise SystemExit('Text action stack CSS anchor not found')
+          text = text.replace(old_css, new_css, 1)
+
+          sw.write_text(text)
+
+          index = Path('index.html')
+          html = index.read_text()
+          html = html.replace('manifest.webmanifest?v=13.21-dev6', 'manifest.webmanifest?v=13.21-dev7')
+          html = html.replace('styles.css?v=13.21-dev6', 'styles.css?v=13.21-dev7')
+          html = html.replace('app.js?v=13.21-dev6', 'app.js?v=13.21-dev7')
+          html = html.replace("./sw.js?v=13.21-dev6", "./sw.js?v=13.21-dev7")
+          index.write_text(html)
+
+      - name: Commit dev7
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add sw.js index.html
+          git commit -m "v13.21-dev7 add Text Studio Clear Undo control"
+          git push
