@@ -1,0 +1,45 @@
+name: Create v13.22 release
+
+on:
+  push:
+    paths:
+      - '.github/workflows/create-v13.22-release.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create stable tag and GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          TARGET_SHA: 44486b90089c0b64c71251bb2ef7dbd29767aab2
+        run: |
+          set -e
+          git clone "https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git" repo
+          cd repo
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch --tags origin
+          if git rev-parse "refs/tags/v13.22" >/dev/null 2>&1; then
+            existing="$(git rev-list -n 1 v13.22)"
+            if [ "$existing" != "$TARGET_SHA" ]; then
+              echo "v13.22 already exists at $existing; refusing to move it"
+              exit 1
+            fi
+          else
+            git tag -a v13.22 "$TARGET_SHA" -m "Audrey Closet v13.22 — Enhanced Text Studio"
+            git push origin v13.22
+          fi
+          if gh release view v13.22 --repo "$REPO" >/dev/null 2>&1; then
+            echo "GitHub Release v13.22 already exists"
+          else
+            gh release create v13.22 \
+              --repo "$REPO" \
+              --title "Audrey Closet v13.22 — Enhanced Text Studio" \
+              --notes "Stable release for the enhanced Text Studio functionality.\n\nHighlights:\n- Expanded Text Studio fonts and font sizing\n- Bold, italic, and underline formatting\n- Text color picker\n- Left, center, and right alignment\n- Compact Text Studio layout\n- Clear/Undo editing behavior\n- Saved-look Share pipeline experiment with flattened board export\n\nKnown issue: Share rendering still has some background and pattern inconsistencies. These are intentionally deferred to a future development build.\n\nStable rollback branch: release/v13.22\nStable source commit: 44486b90089c0b64c71251bb2ef7dbd29767aab2"
+          fi
