@@ -23,16 +23,12 @@ jobs:
           text = sw.read_text()
           text = text.replace("const CACHE='audrey-closet-v13.21-dev10';", "const CACHE='audrey-closet-v13.21-dev11';", 1)
 
-          # Canvas uses a slightly stricter family string than DOM CSS so iOS
-          # does not drop the entire font declaration when one local family is unavailable.
           old_canvas = "function canvasFontV132011(style,px){const s=normalizeTextStyleV132011(style),f=BOARD_TEXT_FONTS_V132011[s.font];return (s.italic?'italic ':'')+(s.bold?700:(f.weight||400))+' '+Math.max(7,px)+'px '+f.css}"
           new_canvas = "function canvasFontV132011(style,px){const s=normalizeTextStyleV132011(style),f=BOARD_TEXT_FONTS_V132011[s.font],families={script:'\\\"Snell Roundhand\\\",\\\"Segoe Script\\\",cursive',editorial:'\\\"Iowan Old Style\\\",Palatino,Georgia,serif',classic:'Georgia,\\\"Times New Roman\\\",serif',modern:'\\\"Avenir Next\\\",\\\"Helvetica Neue\\\",Arial,sans-serif',clean:'system-ui,\\\"Segoe UI\\\",Arial,sans-serif',thin:'\\\"Avenir Next\\\",\\\"Helvetica Neue\\\",Arial,sans-serif',rounded:'\\\"Avenir Next Rounded\\\",\\\"Trebuchet MS\\\",Arial,sans-serif',handwritten:'\\\"Bradley Hand\\\",Noteworthy,\\\"Marker Felt\\\",cursive',typewriter:'Menlo,\\\"Courier New\\\",monospace',fun:'\\\"Chalkboard SE\\\",\\\"Marker Felt\\\",\\\"Comic Sans MS\\\",cursive'};return (s.italic?'italic ':'')+(s.bold?700:(f.weight||400))+' '+Math.max(7,px)+'px '+(families[s.font]||f.css)}"
           if old_canvas not in text:
             raise SystemExit('Canvas font resolver anchor not found')
           text = text.replace(old_canvas, new_canvas, 1)
 
-          # Portfolio thumbnail cards previously ignored textStyle entirely.
-          # Override only the text branch and preserve every non-text mini renderer.
           anchor = "window.__audreyDrawBoardTextV132011=drawBoardTextToContextV132011;"
           portfolio_patch = r'''
   const originalRenderMiniPieceV132111=renderMiniPiece;
@@ -54,32 +50,6 @@ jobs:
       'white-space:pre-wrap','line-height:1.08','overflow:hidden'
     ].join(';');
     return '<span class="portfolio-deco mini-deco" style="'+style+'">'+esc(p.value||'')+'</span>';
-  };
-
-  function refreshPortfolioTextStylesV132111(root=document){
-    if(!root?.querySelectorAll)return;
-    root.querySelectorAll('.snapshot-piece.kind-text').forEach(function(piece){
-      const node=piece.querySelector('.board-text');
-      if(!node)return;
-      // Snapshot text is already styled by renderSnapshotPiece; force a reflow
-      // after modal/card insertion so iOS applies local font fallbacks consistently.
-      const family=node.style.fontFamily;
-      if(family){node.style.fontFamily='';void node.offsetWidth;node.style.fontFamily=family}
-    });
-  }
-
-  const originalRenderSavedOutfitsV132111=renderSavedOutfits;
-  renderSavedOutfits=function(){
-    const result=originalRenderSavedOutfitsV132111.apply(this,arguments);
-    requestAnimationFrame(function(){refreshPortfolioTextStylesV132111($('#savedOutfits'))});
-    return result;
-  };
-
-  const originalViewOutfitV132111=viewOutfit;
-  viewOutfit=function(oid){
-    const result=originalViewOutfitV132111.apply(this,arguments);
-    requestAnimationFrame(function(){refreshPortfolioTextStylesV132111($('#outfitViewDialog'))});
-    return result;
   };
 '''
           if anchor not in text:
