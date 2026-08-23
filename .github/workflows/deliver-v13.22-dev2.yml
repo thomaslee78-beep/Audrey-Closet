@@ -1,0 +1,45 @@
+name: Deliver v13.22-dev2
+
+on:
+  push:
+    paths:
+      - '.github/workflows/deliver-v13.22-dev2.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  deliver:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Bump PWA delivery to dev2
+        shell: python
+        run: |
+          from pathlib import Path
+
+          sw=Path('sw.js')
+          text=sw.read_text()
+          old="const CACHE='audrey-closet-v13.22-dev1b';"
+          new="const CACHE='audrey-closet-v13.22-dev2';"
+          if old not in text:
+            raise SystemExit('Expected dev1b cache anchor not found')
+          sw.write_text(text.replace(old,new,1))
+
+          index=Path('index.html')
+          html=index.read_text()
+          html=html.replace('manifest.webmanifest?v=13.22-dev1b','manifest.webmanifest?v=13.22-dev2')
+          html=html.replace('styles.css?v=13.22-dev1b','styles.css?v=13.22-dev2')
+          html=html.replace('app.js?v=13.22-dev1b','app.js?v=13.22-dev2')
+          html=html.replace('shape-studio-v13.22-dev1.js?v=13.22-dev1b','shape-studio-v13.22-dev1.js?v=13.22-dev2')
+          html=html.replace('./sw.js?v=13.22-dev1b','./sw.js?v=13.22-dev2')
+          index.write_text(html)
+
+      - name: Commit dev2 delivery
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add sw.js index.html
+          git commit -m "v13.22-dev2 bump PWA delivery"
+          git push
