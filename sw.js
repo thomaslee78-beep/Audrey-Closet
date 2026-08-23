@@ -1,8 +1,8 @@
-const CACHE='audrey-closet-v13.20-dev14';
+const CACHE='audrey-closet-v13.20-dev15';
 const ASSETS=['./','./index.html','./styles.css','./app.js','./manifest.webmanifest','./icon-192.png','./icon-512.png'];
 
 /*
- * v13.20-dev14 Text Studio layout refinement.
+ * v13.20-dev15 Text Studio control cleanup.
  *
  * The current app is a single large classic app.js file. For this dev branch we
  * append the isolated tier feature when app.js is served so the stable v13.15
@@ -10,7 +10,7 @@ const ASSETS=['./','./index.html','./styles.css','./app.js','./manifest.webmanif
  * promoted, it can be folded into app.js/styles.css in the next stable release.
  */
 const TIER_PATCH=String.raw`
-;/* v13.20-dev14 — Text Studio layout refinement */
+;/* v13.20-dev15 — Text Studio control cleanup */
 (function(){
   const CLOSET_TIERS=['S','A','B','C','D'];
   function normalizeClosetTier(value){
@@ -367,6 +367,23 @@ const TIER_PATCH=String.raw`
       '.screen[data-screen="outfits"] .text-clear-btn-v132014.undo-ready{background:#eef0e8;border-color:rgba(102,113,90,.28);color:#53604d}',
       '.screen[data-screen="outfits"] .text-font-toggle,.screen[data-screen="outfits"] .text-font-popover,.screen[data-screen="outfits"] .text-style-tools-v132013{display:none!important}',
       '@media(max-width:410px){.screen[data-screen="outfits"] .text-type-row-v132014{grid-template-columns:auto minmax(0,1fr) auto}.screen[data-screen="outfits"] .text-type-row-v132014 .text-color-menu-v132014{grid-column:3}.screen[data-screen="outfits"] .text-type-row-v132014 .text-align-group{grid-column:1/-1;justify-self:start}}',
+      '.screen[data-screen="outfits"] .text-entry-action-row{grid-template-columns:minmax(0,1fr) 86px!important;align-items:stretch!important}',
+      '.screen[data-screen="outfits"] .text-entry-action-row textarea{height:64px!important;min-height:64px!important;max-height:64px!important;resize:none!important;overflow-y:auto!important}',
+      '.screen[data-screen="outfits"] .text-entry-side{display:grid!important;grid-template-rows:1fr 1fr!important;gap:5px!important;min-width:86px!important}',
+      '.screen[data-screen="outfits"] .text-entry-side .text-studio-action{width:86px!important;min-width:86px!important;min-height:0!important;height:30px!important;padding:0 6px!important}',
+      '.screen[data-screen="outfits"] .text-entry-side .text-clear-btn-v132014{width:86px!important;height:29px!important;padding:0 6px!important}',
+      '.screen[data-screen="outfits"] .text-type-row-v132015{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:6px;align-items:center;min-width:0}',
+      '.screen[data-screen="outfits"] .text-type-row-v132015 .text-studio-label{display:block!important;margin:0!important;font-size:10px!important;white-space:nowrap}',
+      '.screen[data-screen="outfits"] .text-type-row-v132015 .text-font-select{height:35px!important;min-width:0!important;padding:0 7px!important;font-size:12px!important}',
+      '.screen[data-screen="outfits"] .text-type-row-v132015 .text-align-group{display:flex!important;gap:3px!important}',
+      '.screen[data-screen="outfits"] .text-type-row-v132015 .text-align-btn{width:30px!important;height:32px!important;padding:0!important}',
+      '.screen[data-screen="outfits"] .text-format-row{display:flex!important;align-items:center!important;gap:5px!important;flex-wrap:nowrap!important}',
+      '.screen[data-screen="outfits"] .text-color-inline-v132015{display:flex;align-items:center;gap:4px;margin-left:auto}',
+      '.screen[data-screen="outfits"] .text-color-inline-v132015 .text-color-input{width:34px!important;height:34px!important;padding:0!important;border-radius:9px!important}',
+      '.screen[data-screen="outfits"] .text-color-default-v132015{width:34px;height:34px;padding:0;border:1px solid rgba(108,81,66,.18);border-radius:9px;background:#f8f1e3;color:#675c50;font:800 15px/1 var(--sans)}',
+      '.screen[data-screen="outfits"] .text-font-toggle,.screen[data-screen="outfits"] .text-font-popover,.screen[data-screen="outfits"] .text-style-tools-v132013,.screen[data-screen="outfits"] .text-color-menu-v132014,.screen[data-screen="outfits"] .text-color-pop-v132014{display:none!important}',
+      '.screen[data-screen="outfits"] .decorate-studio-panel[data-decorate-group="text"] .decorate-studio-intro{display:none!important}',
+      '@media(max-width:380px){.screen[data-screen="outfits"] .text-type-row-v132015{grid-template-columns:auto minmax(0,1fr)}.screen[data-screen="outfits"] .text-type-row-v132015 .text-align-group{grid-column:1/-1}.screen[data-screen="outfits"] .text-format-row{flex-wrap:wrap!important}.screen[data-screen="outfits"] .text-color-inline-v132015{margin-left:0}}',
       '@media(max-width:360px){.screen[data-screen="outfits"] .text-entry-side{min-width:78px}.screen[data-screen="outfits"] .text-style-tools-v132013{grid-template-columns:1fr}.screen[data-screen="outfits"] .text-color-wrap{justify-self:start}}',
       '@media(max-width:360px){.screen[data-screen="outfits"] .text-entry-action-row{grid-template-columns:minmax(0,1fr) 78px}.screen[data-screen="outfits"] .text-entry-action-row .text-studio-action{width:78px;min-width:78px;font-size:11px}}',
       '.screen[data-screen="outfits"] .board-text{width:100%;height:100%;display:flex;align-items:center;justify-content:center;text-align:center;white-space:pre-wrap;overflow-wrap:anywhere;padding:5px;box-sizing:border-box;line-height:1.08;overflow:hidden}',
@@ -2324,7 +2341,7 @@ const TIER_PATCH=String.raw`
   installBoardCaptureGuardV7();
 
 
-  // v13.20-dev14 — Text Studio layout refinement
+  // v13.20-dev15 — Text Studio control cleanup
   const BOARD_TEXT_FONTS_V132011={
     script:{label:'Signature Script',css:'"Snell Roundhand","Segoe Script","Bradley Hand",cursive'},
     editorial:{label:'Editorial Serif',css:'"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif'},
@@ -2663,7 +2680,7 @@ const TIER_PATCH=String.raw`
   syncTextStudioV132011();
 
 
-  // v13.20-dev14 — Text Studio layout refinement.
+  // v13.20-dev15 — Text Studio control cleanup.
   let textClearedValueV132014=null;
 
   function textAlignIconV132014(kind){
@@ -2881,6 +2898,235 @@ const TIER_PATCH=String.raw`
 
   ensureTextStudioLayoutV132014();
   syncTextStudioLayoutV132014();
+
+
+  // v13.20-dev15 — final compact Text control layout and authoritative alignment/color controls.
+
+  function textAlignIconV132015(kind){
+    return '<span class="text-align-icon '+kind+'" aria-hidden="true"><i></i><i></i><i></i></span>';
+  }
+
+  function rebuildTextToolLayoutV132015(){
+    const studio=$('#boardTextStudioV132011');
+    const ta=$('#boardTextInput');
+    const add=$('#addBoardTextBtn');
+    const font=$('#boardTextFontV132011');
+    const formatRow=studio?.querySelector('.text-format-row');
+    if(!studio||!ta||!add||!font||!formatRow)return;
+
+    // Remove stale dev13/dev14 containers/panels if they are still hanging around.
+    studio.querySelectorAll('.text-font-popover,.text-style-tools-v132013,.text-color-menu-v132014,.text-color-pop-v132014').forEach(function(el){
+      if(el.contains(font))el.removeChild(font);
+      el.remove();
+    });
+
+    // Entry row: 2-line textarea + Add/Update above Clear.
+    let entry=studio.querySelector('.text-entry-action-row');
+    if(!entry){
+      entry=document.createElement('div');
+      entry.className='text-entry-action-row';
+      studio.insertBefore(entry,ta);
+      entry.appendChild(ta);
+    }else if(!entry.contains(ta)){
+      entry.insertBefore(ta,entry.firstChild);
+    }
+
+    let side=entry.querySelector('.text-entry-side');
+    if(!side){
+      side=document.createElement('div');
+      side.className='text-entry-side';
+      entry.appendChild(side);
+    }
+    side.innerHTML='';
+    side.appendChild(add);
+
+    let clear=studio.querySelector('.text-clear-btn-v132014');
+    if(!clear){
+      clear=document.createElement('button');
+      clear.type='button';
+      clear.className='text-clear-btn-v132014';
+      clear.textContent='Clear';
+    }
+    side.appendChild(clear);
+
+    if(!clear.dataset.boundV132015){
+      clear.dataset.boundV132015='true';
+      clear.onclick=function(e){
+        e.preventDefault();
+        if(clear.dataset.mode==='undo'){
+          ta.value=textClearedValueV132014||'';
+          textClearedValueV132014=null;
+          clear.dataset.mode='clear';
+          clear.textContent='Clear';
+          clear.classList.remove('undo-ready');
+          ta.focus();
+          return;
+        }
+        if(!ta.value){toast('Text is already clear');return;}
+        textClearedValueV132014=ta.value;
+        ta.value='';
+        clear.dataset.mode='undo';
+        clear.textContent='Undo';
+        clear.classList.add('undo-ready');
+        ta.focus();
+      };
+    }
+
+    // Font + alignment row.
+    let typeRow=studio.querySelector('.text-type-row-v132015');
+    if(!typeRow){
+      typeRow=document.createElement('div');
+      typeRow.className='text-type-row-v132015';
+
+      const label=document.createElement('span');
+      label.className='text-studio-label';
+      label.textContent='Font';
+      typeRow.appendChild(label);
+      typeRow.appendChild(font);
+
+      const aligns=document.createElement('div');
+      aligns.className='text-align-group';
+      ['left','center','right'].forEach(function(kind){
+        const btn=document.createElement('button');
+        btn.type='button';
+        btn.className='text-align-btn';
+        btn.dataset.textAlign=kind;
+        btn.innerHTML=textAlignIconV132015(kind);
+        btn.setAttribute('aria-label',kind.charAt(0).toUpperCase()+kind.slice(1)+' align');
+        btn.onclick=function(e){
+          e.preventDefault();
+          const selected=selectedTextPieceV132011();
+          if(selected){
+            pushTextUndoV132011('text alignment');
+            selected.textStyle={...normalizeTextStyleV132011(selected.textStyle),align:kind};
+            drawBoard();
+          }else{
+            textDraftStyleV132011={...normalizeTextStyleV132011(textDraftStyleV132011),align:kind};
+          }
+          syncTextStudioV132011();
+        };
+        aligns.appendChild(btn);
+      });
+      typeRow.appendChild(aligns);
+
+      formatRow.parentNode.insertBefore(typeRow,formatRow);
+    } else if(!typeRow.contains(font)){
+      typeRow.children[1]?.replaceWith(font);
+    }
+
+    // Inline color picker + reset on same row as B/I/U and sizes.
+    let colorWrap=formatRow.querySelector('.text-color-inline-v132015');
+    if(!colorWrap){
+      colorWrap=document.createElement('div');
+      colorWrap.className='text-color-inline-v132015';
+
+      let color=$('#boardTextColorV132013');
+      if(!color){
+        color=document.createElement('input');
+        color.type='color';
+        color.id='boardTextColorV132013';
+      }
+      color.classList.add('text-color-input');
+      color.setAttribute('aria-label','Text color');
+
+      const reset=document.createElement('button');
+      reset.type='button';
+      reset.className='text-color-default-v132015';
+      reset.textContent='↺';
+      reset.setAttribute('aria-label','Reset text color to default');
+      reset.title='Default color';
+
+      colorWrap.appendChild(color);
+      colorWrap.appendChild(reset);
+      formatRow.appendChild(colorWrap);
+
+      color.oninput=function(){
+        const value=color.value||'#7d3547';
+        const selected=selectedTextPieceV132011();
+        if(selected){
+          pushTextUndoV132011('text color');
+          selected.textStyle={...normalizeTextStyleV132011(selected.textStyle),color:value};
+          drawBoard();
+        }else{
+          textDraftStyleV132011={...normalizeTextStyleV132011(textDraftStyleV132011),color:value};
+        }
+        syncTextStudioV132011();
+      };
+
+      reset.onclick=function(e){
+        e.preventDefault();
+        const value='#7d3547';
+        const selected=selectedTextPieceV132011();
+        if(selected){
+          pushTextUndoV132011('text color');
+          selected.textStyle={...normalizeTextStyleV132011(selected.textStyle),color:value};
+          drawBoard();
+        }else{
+          textDraftStyleV132011={...normalizeTextStyleV132011(textDraftStyleV132011),color:value};
+        }
+        color.value=value;
+        syncTextStudioV132011();
+      };
+    }
+  }
+
+  function syncTextControlsV132015(){
+    rebuildTextToolLayoutV132015();
+    const studio=$('#boardTextStudioV132011');
+    if(!studio)return;
+    const selected=selectedTextPieceV132011();
+    const style=normalizeTextStyleV132011(selected?.textStyle||textDraftStyleV132011);
+
+    const add=$('#addBoardTextBtn');
+    if(add)add.textContent=selected?'Update':'Add Text';
+
+    studio.querySelectorAll('.text-align-btn').forEach(function(btn){
+      const active=btn.dataset.textAlign===style.align;
+      btn.classList.toggle('active',active);
+      btn.setAttribute('aria-pressed',active?'true':'false');
+    });
+
+    const color=$('#boardTextColorV132013');
+    if(color)color.value=style.color||'#7d3547';
+  }
+
+  // Replace dev14 sync with an authoritative final pass.
+  const syncTextStudioV132011Before15=syncTextStudioV132011;
+  syncTextStudioV132011=function(){
+    const result=syncTextStudioV132011Before15.apply(this,arguments);
+    syncTextControlsV132015();
+    return result;
+  };
+
+  const compactTextStudioV132012Before15=compactTextStudioV132012;
+  compactTextStudioV132012=function(){
+    const result=compactTextStudioV132012Before15.apply(this,arguments);
+    rebuildTextToolLayoutV132015();
+    return result;
+  };
+
+  // Force alignment/color onto rendered text after each redraw.
+  const refreshLiveBoardTextStylesV132012Before15=refreshLiveBoardTextStylesV132012;
+  refreshLiveBoardTextStylesV132012=function(){
+    refreshLiveBoardTextStylesV132012Before15.apply(this,arguments);
+    const board=$('#outfitBoard');
+    if(!board)return;
+    board.querySelectorAll('.board-piece[data-uid]').forEach(function(pieceEl){
+      const model=boardItems.find(function(x){return String(x.uid)===String(pieceEl.dataset.uid)});
+      if(!model||model.kind!=='text')return;
+      const style=normalizeTextStyleV132011(model.textStyle);
+      const textEl=pieceEl.querySelector('.board-text');
+      if(!textEl)return;
+      textEl.style.setProperty('text-align',style.align,'important');
+      textEl.style.setProperty('color',style.color,'important');
+      textEl.style.setProperty('justify-content',
+        style.align==='left'?'flex-start':(style.align==='right'?'flex-end':'center'),'important');
+    });
+  };
+
+  rebuildTextToolLayoutV132015();
+  syncTextControlsV132015();
+  refreshLiveBoardTextStylesV132012();
 
   // v13.20-dev7 — Photo Studio Original must be a pristine source view.
   //

@@ -1,46 +1,42 @@
-Audrey Closet — v13.20-dev14 Main Update
-Text Studio Layout Refinement
+Audrey Closet — v13.20-dev15 Main Update
+Text Studio Control Cleanup
 
-1. FONT
-- Font is always visible again.
-- Small "Font" label restored.
-- Font chooser sits directly beside the label.
-- Removed the dev13 Font disclosure button/popover.
+1. ENTRY AREA
+- Text entry forced to a compact two-line height.
+- Add Text / Update sits ABOVE Clear.
+- Clear remains an editor-only action.
+- After Clear, button becomes Undo and restores the just-cleared draft.
 
-2. ALIGNMENT
-- Left / Center / Right now use line-style alignment icons rather than L/C/R letters.
-- Alignment controls sit on the same typography row as Font.
+2. FONT + ALIGNMENT
+- Small Font label is always visible.
+- Font chooser sits next to the label.
+- Left / Center / Right controls sit immediately to the right of Font.
+- Alignment buttons use line icons, not letters.
+- Alignment handling is now authoritative and updates the selected Board text immediately.
 
 3. COLOR
-- Color moved to the same typography row.
-- The visible control is a compact Color button with a live color dot.
-- Tapping Color opens the native color chooser area.
-- "Default color" now lives inside the Color popover instead of taking permanent space.
-- Color changes remain immediate; there is intentionally no Apply button.
-- Closing the native color picker keeps the selected color, which is consistent with
-  the rest of the Board's immediate-edit behavior.
+- Color moved onto the SAME row as Bold / Italic / Underline.
+- Uses the compact native color button.
+- Color applies immediately.
+- A small reset ↺ button beside the color control restores the Audrey default burgundy.
+- No separate Apply Color button is needed.
 
-4. CLEAR / UNDO
-- The old dev13 Font button under Add/Update is removed.
-- A Clear button now sits beneath Add/Update.
-- Clear only clears the editor field; it does NOT delete or modify the Board text until
-  Update is pressed.
-- After Clear, the button becomes Undo.
-- Undo restores the text that was just cleared.
-- This works both for a new draft and while editing selected Board text.
+4. EXTRA PANEL REMOVAL
+- Old dev13/dev14 Font and Color popovers/panels are removed/hidden.
+- The Text section should no longer show an extra panel underneath the font area.
 
-5. PERSISTENCE
-No schema changes. Font, size, formatting, alignment, and color remain stored per text object.
+5. RENDERING
+- Live Board alignment/color are forced after redraw.
+- Existing font/size/B/I/U behavior remains intact.
 
 TEST
-1. Confirm Font is permanently visible with label.
-2. Confirm alignment icons sit beside Font.
-3. Confirm Color is on the same row.
-4. Choose a color, close chooser: color should already be applied.
-5. Pick Default color from inside Color menu.
-6. Enter text -> Clear -> Undo.
-7. Select existing Board text -> Clear -> Undo -> Update.
-8. Confirm Clear alone does not erase the Board object.
-9. Save/reopen and verify typography remains.
+- Text area should be about 2 lines high.
+- Add/Update above Clear.
+- Font label + chooser + alignment on one row.
+- Alignment immediately changes Board text.
+- B/I/U row includes color picker + reset.
+- No leftover extra panel.
+- Reset color returns to #7d3547.
+- Clear -> Undo works without modifying Board text until Update.
 
-Rollback: use v13.20-dev13 sw.js.
+Rollback: use v13.20-dev14 sw.js.
