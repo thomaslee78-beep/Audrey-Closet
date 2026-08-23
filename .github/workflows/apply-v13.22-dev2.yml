@@ -1,0 +1,183 @@
+name: Apply v13.22-dev2
+
+on:
+  push:
+    paths:
+      - '.github/workflows/apply-v13.22-dev2.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Add shape-specific stretch handles
+        shell: python
+        run: |
+          from pathlib import Path
+
+          shape=Path('shape-studio-v13.22-dev1.js')
+          js=shape.read_text()
+          js=js.replace('/* Audrey Closet v13.22-dev1b — Shape Studio basic object model + picker */','/* Audrey Closet v13.22-dev2 — Shape Studio independent stretch handles */',1)
+          js=js.replace('Select a shape on the Board to move, rotate, resize, layer or delete it. Independent stretch controls come in the next Shape Studio build.','Select a shape on the Board to move, rotate or resize it. Side handles stretch width or height independently.',1)
+
+          anchor='  function installStyles(){\n'
+          if anchor not in js:
+            raise SystemExit('installStyles anchor not found')
+
+          block=r'''  const SHAPE_MIN_W_V132202=36;
+  const SHAPE_MIN_H_V132202=36;
+  const SHAPE_MAX_W_V132202=360;
+  const SHAPE_MAX_H_V132202=380;
+
+  function clampShapeSizeV132202(value,min,max){
+    return Math.max(min,Math.min(max,value));
+  }
+
+  function beginShapeStretchV132202(e,handle,el,model){
+    if(model?.locked)return;
+    e.preventDefault();
+    e.stopPropagation();
+
+    const side=handle.dataset.stretchSide;
+    const angle=(Number(model.rotation)||0)*Math.PI/180;
+    const cos=Math.cos(angle),sin=Math.sin(angle);
+    const start={
+      pointerId:e.pointerId,
+      px:e.clientX,
+      py:e.clientY,
+      w:Number(model.w)||90,
+      h:Number(model.h)||90,
+      cx:(Number(model.x)||0)+(Number(model.w)||90)/2,
+      cy:(Number(model.y)||0)+(Number(model.h)||90)/2,
+      cos,
+      sin
+    };
+
+    try{handle.setPointerCapture(e.pointerId)}catch{}
+
+    function move(ev){
+      if(ev.pointerId!==start.pointerId)return;
+      ev.preventDefault();
+      ev.stopPropagation();
+
+      const dx=ev.clientX-start.px,dy=ev.clientY-start.py;
+      const localX=dx*start.cos+dy*start.sin;
+      const localY=-dx*start.sin+dy*start.cos;
+      let w=start.w,h=start.h,cx=start.cx,cy=start.cy;
+
+      if(side==='right'){
+        w=clampShapeSizeV132202(start.w+localX,SHAPE_MIN_W_V132202,SHAPE_MAX_W_V132202);
+        const shift=(w-start.w)/2;
+        cx=start.cx+shift*start.cos;
+        cy=start.cy+shift*start.sin;
+      }else if(side==='left'){
+        w=clampShapeSizeV132202(start.w-localX,SHAPE_MIN_W_V132202,SHAPE_MAX_W_V132202);
+        const shift=(start.w-w)/2;
+        cx=start.cx+shift*start.cos;
+        cy=start.cy+shift*start.sin;
+      }else if(side==='bottom'){
+        h=clampShapeSizeV132202(start.h+localY,SHAPE_MIN_H_V132202,SHAPE_MAX_H_V132202);
+        const shift=(h-start.h)/2;
+        cx=start.cx-shift*start.sin;
+        cy=start.cy+shift*start.cos;
+      }else if(side==='top'){
+        h=clampShapeSizeV132202(start.h-localY,SHAPE_MIN_H_V132202,SHAPE_MAX_H_V132202);
+        const shift=(start.h-h)/2;
+        cx=start.cx-shift*start.sin;
+        cy=start.cy+shift*start.cos;
+      }
+
+      model.w=w;
+      model.h=h;
+      model.x=cx-w/2;
+      model.y=cy-h/2;
+
+      el.style.left=model.x+'px';
+      el.style.top=model.y+'px';
+      el.style.width=model.w+'px';
+      el.style.height=model.h+'px';
+    }
+
+    function finish(ev){
+      if(ev.pointerId!==start.pointerId)return;
+      ev.preventDefault();
+      ev.stopPropagation();
+      handle.removeEventListener('pointermove',move);
+      handle.removeEventListener('pointerup',finish);
+      handle.removeEventListener('pointercancel',finish);
+      try{handle.releasePointerCapture(ev.pointerId)}catch{}
+    }
+
+    handle.addEventListener('pointermove',move);
+    handle.addEventListener('pointerup',finish);
+    handle.addEventListener('pointercancel',finish);
+  }
+
+  function installShapeStretchHandlesV132202(){
+    const board=document.getElementById('outfitBoard');
+    if(!board)return;
+    board.querySelectorAll('.board-piece.kind-shape').forEach(el=>{
+      const model=boardItems.find(x=>String(x.uid)===String(el.dataset.uid));
+      if(!model||model.locked||String(model.uid)!==String(selectedBoardUid))return;
+      ['left','right','top','bottom'].forEach(side=>{
+        if(el.querySelector('.shape-stretch-handle[data-stretch-side="'+side+'"]'))return;
+        const handle=document.createElement('button');
+        handle.type='button';
+        handle.className='shape-stretch-handle shape-stretch-'+side;
+        handle.dataset.stretchSide=side;
+        handle.setAttribute('aria-label','Stretch shape '+(side==='left'||side==='right'?'width':'height'));
+        handle.addEventListener('pointerdown',ev=>beginShapeStretchV132202(ev,handle,el,model));
+        el.appendChild(handle);
+      });
+    });
+  }
+
+  const originalDrawBoardV132202=drawBoard;
+  drawBoard=function(){
+    const result=originalDrawBoardV132202.apply(this,arguments);
+    requestAnimationFrame(installShapeStretchHandlesV132202);
+    return result;
+  };
+
+  document.addEventListener('pointerdown',e=>{
+    if(e.target.closest?.('#outfitBoard .board-piece.kind-shape'))setTimeout(installShapeStretchHandlesV132202,0);
+  },true);
+
+'''
+          js=js.replace(anchor,block+anchor,1)
+
+          css_anchor='      .screen[data-screen="outfits"] .board-shape .shape-studio-svg,.screen[data-screen="outfits"] .board-piece .shape-studio-svg{width:100%;height:100%}\n'
+          if css_anchor not in js:
+            raise SystemExit('shape SVG CSS anchor not found')
+          css_add=css_anchor + '''      .screen[data-screen="outfits"] .shape-stretch-handle{position:absolute;z-index:9;border:2px solid #fffaf0;background:var(--turq);box-shadow:0 2px 7px rgba(0,0,0,.20);padding:0;touch-action:none;-webkit-tap-highlight-color:transparent}\n      .screen[data-screen="outfits"] .shape-stretch-left,.screen[data-screen="outfits"] .shape-stretch-right{top:50%;width:12px;height:30px;border-radius:8px;transform:translateY(-50%)}\n      .screen[data-screen="outfits"] .shape-stretch-left{left:-18px}\n      .screen[data-screen="outfits"] .shape-stretch-right{right:-18px}\n      .screen[data-screen="outfits"] .shape-stretch-top,.screen[data-screen="outfits"] .shape-stretch-bottom{left:50%;width:30px;height:12px;border-radius:8px;transform:translateX(-50%)}\n      .screen[data-screen="outfits"] .shape-stretch-top{top:-18px}\n      .screen[data-screen="outfits"] .shape-stretch-bottom{bottom:-18px}\n'''
+          js=js.replace(css_anchor,css_add,1)
+          shape.write_text(js)
+
+          sw=Path('sw.js')
+          text=sw.read_text()
+          old_cache="const CACHE='audrey-closet-v13.22-dev1b';"
+          new_cache="const CACHE='audrey-closet-v13.22-dev2';"
+          if old_cache not in text:
+            raise SystemExit('Expected dev1b cache anchor not found')
+          sw.write_text(text.replace(old_cache,new_cache,1))
+
+          index=Path('index.html')
+          html=index.read_text()
+          html=html.replace('manifest.webmanifest?v=13.22-dev1b','manifest.webmanifest?v=13.22-dev2')
+          html=html.replace('styles.css?v=13.22-dev1b','styles.css?v=13.22-dev2')
+          html=html.replace('app.js?v=13.22-dev1b','app.js?v=13.22-dev2')
+          html=html.replace('shape-studio-v13.22-dev1.js?v=13.22-dev1b','shape-studio-v13.22-dev1.js?v=13.22-dev2')
+          html=html.replace('./sw.js?v=13.22-dev1b','./sw.js?v=13.22-dev2')
+          index.write_text(html)
+
+      - name: Commit dev2
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add shape-studio-v13.22-dev1.js sw.js index.html
+          git commit -m "v13.22-dev2 add independent shape stretch handles"
+          git push
