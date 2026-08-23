@@ -1,4 +1,4 @@
-const CACHE='audrey-closet-v13.21';
+const CACHE='audrey-closet-v13.21-dev1';
 const ASSETS=['./','./index.html','./styles.css','./app.js','./manifest.webmanifest','./icon-192.png','./icon-512.png'];
 
 /*
@@ -295,7 +295,7 @@ const TIER_PATCH=String.raw`
       '.screen[data-screen="outfits"] .board-decorate-shell .decorate-tool-card>*:first-child{margin-top:0!important}',
       '.screen[data-screen="outfits"] .board-decorate-shell .decorate-tool-card>*:last-child{margin-bottom:0!important}',
       '.screen[data-screen="outfits"] .board-decorate-shell .decorate-tool-card h4{margin:0 0 6px;font-size:12px;color:#5f554a}',
-      '.screen[data-screen="outfits"] .board-decorate-shell .decorate-empty-note{padding:12px 10px;border:1px dashed rgba(108,81,66,.20);border-radius:14px;background:#fcf7ed;color:#7a6d60;font-size:12px;line-height:1.35}',
+      '.screen[data-screen="outfits"] .board-decorate-shell .decorate-empty-note{display:none!important}',
       '.screen[data-screen="outfits"] .board-decorate-shell .decorate-studio-shared-help{margin:0!important;padding:8px 4px 1px;color:#7b7064;text-align:center}',
       '.screen[data-screen="outfits"] .board-decorate-shell .decorate-draw-current{margin:0}',
       '.screen[data-screen="outfits"] .board-decorate-shell .decorate-draw-current #drawModeBtn{min-width:120px;font-size:12px}',
