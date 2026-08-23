@@ -1,42 +1,61 @@
-Audrey Closet — v13.20-dev15 Main Update
-Text Studio Control Cleanup
+Audrey Closet — v13.20-dev16 Main Update
+Text Studio iPhone Layout Fix
 
-1. ENTRY AREA
-- Text entry forced to a compact two-line height.
-- Add Text / Update sits ABOVE Clear.
-- Clear remains an editor-only action.
-- After Clear, button becomes Undo and restores the just-cleared draft.
+WHY FONT DISAPPEARED
+dev15 could remove the old font container before safely reattaching the font selector.
+Depending on load/order, #boardTextFontV132011 could therefore disappear and the layout
+builder would stop early.
 
-2. FONT + ALIGNMENT
-- Small Font label is always visible.
-- Font chooser sits next to the label.
-- Left / Center / Right controls sit immediately to the right of Font.
-- Alignment buttons use line icons, not letters.
-- Alignment handling is now authoritative and updates the selected Board text immediately.
+DEV16 FIX
+- If the font selector is missing, it is rebuilt from the Text Studio font library.
+- Font is always placed into one canonical row.
 
-3. COLOR
-- Color moved onto the SAME row as Bold / Italic / Underline.
-- Uses the compact native color button.
+FINAL TOP ROW
+Font | [font chooser] | [left] [center] [right]
+
+- Font label is visible.
+- Font chooser stays visible.
+- Alignment buttons remain on the same row to the RIGHT of the chooser.
+- Alignment icons use line symbols.
+
+EDITOR LAYOUT
+The text editor is now approximately 3 lines tall.
+
+Beside it is one narrow vertical stack:
+1. Add Text / Update
+2. Clear / Undo
+3. Color + small reset arrow
+
+This gives the text field slightly more room while keeping the action stack inside the
+iPhone panel width.
+
+COLOR
+- Color is removed from the B/I/U row.
+- The third side control is Color.
+- Tapping Color opens the native color picker.
 - Color applies immediately.
-- A small reset ↺ button beside the color control restores the Audrey default burgundy.
-- No separate Apply Color button is needed.
+- Small ↺ beside Color resets to Audrey burgundy.
 
-4. EXTRA PANEL REMOVAL
-- Old dev13/dev14 Font and Color popovers/panels are removed/hidden.
-- The Text section should no longer show an extra panel underneath the font area.
+ALIGNMENT RENDERING
+Text now renders through a full-width inner text element.
+That means Left / Center / Right uses normal text-align across the entire saved text box
+instead of relying on anonymous flexbox text sizing.
 
-5. RENDERING
-- Live Board alignment/color are forced after redraw.
-- Existing font/size/B/I/U behavior remains intact.
+This fixes alignment consistency for:
+- live Board
+- resized text boxes
+- saved Board
+- Portfolio/full preview
 
 TEST
-- Text area should be about 2 lines high.
-- Add/Update above Clear.
-- Font label + chooser + alignment on one row.
-- Alignment immediately changes Board text.
-- B/I/U row includes color picker + reset.
-- No leftover extra panel.
-- Reset color returns to #7d3547.
-- Clear -> Undo works without modifying Board text until Update.
+1. Open Board -> Decorate -> Text.
+2. Confirm Font label + chooser are visible.
+3. Confirm L/C/R icons appear directly to the right.
+4. Confirm text editor is around 3 lines high.
+5. Confirm Add/Update, Clear/Undo, Color stack vertically beside it and remain inside panel.
+6. Test all three text alignments.
+7. Test Color and ↺ default reset.
+8. Test B/I/U and sizes remain working.
+9. Save/reopen and inspect Portfolio preview.
 
-Rollback: use v13.20-dev14 sw.js.
+Rollback: use v13.20-dev15 sw.js.
