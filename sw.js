@@ -1,8 +1,8 @@
-const CACHE='audrey-closet-v13.20-dev16';
+const CACHE='audrey-closet-v13.20-dev17';
 const ASSETS=['./','./index.html','./styles.css','./app.js','./manifest.webmanifest','./icon-192.png','./icon-512.png'];
 
 /*
- * v13.20-dev16 Text Studio iPhone layout fix.
+ * v13.20-dev17 Text Studio stability fix.
  *
  * The current app is a single large classic app.js file. For this dev branch we
  * append the isolated tier feature when app.js is served so the stable v13.15
@@ -10,7 +10,7 @@ const ASSETS=['./','./index.html','./styles.css','./app.js','./manifest.webmanif
  * promoted, it can be folded into app.js/styles.css in the next stable release.
  */
 const TIER_PATCH=String.raw`
-;/* v13.20-dev16 — Text Studio iPhone layout fix */
+;/* v13.20-dev17 — Text Studio stability fix */
 (function(){
   const CLOSET_TIERS=['S','A','B','C','D'];
   function normalizeClosetTier(value){
@@ -403,6 +403,15 @@ const TIER_PATCH=String.raw`
       '.screen[data-screen="outfits"] .board-text-content-v132016{display:block!important;width:100%!important;white-space:pre-wrap!important;overflow-wrap:anywhere!important;line-height:1.08!important}',
       '.snapshot-piece .board-text-content-v132016{display:block!important;width:100%!important;white-space:pre-wrap!important;overflow-wrap:anywhere!important;line-height:1.08!important}',
       '@media(max-width:360px){.screen[data-screen="outfits"] .text-type-row-v132016{grid-template-columns:auto minmax(0,1fr) auto!important;gap:4px!important}.screen[data-screen="outfits"] .text-type-row-v132016 .text-align-btn{width:26px!important}.screen[data-screen="outfits"] .text-entry-action-row-v132016{grid-template-columns:minmax(0,1fr) 76px!important}.screen[data-screen="outfits"] .text-entry-side-v132016{width:76px!important;min-width:76px!important}.screen[data-screen="outfits"] .text-entry-side-v132016 .text-studio-action,.screen[data-screen="outfits"] .text-entry-side-v132016 .text-clear-btn-v132014{width:76px!important;min-width:76px!important}}',
+      '.screen[data-screen="outfits"] .text-entry-action-row-v132017{display:grid!important;grid-template-columns:minmax(0,1fr) 82px!important;gap:6px!important;align-items:stretch!important;width:100%!important;min-width:0!important}',
+      '.screen[data-screen="outfits"] .text-entry-action-row-v132017 #boardTextInput{display:block!important;visibility:visible!important;opacity:1!important;width:100%!important;height:82px!important;min-height:82px!important;max-height:82px!important;resize:none!important;overflow-y:auto!important}',
+      '.screen[data-screen="outfits"] .text-entry-side-v132017{display:grid!important;grid-template-rows:repeat(3,1fr)!important;gap:4px!important;width:82px!important;min-width:82px!important}',
+      '.screen[data-screen="outfits"] .text-entry-side-v132017 #addBoardTextBtn,.screen[data-screen="outfits"] .text-entry-side-v132017 .text-clear-btn-v132017{display:block!important;width:82px!important;min-width:82px!important;height:auto!important;min-height:0!important;padding:0 5px!important;font-size:10.5px!important}',
+      '.screen[data-screen="outfits"] .text-color-side-v132017{display:grid!important;grid-template-columns:minmax(0,1fr) 22px!important;gap:3px!important;min-width:0!important}',
+      '.screen[data-screen="outfits"] .text-color-input-v132017{display:block!important;visibility:visible!important;opacity:1!important;width:57px!important;height:27px!important;padding:1px!important;border:1px solid rgba(108,81,66,.18)!important;border-radius:8px!important;background:#f8f1e3!important}',
+      '.screen[data-screen="outfits"] .text-color-reset-v132017{display:block!important;width:22px!important;min-width:22px!important;height:27px!important;padding:0!important;border:1px solid rgba(108,81,66,.18)!important;border-radius:8px!important;background:#f8f1e3!important;color:#675c50!important;font-weight:800!important}',
+      '.screen[data-screen="outfits"] .decorate-studio-panel[data-decorate-group="text"] .decorate-empty-note,.screen[data-screen="outfits"] .decorate-studio-panel[data-decorate-group="text"]~.decorate-studio-shared-help,.screen[data-screen="outfits"] .board-decorate-shell #boardHelp{display:none!important}',
+      '@media(max-width:360px){.screen[data-screen="outfits"] .text-entry-action-row-v132017{grid-template-columns:minmax(0,1fr) 76px!important}.screen[data-screen="outfits"] .text-entry-side-v132017{width:76px!important;min-width:76px!important}.screen[data-screen="outfits"] .text-entry-side-v132017 #addBoardTextBtn,.screen[data-screen="outfits"] .text-entry-side-v132017 .text-clear-btn-v132017{width:76px!important;min-width:76px!important}.screen[data-screen="outfits"] .text-color-input-v132017{width:51px!important}}',
       '@media(max-width:360px){.screen[data-screen="outfits"] .text-entry-side{min-width:78px}.screen[data-screen="outfits"] .text-style-tools-v132013{grid-template-columns:1fr}.screen[data-screen="outfits"] .text-color-wrap{justify-self:start}}',
       '@media(max-width:360px){.screen[data-screen="outfits"] .text-entry-action-row{grid-template-columns:minmax(0,1fr) 78px}.screen[data-screen="outfits"] .text-entry-action-row .text-studio-action{width:78px;min-width:78px;font-size:11px}}',
       '.screen[data-screen="outfits"] .board-text{width:100%;height:100%;display:flex;align-items:center;justify-content:center;text-align:center;white-space:pre-wrap;overflow-wrap:anywhere;padding:5px;box-sizing:border-box;line-height:1.08;overflow:hidden}',
@@ -2360,7 +2369,7 @@ const TIER_PATCH=String.raw`
   installBoardCaptureGuardV7();
 
 
-  // v13.20-dev16 — Text Studio iPhone layout fix
+  // v13.20-dev17 — Text Studio stability fix
   const BOARD_TEXT_FONTS_V132011={
     script:{label:'Signature Script',css:'"Snell Roundhand","Segoe Script","Bradley Hand",cursive'},
     editorial:{label:'Editorial Serif',css:'"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif'},
@@ -2699,7 +2708,7 @@ const TIER_PATCH=String.raw`
   syncTextStudioV132011();
 
 
-  // v13.20-dev16 — Text Studio iPhone layout fix.
+  // v13.20-dev17 — Text Studio stability fix.
   let textClearedValueV132014=null;
 
   function textAlignIconV132014(kind){
@@ -3402,6 +3411,229 @@ const TIER_PATCH=String.raw`
 
   rebuildTextLayoutV132016();
   syncTextLayoutV132016();
+  refreshLiveBoardTextStylesV132012();
+
+
+  // v13.20-dev17 — canonical Text Studio DOM; stop earlier layout wrappers
+  // from repeatedly detaching the textarea/color controls.
+
+  function ensureTextAreaV132017(){
+    let ta=$('#boardTextInput');
+    if(ta)return ta;
+    ta=document.createElement('textarea');
+    ta.id='boardTextInput';
+    ta.maxLength=280;
+    ta.rows=3;
+    ta.placeholder='Add a title, caption or note…';
+    const selected=selectedTextPieceV132011?.();
+    ta.value=selected?.value||'';
+    ta.addEventListener('keydown',function(e){
+      if(e.key==='Enter'&&(e.metaKey||e.ctrlKey)){
+        e.preventDefault();
+        addOrUpdateBoardTextV132011();
+      }
+    });
+    return ta;
+  }
+
+  function ensureTextColorV132017(){
+    let color=$('#boardTextColorV132013');
+    if(color){
+      color.className='text-color-input-v132017';
+      color.style.cssText='';
+      return color;
+    }
+    color=document.createElement('input');
+    color.type='color';
+    color.id='boardTextColorV132013';
+    color.className='text-color-input-v132017';
+    color.value='#7d3547';
+    color.setAttribute('aria-label','Text color');
+    return color;
+  }
+
+  function buildCanonicalTextLayoutV132017(){
+    const studio=$('#boardTextStudioV132011');
+    const formatRow=studio?.querySelector('.text-format-row');
+    const add=$('#addBoardTextBtn');
+    if(!studio||!formatRow||!add)return;
+
+    const ta=ensureTextAreaV132017();
+    const font=ensureFontSelectV132016();
+    const color=ensureTextColorV132017();
+
+    // Remove only obsolete layout containers. Preserve the controls themselves.
+    studio.querySelectorAll(
+      '.text-type-row-v132014,.text-type-row-v132015,.text-type-row-v132016,'+
+      '.text-entry-action-row,.text-entry-action-row-v132016,'+
+      '.text-color-inline-v132015,.text-color-menu-v132014,.text-color-pop-v132014,'+
+      '.text-style-tools-v132013,.text-font-popover,.text-font-toggle'
+    ).forEach(function(el){
+      if(el.contains(ta))el.removeChild(ta);
+      if(el.contains(add))el.removeChild(add);
+      if(el.contains(font))el.removeChild(font);
+      if(el.contains(color))el.removeChild(color);
+      el.remove();
+    });
+
+    // Remove redundant/empty Text cards beneath the active Text Studio.
+    const textPanel=document.querySelector('.decorate-studio-panel[data-decorate-group="text"] .decorate-studio-content');
+    textPanel?.querySelectorAll('.decorate-tool-card').forEach(function(card){
+      if(!card.contains(studio))card.remove();
+    });
+    textPanel?.querySelectorAll('.decorate-empty-note').forEach(function(el){el.remove()});
+    $('#boardHelp')?.remove();
+
+    let typeRow=studio.querySelector('.text-type-row-v132017');
+    if(!typeRow){
+      typeRow=document.createElement('div');
+      typeRow.className='text-type-row-v132016 text-type-row-v132017';
+
+      const label=document.createElement('span');
+      label.className='text-studio-label';
+      label.textContent='Font';
+      typeRow.appendChild(label);
+      typeRow.appendChild(font);
+
+      const aligns=document.createElement('div');
+      aligns.className='text-align-group';
+      ['left','center','right'].forEach(function(kind){
+        const btn=document.createElement('button');
+        btn.type='button';
+        btn.className='text-align-btn';
+        btn.dataset.textAlign=kind;
+        btn.innerHTML=textAlignIconV132015(kind);
+        btn.setAttribute('aria-label',kind.charAt(0).toUpperCase()+kind.slice(1)+' align');
+        btn.onclick=function(e){
+          e.preventDefault();
+          applySelectedTextStyleV132016({align:kind},'text alignment');
+        };
+        aligns.appendChild(btn);
+      });
+      typeRow.appendChild(aligns);
+      formatRow.parentNode.insertBefore(typeRow,formatRow);
+    }
+
+    let entry=studio.querySelector('.text-entry-action-row-v132017');
+    if(!entry){
+      entry=document.createElement('div');
+      entry.className='text-entry-action-row-v132017';
+
+      const side=document.createElement('div');
+      side.className='text-entry-side-v132017';
+
+      entry.appendChild(ta);
+      entry.appendChild(side);
+
+      side.appendChild(add);
+
+      const clear=document.createElement('button');
+      clear.type='button';
+      clear.className='text-clear-btn-v132017';
+      clear.textContent='Clear';
+      clear.onclick=function(e){
+        e.preventDefault();
+        if(clear.dataset.mode==='undo'){
+          ta.value=textClearedValueV132014||'';
+          textClearedValueV132014=null;
+          clear.dataset.mode='clear';
+          clear.textContent='Clear';
+          clear.classList.remove('undo-ready');
+          ta.focus();
+          return;
+        }
+        if(!ta.value){toast('Text is already clear');return}
+        textClearedValueV132014=ta.value;
+        ta.value='';
+        clear.dataset.mode='undo';
+        clear.textContent='Undo';
+        clear.classList.add('undo-ready');
+        ta.focus();
+      };
+      side.appendChild(clear);
+
+      const colorSide=document.createElement('div');
+      colorSide.className='text-color-side-v132017';
+      colorSide.appendChild(color);
+
+      const reset=document.createElement('button');
+      reset.type='button';
+      reset.className='text-color-reset-v132017';
+      reset.textContent='↺';
+      reset.title='Default color';
+      reset.setAttribute('aria-label','Reset text color to default');
+      colorSide.appendChild(reset);
+      side.appendChild(colorSide);
+
+      color.oninput=function(){
+        applySelectedTextStyleV132016({color:color.value||'#7d3547'},'text color');
+      };
+      reset.onclick=function(e){
+        e.preventDefault();
+        color.value='#7d3547';
+        applySelectedTextStyleV132016({color:'#7d3547'},'text color');
+      };
+
+      typeRow.parentNode.insertBefore(entry,typeRow);
+    }else{
+      if(!entry.contains(ta))entry.insertBefore(ta,entry.firstChild);
+    }
+
+    studio.dataset.canonicalTextV132017='true';
+  }
+
+  function syncCanonicalTextV132017(){
+    buildCanonicalTextLayoutV132017();
+    const studio=$('#boardTextStudioV132011');
+    if(!studio)return;
+
+    const selected=selectedTextPieceV132011();
+    const style=normalizeTextStyleV132011(selected?.textStyle||textDraftStyleV132011);
+    const ta=$('#boardTextInput');
+
+    studio.classList.toggle('is-editing',!!selected);
+
+    const help=studio.querySelector('.text-studio-help');
+    if(help)help.style.display=selected?'none':'block';
+
+    if(selected && ta && document.activeElement!==ta){
+      ta.value=selected.value||'';
+      textDraftStyleV132011={...style};
+    }
+
+    const font=$('#boardTextFontV132011');
+    if(font)font.value=style.font;
+
+    studio.querySelectorAll('.text-format-btn').forEach(function(btn){
+      const active=!!style[btn.dataset.format];
+      btn.classList.toggle('active',active);
+      btn.setAttribute('aria-pressed',active?'true':'false');
+    });
+    studio.querySelectorAll('.text-size-btn').forEach(function(btn){
+      const active=btn.dataset.textSize===style.size;
+      btn.classList.toggle('active',active);
+      btn.setAttribute('aria-pressed',active?'true':'false');
+    });
+    studio.querySelectorAll('.text-align-btn').forEach(function(btn){
+      const active=btn.dataset.textAlign===style.align;
+      btn.classList.toggle('active',active);
+      btn.setAttribute('aria-pressed',active?'true':'false');
+    });
+
+    const color=$('#boardTextColorV132013');
+    if(color)color.value=style.color||'#7d3547';
+
+    const add=$('#addBoardTextBtn');
+    if(add)add.textContent=selected?'Update':'Add Text';
+  }
+
+  // Replace the accumulated dev11–dev16 sync/layout wrappers with the canonical
+  // dev17 versions. Existing button listeners and Board rendering remain intact.
+  syncTextStudioV132011=function(){syncCanonicalTextV132017()};
+  compactTextStudioV132012=function(){buildCanonicalTextLayoutV132017()};
+
+  buildCanonicalTextLayoutV132017();
+  syncCanonicalTextV132017();
   refreshLiveBoardTextStylesV132012();
 
   // v13.20-dev7 — Photo Studio Original must be a pristine source view.

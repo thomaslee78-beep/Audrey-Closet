@@ -1,61 +1,49 @@
-Audrey Closet — v13.20-dev16 Main Update
-Text Studio iPhone Layout Fix
+Audrey Closet — v13.20-dev17 Main Update
+Text Studio Stability Fix
 
-WHY FONT DISAPPEARED
-dev15 could remove the old font container before safely reattaching the font selector.
-Depending on load/order, #boardTextFontV132011 could therefore disappear and the layout
-builder would stop early.
+ISSUE
+In dev16 the Font row could be visible while the text entry area and Color control disappeared.
 
-DEV16 FIX
-- If the font selector is missing, it is rebuilt from the Text Studio font library.
-- Font is always placed into one canonical row.
+CAUSE
+The Text Studio had accumulated several layout wrappers from dev13-dev16.
+Some of those functions rebuilt and detached controls during every synchronization.
+A later wrapper could therefore remove the textarea or color input after dev16 had created them.
 
-FINAL TOP ROW
-Font | [font chooser] | [left] [center] [right]
+DEV17
+- Establishes one canonical Text Studio DOM.
+- Stops repeatedly rebuilding the editor on every sync.
+- If #boardTextInput is missing, it is recreated.
+- If the color input is missing, it is recreated.
+- Future syncs update values/styles only.
 
-- Font label is visible.
-- Font chooser stays visible.
-- Alignment buttons remain on the same row to the RIGHT of the chooser.
-- Alignment icons use line symbols.
+LAYOUT
+Top:
+Font | chooser | Left / Center / Right
 
-EDITOR LAYOUT
-The text editor is now approximately 3 lines tall.
-
-Beside it is one narrow vertical stack:
-1. Add Text / Update
-2. Clear / Undo
-3. Color + small reset arrow
-
-This gives the text field slightly more room while keeping the action stack inside the
-iPhone panel width.
+Below:
+3-line text editor | Add/Update
+                   | Clear/Undo
+                   | Color + ↺ default reset
 
 COLOR
-- Color is removed from the B/I/U row.
-- The third side control is Color.
-- Tapping Color opens the native color picker.
-- Color applies immediately.
-- Small ↺ beside Color resets to Audrey burgundy.
+The actual native <input type=color> is now visible in the third row.
+Tapping the color swatch directly opens the native color picker on iPhone.
+↺ restores Audrey burgundy.
 
-ALIGNMENT RENDERING
-Text now renders through a full-width inner text element.
-That means Left / Center / Right uses normal text-align across the entire saved text box
-instead of relying on anonymous flexbox text sizing.
-
-This fixes alignment consistency for:
-- live Board
-- resized text boxes
-- saved Board
-- Portfolio/full preview
+PANEL CLEANUP
+- Removes obsolete Text tool cards/placeholders.
+- Removes the old shared Board-help panel below the Text editor.
+- Removes old hidden Font/Color popover containers.
 
 TEST
-1. Open Board -> Decorate -> Text.
-2. Confirm Font label + chooser are visible.
-3. Confirm L/C/R icons appear directly to the right.
-4. Confirm text editor is around 3 lines high.
-5. Confirm Add/Update, Clear/Undo, Color stack vertically beside it and remain inside panel.
-6. Test all three text alignments.
-7. Test Color and ↺ default reset.
-8. Test B/I/U and sizes remain working.
-9. Save/reopen and inspect Portfolio preview.
+1. Board -> Decorate -> Text.
+2. Confirm textarea is visible and approximately 3 lines high.
+3. Confirm Color swatch + ↺ are visible.
+4. Confirm Font + alignment row remains visible.
+5. Add text and edit existing text.
+6. Test Clear -> Undo.
+7. Test color chooser and reset.
+8. Switch between Decorate tabs repeatedly and return to Text.
+9. Save/reopen Board and verify controls remain present.
 
-Rollback: use v13.20-dev15 sw.js.
+Rollback: use v13.20-dev16 sw.js.
