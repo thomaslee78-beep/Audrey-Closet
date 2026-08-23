@@ -1,14 +1,20 @@
-Audrey Closet — v13.20-dev11 Main Update
-Text Studio
+Audrey Closet — v13.20-dev12 Main Update
 
-New: multi-line text, Bold/Italic/Underline, 10 system-font choices, S/M/L/XL text sizes, editing selected Board text, legacy text normalization, scaled Portfolio/full-preview text, and styled Share/export text.
+Text Studio compact layout + typography rendering fix.
 
-Text remains a normal Board object and continues to support move, resize, rotate, layer, copy, delete, lock and Undo.
+Changes:
+- Add Text / Update button moved to the right of the two-line text editor.
+- The Text section's original roadmap/placeholder intro is hidden.
+- Font, S/M/L/XL, Bold, Italic and Underline are now authoritatively applied after every live Board redraw.
+- The same styling is applied after Portfolio/full-preview snapshot rendering.
+- Existing dev11 text data remains compatible.
 
-Font size is intentionally separate from box resize: S/M/L/XL controls typography while resizing controls wrapping/layout.
+Test:
+1. Board -> Decorate -> Text.
+2. Confirm the editor appears immediately below the Text tab, with Add Text at its right.
+3. Create Modern Sans + L + Bold and confirm it visibly differs from the script default.
+4. Try Italic, Underline, Typewriter, Editorial Serif and S/M/L/XL.
+5. Save and inspect Portfolio thumbnail/full preview.
+6. Reopen and confirm styling persists.
 
-Legacy saved text defaults to Signature Script / Medium / regular style so older boards remain visually close to the prior version.
-
-Test: add a multi-line note; style it; select it and edit it; resize/rotate/lock/undo; save; verify Portfolio thumbnail/full preview; export/share.
-
-Rollback: replace sw.js with v13.20-dev10.
+Rollback: replace sw.js with v13.20-dev11.
