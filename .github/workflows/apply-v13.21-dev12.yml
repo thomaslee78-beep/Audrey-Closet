@@ -60,3 +60,5 @@ jobs:
           git add sw.js index.html share-render-v13.21-dev12.js
           git commit -m "v13.21-dev12 flatten saved Board before Share"
           git push
+
+# retrigger
