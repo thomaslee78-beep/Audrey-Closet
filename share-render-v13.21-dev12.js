@@ -108,7 +108,7 @@
     if(includeItems){
       detailsH=56+rows.length*detailLine;
       if(includeNotes){
-        ctxMeasure=document.createElement('canvas').getContext('2d');
+        const ctxMeasure=document.createElement('canvas').getContext('2d');
         ctxMeasure.font='20px system-ui';
         if(notes)lookNoteLines=wrapCanvasLines(ctxMeasure,notes,maxTextW,8);
         detailsH+=notes?52+lookNoteLines.length*32:0;

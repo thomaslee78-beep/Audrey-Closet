@@ -7,9 +7,9 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="Audrey's Closet" />
-  <link rel="manifest" href="manifest.webmanifest?v=13.21-dev10" />
+  <link rel="manifest" href="manifest.webmanifest?v=13.21-dev12" />
   <link rel="apple-touch-icon" href="icon-192.png" />
-  <link rel="stylesheet" href="styles.css?v=13.21-dev10" />
+  <link rel="stylesheet" href="styles.css?v=13.21-dev12" />
   <title>Audrey's Closet</title>
 </head>
 <body>
@@ -646,11 +646,12 @@
   </dialog>
 
   <div class="toast" id="toast"></div>
-  <script src="app.js?v=13.21-dev10"></script>
+  <script src="app.js?v=13.21-dev12"></script>
+  <script src="share-render-v13.21-dev12.js?v=13.21-dev12"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', function () {
-        navigator.serviceWorker.register('./sw.js?v=13.21-dev10', { updateViaCache: 'none' })
+        navigator.serviceWorker.register('./sw.js?v=13.21-dev12', { updateViaCache: 'none' })
           .then(function (registration) { return registration.update(); })
           .catch(function (error) { console.error('Service worker registration failed', error); });
       });
