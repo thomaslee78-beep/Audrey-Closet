@@ -1,56 +1,20 @@
-Audrey Closet — v13.20-dev19 Main Update
-Text Studio Clean Rebuild
+Audrey Closet — v13.20-dev12 Main Update
 
-This version stops repairing the accumulated dev13-dev18 Text DOM and rebuilds the
-Text panel from scratch in the exact requested four-row structure.
+Text Studio compact layout + typography rendering fix.
 
-ROW 1
-Help message:
-- New text: type a title/caption/note, choose a style, tap Add Text.
-- Selected text: explains that changes apply to the selected Board text.
+Changes:
+- Add Text / Update button moved to the right of the two-line text editor.
+- The Text section's original roadmap/placeholder intro is hidden.
+- Font, S/M/L/XL, Bold, Italic and Underline are now authoritatively applied after every live Board redraw.
+- The same styling is applied after Portfolio/full-preview snapshot rendering.
+- Existing dev11 text data remains compatible.
 
-ROW 2
-Two columns:
-LEFT:
-- visible 3-line textarea (#boardTextInput)
+Test:
+1. Board -> Decorate -> Text.
+2. Confirm the editor appears immediately below the Text tab, with Add Text at its right.
+3. Create Modern Sans + L + Bold and confirm it visibly differs from the script default.
+4. Try Italic, Underline, Typewriter, Editorial Serif and S/M/L/XL.
+5. Save and inspect Portfolio thumbnail/full preview.
+6. Reopen and confirm styling persists.
 
-RIGHT:
-1. Add Text / Update
-2. Clear / Undo
-3. Color
-
-Clear only clears the textarea.
-Undo restores the just-cleared text.
-Color opens the native color picker and applies immediately.
-
-ROW 3
-Font | font chooser | Left / Center / Right
-
-ROW 4
-B | I | U | S | M | L | XL
-
-The previous style/size design is retained.
-
-IMPORTANT
-- Exactly one Text tool card is created.
-- Old placeholder/helper panels are removed.
-- The Text textarea and Color input are newly created by dev19, so they no longer
-  depend on older detached DOM controls.
-- Direct event handlers are attached to the new controls.
-
-TEST FIRST
-New Board -> Decorate -> Text.
-The 3-line textarea must be visible before doing anything else.
-
-Then test:
-- Add Text
-- Clear -> Undo
-- Color
-- Font
-- Left/Center/Right
-- Bold/Italic/Underline
-- S/M/L/XL
-- select existing text and Update
-- switch Decorate tabs and return to Text
-
-Rollback: use v13.20-dev18 sw.js.
+Rollback: replace sw.js with v13.20-dev11.
