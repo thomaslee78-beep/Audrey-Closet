@@ -1,4 +1,4 @@
-/* Audrey Closet v13.22-dev1b — Shape Studio basic object model + picker */
+/* Audrey Closet v13.22-dev2 — Shape Studio independent stretch handles */
 (function(){
   'use strict';
 
@@ -133,7 +133,7 @@
         <span class="shape-studio-label">Basic</span>
         <div class="shape-basic-row" role="group" aria-label="Basic shapes"></div>
       </div>
-      <p class="shape-studio-hint">Select a shape on the Board to move, rotate, resize, layer or delete it. Independent stretch controls come in the next Shape Studio build.</p>`;
+      <p class="shape-studio-hint">Select a shape on the Board to move, rotate or resize it. Side handles stretch width or height independently.</p>`;
     card.appendChild(studio);
 
     const row=studio.querySelector('.shape-basic-row');
@@ -149,6 +149,125 @@
       row.appendChild(btn);
     });
   }
+
+  const SHAPE_MIN_W_V132202=36;
+  const SHAPE_MIN_H_V132202=36;
+  const SHAPE_MAX_W_V132202=360;
+  const SHAPE_MAX_H_V132202=380;
+
+  function clampShapeSizeV132202(value,min,max){
+    return Math.max(min,Math.min(max,value));
+  }
+
+  function beginShapeStretchV132202(e,handle,el,model){
+    if(model?.locked)return;
+    e.preventDefault();
+    e.stopPropagation();
+
+    const side=handle.dataset.stretchSide;
+    const angle=(Number(model.rotation)||0)*Math.PI/180;
+    const cos=Math.cos(angle),sin=Math.sin(angle);
+    const start={
+      pointerId:e.pointerId,
+      px:e.clientX,
+      py:e.clientY,
+      w:Number(model.w)||90,
+      h:Number(model.h)||90,
+      cx:(Number(model.x)||0)+(Number(model.w)||90)/2,
+      cy:(Number(model.y)||0)+(Number(model.h)||90)/2,
+      cos,
+      sin
+    };
+
+    try{handle.setPointerCapture(e.pointerId)}catch{}
+
+    function move(ev){
+      if(ev.pointerId!==start.pointerId)return;
+      ev.preventDefault();
+      ev.stopPropagation();
+
+      const dx=ev.clientX-start.px,dy=ev.clientY-start.py;
+      const localX=dx*start.cos+dy*start.sin;
+      const localY=-dx*start.sin+dy*start.cos;
+      let w=start.w,h=start.h,cx=start.cx,cy=start.cy;
+
+      if(side==='right'){
+        w=clampShapeSizeV132202(start.w+localX,SHAPE_MIN_W_V132202,SHAPE_MAX_W_V132202);
+        const shift=(w-start.w)/2;
+        cx=start.cx+shift*start.cos;
+        cy=start.cy+shift*start.sin;
+      }else if(side==='left'){
+        w=clampShapeSizeV132202(start.w-localX,SHAPE_MIN_W_V132202,SHAPE_MAX_W_V132202);
+        const shift=(start.w-w)/2;
+        cx=start.cx+shift*start.cos;
+        cy=start.cy+shift*start.sin;
+      }else if(side==='bottom'){
+        h=clampShapeSizeV132202(start.h+localY,SHAPE_MIN_H_V132202,SHAPE_MAX_H_V132202);
+        const shift=(h-start.h)/2;
+        cx=start.cx-shift*start.sin;
+        cy=start.cy+shift*start.cos;
+      }else if(side==='top'){
+        h=clampShapeSizeV132202(start.h-localY,SHAPE_MIN_H_V132202,SHAPE_MAX_H_V132202);
+        const shift=(start.h-h)/2;
+        cx=start.cx-shift*start.sin;
+        cy=start.cy+shift*start.cos;
+      }
+
+      model.w=w;
+      model.h=h;
+      model.x=cx-w/2;
+      model.y=cy-h/2;
+
+      el.style.left=model.x+'px';
+      el.style.top=model.y+'px';
+      el.style.width=model.w+'px';
+      el.style.height=model.h+'px';
+    }
+
+    function finish(ev){
+      if(ev.pointerId!==start.pointerId)return;
+      ev.preventDefault();
+      ev.stopPropagation();
+      handle.removeEventListener('pointermove',move);
+      handle.removeEventListener('pointerup',finish);
+      handle.removeEventListener('pointercancel',finish);
+      try{handle.releasePointerCapture(ev.pointerId)}catch{}
+    }
+
+    handle.addEventListener('pointermove',move);
+    handle.addEventListener('pointerup',finish);
+    handle.addEventListener('pointercancel',finish);
+  }
+
+  function installShapeStretchHandlesV132202(){
+    const board=document.getElementById('outfitBoard');
+    if(!board)return;
+    board.querySelectorAll('.board-piece.kind-shape').forEach(el=>{
+      const model=boardItems.find(x=>String(x.uid)===String(el.dataset.uid));
+      if(!model||model.locked||String(model.uid)!==String(selectedBoardUid))return;
+      ['left','right','top','bottom'].forEach(side=>{
+        if(el.querySelector('.shape-stretch-handle[data-stretch-side="'+side+'"]'))return;
+        const handle=document.createElement('button');
+        handle.type='button';
+        handle.className='shape-stretch-handle shape-stretch-'+side;
+        handle.dataset.stretchSide=side;
+        handle.setAttribute('aria-label','Stretch shape '+(side==='left'||side==='right'?'width':'height'));
+        handle.addEventListener('pointerdown',ev=>beginShapeStretchV132202(ev,handle,el,model));
+        el.appendChild(handle);
+      });
+    });
+  }
+
+  const originalDrawBoardV132202=drawBoard;
+  drawBoard=function(){
+    const result=originalDrawBoardV132202.apply(this,arguments);
+    requestAnimationFrame(installShapeStretchHandlesV132202);
+    return result;
+  };
+
+  document.addEventListener('pointerdown',e=>{
+    if(e.target.closest?.('#outfitBoard .board-piece.kind-shape'))setTimeout(installShapeStretchHandlesV132202,0);
+  },true);
 
   function installStyles(){
     if(document.getElementById('shapeStudioStylesV132201'))return;
@@ -170,6 +289,13 @@
       .screen[data-screen="outfits"] .shape-picker-icon svg,.screen[data-screen="outfits"] .shape-studio-svg{display:block;width:100%;height:100%;overflow:visible;pointer-events:none;border:0!important;background:transparent!important;border-radius:0!important}
       .screen[data-screen="outfits"] .shape-picker-btn[data-shape-type="oval"] .shape-picker-icon{width:34px;height:26px}
       .screen[data-screen="outfits"] .board-shape .shape-studio-svg,.screen[data-screen="outfits"] .board-piece .shape-studio-svg{width:100%;height:100%}
+      .screen[data-screen="outfits"] .shape-stretch-handle{position:absolute;z-index:9;border:2px solid #fffaf0;background:var(--turq);box-shadow:0 2px 7px rgba(0,0,0,.20);padding:0;touch-action:none;-webkit-tap-highlight-color:transparent}
+      .screen[data-screen="outfits"] .shape-stretch-left,.screen[data-screen="outfits"] .shape-stretch-right{top:50%;width:12px;height:30px;border-radius:8px;transform:translateY(-50%)}
+      .screen[data-screen="outfits"] .shape-stretch-left{left:-18px}
+      .screen[data-screen="outfits"] .shape-stretch-right{right:-18px}
+      .screen[data-screen="outfits"] .shape-stretch-top,.screen[data-screen="outfits"] .shape-stretch-bottom{left:50%;width:30px;height:12px;border-radius:8px;transform:translateX(-50%)}
+      .screen[data-screen="outfits"] .shape-stretch-top{top:-18px}
+      .screen[data-screen="outfits"] .shape-stretch-bottom{bottom:-18px}
       .snapshot-piece .shape-studio-svg,.portfolio-shape.shape-studio-mini .shape-studio-svg{display:block;width:100%;height:100%;pointer-events:none}
       .portfolio-shape.shape-studio-mini{position:absolute;display:block}
       @media(max-width:390px){.screen[data-screen="outfits"] .shape-basic-row{gap:3px}.screen[data-screen="outfits"] .shape-picker-btn{height:54px}.screen[data-screen="outfits"] .shape-picker-btn small{font-size:6.5px}}
@@ -181,11 +307,13 @@
   installShapeStudio();
   setTimeout(installShapeStudio,150);
   setTimeout(installShapeStudio,650);
+  setTimeout(installShapeStretchHandlesV132202,700);
 
   window.__audreyShapeStudioV132201={
     basicShapes:BASIC_SHAPES.map(x=>({...x})),
     normalizeShapePiece,
     shapeSvgMarkup,
-    addShape
+    addShape,
+    installShapeStretchHandlesV132202
   };
 })();
