@@ -1,20 +1,26 @@
-Audrey Closet — v13.20-dev12 Main Update
-
-Text Studio compact layout + typography rendering fix.
+Audrey Closet — v13.20-dev13 Main Update
+Text Studio Compact Controls
 
 Changes:
-- Add Text / Update button moved to the right of the two-line text editor.
-- The Text section's original roadmap/placeholder intro is hidden.
-- Font, S/M/L/XL, Bold, Italic and Underline are now authoritatively applied after every live Board redraw.
-- The same styling is applied after Portfolio/full-preview snapshot rendering.
-- Existing dev11 text data remains compatible.
+- Adds a small instruction message when no text is selected.
+- Hides that instruction while editing selected text.
+- Moves Font into a compact button beneath Add/Update.
+- Font dropdown is hidden until Font is tapped.
+- Removes the standalone Font label.
+- Adds Left / Center / Right alignment.
+- Adds per-text-object color picker.
+- Adds Default color reset to Audrey burgundy.
+- Alignment/color persist on saved Boards and older text defaults safely to Center + burgundy.
+- Portfolio/full preview inherits the stored alignment/color.
+- Share/export uses stored font alignment and text color.
 
 Test:
-1. Board -> Decorate -> Text.
-2. Confirm the editor appears immediately below the Text tab, with Add Text at its right.
-3. Create Modern Sans + L + Bold and confirm it visibly differs from the script default.
-4. Try Italic, Underline, Typewriter, Editorial Serif and S/M/L/XL.
-5. Save and inspect Portfolio thumbnail/full preview.
-6. Reopen and confirm styling persists.
+1. Decorate -> Text with no selected text: instruction should show.
+2. Select text: editing message should show instead.
+3. Font button should open/close the font list.
+4. Test L/C/R alignment.
+5. Test several colors and Default reset.
+6. Save/reopen Board.
+7. Check Portfolio preview and Share.
 
-Rollback: replace sw.js with v13.20-dev11.
+Rollback: use v13.20-dev12 sw.js.
