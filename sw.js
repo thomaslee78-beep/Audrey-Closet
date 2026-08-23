@@ -1,4 +1,4 @@
-const CACHE='audrey-closet-v13.21-dev1';
+const CACHE='audrey-closet-v13.21-dev2';
 const ASSETS=['./','./index.html','./styles.css','./app.js','./manifest.webmanifest','./icon-192.png','./icon-512.png'];
 
 /*
@@ -337,8 +337,8 @@ const TIER_PATCH=String.raw`
       '.screen[data-screen="outfits"] .board-decorate-shell .decorate-tool-card .shape-row{margin:0}',
       '@media(max-width:410px){.screen[data-screen="outfits"] .board-decorate-shell .decorate-studio-tabs{gap:5px}.screen[data-screen="outfits"] .board-decorate-shell .decorate-studio-tab{padding:8px 4px;font-size:10px}.screen[data-screen="outfits"] .board-decorate-shell .decorate-studio-intro strong{font-size:17px}.screen[data-screen="outfits"] .board-decorate-shell .decorate-studio-intro p{font-size:11px}}',
       '.screen[data-screen="outfits"] .board-decorate-shell #decorateToggle{display:none!important}',
-      '.screen[data-screen="outfits"] .board-decorate-shell #creativeTools{display:grid!important}',
-      '.screen[data-screen="outfits"] .board-decorate-shell #creativeTools.hidden{display:grid!important}',
+      '.screen[data-screen="outfits"] .board-decorate-shell #creativeTools{display:none!important}',
+      '.screen[data-screen="outfits"] .board-decorate-shell #creativeTools.hidden{display:none!important}',
       '.screen[data-screen="outfits"] .board-controls-top{display:none!important}',
       '@media(max-width:410px){.screen[data-screen="outfits"] .board-compose-bar{grid-template-columns:minmax(0,1fr) 40px auto;gap:6px}.screen[data-screen="outfits"] .board-compose-save{padding-left:10px;padding-right:10px;font-size:12px}.screen[data-screen="outfits"] #outfitBoard{border-radius:15px}.screen[data-screen="outfits"] .board-workspace-tabs{top:62px}.screen[data-screen="outfits"] .board-workspace-tab{font-size:10px;padding:10px 4px}}',
       '.screen[data-screen="outfits"] .board-notes-drawer{width:100%}',
