@@ -289,7 +289,7 @@
       .screen[data-screen="outfits"] .shape-picker-icon svg,.screen[data-screen="outfits"] .shape-studio-svg{display:block;width:100%;height:100%;overflow:visible;pointer-events:none;border:0!important;background:transparent!important;border-radius:0!important}
       .screen[data-screen="outfits"] .shape-picker-btn[data-shape-type="oval"] .shape-picker-icon{width:34px;height:26px}
       .screen[data-screen="outfits"] .board-shape .shape-studio-svg,.screen[data-screen="outfits"] .board-piece .shape-studio-svg{width:100%;height:100%}
-      .screen[data-screen="outfits"] .shape-stretch-handle{position:absolute;z-index:9;border:2px solid #fffaf0;background:var(--turq);box-shadow:0 2px 7px rgba(0,0,0,.20);padding:0;touch-action:none;-webkit-tap-highlight-color:transparent}
+      .screen[data-screen="outfits"] .shape-stretch-handle{display:none;position:absolute;z-index:9;border:2px solid #fffaf0;background:var(--turq);box-shadow:0 2px 7px rgba(0,0,0,.20);padding:0;touch-action:none;-webkit-tap-highlight-color:transparent}\n      .screen[data-screen="outfits"] .board-piece.kind-shape.selected .shape-stretch-handle{display:block}
       .screen[data-screen="outfits"] .shape-stretch-left,.screen[data-screen="outfits"] .shape-stretch-right{top:50%;width:12px;height:30px;border-radius:8px;transform:translateY(-50%)}
       .screen[data-screen="outfits"] .shape-stretch-left{left:-18px}
       .screen[data-screen="outfits"] .shape-stretch-right{right:-18px}
