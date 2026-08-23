@@ -1,0 +1,108 @@
+name: Apply v13.21-dev5
+
+on:
+  push:
+    paths:
+      - '.github/workflows/apply-v13.21-dev5.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Add Text Studio alignment controls
+        shell: python
+        run: |
+          from pathlib import Path
+
+          sw = Path('sw.js')
+          text = sw.read_text()
+          text = text.replace("const CACHE='audrey-closet-v13.21-dev4';", "const CACHE='audrey-closet-v13.21-dev5';", 1)
+
+          replacements = [
+            (
+              "let textDraftStyleV132011={font:'script',size:'medium',bold:false,italic:false,underline:false,color:'#7d3547'};",
+              "let textDraftStyleV132011={font:'script',size:'medium',bold:false,italic:false,underline:false,color:'#7d3547',align:'center'};"
+            ),
+            (
+              "function normalizeTextStyleV132011(style){const s=style&&typeof style==='object'?style:{},color=/^#[0-9a-f]{6}$/i.test(String(s.color||''))?String(s.color).toLowerCase():'#7d3547';return{font:BOARD_TEXT_FONTS_V132011[s.font]?s.font:'script',size:BOARD_TEXT_SIZES_V132011[s.size]?s.size:'medium',bold:!!s.bold,italic:!!s.italic,underline:!!s.underline,color}}",
+              "function normalizeTextStyleV132011(style){const s=style&&typeof style==='object'?style:{},color=/^#[0-9a-f]{6}$/i.test(String(s.color||''))?String(s.color).toLowerCase():'#7d3547',align=['left','center','right'].includes(s.align)?s.align:'center';return{font:BOARD_TEXT_FONTS_V132011[s.font]?s.font:'script',size:BOARD_TEXT_SIZES_V132011[s.size]?s.size:'medium',bold:!!s.bold,italic:!!s.italic,underline:!!s.underline,color,align}}"
+            ),
+            (
+              "return{fontFamily:f.css,fontSize:(sz.px*scale)+'px',fontWeight:String(s.bold?700:(f.weight||400)),fontStyle:s.italic?'italic':'normal',textDecoration:s.underline?'underline':'none',color:s.color}",
+              "return{fontFamily:f.css,fontSize:(sz.px*scale)+'px',fontWeight:String(s.bold?700:(f.weight||400)),fontStyle:s.italic?'italic':'normal',textDecoration:s.underline?'underline':'none',color:s.color,textAlign:s.align,justifyContent:s.align==='left'?'flex-start':(s.align==='right'?'flex-end':'center')}"
+            ),
+            (
+              ";color:'+c.color+'\\\">'+esc(b.value||'')+'</div>'",
+              ";color:'+c.color+';text-align:'+c.textAlign+';justify-content:'+c.justifyContent+'\\\">'+esc(b.value||'')+'</div>'"
+            ),
+            (
+              "Object.assign(t.style,{fontFamily:c.fontFamily,fontSize:c.fontSize,fontWeight:c.fontWeight,fontStyle:c.fontStyle,textDecoration:c.textDecoration,color:c.color})",
+              "Object.assign(t.style,{fontFamily:c.fontFamily,fontSize:c.fontSize,fontWeight:c.fontWeight,fontStyle:c.fontStyle,textDecoration:c.textDecoration,color:c.color,textAlign:c.textAlign,justifyContent:c.justifyContent})"
+            ),
+            (
+              "el.style.setProperty('color',css.color,'important');",
+              "el.style.setProperty('color',css.color,'important');\n    el.style.setProperty('text-align',css.textAlign,'important');\n    el.style.setProperty('justify-content',css.justifyContent,'important');"
+            )
+          ]
+          for old,new in replacements:
+            if old not in text:
+              raise SystemExit('Expected Text alignment source fragment not found: '+old[:120])
+            text = text.replace(old,new,1)
+
+          # Put font chooser and alignment controls on one row, below the Font label.
+          old_font = "studio.appendChild(sel);const row=document.createElement('div');row.className='text-format-row';"
+          new_font = "const fontAlignRow=document.createElement('div');fontAlignRow.className='text-font-align-row';studio.appendChild(fontAlignRow);fontAlignRow.appendChild(sel);const alignGroup=document.createElement('div');alignGroup.className='text-align-group';[['left','☰'],['center','☰'],['right','☰']].forEach(([k,l])=>{const b=document.createElement('button');b.type='button';b.className='text-align-btn text-align-'+k;b.dataset.textAlign=k;b.setAttribute('aria-label','Align text '+k);b.setAttribute('aria-pressed','false');b.innerHTML='<span aria-hidden=\"true\">'+l+'</span>';alignGroup.appendChild(b)});fontAlignRow.appendChild(alignGroup);const row=document.createElement('div');row.className='text-format-row';"
+          if old_font not in text:
+            raise SystemExit('Font chooser insertion anchor not found')
+          text = text.replace(old_font,new_font,1)
+
+          # Bind alignment buttons.
+          old_bind = "studio.querySelectorAll('.text-size-btn').forEach(b=>b.onclick=e=>{e.preventDefault();applyTextStyleChangeV132011({size:b.dataset.textSize},'text size')});document.addEventListener('click'"
+          new_bind = "studio.querySelectorAll('.text-size-btn').forEach(b=>b.onclick=e=>{e.preventDefault();applyTextStyleChangeV132011({size:b.dataset.textSize},'text size')});studio.querySelectorAll('.text-align-btn').forEach(b=>b.onclick=e=>{e.preventDefault();applyTextStyleChangeV132011({align:b.dataset.textAlign},'text alignment')});document.addEventListener('click'"
+          if old_bind not in text:
+            raise SystemExit('Text control binding anchor not found')
+          text = text.replace(old_bind,new_bind,1)
+
+          # Sync selected alignment in the editor.
+          old_sync = "studio.querySelectorAll('.text-size-btn').forEach(b=>{const a=b.dataset.textSize===style.size;b.classList.toggle('active',a);b.setAttribute('aria-pressed',a?'true':'false')})}"
+          new_sync = "studio.querySelectorAll('.text-size-btn').forEach(b=>{const a=b.dataset.textSize===style.size;b.classList.toggle('active',a);b.setAttribute('aria-pressed',a?'true':'false')});studio.querySelectorAll('.text-align-btn').forEach(b=>{const a=b.dataset.textAlign===style.align;b.classList.toggle('active',a);b.setAttribute('aria-pressed',a?'true':'false')})}"
+          if old_sync not in text:
+            raise SystemExit('Text Studio sync anchor not found')
+          text = text.replace(old_sync,new_sync,1)
+
+          # Canvas/share renderer: honor left/center/right alignment and underline placement.
+          old_canvas = "function drawBoardTextToContextV132011(ctx,b,w,h,scale){const s=normalizeTextStyleV132011(b.textStyle),size=BOARD_TEXT_SIZES_V132011[s.size].px*Math.max(.15,scale||1),lh=size*1.12;ctx.fillStyle=s.color||'#7d3547';ctx.textAlign='center';ctx.textBaseline='middle';ctx.font=canvasFontV132011(s,size);const lines=wrapStyledCanvasTextV132011(ctx,b.value||'',w*.94,12),visible=lines.slice(0,Math.max(1,Math.floor(h*.94/lh))),start=h/2-(visible.length-1)*lh/2;visible.forEach((line,i)=>{const y=start+i*lh;ctx.fillText(line,w/2,y,w*.94);if(s.underline&&line){const ww=Math.min(w*.94,ctx.measureText(line).width);ctx.save();ctx.strokeStyle=ctx.fillStyle;ctx.lineWidth=Math.max(1,size*.055);ctx.beginPath();ctx.moveTo(w/2-ww/2,y+size*.48);ctx.lineTo(w/2+ww/2,y+size*.48);ctx.stroke();ctx.restore()}})}"
+          new_canvas = "function drawBoardTextToContextV132011(ctx,b,w,h,scale){const s=normalizeTextStyleV132011(b.textStyle),size=BOARD_TEXT_SIZES_V132011[s.size].px*Math.max(.15,scale||1),lh=size*1.12,pad=w*.03,x=s.align==='left'?pad:(s.align==='right'?w-pad:w/2);ctx.fillStyle=s.color||'#7d3547';ctx.textAlign=s.align;ctx.textBaseline='middle';ctx.font=canvasFontV132011(s,size);const lines=wrapStyledCanvasTextV132011(ctx,b.value||'',w*.94,12),visible=lines.slice(0,Math.max(1,Math.floor(h*.94/lh))),start=h/2-(visible.length-1)*lh/2;visible.forEach((line,i)=>{const y=start+i*lh;ctx.fillText(line,x,y,w*.94);if(s.underline&&line){const ww=Math.min(w*.94,ctx.measureText(line).width);let x1=x-ww/2,x2=x+ww/2;if(s.align==='left'){x1=x;x2=x+ww}else if(s.align==='right'){x1=x-ww;x2=x}ctx.save();ctx.strokeStyle=ctx.fillStyle;ctx.lineWidth=Math.max(1,size*.055);ctx.beginPath();ctx.moveTo(x1,y+size*.48);ctx.lineTo(x2,y+size*.48);ctx.stroke();ctx.restore()}})}"
+          if old_canvas not in text:
+            raise SystemExit('Canvas text renderer anchor not found')
+          text = text.replace(old_canvas,new_canvas,1)
+
+          # Styling for font + alignment row and line-symbol buttons.
+          css_anchor = "'.screen[data-screen=\"outfits\"] .text-font-select{width:100%;min-width:0;height:40px;border:1px solid var(--line);border-radius:11px;background:#fffdf7;color:var(--ink);padding:0 9px;font:14px var(--sans)}',"
+          css_new = css_anchor + "\n      '.screen[data-screen=\"outfits\"] .text-font-align-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px;align-items:center;min-width:0}',\n      '.screen[data-screen=\"outfits\"] .text-font-align-row .text-font-select{width:100%;min-width:0}',\n      '.screen[data-screen=\"outfits\"] .text-align-group{display:grid;grid-template-columns:repeat(3,36px);gap:4px}',\n      '.screen[data-screen=\"outfits\"] .text-align-btn{width:36px;height:40px;border:1px solid rgba(108,81,66,.18);border-radius:10px;background:#f8f1e3;color:#665c50;padding:0;display:grid;place-items:center}',\n      '.screen[data-screen=\"outfits\"] .text-align-btn span{display:block;width:18px;font:800 16px/1 monospace;overflow:hidden;transform:scaleX(.85)}',\n      '.screen[data-screen=\"outfits\"] .text-align-left span{text-align:left;transform-origin:left center}',\n      '.screen[data-screen=\"outfits\"] .text-align-center span{text-align:center}',\n      '.screen[data-screen=\"outfits\"] .text-align-right span{text-align:right;transform-origin:right center}',\n      '.screen[data-screen=\"outfits\"] .text-align-btn.active{background:var(--olive);border-color:var(--olive);color:#fff}',"
+          if css_anchor not in text:
+            raise SystemExit('Font CSS anchor not found')
+          text = text.replace(css_anchor,css_new,1)
+
+          sw.write_text(text)
+
+          index = Path('index.html')
+          html = index.read_text()
+          html = html.replace('manifest.webmanifest?v=13.21-dev4', 'manifest.webmanifest?v=13.21-dev5')
+          html = html.replace('styles.css?v=13.21-dev4', 'styles.css?v=13.21-dev5')
+          html = html.replace('app.js?v=13.21-dev4', 'app.js?v=13.21-dev5')
+          html = html.replace("./sw.js?v=13.21-dev4", "./sw.js?v=13.21-dev5")
+          index.write_text(html)
+
+      - name: Commit dev5
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add sw.js index.html
+          git commit -m "v13.21-dev5 add Text Studio alignment controls"
+          git push
