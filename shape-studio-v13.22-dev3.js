@@ -1,4 +1,4 @@
-/* Audrey Closet v13.22-dev3 — Shape Studio border thickness editor */
+/* Audrey Closet v13.22-dev3a — Shape Studio border thickness editor */
 (function(){
   'use strict';
 
@@ -32,7 +32,7 @@
       </div>
       <label class="shape-border-control" for="shapeBorderWidthV132203">
         <span>Border</span>
-        <input id="shapeBorderWidthV132203" type="range" min="0" max="12" step="1" value="4" aria-label="Shape border thickness">
+        <input id="shapeBorderWidthV132203" type="range" min="1" max="12" step="1" value="4" aria-label="Shape border thickness">
         <output id="shapeBorderValueV132203">4 px</output>
       </label>`;
     studio.insertBefore(panel,hint||null);
@@ -81,7 +81,7 @@
   function applyBorderWidth(e){
     const model=selectedShape();
     if(!model)return;
-    const value=Math.max(0,Math.min(12,Number(e.target.value)||0));
+    const value=Math.max(1,Math.min(12,Number(e.target.value)||1));
     model.shapeStyle={...model.shapeStyle,borderWidth:value};
     const out=document.getElementById('shapeBorderValueV132203');
     if(out)out.textContent=value+' px';
@@ -99,7 +99,7 @@
     panel.classList.toggle('hidden',!model);
     if(!model)return;
 
-    const width=Math.max(0,Math.min(12,Number(model.shapeStyle?.borderWidth)||0));
+    const width=Math.max(1,Math.min(12,Number(model.shapeStyle?.borderWidth)||1));
     if(document.activeElement!==slider)slider.value=String(width);
     output.textContent=width+' px';
     name.textContent=shapeLabel(model.shapeType);
