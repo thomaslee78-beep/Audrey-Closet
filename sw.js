@@ -1,8 +1,8 @@
-const CACHE='audrey-closet-v13.20-dev17';
+const CACHE='audrey-closet-v13.20-dev18';
 const ASSETS=['./','./index.html','./styles.css','./app.js','./manifest.webmanifest','./icon-192.png','./icon-512.png'];
 
 /*
- * v13.20-dev17 Text Studio stability fix.
+ * v13.20-dev18 Text Studio new-board repair.
  *
  * The current app is a single large classic app.js file. For this dev branch we
  * append the isolated tier feature when app.js is served so the stable v13.15
@@ -10,7 +10,7 @@ const ASSETS=['./','./index.html','./styles.css','./app.js','./manifest.webmanif
  * promoted, it can be folded into app.js/styles.css in the next stable release.
  */
 const TIER_PATCH=String.raw`
-;/* v13.20-dev17 — Text Studio stability fix */
+;/* v13.20-dev18 — Text Studio new-board repair */
 (function(){
   const CLOSET_TIERS=['S','A','B','C','D'];
   function normalizeClosetTier(value){
@@ -412,6 +412,11 @@ const TIER_PATCH=String.raw`
       '.screen[data-screen="outfits"] .text-color-reset-v132017{display:block!important;width:22px!important;min-width:22px!important;height:27px!important;padding:0!important;border:1px solid rgba(108,81,66,.18)!important;border-radius:8px!important;background:#f8f1e3!important;color:#675c50!important;font-weight:800!important}',
       '.screen[data-screen="outfits"] .decorate-studio-panel[data-decorate-group="text"] .decorate-empty-note,.screen[data-screen="outfits"] .decorate-studio-panel[data-decorate-group="text"]~.decorate-studio-shared-help,.screen[data-screen="outfits"] .board-decorate-shell #boardHelp{display:none!important}',
       '@media(max-width:360px){.screen[data-screen="outfits"] .text-entry-action-row-v132017{grid-template-columns:minmax(0,1fr) 76px!important}.screen[data-screen="outfits"] .text-entry-side-v132017{width:76px!important;min-width:76px!important}.screen[data-screen="outfits"] .text-entry-side-v132017 #addBoardTextBtn,.screen[data-screen="outfits"] .text-entry-side-v132017 .text-clear-btn-v132017{width:76px!important;min-width:76px!important}.screen[data-screen="outfits"] .text-color-input-v132017{width:51px!important}}',
+      '.screen[data-screen="outfits"] .decorate-studio-panel[data-decorate-group="text"] #boardTextInput{display:block!important;visibility:visible!important;opacity:1!important;width:100%!important;box-sizing:border-box!important}',
+      '.screen[data-screen="outfits"] .decorate-studio-panel[data-decorate-group="text"] .decorate-studio-intro{display:none!important}',
+      '.screen[data-screen="outfits"] .decorate-studio-panel[data-decorate-group="text"] .decorate-empty-note{display:none!important}',
+      '.screen[data-screen="outfits"] .board-decorate-shell #boardHelp{display:none!important}',
+      '.screen[data-screen="outfits"] .decorate-studio-panel[data-decorate-group="text"] .decorate-studio-content{gap:0!important}',
       '@media(max-width:360px){.screen[data-screen="outfits"] .text-entry-side{min-width:78px}.screen[data-screen="outfits"] .text-style-tools-v132013{grid-template-columns:1fr}.screen[data-screen="outfits"] .text-color-wrap{justify-self:start}}',
       '@media(max-width:360px){.screen[data-screen="outfits"] .text-entry-action-row{grid-template-columns:minmax(0,1fr) 78px}.screen[data-screen="outfits"] .text-entry-action-row .text-studio-action{width:78px;min-width:78px;font-size:11px}}',
       '.screen[data-screen="outfits"] .board-text{width:100%;height:100%;display:flex;align-items:center;justify-content:center;text-align:center;white-space:pre-wrap;overflow-wrap:anywhere;padding:5px;box-sizing:border-box;line-height:1.08;overflow:hidden}',
@@ -2369,7 +2374,7 @@ const TIER_PATCH=String.raw`
   installBoardCaptureGuardV7();
 
 
-  // v13.20-dev17 — Text Studio stability fix
+  // v13.20-dev18 — Text Studio new-board repair
   const BOARD_TEXT_FONTS_V132011={
     script:{label:'Signature Script',css:'"Snell Roundhand","Segoe Script","Bradley Hand",cursive'},
     editorial:{label:'Editorial Serif',css:'"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif'},
@@ -2708,7 +2713,7 @@ const TIER_PATCH=String.raw`
   syncTextStudioV132011();
 
 
-  // v13.20-dev17 — Text Studio stability fix.
+  // v13.20-dev18 — Text Studio new-board repair.
   let textClearedValueV132014=null;
 
   function textAlignIconV132014(kind){
@@ -3464,15 +3469,15 @@ const TIER_PATCH=String.raw`
 
     // Remove only obsolete layout containers. Preserve the controls themselves.
     studio.querySelectorAll(
-      '.text-type-row-v132014,.text-type-row-v132015,.text-type-row-v132016,'+
+      '.text-type-row-v132014,.text-type-row-v132015,.text-type-row-v132016:not(.text-type-row-v132017),'+
       '.text-entry-action-row,.text-entry-action-row-v132016,'+
       '.text-color-inline-v132015,.text-color-menu-v132014,.text-color-pop-v132014,'+
       '.text-style-tools-v132013,.text-font-popover,.text-font-toggle'
     ).forEach(function(el){
-      if(el.contains(ta))el.removeChild(ta);
-      if(el.contains(add))el.removeChild(add);
-      if(el.contains(font))el.removeChild(font);
-      if(el.contains(color))el.removeChild(color);
+      if(el.contains(ta))ta.remove();
+      if(el.contains(add))add.remove();
+      if(el.contains(font))font.remove();
+      if(el.contains(color))color.remove();
       el.remove();
     });
 
@@ -3635,6 +3640,55 @@ const TIER_PATCH=String.raw`
   buildCanonicalTextLayoutV132017();
   syncCanonicalTextV132017();
   refreshLiveBoardTextStylesV132012();
+
+
+  // v13.20-dev18 — verify the canonical Text Studio whenever the user
+  // enters Decorate/Text or starts a new Board.
+  function repairTextStudioV132018(){
+    try{
+      buildCanonicalTextLayoutV132017();
+      syncCanonicalTextV132017();
+
+      const studio=$('#boardTextStudioV132011');
+      const ta=$('#boardTextInput');
+      const textPanel=document.querySelector(
+        '.decorate-studio-panel[data-decorate-group="text"] .decorate-studio-content'
+      );
+
+      // Remove obsolete lower/helper content from Text only.
+      textPanel?.querySelectorAll('.decorate-empty-note').forEach(function(el){el.remove()});
+      $('#boardHelp')?.remove();
+
+      if(studio&&ta){
+        ta.rows=3;
+        ta.style.removeProperty('display');
+        ta.style.removeProperty('visibility');
+        ta.style.removeProperty('opacity');
+      }
+    }catch(err){
+      console.error('Text Studio repair failed',err);
+    }
+  }
+
+  document.addEventListener('click',function(e){
+    const outer=e.target.closest?.('.board-workspace-tab[data-board-panel="decorate"]');
+    const textTab=e.target.closest?.('.decorate-studio-tab[data-decorate-group="text"]');
+    if(outer||textTab){
+      setTimeout(repairTextStudioV132018,0);
+      setTimeout(repairTextStudioV132018,80);
+    }
+  },true);
+
+  const startNewOutfitBeforeV132018=startNewOutfit;
+  startNewOutfit=function(){
+    const result=startNewOutfitBeforeV132018.apply(this,arguments);
+    setTimeout(repairTextStudioV132018,0);
+    setTimeout(repairTextStudioV132018,80);
+    return result;
+  };
+
+  // One final post-install check.
+  setTimeout(repairTextStudioV132018,0);
 
   // v13.20-dev7 — Photo Studio Original must be a pristine source view.
   //
