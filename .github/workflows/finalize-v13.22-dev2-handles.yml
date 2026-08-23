@@ -1,0 +1,34 @@
+name: Finalize v13.22-dev2 handles
+
+on:
+  push:
+    paths:
+      - '.github/workflows/finalize-v13.22-dev2-handles.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  finalize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Limit stretch handles to selected shape
+        shell: python
+        run: |
+          from pathlib import Path
+          p=Path('shape-studio-v13.22-dev1.js')
+          s=p.read_text()
+          old='.screen[data-screen="outfits"] .shape-stretch-handle{position:absolute;z-index:9;border:2px solid #fffaf0;background:var(--turq);box-shadow:0 2px 7px rgba(0,0,0,.20);padding:0;touch-action:none;-webkit-tap-highlight-color:transparent}'
+          new='.screen[data-screen="outfits"] .shape-stretch-handle{display:none;position:absolute;z-index:9;border:2px solid #fffaf0;background:var(--turq);box-shadow:0 2px 7px rgba(0,0,0,.20);padding:0;touch-action:none;-webkit-tap-highlight-color:transparent}\\n      .screen[data-screen="outfits"] .board-piece.kind-shape.selected .shape-stretch-handle{display:block}'
+          if old not in s:
+            raise SystemExit('stretch handle CSS anchor not found')
+          p.write_text(s.replace(old,new,1))
+      - name: Commit final dev2 handle visibility
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add shape-studio-v13.22-dev1.js
+          git commit -m "v13.22-dev2 show stretch handles only on selected shape"
+          git push
