@@ -35,11 +35,10 @@ jobs:
 
           index=Path('index.html')
           html=index.read_text()
-          for oldv in ['13.21-dev12']:
-            html=html.replace('manifest.webmanifest?v='+oldv,'manifest.webmanifest?v=13.22-dev1')
-            html=html.replace('styles.css?v='+oldv,'styles.css?v=13.22-dev1')
-            html=html.replace('app.js?v='+oldv,'app.js?v=13.22-dev1')
-            html=html.replace('./sw.js?v='+oldv,'./sw.js?v=13.22-dev1')
+          html=html.replace('manifest.webmanifest?v=13.21-dev12','manifest.webmanifest?v=13.22-dev1')
+          html=html.replace('styles.css?v=13.21-dev12','styles.css?v=13.22-dev1')
+          html=html.replace('app.js?v=13.21-dev12','app.js?v=13.22-dev1')
+          html=html.replace('./sw.js?v=13.21-dev12','./sw.js?v=13.22-dev1')
           app_tag='<script src="app.js?v=13.22-dev1"></script>'
           if app_tag not in html:
             raise SystemExit('Updated app script anchor not found')
@@ -57,3 +56,5 @@ jobs:
           git add sw.js index.html
           git commit -m "v13.22-dev1 wire Shape Studio basic picker"
           git push
+
+# retrigger 1
