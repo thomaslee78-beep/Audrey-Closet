@@ -1,4 +1,4 @@
-/* Audrey Closet v13.22-dev1a — Shape Studio basic object model + picker */
+/* Audrey Closet v13.22-dev1b — Shape Studio basic object model + picker */
 (function(){
   'use strict';
 
@@ -54,7 +54,7 @@
     else if(type==='line')body=`<line x1="5" y1="50" x2="95" y2="50" fill="none" stroke="${safe(stroke)}" stroke-width="${Math.max(2,sw)}" stroke-linecap="round" vector-effect="non-scaling-stroke"/>`;
     else if(type==='tape')body=`<rect x="2" y="14" width="96" height="72" rx="5" fill="rgba(198,163,78,.42)" stroke="none"/>`;
     else body=`<rect x="5" y="5" width="90" height="90" ${common}/>`;
-    return `<svg class="shape-studio-svg shape-${safe(type)}" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true" focusable="false">${body}</svg>`;
+    return `<svg class="shape-studio-svg shape-studio-type-${safe(type)}" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true" focusable="false">${body}</svg>`;
   }
 
   const originalNormalizeBoardItem=window.normalizeBoardItem;
@@ -167,7 +167,7 @@
       .screen[data-screen="outfits"] .shape-picker-btn:active{transform:scale(.96);background:#f3ead9}
       .screen[data-screen="outfits"] .shape-picker-btn small{font-size:7px;line-height:1.05;font-weight:700;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
       .screen[data-screen="outfits"] .shape-picker-icon{display:block;width:30px;height:30px}
-      .screen[data-screen="outfits"] .shape-picker-icon svg,.screen[data-screen="outfits"] .shape-studio-svg{display:block;width:100%;height:100%;overflow:visible;pointer-events:none}
+      .screen[data-screen="outfits"] .shape-picker-icon svg,.screen[data-screen="outfits"] .shape-studio-svg{display:block;width:100%;height:100%;overflow:visible;pointer-events:none;border:0!important;background:transparent!important;border-radius:0!important}
       .screen[data-screen="outfits"] .shape-picker-btn[data-shape-type="oval"] .shape-picker-icon{width:34px;height:26px}
       .screen[data-screen="outfits"] .board-shape .shape-studio-svg,.screen[data-screen="outfits"] .board-piece .shape-studio-svg{width:100%;height:100%}
       .snapshot-piece .shape-studio-svg,.portfolio-shape.shape-studio-mini .shape-studio-svg{display:block;width:100%;height:100%;pointer-events:none}

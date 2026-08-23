@@ -1,4 +1,4 @@
-const CACHE='audrey-closet-v13.22-dev1a';
+const CACHE='audrey-closet-v13.22-dev1b';
 const ASSETS=['./','./index.html','./styles.css','./app.js','./share-render-v13.21-dev12.js','./shape-studio-v13.22-dev1.js','./manifest.webmanifest','./icon-192.png','./icon-512.png'];
 
 /*
