@@ -58,3 +58,5 @@ jobs:
           git add shape-studio-v13.22-dev1.js sw.js index.html
           git commit -m "v13.22-dev1b fix Shape Studio circle class collision"
           git push
+
+# retrigger
