@@ -1,4 +1,4 @@
-const CACHE='audrey-closet-v13.21-dev3';
+const CACHE='audrey-closet-v13.21-dev4';
 const ASSETS=['./','./index.html','./styles.css','./app.js','./manifest.webmanifest','./icon-192.png','./icon-512.png'];
 
 /*
@@ -332,8 +332,8 @@ const TIER_PATCH=String.raw`
       '.screen[data-screen="outfits"] .text-entry-action-row .text-studio-action{width:92px;min-width:92px;height:auto;min-height:68px;padding:8px 7px;line-height:1.18}',
       '.screen[data-screen="outfits"] .text-action-stack{display:grid;grid-template-rows:minmax(68px,1fr) 36px;gap:7px;min-width:92px}',
       '.screen[data-screen="outfits"] .text-action-stack .text-studio-action{width:92px;min-width:92px;min-height:68px}',
-      '.screen[data-screen="outfits"] .text-color-btn{width:92px;height:36px;border:1px solid rgba(108,81,66,.22);border-radius:10px;padding:0;box-shadow:inset 0 0 0 2px rgba(255,255,255,.35);cursor:pointer}',
-      '.screen[data-screen="outfits"] #boardTextColorInputV13213{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}',
+      '.screen[data-screen="outfits"] .text-color-btn{display:none!important}',
+      '.screen[data-screen="outfits"] #boardTextColorInputV13213{display:block;width:92px;height:36px;min-width:92px;border:1px solid rgba(108,81,66,.22);border-radius:10px;background:#fffaf0;padding:2px;box-sizing:border-box;cursor:pointer}',
       '.screen[data-screen="outfits"] .board-text[data-text-v132012="true"]{white-space:pre-wrap!important;overflow-wrap:anywhere!important;line-height:1.08!important;text-align:center!important;padding:5px!important;box-sizing:border-box!important}',
       '@media(max-width:360px){.screen[data-screen="outfits"] .text-entry-action-row{grid-template-columns:minmax(0,1fr) 78px}.screen[data-screen="outfits"] .text-entry-action-row .text-studio-action{width:78px;min-width:78px;font-size:11px}}',
       '.screen[data-screen="outfits"] .board-text{width:100%;height:100%;display:flex;align-items:center;justify-content:center;text-align:center;white-space:pre-wrap;overflow-wrap:anywhere;padding:5px;box-sizing:border-box;line-height:1.08;overflow:hidden}',
@@ -2345,10 +2345,8 @@ const TIER_PATCH=String.raw`
       stack.className='text-action-stack';
       row.appendChild(stack);
       stack.appendChild(add);
-      let colorBtn=$('#boardTextColorBtnV13213');
       let colorInput=$('#boardTextColorInputV13213');
-      if(!colorInput){colorInput=document.createElement('input');colorInput.type='color';colorInput.id='boardTextColorInputV13213';studio.appendChild(colorInput)}
-      if(!colorBtn){colorBtn=document.createElement('button');colorBtn.type='button';colorBtn.id='boardTextColorBtnV13213';colorBtn.className='text-color-btn';colorBtn.setAttribute('aria-label','Choose text color');colorBtn.title='Text color';stack.appendChild(colorBtn);colorBtn.onclick=function(e){e.preventDefault();colorInput.click()};colorInput.oninput=function(){applyTextStyleChangeV132011({color:colorInput.value},'text color')}}
+      if(!colorInput){colorInput=document.createElement('input');colorInput.type='color';colorInput.id='boardTextColorInputV13213';colorInput.className='text-color-input';colorInput.setAttribute('aria-label','Choose text color');colorInput.title='Text color';colorInput.value='#7d3547';stack.appendChild(colorInput);colorInput.oninput=function(){applyTextStyleChangeV132011({color:colorInput.value},'text color')}}
     }
     add.textContent=selectedTextPieceV132011?.()?'Update':'Add Text';
   }
