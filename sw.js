@@ -1,8 +1,8 @@
-const CACHE='audrey-closet-v13.20-dev10';
+const CACHE='audrey-closet-v13.20-dev11';
 const ASSETS=['./','./index.html','./styles.css','./app.js','./manifest.webmanifest','./icon-192.png','./icon-512.png'];
 
 /*
- * v13.20-dev10 Decorate panel width fix.
+ * v13.20-dev11 Text Studio.
  *
  * The current app is a single large classic app.js file. For this dev branch we
  * append the isolated tier feature when app.js is served so the stable v13.15
@@ -10,7 +10,7 @@ const ASSETS=['./','./index.html','./styles.css','./app.js','./manifest.webmanif
  * promoted, it can be folded into app.js/styles.css in the next stable release.
  */
 const TIER_PATCH=String.raw`
-;/* v13.20-dev10 — Decorate panel width fix */
+;/* v13.20-dev11 — Text Studio */
 (function(){
   const CLOSET_TIERS=['S','A','B','C','D'];
   function normalizeClosetTier(value){
@@ -309,6 +309,24 @@ const TIER_PATCH=String.raw`
       '.screen[data-screen="outfits"] .board-decorate-shell .decorate-tool-card .sticker-row{width:100%;max-width:100%;min-width:0;overflow-x:auto;overflow-y:hidden;flex-wrap:nowrap;-webkit-overflow-scrolling:touch;scrollbar-width:none}',
       '.screen[data-screen="outfits"] .board-decorate-shell .decorate-tool-card .sticker-row::-webkit-scrollbar{display:none}',
       '.screen[data-screen="outfits"] .board-decorate-shell .decorate-tool-card .sticker-row button{flex:0 0 auto}',
+      '.screen[data-screen="outfits"] .text-studio{display:grid;gap:9px;min-width:0}',
+      '.screen[data-screen="outfits"] .text-studio textarea{width:100%;min-height:68px;max-height:132px;resize:vertical;border:1px solid var(--line);border-radius:12px;background:#fffdf7;color:var(--ink);padding:10px 11px;font:16px/1.35 var(--sans);outline:none;box-sizing:border-box}',
+      '.screen[data-screen="outfits"] .text-studio textarea:focus{border-color:var(--turq);box-shadow:0 0 0 3px rgba(77,142,138,.12)}',
+      '.screen[data-screen="outfits"] .text-studio-label{font:800 10px/1 var(--sans);letter-spacing:.03em;color:#756a5c}',
+      '.screen[data-screen="outfits"] .text-font-select{width:100%;min-width:0;height:40px;border:1px solid var(--line);border-radius:11px;background:#fffdf7;color:var(--ink);padding:0 9px;font:14px var(--sans)}',
+      '.screen[data-screen="outfits"] .text-format-row{display:flex;gap:6px;align-items:center;flex-wrap:wrap}',
+      '.screen[data-screen="outfits"] .text-format-btn{width:38px;height:36px;border:1px solid rgba(108,81,66,.18);border-radius:10px;background:#f8f1e3;color:#5f554a;font:800 14px var(--serif)}',
+      '.screen[data-screen="outfits"] .text-format-btn[data-format="italic"]{font-style:italic}',
+      '.screen[data-screen="outfits"] .text-format-btn[data-format="underline"]{text-decoration:underline}',
+      '.screen[data-screen="outfits"] .text-format-btn.active{background:var(--olive);border-color:var(--olive);color:#fff}',
+      '.screen[data-screen="outfits"] .text-size-group{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;flex:1;min-width:180px}',
+      '.screen[data-screen="outfits"] .text-size-btn{height:36px;border:1px solid rgba(108,81,66,.18);border-radius:10px;background:#f8f1e3;color:#675c50;font:800 11px var(--sans)}',
+      '.screen[data-screen="outfits"] .text-size-btn.active{background:var(--olive);border-color:var(--olive);color:#fff}',
+      '.screen[data-screen="outfits"] .text-studio-action{width:100%;min-height:42px;border:0;border-radius:12px;background:var(--burgundy);color:#fff;font:800 12px var(--sans)}',
+      '.screen[data-screen="outfits"] .text-studio-selection{display:none;padding:7px 9px;border-radius:10px;background:#eef0e8;color:#53604d;font:700 10px/1.25 var(--sans)}',
+      '.screen[data-screen="outfits"] .text-studio.is-editing .text-studio-selection{display:block}',
+      '.screen[data-screen="outfits"] .board-text{width:100%;height:100%;display:flex;align-items:center;justify-content:center;text-align:center;white-space:pre-wrap;overflow-wrap:anywhere;padding:5px;box-sizing:border-box;line-height:1.08;overflow:hidden}',
+      '.snapshot-piece .board-text{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.08;text-align:center;padding:2px;box-sizing:border-box;overflow:hidden}',
       '.screen[data-screen="outfits"] .board-decorate-shell .decorate-tool-card .shape-row{margin:0}',
       '@media(max-width:410px){.screen[data-screen="outfits"] .board-decorate-shell .decorate-studio-tabs{gap:5px}.screen[data-screen="outfits"] .board-decorate-shell .decorate-studio-tab{padding:8px 4px;font-size:10px}.screen[data-screen="outfits"] .board-decorate-shell .decorate-studio-intro strong{font-size:17px}.screen[data-screen="outfits"] .board-decorate-shell .decorate-studio-intro p{font-size:11px}}',
       '.screen[data-screen="outfits"] .board-decorate-shell #decorateToggle{display:none!important}',
@@ -2261,6 +2279,47 @@ const TIER_PATCH=String.raw`
 
   installBoardCaptureGuardV7();
 
+
+  // v13.20-dev11 — Text Studio
+  const BOARD_TEXT_FONTS_V132011={
+    script:{label:'Signature Script',css:'"Snell Roundhand","Segoe Script","Bradley Hand",cursive'},
+    editorial:{label:'Editorial Serif',css:'"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif'},
+    classic:{label:'Classic Serif',css:'Georgia,"Times New Roman",serif'},
+    modern:{label:'Modern Sans',css:'"Avenir Next","Helvetica Neue",Arial,sans-serif'},
+    clean:{label:'Clean System',css:'-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif'},
+    thin:{label:'Modern Thin',css:'"Avenir Next Ultra Light","Avenir Next","Helvetica Neue",Arial,sans-serif',weight:300},
+    rounded:{label:'Soft Rounded',css:'"Avenir Next Rounded","Trebuchet MS",Arial,sans-serif'},
+    handwritten:{label:'Pencil / Handwritten',css:'"Bradley Hand","Noteworthy","Marker Felt",cursive'},
+    typewriter:{label:'Typewriter',css:'Menlo,"Courier New",monospace'},
+    fun:{label:'Fun / Chalk',css:'"Chalkboard SE","Comic Sans MS","Marker Felt",cursive'}
+  };
+  const BOARD_TEXT_SIZES_V132011={small:{label:'S',px:20},medium:{label:'M',px:28},large:{label:'L',px:38},xlarge:{label:'XL',px:50}};
+  let textDraftStyleV132011={font:'script',size:'medium',bold:false,italic:false,underline:false};
+  function normalizeTextStyleV132011(style){const s=style&&typeof style==='object'?style:{};return{font:BOARD_TEXT_FONTS_V132011[s.font]?s.font:'script',size:BOARD_TEXT_SIZES_V132011[s.size]?s.size:'medium',bold:!!s.bold,italic:!!s.italic,underline:!!s.underline}}
+  function normalizeTextPieceV132011(piece){if(!piece||piece.kind!=='text')return piece;piece.textStyle=normalizeTextStyleV132011(piece.textStyle);piece.value=String(piece.value||'');return piece}
+  const originalNormalizeBoardItemV132011=normalizeBoardItem;
+  normalizeBoardItem=function(b){return normalizeTextPieceV132011(originalNormalizeBoardItemV132011.apply(this,arguments))};
+  function textStyleCSSV132011(style,scale=1){const s=normalizeTextStyleV132011(style),f=BOARD_TEXT_FONTS_V132011[s.font],sz=BOARD_TEXT_SIZES_V132011[s.size];return{fontFamily:f.css,fontSize:(sz.px*scale)+'px',fontWeight:String(s.bold?700:(f.weight||400)),fontStyle:s.italic?'italic':'normal',textDecoration:s.underline?'underline':'none'}}
+  const originalBoardItemContentV132011=boardItemContent;
+  boardItemContent=function(b){if(b?.kind==='text'){normalizeTextPieceV132011(b);const c=textStyleCSSV132011(b.textStyle);return '<div class=\"board-text\" style=\"font-family:'+c.fontFamily+';font-size:'+c.fontSize+';font-weight:'+c.fontWeight+';font-style:'+c.fontStyle+';text-decoration:'+c.textDecoration+'\">'+esc(b.value||'')+'</div>'}return originalBoardItemContentV132011.apply(this,arguments)};
+  const originalRenderSnapshotPieceV132011=renderSnapshotPiece;
+  renderSnapshotPiece=function(board,p,scaleX,scaleY,offsetX=0,offsetY=0){const before=board?.children?.length||0,result=originalRenderSnapshotPieceV132011.apply(this,arguments);if(p?.kind==='text'&&board){const el=board.children[before]||board.lastElementChild,t=el?.querySelector?.('.board-text');if(t){const c=textStyleCSSV132011(p.textStyle,Math.min(scaleX||1,scaleY||1));Object.assign(t.style,{fontFamily:c.fontFamily,fontSize:c.fontSize,fontWeight:c.fontWeight,fontStyle:c.fontStyle,textDecoration:c.textDecoration})}}return result};
+  function selectedTextPieceV132011(){const x=boardItems.find(x=>String(x.uid)===String(selectedBoardUid));return x?.kind==='text'?normalizeTextPieceV132011(x):null}
+  function pushTextUndoV132011(label){if(typeof cloneBoardStateV13205==='function'&&typeof pushBoardStateUndoV13205==='function')pushBoardStateUndoV13205(cloneBoardStateV13205(),selectedBoardUid,label)}
+  function syncTextStudioV132011(){const studio=$('#boardTextStudioV132011');if(!studio)return;const selected=selectedTextPieceV132011(),ta=$('#boardTextInput'),add=$('#addBoardTextBtn');studio.classList.toggle('is-editing',!!selected);if(selected){if(document.activeElement!==ta)ta.value=selected.value||'';textDraftStyleV132011={...selected.textStyle};add.textContent='Update text'}else add.textContent='Add text';const style=selected?selected.textStyle:textDraftStyleV132011;const font=$('#boardTextFontV132011');if(font)font.value=style.font;studio.querySelectorAll('.text-format-btn').forEach(b=>{b.classList.toggle('active',!!style[b.dataset.format]);b.setAttribute('aria-pressed',style[b.dataset.format]?'true':'false')});studio.querySelectorAll('.text-size-btn').forEach(b=>{const a=b.dataset.textSize===style.size;b.classList.toggle('active',a);b.setAttribute('aria-pressed',a?'true':'false')})}
+  function applyTextStyleChangeV132011(next,label){const selected=selectedTextPieceV132011();if(selected){pushTextUndoV132011(label);selected.textStyle={...selected.textStyle,...next};drawBoard()}else{textDraftStyleV132011={...textDraftStyleV132011,...next};syncTextStudioV132011()}}
+  function addOrUpdateBoardTextV132011(){const ta=$('#boardTextInput'),value=String(ta?.value||'').trim();if(!value)return toast('Type something first');const selected=selectedTextPieceV132011();if(selected){pushTextUndoV132011('text edit');selected.value=value;drawBoard();toast('Text updated');return}const before=typeof cloneBoardStateV13205==='function'?cloneBoardStateV13205():null;const item={uid:id(),kind:'text',value,textStyle:{...textDraftStyleV132011},x:55+Math.random()*55,y:65+Math.random()*65,w:220,h:(value.length>85||value.includes('\n'))?128:88,rotation:0,z:nextZ()};boardItems.push(item);selectedBoardUid=item.uid;if(before&&typeof pushBoardStateUndoV13205==='function')pushBoardStateUndoV13205(before,null,'add text');drawBoard();toast('Text added')}
+  function installTextStudioV132011(){const panel=document.querySelector('.decorate-studio-panel[data-decorate-group="text"] .decorate-studio-content'),card=panel?.querySelector('.decorate-tool-card');if(!panel||!card||$('#boardTextStudioV132011'))return;const old=card.querySelector('#boardTextInput'),add=card.querySelector('#addBoardTextBtn');if(!old||!add)return;const ta=document.createElement('textarea');ta.id='boardTextInput';ta.maxLength=280;ta.rows=2;ta.placeholder='Add a title, caption or note…';ta.value=old.value||'';old.replaceWith(ta);const studio=document.createElement('div');studio.id='boardTextStudioV132011';studio.className='text-studio';studio.innerHTML='<div id="boardTextSelectionV132011" class="text-studio-selection">Editing selected text — changes apply to this object.</div>';studio.appendChild(ta);const label=document.createElement('span');label.className='text-studio-label';label.textContent='Font';studio.appendChild(label);const sel=document.createElement('select');sel.id='boardTextFontV132011';sel.className='text-font-select';Object.entries(BOARD_TEXT_FONTS_V132011).forEach(([k,v])=>{const o=document.createElement('option');o.value=k;o.textContent=v.label;sel.appendChild(o)});studio.appendChild(sel);const row=document.createElement('div');row.className='text-format-row';[['bold','B'],['italic','I'],['underline','U']].forEach(([k,l])=>{const b=document.createElement('button');b.type='button';b.className='text-format-btn';b.dataset.format=k;b.textContent=l;row.appendChild(b)});const sizes=document.createElement('div');sizes.className='text-size-group';Object.entries(BOARD_TEXT_SIZES_V132011).forEach(([k,v])=>{const b=document.createElement('button');b.type='button';b.className='text-size-btn';b.dataset.textSize=k;b.textContent=v.label;sizes.appendChild(b)});row.appendChild(sizes);studio.appendChild(row);add.className='text-studio-action';studio.appendChild(add);card.innerHTML='';card.appendChild(studio);sel.onchange=()=>applyTextStyleChangeV132011({font:sel.value},'font change');studio.querySelectorAll('.text-format-btn').forEach(b=>b.onclick=e=>{e.preventDefault();const s=selectedTextPieceV132011()?.textStyle||textDraftStyleV132011;applyTextStyleChangeV132011({[b.dataset.format]:!s[b.dataset.format]},'text format')});studio.querySelectorAll('.text-size-btn').forEach(b=>b.onclick=e=>{e.preventDefault();applyTextStyleChangeV132011({size:b.dataset.textSize},'text size')});document.addEventListener('click',e=>{const t=e.target.closest?.('#addBoardTextBtn');if(!t)return;e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();addOrUpdateBoardTextV132011()},true);ta.addEventListener('keydown',e=>{if(e.key==='Enter'&&(e.metaKey||e.ctrlKey)){e.preventDefault();addOrUpdateBoardTextV132011()}});syncTextStudioV132011()}
+  const originalDrawBoardV132011=drawBoard;drawBoard=function(){const r=originalDrawBoardV132011.apply(this,arguments);setTimeout(syncTextStudioV132011,0);return r};
+  document.addEventListener('pointerup',e=>{if(e.target.closest?.('#outfitBoard .board-piece'))setTimeout(syncTextStudioV132011,0)},true);
+  function migrateLegacyTextPiecesV132011(){let changed=false;(state.outfits||[]).forEach(o=>(o.pieces||[]).forEach(p=>{if(p.kind==='text'){const before=JSON.stringify(p.textStyle||null);p.textStyle=normalizeTextStyleV132011(p.textStyle);if(before!==JSON.stringify(p.textStyle))changed=true}}));if(changed)saveState().catch(()=>{})}
+  setTimeout(migrateLegacyTextPiecesV132011,900);setTimeout(migrateLegacyTextPiecesV132011,1900);
+  function canvasFontV132011(style,px){const s=normalizeTextStyleV132011(style),f=BOARD_TEXT_FONTS_V132011[s.font];return (s.italic?'italic ':'')+(s.bold?700:(f.weight||400))+' '+Math.max(7,px)+'px '+f.css}
+  function wrapStyledCanvasTextV132011(ctx,text,maxWidth,maxLines=12){const lines=[];for(const para of String(text||'').split(/\n/)){if(!para){lines.push('');continue}let line='';for(const word of para.split(/\s+/)){const test=line?line+' '+word:word;if(ctx.measureText(test).width>maxWidth&&line){lines.push(line);line=word;if(lines.length>=maxLines)return lines}else line=test}if(line)lines.push(line);if(lines.length>=maxLines)return lines}return lines}
+  function drawBoardTextToContextV132011(ctx,b,w,h,scale){const s=normalizeTextStyleV132011(b.textStyle),size=BOARD_TEXT_SIZES_V132011[s.size].px*Math.max(.15,scale||1),lh=size*1.12;ctx.fillStyle='#7d3547';ctx.textAlign='center';ctx.textBaseline='middle';ctx.font=canvasFontV132011(s,size);const lines=wrapStyledCanvasTextV132011(ctx,b.value||'',w*.94,12),visible=lines.slice(0,Math.max(1,Math.floor(h*.94/lh))),start=h/2-(visible.length-1)*lh/2;visible.forEach((line,i)=>{const y=start+i*lh;ctx.fillText(line,w/2,y,w*.94);if(s.underline&&line){const ww=Math.min(w*.94,ctx.measureText(line).width);ctx.save();ctx.strokeStyle=ctx.fillStyle;ctx.lineWidth=Math.max(1,size*.055);ctx.beginPath();ctx.moveTo(w/2-ww/2,y+size*.48);ctx.lineTo(w/2+ww/2,y+size*.48);ctx.stroke();ctx.restore()}})}
+  window.__audreyDrawBoardTextV132011=drawBoardTextToContextV132011;
+  installTextStudioV132011();
+
   // v13.20-dev7 — Photo Studio Original must be a pristine source view.
   //
   // Prior behavior:
@@ -2393,6 +2452,10 @@ function withTierPatch(resp){
     const shareNew=`ctx.fillStyle='#f7f0df';ctx.fillRect(0,0,W,H);roundRectPath(ctx,pad,boardTop,drawW,drawH,42);ctx.save();ctx.clip();window.__audreyPaintBoardCanvasV1320(ctx,pad,boardTop,drawW,drawH,outfit?.canvasBackground||(!outfit?(window.__audreyGetCurrentCanvasV1320?.()||{id:'default'}):{id:'default'}));ctx.restore();
   ctx.save();roundRectPath(ctx,pad,boardTop,drawW,drawH,42);ctx.clip();`;
     if(text.includes(shareOld))text=text.replace(shareOld,shareNew);
+
+    const textShareOld="else if(b.kind==='text'){ctx.fillStyle='#7d3547';ctx.textAlign='center';ctx.textBaseline='middle';ctx.font=`${Math.max(18,28*scale)}px \"Brush Script MT\",\"Segoe Script\",cursive`;wrapCanvasText(ctx,b.value||'',w/2,h/2,w*.95,Math.max(22,29.4*scale))}";
+    const textShareNew="else if(b.kind==='text'){window.__audreyDrawBoardTextV132011(ctx,b,w,h,scale)}";
+    if(text.includes(textShareOld))text=text.replace(textShareOld,textShareNew);
 
     // Repair fixed bottom navigation whenever Share UI closes or the native share
     // sheet returns control to the PWA.

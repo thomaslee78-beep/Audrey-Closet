@@ -1,52 +1,14 @@
-Audrey Closet — v13.20-dev10 Main Update
-Decorate Sticker Panel Width Fix
+Audrey Closet — v13.20-dev11 Main Update
+Text Studio
 
-ISSUE
-In Board -> Decorate -> Stickers, the sticker content could force the new Decorate
-Studio panel wider than its intended card and visually stretch toward the horizontal
-screen edge.
+New: multi-line text, Bold/Italic/Underline, 10 system-font choices, S/M/L/XL text sizes, editing selected Board text, legacy text normalization, scaled Portfolio/full-preview text, and styled Share/export text.
 
-ROOT CAUSE
-The original sticker row was designed as a horizontal scrolling flex strip.
+Text remains a normal Board object and continues to support move, resize, rotate, layer, copy, delete, lock and Undo.
 
-After dev9 moved it inside the new grouped Decorate Studio, it became nested inside
-multiple CSS Grid containers. Grid items default to an intrinsic minimum width unless
-explicitly allowed to shrink. The sticker strip's total content width could therefore
-expand its parent containers instead of remaining contained.
+Font size is intentionally separate from box resize: S/M/L/XL controls typography while resizing controls wrapping/layout.
 
-FIX
-The Decorate layout now explicitly constrains:
-- board-decorate-shell
-- decorate-studio-panels
-- decorate-studio-panel
-- decorate-studio-content
-- decorate-tool-card
+Legacy saved text defaults to Signature Script / Medium / regular style so older boards remain visually close to the prior version.
 
-Each uses min-width:0 and max-width:100% so nested content cannot force the panel wider.
+Test: add a multi-line note; style it; select it and edit it; resize/rotate/lock/undo; save; verify Portfolio thumbnail/full preview; export/share.
 
-The sticker row itself now:
-- stays width:100% of its tool card
-- has max-width:100%
-- scrolls horizontally inside the card
-- does not wrap
-- keeps each sticker button at its natural size
-- hides the scrollbar for a cleaner mobile presentation
-- retains iOS momentum scrolling
-
-NO FUNCTIONALITY CHANGE
-- Sticker buttons are unchanged.
-- Sticker insertion behavior is unchanged.
-- Text / Draw / Shapes are unchanged.
-- Board / Tools / Canvas are unchanged.
-
-TEST
-1. Open Board -> Decorate -> Stickers.
-2. Confirm the outer Decorate card stays inside the same left/right margins as Text,
-   Draw and Shapes.
-3. Swipe horizontally across the sticker buttons.
-4. Confirm only the sticker strip scrolls.
-5. Confirm the page itself does not gain horizontal scrolling.
-6. Rotate / resize viewport if testing on iPhone or iPad.
-
-ROLLBACK
-Replace sw.js with v13.20-dev9.
+Rollback: replace sw.js with v13.20-dev10.
