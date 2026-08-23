@@ -1,0 +1,46 @@
+name: Deliver v13.22-dev3
+
+on:
+  push:
+    paths:
+      - '.github/workflows/deliver-v13.22-dev3.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  deliver:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Wire dev3 module and bump PWA version
+        shell: python
+        run: |
+          from pathlib import Path
+          sw = Path('sw.js')
+          s = sw.read_text()
+          s = s.replace("const CACHE='audrey-closet-v13.22-dev2';", "const CACHE='audrey-closet-v13.22-dev3';", 1)
+          s = s.replace("'./shape-studio-v13.22-dev1.js','./manifest.webmanifest'", "'./shape-studio-v13.22-dev1.js','./shape-studio-v13.22-dev3.js','./manifest.webmanifest'", 1)
+          sw.write_text(s)
+
+          index = Path('index.html')
+          h = index.read_text()
+          h = h.replace('manifest.webmanifest?v=13.22-dev2', 'manifest.webmanifest?v=13.22-dev3')
+          h = h.replace('styles.css?v=13.22-dev2', 'styles.css?v=13.22-dev3')
+          h = h.replace('app.js?v=13.22-dev2', 'app.js?v=13.22-dev3')
+          h = h.replace('shape-studio-v13.22-dev1.js?v=13.22-dev2', 'shape-studio-v13.22-dev1.js?v=13.22-dev3')
+          h = h.replace('./sw.js?v=13.22-dev2', './sw.js?v=13.22-dev3')
+          marker = '  <script src="shape-studio-v13.22-dev1.js?v=13.22-dev3"></script>'
+          module = marker + '\n  <script src="shape-studio-v13.22-dev3.js?v=13.22-dev3"></script>'
+          if 'shape-studio-v13.22-dev3.js' not in h:
+              h = h.replace(marker, module, 1)
+          index.write_text(h)
+
+      - name: Commit dev3 delivery
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add sw.js index.html
+          git commit -m "v13.22-dev3 deliver Shape Studio border slider"
+          git push
