@@ -43,3 +43,7 @@ jobs:
               --title "Audrey Closet v13.22 — Enhanced Text Studio" \
               --notes "Stable release for the enhanced Text Studio functionality.\n\nHighlights:\n- Expanded Text Studio fonts and font sizing\n- Bold, italic, and underline formatting\n- Text color picker\n- Left, center, and right alignment\n- Compact Text Studio layout\n- Clear/Undo editing behavior\n- Saved-look Share pipeline experiment with flattened board export\n\nKnown issue: Share rendering still has some background and pattern inconsistencies. These are intentionally deferred to a future development build.\n\nStable rollback branch: release/v13.22\nStable source commit: 44486b90089c0b64c71251bb2ef7dbd29767aab2"
           fi
+          git pull --rebase origin main
+          git rm .github/workflows/create-v13.22-release.yml
+          git commit -m "Remove one-time v13.22 release workflow"
+          git push origin main
