@@ -1,8 +1,8 @@
-const CACHE='audrey-closet-v13.20-dev18';
+const CACHE='audrey-closet-v13.20-dev19';
 const ASSETS=['./','./index.html','./styles.css','./app.js','./manifest.webmanifest','./icon-192.png','./icon-512.png'];
 
 /*
- * v13.20-dev18 Text Studio new-board repair.
+ * v13.20-dev19 Text Studio clean rebuild.
  *
  * The current app is a single large classic app.js file. For this dev branch we
  * append the isolated tier feature when app.js is served so the stable v13.15
@@ -10,7 +10,7 @@ const ASSETS=['./','./index.html','./styles.css','./app.js','./manifest.webmanif
  * promoted, it can be folded into app.js/styles.css in the next stable release.
  */
 const TIER_PATCH=String.raw`
-;/* v13.20-dev18 — Text Studio new-board repair */
+;/* v13.20-dev19 — Text Studio clean rebuild */
 (function(){
   const CLOSET_TIERS=['S','A','B','C','D'];
   function normalizeClosetTier(value){
@@ -417,6 +417,28 @@ const TIER_PATCH=String.raw`
       '.screen[data-screen="outfits"] .decorate-studio-panel[data-decorate-group="text"] .decorate-empty-note{display:none!important}',
       '.screen[data-screen="outfits"] .board-decorate-shell #boardHelp{display:none!important}',
       '.screen[data-screen="outfits"] .decorate-studio-panel[data-decorate-group="text"] .decorate-studio-content{gap:0!important}',
+      '.screen[data-screen="outfits"] #boardTextStudioV132019{display:grid!important;gap:7px!important;width:100%!important;min-width:0!important}',
+      '.screen[data-screen="outfits"] .text-help-v132019{padding:6px 8px;border-radius:9px;background:#f7f1e5;color:#74695c;font:700 10px/1.3 var(--sans)}',
+      '.screen[data-screen="outfits"] .text-entry-row-v132019{display:grid!important;grid-template-columns:minmax(0,1fr) 80px!important;gap:6px!important;align-items:stretch!important;width:100%!important;min-width:0!important}',
+      '.screen[data-screen="outfits"] #boardTextInput{display:block!important;visibility:visible!important;opacity:1!important;width:100%!important;height:84px!important;min-height:84px!important;max-height:84px!important;resize:none!important;overflow-y:auto!important;margin:0!important;padding:8px 9px!important;box-sizing:border-box!important;font-size:16px!important}',
+      '.screen[data-screen="outfits"] .text-actions-v132019{display:grid!important;grid-template-rows:repeat(3,1fr)!important;gap:4px!important;width:80px!important;min-width:80px!important}',
+      '.screen[data-screen="outfits"] .text-actions-v132019 button{width:80px!important;min-width:80px!important;min-height:0!important;height:auto!important;padding:0 5px!important;border-radius:9px!important;font:800 10.5px var(--sans)!important}',
+      '.screen[data-screen="outfits"] .text-color-button-v132019{border:1px solid rgba(108,81,66,.18)!important;background:#f8f1e3!important;color:#675c50!important;display:flex!important;align-items:center!important;justify-content:center!important;gap:5px!important}',
+      '.screen[data-screen="outfits"] .text-color-dot-v132019{width:14px;height:14px;border-radius:50%;border:1px solid rgba(0,0,0,.18);background:var(--text-color,#7d3547)}',
+      '.screen[data-screen="outfits"] #boardTextColorV132019{position:fixed!important;left:-9999px!important;top:-9999px!important;width:1px!important;height:1px!important;opacity:0!important}',
+      '.screen[data-screen="outfits"] .text-font-row-v132019{display:grid!important;grid-template-columns:auto minmax(0,1fr) auto!important;gap:6px!important;align-items:center!important;width:100%!important;min-width:0!important}',
+      '.screen[data-screen="outfits"] .text-font-row-v132019 .text-studio-label{display:block!important;margin:0!important;font-size:10px!important;white-space:nowrap!important}',
+      '.screen[data-screen="outfits"] #boardTextFontV132019{display:block!important;width:100%!important;min-width:0!important;height:35px!important;padding:0 6px!important;border:1px solid var(--line)!important;border-radius:10px!important;background:#fffdf7!important;color:var(--ink)!important;font-size:12px!important}',
+      '.screen[data-screen="outfits"] .text-align-v132019{display:flex!important;gap:3px!important}',
+      '.screen[data-screen="outfits"] .text-align-v132019 button{width:29px!important;height:32px!important;padding:0!important;border:1px solid rgba(108,81,66,.18)!important;border-radius:9px!important;background:#f8f1e3!important;color:#665b50!important;display:grid!important;place-items:center!important}',
+      '.screen[data-screen="outfits"] .text-align-v132019 button.active{background:var(--olive)!important;border-color:var(--olive)!important;color:#fff!important}',
+      '.screen[data-screen="outfits"] .text-style-row-v132019{display:flex!important;align-items:center!important;gap:5px!important;flex-wrap:nowrap!important;width:100%!important;min-width:0!important}',
+      '.screen[data-screen="outfits"] .text-style-row-v132019 .text-format-btn{flex:0 0 34px!important;width:34px!important;height:34px!important}',
+      '.screen[data-screen="outfits"] .text-style-row-v132019 .text-size-group{display:grid!important;grid-template-columns:repeat(4,1fr)!important;gap:4px!important;flex:1!important;min-width:0!important}',
+      '.screen[data-screen="outfits"] .text-style-row-v132019 .text-size-btn{height:34px!important;min-width:0!important;padding:0 4px!important}',
+      '.screen[data-screen="outfits"] .decorate-studio-panel[data-decorate-group="text"] .decorate-tool-card{padding:8px!important;overflow:visible!important}',
+      '.screen[data-screen="outfits"] .decorate-studio-panel[data-decorate-group="text"] .decorate-empty-note,.screen[data-screen="outfits"] .decorate-studio-panel[data-decorate-group="text"] .decorate-studio-intro,.screen[data-screen="outfits"] .board-decorate-shell #boardHelp{display:none!important}',
+      '@media(max-width:360px){.screen[data-screen="outfits"] .text-entry-row-v132019{grid-template-columns:minmax(0,1fr) 74px!important}.screen[data-screen="outfits"] .text-actions-v132019,.screen[data-screen="outfits"] .text-actions-v132019 button{width:74px!important;min-width:74px!important}.screen[data-screen="outfits"] .text-font-row-v132019{gap:4px!important}.screen[data-screen="outfits"] .text-align-v132019 button{width:26px!important}.screen[data-screen="outfits"] .text-style-row-v132019{gap:4px!important}.screen[data-screen="outfits"] .text-style-row-v132019 .text-format-btn{flex-basis:31px!important;width:31px!important}}',
       '@media(max-width:360px){.screen[data-screen="outfits"] .text-entry-side{min-width:78px}.screen[data-screen="outfits"] .text-style-tools-v132013{grid-template-columns:1fr}.screen[data-screen="outfits"] .text-color-wrap{justify-self:start}}',
       '@media(max-width:360px){.screen[data-screen="outfits"] .text-entry-action-row{grid-template-columns:minmax(0,1fr) 78px}.screen[data-screen="outfits"] .text-entry-action-row .text-studio-action{width:78px;min-width:78px;font-size:11px}}',
       '.screen[data-screen="outfits"] .board-text{width:100%;height:100%;display:flex;align-items:center;justify-content:center;text-align:center;white-space:pre-wrap;overflow-wrap:anywhere;padding:5px;box-sizing:border-box;line-height:1.08;overflow:hidden}',
@@ -2374,7 +2396,7 @@ const TIER_PATCH=String.raw`
   installBoardCaptureGuardV7();
 
 
-  // v13.20-dev18 — Text Studio new-board repair
+  // v13.20-dev19 — Text Studio clean rebuild
   const BOARD_TEXT_FONTS_V132011={
     script:{label:'Signature Script',css:'"Snell Roundhand","Segoe Script","Bradley Hand",cursive'},
     editorial:{label:'Editorial Serif',css:'"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif'},
@@ -2713,7 +2735,7 @@ const TIER_PATCH=String.raw`
   syncTextStudioV132011();
 
 
-  // v13.20-dev18 — Text Studio new-board repair.
+  // v13.20-dev19 — Text Studio clean rebuild.
   let textClearedValueV132014=null;
 
   function textAlignIconV132014(kind){
@@ -3689,6 +3711,308 @@ const TIER_PATCH=String.raw`
 
   // One final post-install check.
   setTimeout(repairTextStudioV132018,0);
+
+
+  // v13.20-dev19 — clean, authoritative Text Studio rebuild.
+  // This intentionally stops relying on the accumulated dev13-dev18 Text DOM.
+
+  let textClearUndoV132019='';
+
+  function alignIconV132019(kind){
+    return '<span class="text-align-icon '+kind+'" aria-hidden="true"><i></i><i></i><i></i></span>';
+  }
+
+  function textStyleV132019(){
+    const selected=selectedTextPieceV132011?.();
+    return normalizeTextStyleV132011(selected?.textStyle||textDraftStyleV132011);
+  }
+
+  function applyTextStyleV132019(next,label){
+    const selected=selectedTextPieceV132011?.();
+    if(selected){
+      pushTextUndoV132011(label);
+      selected.textStyle={...normalizeTextStyleV132011(selected.textStyle),...next};
+      drawBoard();
+    }else{
+      textDraftStyleV132011={...normalizeTextStyleV132011(textDraftStyleV132011),...next};
+      syncTextStudioV132019();
+    }
+  }
+
+  function buildTextStudioV132019(){
+    const content=document.querySelector(
+      '.decorate-studio-panel[data-decorate-group="text"] .decorate-studio-content'
+    );
+    if(!content)return;
+
+    // Preserve current draft/selection before replacing older Text DOM.
+    const oldTa=$('#boardTextInput');
+    const selected=selectedTextPieceV132011?.();
+    const existingValue=oldTa?.value ?? selected?.value ?? '';
+
+    // Text gets exactly one tool card.
+    content.innerHTML='';
+    const card=document.createElement('div');
+    card.className='decorate-tool-card';
+    content.appendChild(card);
+
+    const studio=document.createElement('div');
+    studio.id='boardTextStudioV132019';
+    card.appendChild(studio);
+
+    // Row 1: help.
+    const help=document.createElement('div');
+    help.className='text-help-v132019';
+    help.id='boardTextHelpV132019';
+    help.textContent='Type a title, caption or note, choose a style, then tap Add Text.';
+    studio.appendChild(help);
+
+    // Row 2: 3-line entry + 3 action buttons.
+    const entryRow=document.createElement('div');
+    entryRow.className='text-entry-row-v132019';
+
+    const ta=document.createElement('textarea');
+    ta.id='boardTextInput';
+    ta.rows=3;
+    ta.maxLength=280;
+    ta.placeholder='Add a title, caption or note…';
+    ta.value=existingValue;
+    entryRow.appendChild(ta);
+
+    const actions=document.createElement('div');
+    actions.className='text-actions-v132019';
+
+    const add=document.createElement('button');
+    add.type='button';
+    add.id='addBoardTextBtn';
+    add.className='text-studio-action';
+    add.textContent=selected?'Update':'Add Text';
+    actions.appendChild(add);
+
+    const clear=document.createElement('button');
+    clear.type='button';
+    clear.id='clearBoardTextV132019';
+    clear.className='text-clear-btn-v132017';
+    clear.textContent='Clear';
+    actions.appendChild(clear);
+
+    const colorBtn=document.createElement('button');
+    colorBtn.type='button';
+    colorBtn.className='text-color-button-v132019';
+    colorBtn.innerHTML='<span class="text-color-dot-v132019"></span><span>Color</span>';
+    actions.appendChild(colorBtn);
+
+    entryRow.appendChild(actions);
+    studio.appendChild(entryRow);
+
+    const color=document.createElement('input');
+    color.type='color';
+    color.id='boardTextColorV132019';
+    color.value=textStyleV132019().color||'#7d3547';
+    studio.appendChild(color);
+
+    // Row 3: Font + chooser + justification.
+    const fontRow=document.createElement('div');
+    fontRow.className='text-font-row-v132019';
+
+    const fontLabel=document.createElement('span');
+    fontLabel.className='text-studio-label';
+    fontLabel.textContent='Font';
+    fontRow.appendChild(fontLabel);
+
+    const font=document.createElement('select');
+    font.id='boardTextFontV132019';
+    Object.entries(BOARD_TEXT_FONTS_V132011).forEach(function(entry){
+      const option=document.createElement('option');
+      option.value=entry[0];
+      option.textContent=entry[1].label;
+      font.appendChild(option);
+    });
+    fontRow.appendChild(font);
+
+    const aligns=document.createElement('div');
+    aligns.className='text-align-v132019';
+    ['left','center','right'].forEach(function(kind){
+      const btn=document.createElement('button');
+      btn.type='button';
+      btn.dataset.textAlign=kind;
+      btn.innerHTML=alignIconV132019(kind);
+      btn.setAttribute('aria-label',kind.charAt(0).toUpperCase()+kind.slice(1)+' align');
+      aligns.appendChild(btn);
+    });
+    fontRow.appendChild(aligns);
+    studio.appendChild(fontRow);
+
+    // Row 4: existing style/size design.
+    const styleRow=document.createElement('div');
+    styleRow.className='text-style-row-v132019';
+
+    [['bold','B'],['italic','I'],['underline','U']].forEach(function(def){
+      const btn=document.createElement('button');
+      btn.type='button';
+      btn.className='text-format-btn';
+      btn.dataset.format=def[0];
+      btn.textContent=def[1];
+      styleRow.appendChild(btn);
+    });
+
+    const sizes=document.createElement('div');
+    sizes.className='text-size-group';
+    Object.entries(BOARD_TEXT_SIZES_V132011).forEach(function(entry){
+      const btn=document.createElement('button');
+      btn.type='button';
+      btn.className='text-size-btn';
+      btn.dataset.textSize=entry[0];
+      btn.textContent=entry[1].label;
+      sizes.appendChild(btn);
+    });
+    styleRow.appendChild(sizes);
+    studio.appendChild(styleRow);
+
+    // Direct handlers. No dependency on legacy Text DOM handlers.
+    add.onclick=function(e){
+      e.preventDefault();
+      e.stopPropagation();
+      addOrUpdateBoardTextV132011();
+      textClearUndoV132019='';
+      setTimeout(syncTextStudioV132019,0);
+    };
+
+    clear.onclick=function(e){
+      e.preventDefault();
+      if(clear.dataset.mode==='undo'){
+        ta.value=textClearUndoV132019;
+        textClearUndoV132019='';
+        clear.dataset.mode='clear';
+        clear.textContent='Clear';
+        clear.classList.remove('undo-ready');
+      }else{
+        if(!ta.value){toast('Text is already clear');return}
+        textClearUndoV132019=ta.value;
+        ta.value='';
+        clear.dataset.mode='undo';
+        clear.textContent='Undo';
+        clear.classList.add('undo-ready');
+      }
+      ta.focus();
+    };
+
+    colorBtn.onclick=function(e){
+      e.preventDefault();
+      color.click();
+    };
+    color.oninput=function(){
+      applyTextStyleV132019({color:color.value||'#7d3547'},'text color');
+    };
+
+    font.onchange=function(){
+      applyTextStyleV132019({font:font.value},'font change');
+    };
+
+    aligns.querySelectorAll('button').forEach(function(btn){
+      btn.onclick=function(e){
+        e.preventDefault();
+        applyTextStyleV132019({align:btn.dataset.textAlign},'text alignment');
+      };
+    });
+
+    styleRow.querySelectorAll('.text-format-btn').forEach(function(btn){
+      btn.onclick=function(e){
+        e.preventDefault();
+        const s=textStyleV132019();
+        applyTextStyleV132019({[btn.dataset.format]:!s[btn.dataset.format]},'text format');
+      };
+    });
+
+    sizes.querySelectorAll('.text-size-btn').forEach(function(btn){
+      btn.onclick=function(e){
+        e.preventDefault();
+        applyTextStyleV132019({size:btn.dataset.textSize},'text size');
+      };
+    });
+
+    ta.addEventListener('keydown',function(e){
+      if(e.key==='Enter'&&(e.metaKey||e.ctrlKey)){
+        e.preventDefault();
+        addOrUpdateBoardTextV132011();
+        setTimeout(syncTextStudioV132019,0);
+      }
+    });
+
+    $('#boardHelp')?.remove();
+    syncTextStudioV132019();
+  }
+
+  function syncTextStudioV132019(){
+    const studio=$('#boardTextStudioV132019');
+    if(!studio)return;
+    const selected=selectedTextPieceV132011?.();
+    const style=textStyleV132019();
+    const ta=$('#boardTextInput');
+
+    const help=$('#boardTextHelpV132019');
+    if(help){
+      help.textContent=selected
+        ? 'Editing selected text — style changes apply to this text on the board.'
+        : 'Type a title, caption or note, choose a style, then tap Add Text.';
+    }
+
+    if(selected&&ta&&document.activeElement!==ta){
+      ta.value=selected.value||'';
+    }
+
+    const add=$('#addBoardTextBtn');
+    if(add)add.textContent=selected?'Update':'Add Text';
+
+    const font=$('#boardTextFontV132019');
+    if(font)font.value=style.font;
+
+    studio.querySelectorAll('.text-align-v132019 button').forEach(function(btn){
+      const active=btn.dataset.textAlign===style.align;
+      btn.classList.toggle('active',active);
+      btn.setAttribute('aria-pressed',active?'true':'false');
+    });
+
+    studio.querySelectorAll('.text-format-btn').forEach(function(btn){
+      const active=!!style[btn.dataset.format];
+      btn.classList.toggle('active',active);
+      btn.setAttribute('aria-pressed',active?'true':'false');
+    });
+
+    studio.querySelectorAll('.text-size-btn').forEach(function(btn){
+      const active=btn.dataset.textSize===style.size;
+      btn.classList.toggle('active',active);
+      btn.setAttribute('aria-pressed',active?'true':'false');
+    });
+
+    const color=$('#boardTextColorV132019');
+    if(color)color.value=style.color||'#7d3547';
+    const dot=studio.querySelector('.text-color-dot-v132019');
+    if(dot)dot.style.setProperty('--text-color',style.color||'#7d3547');
+  }
+
+  // Override all earlier Text layout synchronization with the dev19 panel.
+  syncTextStudioV132011=function(){
+    if(!$('#boardTextStudioV132019'))buildTextStudioV132019();
+    else syncTextStudioV132019();
+  };
+  compactTextStudioV132012=function(){
+    if(!$('#boardTextStudioV132019'))buildTextStudioV132019();
+  };
+
+  // Rebuild when entering Text, Decorate, or starting a new Board.
+  document.addEventListener('click',function(e){
+    const textTab=e.target.closest?.('.decorate-studio-tab[data-decorate-group="text"]');
+    const decorate=e.target.closest?.('.board-workspace-tab[data-board-panel="decorate"]');
+    if(textTab||decorate){
+      setTimeout(function(){
+        if(!$('#boardTextStudioV132019'))buildTextStudioV132019();
+        else syncTextStudioV132019();
+      },0);
+    }
+  },true);
+
+  setTimeout(buildTextStudioV132019,0);
 
   // v13.20-dev7 — Photo Studio Original must be a pristine source view.
   //

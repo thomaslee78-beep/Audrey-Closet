@@ -1,67 +1,56 @@
-Audrey Closet — v13.20-dev18 Main Update
-Text Studio New-Board Repair
+Audrey Closet — v13.20-dev19 Main Update
+Text Studio Clean Rebuild
 
-ROOT CAUSE FOUND
-v13.20-dev17 had a DOM cleanup bug.
+This version stops repairing the accumulated dev13-dev18 Text DOM and rebuilds the
+Text panel from scratch in the exact requested four-row structure.
 
-The cleanup code did:
-1. Check whether an old layout container CONTAINED a Text control.
-2. Then call container.removeChild(control).
+ROW 1
+Help message:
+- New text: type a title/caption/note, choose a style, tap Add Text.
+- Selected text: explains that changes apply to the selected Board text.
 
-That only works when the control is a DIRECT child.
+ROW 2
+Two columns:
+LEFT:
+- visible 3-line textarea (#boardTextInput)
 
-The Add/Update button is nested inside the right-side button stack. Therefore on a
-new Board sync:
-- the textarea could be detached first,
-- cleanup reached Add/Update,
-- removeChild(Add/Update) threw NotFoundError because Add/Update was not a direct child,
-- JavaScript stopped before the textarea was reinserted,
-- Color was never rebuilt.
+RIGHT:
+1. Add Text / Update
+2. Clear / Undo
+3. Color
 
-That exactly produces:
-New Board -> Decorate -> Text -> no text entry field.
+Clear only clears the textarea.
+Undo restores the just-cleared text.
+Color opens the native color picker and applies immediately.
 
-DEV18 ROOT FIX
-- Replaces unsafe container.removeChild(control) with control.remove().
-- control.remove() always removes from the control's actual parent and cannot fail
-  because of nesting depth.
-
-SECOND FIX
-The canonical dev17 Font row inherited the v132016 CSS class and was also matching the
-"remove old v132016 rows" selector on every sync.
-dev18 excludes the canonical v132017 row from that cleanup selector.
-
-TEXT PANEL CLEANUP
-- Text intro/roadmap panel remains hidden.
-- Empty placeholder note remains hidden/removed.
-- Legacy Board-help panel below Text is removed.
-
-SELF-HEALING GUARD
-Whenever the user:
-- opens the Decorate workspace,
-- taps the Text sub-tab,
-- or starts a New Board,
-
-dev18 validates the canonical Text Studio twice (immediately and after 80 ms).
-This is a guard against future Board redraw timing changes; the root removeChild bug is
-still fixed directly.
-
-EXPECTED TEXT LAYOUT
+ROW 3
 Font | font chooser | Left / Center / Right
 
-3-line text entry | Add/Update
-                  | Clear/Undo
-                  | Color + reset
+ROW 4
+B | I | U | S | M | L | XL
 
-TEST THIS FIRST
-1. Start a NEW Board.
-2. Tap Decorate.
-3. Tap Text.
-4. Confirm the 3-line text entry field is visible.
-5. Type text and tap Add Text.
-6. Confirm text appears on the Board.
-7. Confirm Color is visible and opens the picker.
-8. Switch Decorate -> Stickers -> Text and confirm the editor remains.
-9. Start another New Board and repeat.
+The previous style/size design is retained.
 
-Rollback: use v13.20-dev17 sw.js.
+IMPORTANT
+- Exactly one Text tool card is created.
+- Old placeholder/helper panels are removed.
+- The Text textarea and Color input are newly created by dev19, so they no longer
+  depend on older detached DOM controls.
+- Direct event handlers are attached to the new controls.
+
+TEST FIRST
+New Board -> Decorate -> Text.
+The 3-line textarea must be visible before doing anything else.
+
+Then test:
+- Add Text
+- Clear -> Undo
+- Color
+- Font
+- Left/Center/Right
+- Bold/Italic/Underline
+- S/M/L/XL
+- select existing text and Update
+- switch Decorate tabs and return to Text
+
+Rollback: use v13.20-dev18 sw.js.
