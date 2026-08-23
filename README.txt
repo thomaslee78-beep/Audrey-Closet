@@ -1,84 +1,52 @@
-Audrey Closet — v13.20-dev9 Main Update
-Decorate Studio Initialization + Explicit Tool Mapping Fix
+Audrey Closet — v13.20-dev10 Main Update
+Decorate Sticker Panel Width Fix
 
-WHY DEV8 LOOKED UNCHANGED
-v13.20-dev8 contained the new Decorate Studio code, but the installer was called before
-DECORATE_GROUPS_V13208 and the related functions had finished initializing.
+ISSUE
+In Board -> Decorate -> Stickers, the sticker content could force the new Decorate
+Studio panel wider than its intended card and visually stretch toward the horizontal
+screen edge.
 
-That could stop the Decorate patch before the new UI was built, leaving the original
-three-row Decorate menu visible.
+ROOT CAUSE
+The original sticker row was designed as a horizontal scrolling flex strip.
 
-DEV9 FIX 1 — INITIALIZATION ORDER
-- Removed the premature Decorate Studio install call.
-- Decorate Studio now installs only after:
-  * group definitions exist
-  * panel helpers exist
-  * installer function exists
+After dev9 moved it inside the new grouped Decorate Studio, it became nested inside
+multiple CSS Grid containers. Grid items default to an intrinsic minimum width unless
+explicitly allowed to shrink. The sticker strip's total content width could therefore
+expand its parent containers instead of remaining contained.
 
-DEV9 FIX 2 — EXPLICIT TOOL MAPPING
-The current controls are no longer assigned by heuristic text matching.
+FIX
+The Decorate layout now explicitly constrains:
+- board-decorate-shell
+- decorate-studio-panels
+- decorate-studio-panel
+- decorate-studio-content
+- decorate-tool-card
 
-TEXT
-- Existing .tool-row
-- #boardTextInput
-- #addBoardTextBtn
+Each uses min-width:0 and max-width:100% so nested content cannot force the panel wider.
 
-DRAW
-- Existing #drawModeBtn ("doodle")
-- Removed from the old mixed Shape row and placed in Draw
+The sticker row itself now:
+- stays width:100% of its tool card
+- has max-width:100%
+- scrolls horizontally inside the card
+- does not wrap
+- keeps each sticker button at its natural size
+- hides the scrollbar for a cleaner mobile presentation
+- retains iOS momentum scrolling
 
-SHAPES
-- Existing Circle
-- Existing Line
-- Existing Tape
-
-STICKERS
-- Existing complete .sticker-row
-
-SHARED
-- #boardHelp remains visible below the grouped studio rather than being placed into
-  one specific creative group.
-
-EXPECTED VISIBLE UI
-Board -> Decorate should now visibly show four group buttons:
-
-Text | Draw | Shapes | Stickers
-
-TEXT:
-- Add text controls
-
-DRAW:
-- Doodle control
-
-SHAPES:
-- Circle / Line / Tape
-
-STICKERS:
-- Existing sticker/emoji buttons
-
-Each section also retains the future capability cues from dev8.
-
-IMPORTANT
-This is still primarily a reorganization build.
-It does NOT yet add:
-- additional fonts or text sizing
-- pencil/marker/highlighter drawing modes
-- new arrows/bubbles/caption shapes
-- sticker theme packs
-
-Those can now be developed cleanly within the correct section.
+NO FUNCTIONALITY CHANGE
+- Sticker buttons are unchanged.
+- Sticker insertion behavior is unchanged.
+- Text / Draw / Shapes are unchanged.
+- Board / Tools / Canvas are unchanged.
 
 TEST
-1. Open Board -> Decorate.
-2. Confirm Text / Draw / Shapes / Stickers are visibly present.
-3. Text -> enter text and Add text.
-4. Draw -> confirm Doodle button is here, not Shapes.
-5. Shapes -> confirm Circle / Line / Tape.
-6. Stickers -> confirm existing sticker buttons.
-7. Switch between all groups repeatedly.
-8. Confirm Board help text remains visible.
-9. Confirm Add Items / Tools / Canvas are unchanged.
+1. Open Board -> Decorate -> Stickers.
+2. Confirm the outer Decorate card stays inside the same left/right margins as Text,
+   Draw and Shapes.
+3. Swipe horizontally across the sticker buttons.
+4. Confirm only the sticker strip scrolls.
+5. Confirm the page itself does not gain horizontal scrolling.
+6. Rotate / resize viewport if testing on iPhone or iPad.
 
 ROLLBACK
-Replace sw.js with v13.20-dev7.
-(dev8 should be treated as a superseded/bad Decorate build.)
+Replace sw.js with v13.20-dev9.

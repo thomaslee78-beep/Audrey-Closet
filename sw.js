@@ -1,8 +1,8 @@
-const CACHE='audrey-closet-v13.20-dev9';
+const CACHE='audrey-closet-v13.20-dev10';
 const ASSETS=['./','./index.html','./styles.css','./app.js','./manifest.webmanifest','./icon-192.png','./icon-512.png'];
 
 /*
- * v13.20-dev9 Decorate Studio mapping fix.
+ * v13.20-dev10 Decorate panel width fix.
  *
  * The current app is a single large classic app.js file. For this dev branch we
  * append the isolated tier feature when app.js is served so the stable v13.15
@@ -10,7 +10,7 @@ const ASSETS=['./','./index.html','./styles.css','./app.js','./manifest.webmanif
  * promoted, it can be folded into app.js/styles.css in the next stable release.
  */
 const TIER_PATCH=String.raw`
-;/* v13.20-dev9 — Decorate Studio mapping fix */
+;/* v13.20-dev10 — Decorate panel width fix */
 (function(){
   const CLOSET_TIERS=['S','A','B','C','D'];
   function normalizeClosetTier(value){
@@ -301,6 +301,14 @@ const TIER_PATCH=String.raw`
       '.screen[data-screen="outfits"] .board-decorate-shell .decorate-draw-current #drawModeBtn{min-width:120px;font-size:12px}',
       '.screen[data-screen="outfits"] .board-decorate-shell .decorate-tool-card .tool-row{margin:0}',
       '.screen[data-screen="outfits"] .board-decorate-shell .decorate-tool-card .sticker-row{margin:0}',
+      '.screen[data-screen="outfits"] .board-decorate-shell{min-width:0;max-width:100%;overflow:hidden}',
+      '.screen[data-screen="outfits"] .board-decorate-shell .decorate-studio-panels{min-width:0;max-width:100%;overflow:hidden}',
+      '.screen[data-screen="outfits"] .board-decorate-shell .decorate-studio-panel{min-width:0;max-width:100%;overflow:hidden}',
+      '.screen[data-screen="outfits"] .board-decorate-shell .decorate-studio-content{min-width:0;max-width:100%;overflow:hidden}',
+      '.screen[data-screen="outfits"] .board-decorate-shell .decorate-tool-card{min-width:0;max-width:100%;overflow:hidden}',
+      '.screen[data-screen="outfits"] .board-decorate-shell .decorate-tool-card .sticker-row{width:100%;max-width:100%;min-width:0;overflow-x:auto;overflow-y:hidden;flex-wrap:nowrap;-webkit-overflow-scrolling:touch;scrollbar-width:none}',
+      '.screen[data-screen="outfits"] .board-decorate-shell .decorate-tool-card .sticker-row::-webkit-scrollbar{display:none}',
+      '.screen[data-screen="outfits"] .board-decorate-shell .decorate-tool-card .sticker-row button{flex:0 0 auto}',
       '.screen[data-screen="outfits"] .board-decorate-shell .decorate-tool-card .shape-row{margin:0}',
       '@media(max-width:410px){.screen[data-screen="outfits"] .board-decorate-shell .decorate-studio-tabs{gap:5px}.screen[data-screen="outfits"] .board-decorate-shell .decorate-studio-tab{padding:8px 4px;font-size:10px}.screen[data-screen="outfits"] .board-decorate-shell .decorate-studio-intro strong{font-size:17px}.screen[data-screen="outfits"] .board-decorate-shell .decorate-studio-intro p{font-size:11px}}',
       '.screen[data-screen="outfits"] .board-decorate-shell #decorateToggle{display:none!important}',
@@ -687,7 +695,7 @@ const TIER_PATCH=String.raw`
 
     board.innerHTML='<div class="settings-group-empty">Board preferences will live here as customization options are added.</div>';
     wishlist.innerHTML='<div class="settings-group-empty">Wishlist preferences will live here as shopping and capture options expand.</div>';
-    about.innerHTML='<div class="settings-card settings-about-card"><h3>About Audrey’s Closet</h3><p class="settings-about-version">Version v13.20-dev9</p><p>A personal closet journal built around cataloging, outfits, memories and everyday wardrobe decisions.</p><p>Credits and a few hidden extras can grow here in future releases.</p></div>';
+    about.innerHTML='<div class="settings-card settings-about-card"><h3>About Audrey’s Closet</h3><p class="settings-about-version">Version v13.20-dev10</p><p>A personal closet journal built around cataloging, outfits, memories and everyday wardrobe decisions.</p><p>Credits and a few hidden extras can grow here in future releases.</p></div>';
 
     if(pageHead?.nextSibling)screen.insertBefore(groups,pageHead.nextSibling);
     else screen.appendChild(groups);
