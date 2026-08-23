@@ -1,0 +1,55 @@
+name: Apply v13.21-dev8
+
+on:
+  push:
+    paths:
+      - '.github/workflows/apply-v13.21-dev8.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fix Text Studio Clear button tap handling
+        shell: python
+        run: |
+          from pathlib import Path
+
+          sw = Path('sw.js')
+          text = sw.read_text()
+          text = text.replace("const CACHE='audrey-closet-v13.21-dev7';", "const CACHE='audrey-closet-v13.21-dev8';", 1)
+
+          old_css = "'.screen[data-screen=\"outfits\"] .text-action-stack{display:grid;grid-template-rows:minmax(54px,1fr) 34px 36px;gap:6px;min-width:92px}',"
+          new_css = "'.screen[data-screen=\"outfits\"] .text-action-stack{display:grid;grid-template-rows:minmax(68px,1fr) 34px 36px;gap:6px;min-width:92px}',"
+          if old_css not in text:
+            raise SystemExit('dev7 action stack CSS not found')
+          text = text.replace(old_css, new_css, 1)
+
+          # Make Clear/Undo a capture-phase control so no other Text/Board click handler can swallow the tap.
+          anchor = "document.addEventListener('click',e=>{const t=e.target.closest?.('#addBoardTextBtn');if(!t)return;e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();addOrUpdateBoardTextV132011()},true);"
+          insert = "document.addEventListener('click',e=>{const clear=e.target.closest?.('#boardTextClearBtnV13217');if(!clear)return;e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();const ta=$('#boardTextInput'),selected=selectedTextPieceV132011();if(!ta)return;if(selected){if(String(textEditClearStateV13217.uid)!==String(selected.uid)){textEditClearStateV13217={uid:selected.uid,original:selected.value||'',cleared:false}}if(textEditClearStateV13217.cleared){ta.value=textEditClearStateV13217.original||'';textEditClearStateV13217.cleared=false;clear.textContent='Clear'}else{textEditClearStateV13217.original=selected.value||'';ta.value='';textEditClearStateV13217.cleared=true;clear.textContent='Undo'}}else{ta.value='';textEditClearStateV13217={uid:null,original:'',cleared:false};clear.textContent='Clear'}requestAnimationFrame(()=>{ta.focus();ta.setSelectionRange?.(ta.value.length,ta.value.length)})},true);\n  " + anchor
+          if anchor not in text:
+            raise SystemExit('Add Text capture handler anchor not found')
+          text = text.replace(anchor, insert, 1)
+
+          sw.write_text(text)
+
+          index = Path('index.html')
+          html = index.read_text()
+          html = html.replace('manifest.webmanifest?v=13.21-dev7', 'manifest.webmanifest?v=13.21-dev8')
+          html = html.replace('styles.css?v=13.21-dev7', 'styles.css?v=13.21-dev8')
+          html = html.replace('app.js?v=13.21-dev7', 'app.js?v=13.21-dev8')
+          html = html.replace("./sw.js?v=13.21-dev7", "./sw.js?v=13.21-dev8")
+          index.write_text(html)
+
+      - name: Commit dev8
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add sw.js index.html
+          git commit -m "v13.21-dev8 fix Text Studio Clear button"
+          git push
