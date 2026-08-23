@@ -32,3 +32,5 @@ jobs:
           git add shape-studio-v13.22-dev1.js
           git commit -m "v13.22-dev2 show stretch handles only on selected shape"
           git push
+
+# retrigger
