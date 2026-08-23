@@ -1,0 +1,84 @@
+name: Apply v13.21-dev10
+
+on:
+  push:
+    paths:
+      - '.github/workflows/apply-v13.21-dev10.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compact Text Studio color and entry layout
+        shell: python
+        run: |
+          from pathlib import Path
+
+          sw = Path('sw.js')
+          text = sw.read_text()
+          text = text.replace("const CACHE='audrey-closet-v13.21-dev9';", "const CACHE='audrey-closet-v13.21-dev10';", 1)
+
+          # Back to a two-row textarea.
+          old_rows = "ta.rows=3;ta.placeholder='Add a title, caption or note…';"
+          new_rows = "ta.rows=2;ta.placeholder='Add a title, caption or note…';"
+          if old_rows not in text:
+            raise SystemExit('dev9 textarea row anchor not found')
+          text = text.replace(old_rows, new_rows, 1)
+
+          # Action stack becomes two equal rows: Add/Update and Clear/Undo.
+          old_stack = "'.screen[data-screen=\"outfits\"] .text-action-stack{display:grid;grid-template-rows:repeat(3,36px);gap:5px;min-width:92px;align-content:start}',"
+          new_stack = "'.screen[data-screen=\"outfits\"] .text-action-stack{display:grid;grid-template-rows:repeat(2,36px);gap:5px;min-width:92px;align-content:start}',"
+          if old_stack not in text:
+            raise SystemExit('dev9 action stack rule not found')
+          text = text.replace(old_stack, new_stack, 1)
+
+          # The entry block only needs two button rows now.
+          old_textarea = "'.screen[data-screen=\"outfits\"] .text-entry-action-row #boardTextInput{height:118px;min-height:118px;max-height:118px;resize:none;box-sizing:border-box}',"
+          new_textarea = "'.screen[data-screen=\"outfits\"] .text-entry-action-row #boardTextInput{height:77px;min-height:77px;max-height:77px;resize:none;box-sizing:border-box}',"
+          if old_textarea not in text:
+            raise SystemExit('dev9 textarea sizing rule not found')
+          text = text.replace(old_textarea, new_textarea, 1)
+
+          # Shrink color input and let it live in the Font/alignment row.
+          old_color_css = "'.screen[data-screen=\"outfits\"] #boardTextColorInputV13213{display:block;width:92px;height:36px;min-width:92px;border:1px solid rgba(108,81,66,.22);border-radius:10px;background:#fffaf0;padding:2px;box-sizing:border-box;cursor:pointer}',"
+          new_color_css = "'.screen[data-screen=\"outfits\"] #boardTextColorInputV13213{display:block;width:36px;height:40px;min-width:36px;border:1px solid rgba(108,81,66,.22);border-radius:10px;background:#fffaf0;padding:2px;box-sizing:border-box;cursor:pointer}',"
+          if old_color_css not in text:
+            raise SystemExit('Color input CSS anchor not found')
+          text = text.replace(old_color_css, new_color_css, 1)
+
+          # Font row gains one final compact slot for color.
+          old_font_row_css = "'.screen[data-screen=\"outfits\"] .text-font-align-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:6px;align-items:center;min-width:0}',"
+          new_font_row_css = "'.screen[data-screen=\"outfits\"] .text-font-align-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto 36px;gap:6px;align-items:center;min-width:0}',"
+          if old_font_row_css not in text:
+            raise SystemExit('Font/alignment row CSS anchor not found')
+          text = text.replace(old_font_row_css, new_font_row_css, 1)
+
+          # Move the already-existing native color input from the action stack into the font/alignment row.
+          anchor = "compactTextStudioV132012();"
+          mover = "\n  function compactTextColorIntoFontRowV132110(){const studio=$('#boardTextStudioV132011'),fontRow=studio?.querySelector('.text-font-align-row'),color=$('#boardTextColorInputV13213');if(!studio||!fontRow||!color)return;if(color.parentElement!==fontRow)fontRow.appendChild(color)}\n  compactTextColorIntoFontRowV132110();\n"
+          if anchor not in text:
+            raise SystemExit('compact Text Studio install anchor not found')
+          text = text.replace(anchor, anchor + mover, 1)
+
+          sw.write_text(text)
+
+          index = Path('index.html')
+          html = index.read_text()
+          html = html.replace('manifest.webmanifest?v=13.21-dev9', 'manifest.webmanifest?v=13.21-dev10')
+          html = html.replace('styles.css?v=13.21-dev9', 'styles.css?v=13.21-dev10')
+          html = html.replace('app.js?v=13.21-dev9', 'app.js?v=13.21-dev10')
+          html = html.replace("./sw.js?v=13.21-dev9", "./sw.js?v=13.21-dev10")
+          index.write_text(html)
+
+      - name: Commit dev10
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add sw.js index.html
+          git commit -m "v13.21-dev10 compact Text Studio color layout"
+          git push
