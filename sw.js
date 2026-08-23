@@ -1,8 +1,8 @@
-const CACHE='audrey-closet-v13.20-dev13';
+const CACHE='audrey-closet-v13.20-dev14';
 const ASSETS=['./','./index.html','./styles.css','./app.js','./manifest.webmanifest','./icon-192.png','./icon-512.png'];
 
 /*
- * v13.20-dev13 Text Studio compact controls.
+ * v13.20-dev14 Text Studio layout refinement.
  *
  * The current app is a single large classic app.js file. For this dev branch we
  * append the isolated tier feature when app.js is served so the stable v13.15
@@ -10,7 +10,7 @@ const ASSETS=['./','./index.html','./styles.css','./app.js','./manifest.webmanif
  * promoted, it can be folded into app.js/styles.css in the next stable release.
  */
 const TIER_PATCH=String.raw`
-;/* v13.20-dev13 — Text Studio compact controls */
+;/* v13.20-dev14 — Text Studio layout refinement */
 (function(){
   const CLOSET_TIERS=['S','A','B','C','D'];
   function normalizeClosetTier(value){
@@ -345,6 +345,28 @@ const TIER_PATCH=String.raw`
       '.screen[data-screen="outfits"] .text-color-wrap{display:flex;align-items:center;gap:5px;justify-self:end}',
       '.screen[data-screen="outfits"] .text-color-input{width:36px;height:34px;padding:0;border:1px solid rgba(108,81,66,.18);border-radius:9px;background:#fff;overflow:hidden}',
       '.screen[data-screen="outfits"] .text-color-reset{height:34px;padding:0 8px;border:1px solid rgba(108,81,66,.18);border-radius:9px;background:#f8f1e3;color:#675c50;font:800 10px var(--sans)}',
+      '.screen[data-screen="outfits"] .text-type-row-v132014{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;gap:6px;align-items:center;min-width:0}',
+      '.screen[data-screen="outfits"] .text-type-row-v132014 .text-studio-label{display:block!important;margin:0!important;white-space:nowrap}',
+      '.screen[data-screen="outfits"] .text-type-row-v132014 .text-font-select{height:36px;min-width:0;padding:0 7px;font-size:12px}',
+      '.screen[data-screen="outfits"] .text-type-row-v132014 .text-align-group{display:flex;gap:3px}',
+      '.screen[data-screen="outfits"] .text-type-row-v132014 .text-align-btn{width:31px;height:34px;padding:0;display:grid;place-items:center}',
+      '.screen[data-screen="outfits"] .text-align-icon{width:16px;height:14px;display:grid;gap:2px;align-content:center}',
+      '.screen[data-screen="outfits"] .text-align-icon i{display:block;height:1.5px;background:currentColor;border-radius:2px}',
+      '.screen[data-screen="outfits"] .text-align-icon.left i:nth-child(1){width:15px}.screen[data-screen="outfits"] .text-align-icon.left i:nth-child(2){width:10px}.screen[data-screen="outfits"] .text-align-icon.left i:nth-child(3){width:13px}',
+      '.screen[data-screen="outfits"] .text-align-icon.center i:nth-child(1){width:15px;margin:auto}.screen[data-screen="outfits"] .text-align-icon.center i:nth-child(2){width:10px;margin:auto}.screen[data-screen="outfits"] .text-align-icon.center i:nth-child(3){width:13px;margin:auto}',
+      '.screen[data-screen="outfits"] .text-align-icon.right i:nth-child(1){width:15px;margin-left:auto}.screen[data-screen="outfits"] .text-align-icon.right i:nth-child(2){width:10px;margin-left:auto}.screen[data-screen="outfits"] .text-align-icon.right i:nth-child(3){width:13px;margin-left:auto}',
+      '.screen[data-screen="outfits"] .text-color-menu-v132014{position:relative}',
+      '.screen[data-screen="outfits"] .text-color-button-v132014{height:34px;min-width:52px;padding:0 7px;border:1px solid rgba(108,81,66,.18);border-radius:9px;background:#f8f1e3;color:#665b50;font:800 10px var(--sans);display:flex;align-items:center;gap:5px}',
+      '.screen[data-screen="outfits"] .text-color-dot-v132014{width:15px;height:15px;border-radius:50%;border:1px solid rgba(0,0,0,.18);background:var(--text-color,#7d3547)}',
+      '.screen[data-screen="outfits"] .text-color-pop-v132014{display:none;position:absolute;right:0;top:38px;z-index:30;width:166px;padding:8px;border:1px solid var(--line);border-radius:11px;background:#fffaf0;box-shadow:0 8px 20px rgba(65,52,37,.15)}',
+      '.screen[data-screen="outfits"] .text-color-pop-v132014.open{display:grid;gap:7px}',
+      '.screen[data-screen="outfits"] .text-color-pop-v132014 .text-color-input{width:100%;height:36px}',
+      '.screen[data-screen="outfits"] .text-color-default-v132014{height:32px;border:1px solid rgba(108,81,66,.18);border-radius:8px;background:#f8f1e3;color:#675c50;font:800 10px var(--sans)}',
+      '.screen[data-screen="outfits"] .text-entry-side{grid-template-rows:1fr auto!important}',
+      '.screen[data-screen="outfits"] .text-clear-btn-v132014{height:34px;border:1px solid rgba(108,81,66,.18);border-radius:10px;background:#f8f1e3;color:#675c50;font:800 11px var(--sans)}',
+      '.screen[data-screen="outfits"] .text-clear-btn-v132014.undo-ready{background:#eef0e8;border-color:rgba(102,113,90,.28);color:#53604d}',
+      '.screen[data-screen="outfits"] .text-font-toggle,.screen[data-screen="outfits"] .text-font-popover,.screen[data-screen="outfits"] .text-style-tools-v132013{display:none!important}',
+      '@media(max-width:410px){.screen[data-screen="outfits"] .text-type-row-v132014{grid-template-columns:auto minmax(0,1fr) auto}.screen[data-screen="outfits"] .text-type-row-v132014 .text-color-menu-v132014{grid-column:3}.screen[data-screen="outfits"] .text-type-row-v132014 .text-align-group{grid-column:1/-1;justify-self:start}}',
       '@media(max-width:360px){.screen[data-screen="outfits"] .text-entry-side{min-width:78px}.screen[data-screen="outfits"] .text-style-tools-v132013{grid-template-columns:1fr}.screen[data-screen="outfits"] .text-color-wrap{justify-self:start}}',
       '@media(max-width:360px){.screen[data-screen="outfits"] .text-entry-action-row{grid-template-columns:minmax(0,1fr) 78px}.screen[data-screen="outfits"] .text-entry-action-row .text-studio-action{width:78px;min-width:78px;font-size:11px}}',
       '.screen[data-screen="outfits"] .board-text{width:100%;height:100%;display:flex;align-items:center;justify-content:center;text-align:center;white-space:pre-wrap;overflow-wrap:anywhere;padding:5px;box-sizing:border-box;line-height:1.08;overflow:hidden}',
@@ -2302,7 +2324,7 @@ const TIER_PATCH=String.raw`
   installBoardCaptureGuardV7();
 
 
-  // v13.20-dev13 — Text Studio compact controls
+  // v13.20-dev14 — Text Studio layout refinement
   const BOARD_TEXT_FONTS_V132011={
     script:{label:'Signature Script',css:'"Snell Roundhand","Segoe Script","Bradley Hand",cursive'},
     editorial:{label:'Editorial Serif',css:'"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif'},
@@ -2639,6 +2661,226 @@ const TIER_PATCH=String.raw`
 
   ensureTextStudioExtrasV132013();
   syncTextStudioV132011();
+
+
+  // v13.20-dev14 — Text Studio layout refinement.
+  let textClearedValueV132014=null;
+
+  function textAlignIconV132014(kind){
+    return '<span class="text-align-icon '+kind+'" aria-hidden="true"><i></i><i></i><i></i></span>';
+  }
+
+  function ensureTextStudioLayoutV132014(){
+    const studio=$('#boardTextStudioV132011');
+    const textarea=$('#boardTextInput');
+    const add=$('#addBoardTextBtn');
+    const font=$('#boardTextFontV132011');
+    if(!studio||!textarea||!add||!font)return;
+
+    // --- Always-visible typography row: Font + chooser + alignment + Color ---
+    let typeRow=studio.querySelector('.text-type-row-v132014');
+    if(!typeRow){
+      typeRow=document.createElement('div');
+      typeRow.className='text-type-row-v132014';
+
+      const fontLabel=document.createElement('span');
+      fontLabel.className='text-studio-label';
+      fontLabel.textContent='Font';
+      typeRow.appendChild(fontLabel);
+
+      // Pull the existing select out of the dev13 hidden popover.
+      typeRow.appendChild(font);
+
+      const aligns=document.createElement('div');
+      aligns.className='text-align-group';
+      [
+        ['left','Left align'],
+        ['center','Center align'],
+        ['right','Right align']
+      ].forEach(function(def){
+        let btn=studio.querySelector('.text-align-btn[data-text-align="'+def[0]+'"]');
+        if(!btn){
+          btn=document.createElement('button');
+          btn.type='button';
+          btn.className='text-align-btn';
+          btn.dataset.textAlign=def[0];
+          btn.setAttribute('aria-label',def[1]);
+          btn.onclick=function(e){
+            e.preventDefault();
+            applyTextStyleChangeV132011({align:def[0]},'text alignment');
+            syncTextStudioV132011();
+          };
+        }
+        btn.innerHTML=textAlignIconV132014(def[0]);
+        aligns.appendChild(btn);
+      });
+      typeRow.appendChild(aligns);
+
+      const colorMenu=document.createElement('div');
+      colorMenu.className='text-color-menu-v132014';
+
+      const colorBtn=document.createElement('button');
+      colorBtn.type='button';
+      colorBtn.className='text-color-button-v132014';
+      colorBtn.setAttribute('aria-expanded','false');
+      colorBtn.innerHTML='<span class="text-color-dot-v132014"></span><span>Color</span>';
+
+      const pop=document.createElement('div');
+      pop.className='text-color-pop-v132014';
+
+      // Reuse the existing native color input if present.
+      let color=$('#boardTextColorV132013');
+      if(!color){
+        color=document.createElement('input');
+        color.type='color';
+        color.id='boardTextColorV132013';
+        color.className='text-color-input';
+        color.value='#7d3547';
+      }
+      pop.appendChild(color);
+
+      const defaultBtn=document.createElement('button');
+      defaultBtn.type='button';
+      defaultBtn.className='text-color-default-v132014';
+      defaultBtn.textContent='Default color';
+      pop.appendChild(defaultBtn);
+
+      colorMenu.appendChild(colorBtn);
+      colorMenu.appendChild(pop);
+      typeRow.appendChild(colorMenu);
+
+      const formatRow=studio.querySelector('.text-format-row');
+      if(formatRow)studio.insertBefore(typeRow,formatRow);
+      else studio.appendChild(typeRow);
+
+      colorBtn.onclick=function(e){
+        e.preventDefault();
+        e.stopPropagation();
+        const open=!pop.classList.contains('open');
+        pop.classList.toggle('open',open);
+        colorBtn.setAttribute('aria-expanded',open?'true':'false');
+      };
+      color.oninput=function(){
+        applyTextStyleChangeV132011({color:color.value},'text color');
+        syncTextStudioV132011();
+      };
+      defaultBtn.onclick=function(e){
+        e.preventDefault();
+        applyTextStyleChangeV132011({color:'#7d3547'},'text color');
+        pop.classList.remove('open');
+        colorBtn.setAttribute('aria-expanded','false');
+        syncTextStudioV132011();
+      };
+    }
+
+    // --- Right side: Add/Update + Clear/Undo ---
+    let row=studio.querySelector('.text-entry-action-row');
+    if(!row){
+      row=document.createElement('div');
+      row.className='text-entry-action-row';
+      studio.insertBefore(row,textarea);
+      row.appendChild(textarea);
+    }
+    let side=row.querySelector('.text-entry-side');
+    if(!side){
+      side=document.createElement('div');
+      side.className='text-entry-side';
+      row.appendChild(side);
+    }
+    side.appendChild(add);
+
+    let clear=side.querySelector('.text-clear-btn-v132014');
+    if(!clear){
+      clear=document.createElement('button');
+      clear.type='button';
+      clear.className='text-clear-btn-v132014';
+      clear.textContent='Clear';
+      side.appendChild(clear);
+
+      clear.onclick=function(e){
+        e.preventDefault();
+        if(clear.dataset.mode==='undo'){
+          textarea.value=textClearedValueV132014||'';
+          textClearedValueV132014=null;
+          clear.dataset.mode='clear';
+          clear.textContent='Clear';
+          clear.classList.remove('undo-ready');
+          textarea.focus();
+          return;
+        }
+
+        const current=textarea.value;
+        if(!current){
+          toast('Text is already clear');
+          return;
+        }
+        textClearedValueV132014=current;
+        textarea.value='';
+        clear.dataset.mode='undo';
+        clear.textContent='Undo';
+        clear.classList.add('undo-ready');
+        textarea.focus();
+      };
+    }
+  }
+
+  function syncTextStudioLayoutV132014(){
+    ensureTextStudioLayoutV132014();
+    const studio=$('#boardTextStudioV132011');
+    if(!studio)return;
+    const selected=selectedTextPieceV132011();
+    const style=normalizeTextStyleV132011(selected?.textStyle||textDraftStyleV132011);
+
+    const add=$('#addBoardTextBtn');
+    if(add)add.textContent=selected?'Update':'Add Text';
+
+    studio.querySelectorAll('.text-align-btn').forEach(function(btn){
+      const active=btn.dataset.textAlign===style.align;
+      btn.classList.toggle('active',active);
+      btn.setAttribute('aria-pressed',active?'true':'false');
+    });
+
+    const dot=studio.querySelector('.text-color-dot-v132014');
+    if(dot)dot.style.setProperty('--text-color',style.color||'#7d3547');
+    const color=$('#boardTextColorV132013');
+    if(color)color.value=style.color||'#7d3547';
+
+    // Reset Clear/Undo state when selection changes into a new editing context.
+    const clear=studio.querySelector('.text-clear-btn-v132014');
+    if(clear && document.activeElement!==$('#boardTextInput') && clear.dataset.mode!=='undo'){
+      clear.dataset.mode='clear';
+      clear.textContent='Clear';
+      clear.classList.remove('undo-ready');
+    }
+  }
+
+  const syncTextStudioV132011Before14=syncTextStudioV132011;
+  syncTextStudioV132011=function(){
+    const result=syncTextStudioV132011Before14.apply(this,arguments);
+    syncTextStudioLayoutV132014();
+    return result;
+  };
+
+  const compactTextStudioV132012Before14=compactTextStudioV132012;
+  compactTextStudioV132012=function(){
+    const result=compactTextStudioV132012Before14.apply(this,arguments);
+    ensureTextStudioLayoutV132014();
+    return result;
+  };
+
+  document.addEventListener('click',function(e){
+    const menu=document.querySelector('.text-color-menu-v132014');
+    if(!menu||menu.contains(e.target))return;
+    const pop=menu.querySelector('.text-color-pop-v132014');
+    const btn=menu.querySelector('.text-color-button-v132014');
+    if(pop?.classList.contains('open')){
+      pop.classList.remove('open');
+      btn?.setAttribute('aria-expanded','false');
+    }
+  },true);
+
+  ensureTextStudioLayoutV132014();
+  syncTextStudioLayoutV132014();
 
   // v13.20-dev7 — Photo Studio Original must be a pristine source view.
   //
