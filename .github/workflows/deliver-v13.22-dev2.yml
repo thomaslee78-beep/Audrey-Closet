@@ -43,3 +43,5 @@ jobs:
           git add sw.js index.html
           git commit -m "v13.22-dev2 bump PWA delivery"
           git push
+
+# retrigger
