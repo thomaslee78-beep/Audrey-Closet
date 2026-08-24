@@ -70,3 +70,5 @@ jobs:
           git add index.html sw.js shape-studio-v13.22-dev23.js
           git commit -m 'v13.22-dev23 remove Text Studio info row'
           git push origin main
+
+# retrigger
