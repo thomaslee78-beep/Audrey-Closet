@@ -3,7 +3,7 @@
   'use strict';
 
   function selectedShape(){
-    const model=(window.boardItems||[]).find(x=>String(x.uid)===String(window.selectedBoardUid));
+    const model=boardItems.find(x=>String(x.uid)===String(selectedBoardUid));
     return model?.kind==='shape'?model:null;
   }
 
@@ -45,14 +45,12 @@
     document.head.appendChild(style);
   }
 
-  const previousDrawBoard=window.drawBoard;
-  if(typeof previousDrawBoard==='function'){
-    window.drawBoard=function(){
-      const result=previousDrawBoard.apply(this,arguments);
-      requestAnimationFrame(ensureInfoCopy);
-      return result;
-    };
-  }
+  const previousDrawBoard=drawBoard;
+  drawBoard=function(){
+    const result=previousDrawBoard.apply(this,arguments);
+    requestAnimationFrame(ensureInfoCopy);
+    return result;
+  };
 
   document.addEventListener('pointerup',e=>{
     if(e.target.closest?.('#outfitBoard'))setTimeout(ensureInfoCopy,0);
