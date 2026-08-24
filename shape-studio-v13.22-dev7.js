@@ -1,4 +1,4 @@
-/* Audrey Closet v13.22-dev10 — Shape Studio collapsible info + tighter spacing */
+/* Audrey Closet v13.22-dev11 — Shape Studio collapsible info + balanced spacing */
 (function(){
   'use strict';
 
@@ -86,7 +86,6 @@
     const oldHint=studio.querySelector('.shape-studio-hint');
     if(oldHint)oldHint.remove();
 
-    // Upgrade any older non-interactive info panel already present in the DOM.
     if(!info || info.tagName!=='BUTTON' || !info.querySelector('.shape-studio-info-toggle')){
       info=buildInfoButtonV132210(info);
       studioCard.insertAdjacentElement('beforebegin',info);
@@ -123,8 +122,8 @@
       .screen[data-screen="outfits"] .shape-studio-info.collapsed .shape-studio-info-copy span{display:none}
       .screen[data-screen="outfits"] #shapeStudioV132201 .shape-studio-head{display:none!important}
       .screen[data-screen="outfits"] #shapeStudioV132201 .shape-studio-label{display:none!important}
-      .screen[data-screen="outfits"] #shapeStudioV132201 .shape-studio-section{gap:0!important;margin-top:0!important}
-      .screen[data-screen="outfits"] #shapeStudioV132201{gap:0!important;margin-top:1px!important}
+      .screen[data-screen="outfits"] #shapeStudioV132201 .shape-studio-section{gap:4px!important;margin-top:0!important}
+      .screen[data-screen="outfits"] #shapeStudioV132201{gap:5px!important;margin-top:2px!important}
     `;
   }
 
