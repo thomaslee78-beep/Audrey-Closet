@@ -70,3 +70,5 @@ jobs:
           git add index.html sw.js shape-studio-v13.22-dev21.js
           git commit -m 'v13.22-dev21 compact Decorate Text Studio'
           git push origin main
+
+# retrigger
