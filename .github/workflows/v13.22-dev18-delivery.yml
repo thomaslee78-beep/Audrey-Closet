@@ -1,0 +1,73 @@
+name: v13.22-dev18 delivery
+
+on:
+  push:
+    paths:
+      - '.github/workflows/v13.22-dev18-delivery.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  deliver-dev18:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Build dev18 hard single-row Shapes picker
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp shape-studio-v13.22-dev17.js shape-studio-v13.22-dev18.js
+          python3 - <<'PY'
+          from pathlib import Path
+
+          p=Path('shape-studio-v13.22-dev18.js')
+          s=p.read_text()
+          s=s.replace('v13.22-dev17 — single-row horizontal Shapes picker','v13.22-dev18 — hard single-row horizontal Shapes picker')
+
+          start=s.index('  function consolidateShapePickerV132217(){')
+          end=s.index('\n  function installShapeStudioLayoutV132207(){', start)
+          replacement='''  function consolidateShapePickerV132217(){\n    const studio=document.getElementById('shapeStudioV132201');\n    if(!studio)return;\n\n    let strip=studio.querySelector('#shapePickerStripV132217');\n    if(!strip){\n      strip=document.createElement('div');\n      strip.id='shapePickerStripV132217';\n      strip.className='shape-picker-strip';\n      strip.setAttribute('role','group');\n      strip.setAttribute('aria-label','Shapes');\n      const editPanel=studio.querySelector('#shapeEditPanelV132203');\n      studio.insertBefore(strip,editPanel||studio.firstChild);\n    }\n\n    const basicRow=studio.querySelector('.shape-basic-row');\n    const funRow=studio.querySelector('#shapeFunRowV132204,.shape-fun-row');\n    [basicRow,funRow].forEach(row=>{\n      if(!row||row===strip)return;\n      [...row.querySelectorAll(':scope > .shape-picker-btn')].forEach(btn=>strip.appendChild(btn));\n      row.remove();\n    });\n\n    studio.querySelectorAll('.shape-studio-section').forEach(section=>{\n      if(!section.querySelector('.shape-picker-btn'))section.remove();\n    });\n  }\n'''
+          s=s[:start]+replacement+s[end:]
+
+          s=s.replace('''      .screen[data-screen="outfits"] #shapePickerStripV132217 .shape-basic-row,\n      .screen[data-screen="outfits"] #shapePickerStripV132217 .shape-fun-row{display:contents!important}\n''','')
+          s=s.replace('''      .screen[data-screen="outfits"] #shapePickerStripV132217 .shape-picker-btn{flex:0 0 56px;width:56px;min-width:56px;height:54px!important;padding:4px 2px 3px!important;grid-template-rows:30px auto!important}\n''','''      .screen[data-screen="outfits"] #shapePickerStripV132217{flex-wrap:nowrap!important}\n      .screen[data-screen="outfits"] #shapePickerStripV132217>.shape-picker-btn{display:grid!important;flex:0 0 56px!important;width:56px!important;min-width:56px!important;max-width:56px!important;height:54px!important;padding:4px 2px 3px!important;grid-template-rows:30px auto!important}\n''')
+          p.write_text(s)
+
+          p=Path('index.html')
+          s=p.read_text()
+          s=s.replace('manifest.webmanifest?v=13.22-dev17','manifest.webmanifest?v=13.22-dev18')
+          s=s.replace('styles.css?v=13.22-dev17','styles.css?v=13.22-dev18')
+          s=s.replace('app.js?v=13.22-dev17','app.js?v=13.22-dev18')
+          for n in ('dev1','dev3','dev4','dev5','dev6'):
+              s=s.replace(f'shape-studio-v13.22-{n}.js?v=13.22-dev17',f'shape-studio-v13.22-{n}.js?v=13.22-dev18')
+          s=s.replace('shape-studio-v13.22-dev17.js?v=13.22-dev17','shape-studio-v13.22-dev18.js?v=13.22-dev18')
+          s=s.replace('./sw.js?v=13.22-dev17','./sw.js?v=13.22-dev18')
+          p.write_text(s)
+
+          p=Path('sw.js')
+          s=p.read_text()
+          s=s.replace('audrey-closet-v13.22-dev17','audrey-closet-v13.22-dev18')
+          s=s.replace("'./shape-studio-v13.22-dev17.js'","'./shape-studio-v13.22-dev18.js'")
+          p.write_text(s)
+          PY
+
+          grep -q 'shape-studio-v13.22-dev18.js?v=13.22-dev18' index.html
+          grep -q 'audrey-closet-v13.22-dev18' sw.js
+          grep -q "strip.appendChild(btn)" shape-studio-v13.22-dev18.js
+          grep -q 'flex-wrap:nowrap!important' shape-studio-v13.22-dev18.js
+
+      - name: Commit dev18
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html sw.js shape-studio-v13.22-dev18.js
+          git commit -m 'v13.22-dev18 enforce one-row Shapes picker'
+          git push origin main
