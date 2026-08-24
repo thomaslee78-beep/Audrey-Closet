@@ -43,8 +43,30 @@
     const toggle=info.querySelector('.shape-studio-info-toggle');
     if(toggle){
       toggle.textContent=shapeInfoCollapsedV132210?'＋':'−';
-      toggle.setAttribute('aria-label',shapeInfoCollapsedV132210?'Expand Shape Studio information':'Collapse Shape Studio information');
+      toggle.setAttribute('aria-hidden','true');
     }
+  }
+
+  function buildInfoButtonV132210(existing){
+    const button=document.createElement('button');
+    button.type='button';
+    button.id='shapeStudioInfoV132207';
+    button.className='shape-studio-info';
+    button.setAttribute('aria-expanded','true');
+    button.setAttribute('aria-label','Toggle Shape Studio information');
+    button.innerHTML=`
+      <span class="shape-studio-info-icon" aria-hidden="true">i</span>
+      <span class="shape-studio-info-copy">
+        <strong>Shape Studio</strong>
+        <span>Tap a shape to add it to the Board.</span>
+      </span>
+      <span class="shape-studio-info-toggle" aria-hidden="true">−</span>`;
+    button.addEventListener('click',()=>{
+      shapeInfoCollapsedV132210=!shapeInfoCollapsedV132210;
+      syncInfoCollapsedV132210(button);
+    });
+    if(existing)existing.replaceWith(button);
+    return button;
   }
 
   function installShapeStudioLayoutV132207(){
@@ -64,23 +86,9 @@
     const oldHint=studio.querySelector('.shape-studio-hint');
     if(oldHint)oldHint.remove();
 
-    if(!info){
-      info=document.createElement('button');
-      info.type='button';
-      info.id='shapeStudioInfoV132207';
-      info.className='shape-studio-info';
-      info.setAttribute('aria-expanded','true');
-      info.innerHTML=`
-        <span class="shape-studio-info-icon" aria-hidden="true">i</span>
-        <span class="shape-studio-info-copy">
-          <strong>Shape Studio</strong>
-          <span>Tap a shape to add it to the Board.</span>
-        </span>
-        <span class="shape-studio-info-toggle" aria-hidden="true">−</span>`;
-      info.addEventListener('click',()=>{
-        shapeInfoCollapsedV132210=!shapeInfoCollapsedV132210;
-        syncInfoCollapsedV132210(info);
-      });
+    // Upgrade any older non-interactive info panel already present in the DOM.
+    if(!info || info.tagName!=='BUTTON' || !info.querySelector('.shape-studio-info-toggle')){
+      info=buildInfoButtonV132210(info);
       studioCard.insertAdjacentElement('beforebegin',info);
     }else if(info.nextElementSibling!==studioCard){
       studioCard.insertAdjacentElement('beforebegin',info);
@@ -94,27 +102,30 @@
   }
 
   function installStylesV132207(){
-    if(document.getElementById('shapeStudioStylesV132207'))return;
-    const style=document.createElement('style');
-    style.id='shapeStudioStylesV132207';
+    let style=document.getElementById('shapeStudioStylesV132207');
+    if(!style){
+      style=document.createElement('style');
+      style.id='shapeStudioStylesV132207';
+      document.head.appendChild(style);
+    }
     style.textContent=`
       .screen[data-screen="outfits"] .decorate-studio-panel[data-decorate-group="shapes"]>.decorate-studio-intro{display:none!important}
       .screen[data-screen="outfits"] .decorate-studio-panel[data-decorate-group="shapes"]{gap:0!important}
-      .screen[data-screen="outfits"] .decorate-studio-panel[data-decorate-group="shapes"] .decorate-studio-content{display:grid;gap:2px!important}
-      .screen[data-screen="outfits"] .shape-studio-info{width:100%;display:grid;grid-template-columns:24px minmax(0,1fr) 20px;gap:8px;align-items:start;margin:0 0 2px;padding:8px 10px;border:1px solid rgba(102,113,90,.18);border-radius:11px;background:rgba(238,240,232,.72);color:#665c50;text-align:left;font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+      .screen[data-screen="outfits"] .decorate-studio-panel[data-decorate-group="shapes"] .decorate-studio-content{display:grid;gap:0!important}
+      .screen[data-screen="outfits"] .decorate-studio-panel[data-decorate-group="shapes"] .decorate-tool-card{margin-top:0!important}
+      .screen[data-screen="outfits"] .shape-studio-info{appearance:none;-webkit-appearance:none;width:100%;display:grid;grid-template-columns:24px minmax(0,1fr) 22px;gap:8px;align-items:start;margin:0!important;padding:8px 10px 6px;border:1px solid rgba(102,113,90,.18);border-radius:11px;background:rgba(238,240,232,.72);color:#665c50;text-align:left;font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
       .screen[data-screen="outfits"] .shape-studio-info-icon{display:grid;place-items:center;width:22px;height:22px;border-radius:50%;background:#6d7863;color:#fff;font:800 12px/1 var(--sans)}
       .screen[data-screen="outfits"] .shape-studio-info-copy{display:grid;gap:2px;min-width:0}
       .screen[data-screen="outfits"] .shape-studio-info-copy strong{font-size:9px;line-height:1.15;font-weight:800;color:#52604c;letter-spacing:.02em}
       .screen[data-screen="outfits"] .shape-studio-info-copy span{font-size:9px;line-height:1.35;color:#74695d}
-      .screen[data-screen="outfits"] .shape-studio-info-toggle{display:grid;place-items:center;width:20px;height:20px;color:#66715a;font:800 16px/1 var(--sans)}
-      .screen[data-screen="outfits"] .shape-studio-info.collapsed{grid-template-columns:24px minmax(0,1fr) 20px;padding-top:6px;padding-bottom:6px}
+      .screen[data-screen="outfits"] .shape-studio-info-toggle{display:grid;place-items:center;width:22px;height:22px;color:#52604c;font:800 18px/1 var(--sans)}
+      .screen[data-screen="outfits"] .shape-studio-info.collapsed{padding-top:5px;padding-bottom:5px}
       .screen[data-screen="outfits"] .shape-studio-info.collapsed .shape-studio-info-copy span{display:none}
       .screen[data-screen="outfits"] #shapeStudioV132201 .shape-studio-head{display:none!important}
       .screen[data-screen="outfits"] #shapeStudioV132201 .shape-studio-label{display:none!important}
-      .screen[data-screen="outfits"] #shapeStudioV132201 .shape-studio-section{gap:1px}
-      .screen[data-screen="outfits"] #shapeStudioV132201{gap:2px}
+      .screen[data-screen="outfits"] #shapeStudioV132201 .shape-studio-section{gap:0!important;margin-top:0!important}
+      .screen[data-screen="outfits"] #shapeStudioV132201{gap:0!important;margin-top:1px!important}
     `;
-    document.head.appendChild(style);
   }
 
   const previousDrawBoardV132209=drawBoard;
