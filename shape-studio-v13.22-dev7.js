@@ -1,4 +1,4 @@
-/* Audrey Closet v13.22-dev11 — Shape Studio collapsible info + balanced spacing */
+/* Audrey Closet v13.22-dev12 — compact Decorate tabs + Shape Studio refinements */
 (function(){
   'use strict';
 
@@ -108,6 +108,16 @@
       document.head.appendChild(style);
     }
     style.textContent=`
+      /* Shared Decorate shell compaction: all four tabs intentionally use this. */
+      .screen[data-screen="outfits"] .board-decorate-shell{gap:5px!important;padding:7px!important}
+      .screen[data-screen="outfits"] .board-decorate-shell .decorate-studio-tabs{gap:4px!important;margin:0!important}
+      .screen[data-screen="outfits"] .board-decorate-shell .decorate-studio-tab{min-height:34px!important;padding:6px 5px!important;display:flex!important;align-items:center!important;justify-content:center!important;gap:4px!important;font-size:10px!important;line-height:1!important}
+      .screen[data-screen="outfits"] .board-decorate-shell .decorate-studio-tab .tab-icon{font-size:14px!important;line-height:1!important;flex:0 0 auto}
+      .screen[data-screen="outfits"] .board-decorate-shell .decorate-studio-panels{margin:0!important}
+      .screen[data-screen="outfits"] .board-decorate-shell .decorate-studio-panel{gap:6px!important;margin:0!important}
+      .screen[data-screen="outfits"] .board-decorate-shell .decorate-studio-panel.active{display:grid}
+
+      /* Shape-only refinements. */
       .screen[data-screen="outfits"] .decorate-studio-panel[data-decorate-group="shapes"]>.decorate-studio-intro{display:none!important}
       .screen[data-screen="outfits"] .decorate-studio-panel[data-decorate-group="shapes"]{gap:0!important}
       .screen[data-screen="outfits"] .decorate-studio-panel[data-decorate-group="shapes"] .decorate-studio-content{display:grid;gap:0!important}
@@ -124,6 +134,13 @@
       .screen[data-screen="outfits"] #shapeStudioV132201 .shape-studio-label{display:none!important}
       .screen[data-screen="outfits"] #shapeStudioV132201 .shape-studio-section{gap:4px!important;margin-top:0!important}
       .screen[data-screen="outfits"] #shapeStudioV132201{gap:5px!important;margin-top:2px!important}
+
+      @media(max-width:410px){
+        .screen[data-screen="outfits"] .board-decorate-shell{padding:6px!important}
+        .screen[data-screen="outfits"] .board-decorate-shell .decorate-studio-tabs{gap:3px!important}
+        .screen[data-screen="outfits"] .board-decorate-shell .decorate-studio-tab{min-height:32px!important;padding:5px 3px!important;gap:3px!important;font-size:9px!important}
+        .screen[data-screen="outfits"] .board-decorate-shell .decorate-studio-tab .tab-icon{font-size:13px!important}
+      }
     `;
   }
 
