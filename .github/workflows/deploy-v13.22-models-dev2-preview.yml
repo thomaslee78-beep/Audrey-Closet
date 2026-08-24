@@ -1,0 +1,40 @@
+name: Deploy v13.22 Models dev2 preview
+
+on:
+  push:
+    paths:
+      - '.github/workflows/deploy-v13.22-models-dev2-preview.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  publish-preview:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Build isolated preview from v13.22-models-dev2
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin v13.22-models-dev2
+          rm -rf preview/v13.22-models-dev2
+          mkdir -p preview/v13.22-models-dev2
+          git archive --format=tar origin/v13.22-models-dev2 | tar -x -C preview/v13.22-models-dev2
+          rm -rf preview/v13.22-models-dev2/.github
+          test -f preview/v13.22-models-dev2/index.html
+          test -f preview/v13.22-models-dev2/models-v13.22-dev2.js
+          test -f preview/v13.22-models-dev2/models-v13.22-dev2-touchfix.js
+      - name: Commit preview to Pages branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add preview/v13.22-models-dev2
+          git commit -m 'Deploy v13.22-models-dev2 isolated preview'
+          git push origin main
