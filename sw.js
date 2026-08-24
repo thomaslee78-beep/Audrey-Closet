@@ -1,5 +1,5 @@
-const CACHE='audrey-closet-v13.22-dev17';
-const ASSETS=['./','./index.html','./styles.css','./app.js','./share-render-v13.21-dev12.js','./shape-studio-v13.22-dev1.js','./shape-studio-v13.22-dev3.js','./shape-studio-v13.22-dev4.js','./shape-studio-v13.22-dev5.js','./shape-studio-v13.22-dev6.js','./shape-studio-v13.22-dev17.js','./manifest.webmanifest','./icon-192.png','./icon-512.png'];
+const CACHE='audrey-closet-v13.22-dev18';
+const ASSETS=['./','./index.html','./styles.css','./app.js','./share-render-v13.21-dev12.js','./shape-studio-v13.22-dev1.js','./shape-studio-v13.22-dev3.js','./shape-studio-v13.22-dev4.js','./shape-studio-v13.22-dev5.js','./shape-studio-v13.22-dev6.js','./shape-studio-v13.22-dev18.js','./manifest.webmanifest','./icon-192.png','./icon-512.png'];
 
 /*
  * v13.21 baseline — dev12 functionality, fresh cache.
