@@ -1,6 +1,8 @@
-/* Audrey Closet v13.22-dev9 — Shape Studio compact layout + status messaging */
+/* Audrey Closet v13.22-dev10 — Shape Studio collapsible info + tighter spacing */
 (function(){
   'use strict';
+
+  let shapeInfoCollapsedV132210=false;
 
   function looksLikeLegacyShapesIntro(node){
     if(!node)return false;
@@ -34,6 +36,17 @@
     }
   }
 
+  function syncInfoCollapsedV132210(info){
+    if(!info)return;
+    info.classList.toggle('collapsed',shapeInfoCollapsedV132210);
+    info.setAttribute('aria-expanded',shapeInfoCollapsedV132210?'false':'true');
+    const toggle=info.querySelector('.shape-studio-info-toggle');
+    if(toggle){
+      toggle.textContent=shapeInfoCollapsedV132210?'＋':'−';
+      toggle.setAttribute('aria-label',shapeInfoCollapsedV132210?'Expand Shape Studio information':'Collapse Shape Studio information');
+    }
+  }
+
   function installShapeStudioLayoutV132207(){
     const studio=document.getElementById('shapeStudioV132201');
     if(!studio)return;
@@ -42,38 +55,42 @@
     const studioCard=studio.closest('.decorate-tool-card')||studio.parentElement;
     if(!content||!studioCard)return;
 
-    // Remove older generic Shapes placeholder cards if present.
     [...content.children].forEach(child=>{
       if(child===studioCard||child.contains?.(studio))return;
       if(looksLikeLegacyShapesIntro(child))child.remove();
     });
 
-    // Use one compact informational callout as the Shape Studio status/message area.
     let info=document.getElementById('shapeStudioInfoV132207');
     const oldHint=studio.querySelector('.shape-studio-hint');
     if(oldHint)oldHint.remove();
 
     if(!info){
-      info=document.createElement('div');
+      info=document.createElement('button');
+      info.type='button';
       info.id='shapeStudioInfoV132207';
       info.className='shape-studio-info';
-      info.setAttribute('role','note');
+      info.setAttribute('aria-expanded','true');
       info.innerHTML=`
         <span class="shape-studio-info-icon" aria-hidden="true">i</span>
-        <div class="shape-studio-info-copy">
+        <span class="shape-studio-info-copy">
           <strong>Shape Studio</strong>
           <span>Tap a shape to add it to the Board.</span>
-        </div>`;
+        </span>
+        <span class="shape-studio-info-toggle" aria-hidden="true">−</span>`;
+      info.addEventListener('click',()=>{
+        shapeInfoCollapsedV132210=!shapeInfoCollapsedV132210;
+        syncInfoCollapsedV132210(info);
+      });
       studioCard.insertAdjacentElement('beforebegin',info);
     }else if(info.nextElementSibling!==studioCard){
       studioCard.insertAdjacentElement('beforebegin',info);
     }
 
-    // The info box now owns the heading/help text, so remove duplicate picker copy.
     studio.querySelector('.shape-studio-head')?.remove();
     studio.querySelectorAll('.shape-studio-label').forEach(label=>label.remove());
 
     syncShapeStudioMessageV132209(info);
+    syncInfoCollapsedV132210(info);
   }
 
   function installStylesV132207(){
@@ -83,15 +100,19 @@
     style.textContent=`
       .screen[data-screen="outfits"] .decorate-studio-panel[data-decorate-group="shapes"]>.decorate-studio-intro{display:none!important}
       .screen[data-screen="outfits"] .decorate-studio-panel[data-decorate-group="shapes"]{gap:0!important}
-      .screen[data-screen="outfits"] .shape-studio-info{display:grid;grid-template-columns:24px minmax(0,1fr);gap:8px;align-items:start;margin:0 0 6px;padding:8px 10px;border:1px solid rgba(102,113,90,.18);border-radius:11px;background:rgba(238,240,232,.72);color:#665c50}
+      .screen[data-screen="outfits"] .decorate-studio-panel[data-decorate-group="shapes"] .decorate-studio-content{display:grid;gap:2px!important}
+      .screen[data-screen="outfits"] .shape-studio-info{width:100%;display:grid;grid-template-columns:24px minmax(0,1fr) 20px;gap:8px;align-items:start;margin:0 0 2px;padding:8px 10px;border:1px solid rgba(102,113,90,.18);border-radius:11px;background:rgba(238,240,232,.72);color:#665c50;text-align:left;font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
       .screen[data-screen="outfits"] .shape-studio-info-icon{display:grid;place-items:center;width:22px;height:22px;border-radius:50%;background:#6d7863;color:#fff;font:800 12px/1 var(--sans)}
       .screen[data-screen="outfits"] .shape-studio-info-copy{display:grid;gap:2px;min-width:0}
       .screen[data-screen="outfits"] .shape-studio-info-copy strong{font-size:9px;line-height:1.15;font-weight:800;color:#52604c;letter-spacing:.02em}
       .screen[data-screen="outfits"] .shape-studio-info-copy span{font-size:9px;line-height:1.35;color:#74695d}
+      .screen[data-screen="outfits"] .shape-studio-info-toggle{display:grid;place-items:center;width:20px;height:20px;color:#66715a;font:800 16px/1 var(--sans)}
+      .screen[data-screen="outfits"] .shape-studio-info.collapsed{grid-template-columns:24px minmax(0,1fr) 20px;padding-top:6px;padding-bottom:6px}
+      .screen[data-screen="outfits"] .shape-studio-info.collapsed .shape-studio-info-copy span{display:none}
       .screen[data-screen="outfits"] #shapeStudioV132201 .shape-studio-head{display:none!important}
       .screen[data-screen="outfits"] #shapeStudioV132201 .shape-studio-label{display:none!important}
-      .screen[data-screen="outfits"] #shapeStudioV132201 .shape-studio-section{gap:3px}
-      .screen[data-screen="outfits"] #shapeStudioV132201{gap:5px}
+      .screen[data-screen="outfits"] #shapeStudioV132201 .shape-studio-section{gap:1px}
+      .screen[data-screen="outfits"] #shapeStudioV132201{gap:2px}
     `;
     document.head.appendChild(style);
   }
