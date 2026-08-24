@@ -1,0 +1,89 @@
+name: v13.22-dev17 delivery
+
+on:
+  push:
+    paths:
+      - '.github/workflows/v13.22-dev17-delivery.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  deliver-dev17:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Build dev17 single-row Shapes picker
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp shape-studio-v13.22-dev16.js shape-studio-v13.22-dev17.js
+          python3 - <<'PY'
+          from pathlib import Path
+
+          p=Path('shape-studio-v13.22-dev17.js')
+          s=p.read_text()
+          s=s.replace('v13.22-dev16 — robustly remove all Shapes information panels','v13.22-dev17 — single-row horizontal Shapes picker')
+
+          anchor="""  function installShapeStudioLayoutV132207(){\n"""
+          helper="""  function consolidateShapePickerV132217(){\n    const studio=document.getElementById('shapeStudioV132201');\n    if(!studio)return;\n    const basicRow=studio.querySelector('.shape-basic-row');\n    const funRow=studio.querySelector('#shapeFunRowV132204,.shape-fun-row');\n    if(!basicRow&&!funRow)return;\n\n    let strip=studio.querySelector('#shapePickerStripV132217');\n    if(!strip){\n      strip=document.createElement('div');\n      strip.id='shapePickerStripV132217';\n      strip.className='shape-picker-strip';\n      strip.setAttribute('role','group');\n      strip.setAttribute('aria-label','Shapes');\n      const editPanel=studio.querySelector('#shapeEditPanelV132203');\n      studio.insertBefore(strip,editPanel||studio.firstChild);\n    }\n\n    if(basicRow&&basicRow.parentElement!==strip)strip.appendChild(basicRow);\n    if(funRow&&funRow.parentElement!==strip)strip.appendChild(funRow);\n\n    studio.querySelectorAll('.shape-studio-section').forEach(section=>{\n      if(!section.querySelector('.shape-basic-row,.shape-fun-row,#shapeFunRowV132204'))section.remove();\n    });\n  }\n\n"""
+          if anchor not in s:
+              raise SystemExit('layout anchor not found')
+          s=s.replace(anchor,helper+anchor,1)
+
+          old="""    studio.querySelector('.shape-studio-head')?.remove();\n    studio.querySelectorAll('.shape-studio-label').forEach(label=>label.remove());\n  }\n"""
+          new="""    studio.querySelector('.shape-studio-head')?.remove();\n    studio.querySelectorAll('.shape-studio-label').forEach(label=>label.remove());\n    consolidateShapePickerV132217();\n  }\n"""
+          if old not in s:
+              raise SystemExit('layout close block not found')
+          s=s.replace(old,new,1)
+
+          css_anchor='''      .screen[data-screen="outfits"] #shapeStudioV132201{gap:5px!important;margin-top:2px!important}\n\n      /* dev14: compact Selected Shape styling controls into one row. */'''
+          css_insert='''      .screen[data-screen="outfits"] #shapeStudioV132201{gap:5px!important;margin-top:2px!important}\n\n      /* dev17: Basic + Fun shapes share one horizontally scrollable row. */\n      .screen[data-screen="outfits"] #shapePickerStripV132217{display:flex;align-items:stretch;gap:5px;width:100%;max-width:100%;overflow-x:auto;overflow-y:hidden;padding:1px 1px 5px;scrollbar-width:none;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;touch-action:pan-x}\n      .screen[data-screen="outfits"] #shapePickerStripV132217::-webkit-scrollbar{display:none}\n      .screen[data-screen="outfits"] #shapePickerStripV132217 .shape-basic-row,\n      .screen[data-screen="outfits"] #shapePickerStripV132217 .shape-fun-row{display:contents!important}\n      .screen[data-screen="outfits"] #shapePickerStripV132217 .shape-picker-btn{flex:0 0 56px;width:56px;min-width:56px;height:54px!important;padding:4px 2px 3px!important;grid-template-rows:30px auto!important}\n      .screen[data-screen="outfits"] #shapePickerStripV132217 .shape-picker-icon{max-width:30px;max-height:30px}\n      .screen[data-screen="outfits"] #shapePickerStripV132217 .shape-picker-btn small{font-size:7px!important}\n\n      /* dev14: compact Selected Shape styling controls into one row. */'''
+          if css_anchor not in s:
+              raise SystemExit('CSS insertion anchor not found')
+          s=s.replace(css_anchor,css_insert,1)
+
+          observer_old="""  const shapePanelObserverV132216=new MutationObserver(()=>removeAllShapeInfoV132216());\n"""
+          observer_new="""  const shapePanelObserverV132216=new MutationObserver(()=>{\n    removeAllShapeInfoV132216();\n    consolidateShapePickerV132217();\n  });\n"""
+          if observer_old not in s:
+              raise SystemExit('observer anchor not found')
+          s=s.replace(observer_old,observer_new,1)
+          p.write_text(s)
+
+          p=Path('index.html')
+          s=p.read_text()
+          s=s.replace('manifest.webmanifest?v=13.22-dev16','manifest.webmanifest?v=13.22-dev17')
+          s=s.replace('styles.css?v=13.22-dev16','styles.css?v=13.22-dev17')
+          s=s.replace('app.js?v=13.22-dev16','app.js?v=13.22-dev17')
+          for n in ('dev1','dev3','dev4','dev5','dev6'):
+              s=s.replace(f'shape-studio-v13.22-{n}.js?v=13.22-dev16',f'shape-studio-v13.22-{n}.js?v=13.22-dev17')
+          s=s.replace('shape-studio-v13.22-dev16.js?v=13.22-dev16','shape-studio-v13.22-dev17.js?v=13.22-dev17')
+          s=s.replace('./sw.js?v=13.22-dev16','./sw.js?v=13.22-dev17')
+          p.write_text(s)
+
+          p=Path('sw.js')
+          s=p.read_text()
+          s=s.replace('audrey-closet-v13.22-dev16','audrey-closet-v13.22-dev17')
+          s=s.replace("'./shape-studio-v13.22-dev16.js'","'./shape-studio-v13.22-dev17.js'")
+          p.write_text(s)
+          PY
+
+          grep -q 'shape-studio-v13.22-dev17.js?v=13.22-dev17' index.html
+          grep -q 'audrey-closet-v13.22-dev17' sw.js
+          grep -q 'consolidateShapePickerV132217' shape-studio-v13.22-dev17.js
+          grep -q 'shapePickerStripV132217' shape-studio-v13.22-dev17.js
+
+      - name: Commit dev17
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html sw.js shape-studio-v13.22-dev17.js
+          git commit -m 'v13.22-dev17 make Shapes picker a single scroll row'
+          git push origin main
