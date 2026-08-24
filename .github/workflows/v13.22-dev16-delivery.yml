@@ -1,0 +1,89 @@
+name: v13.22-dev16 delivery
+
+on:
+  push:
+    paths:
+      - '.github/workflows/v13.22-dev16-delivery.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  deliver-dev16:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Build dev16 robust Shapes cleanup
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp shape-studio-v13.22-dev15.js shape-studio-v13.22-dev16.js
+          python3 - <<'PY'
+          from pathlib import Path
+
+          p=Path('shape-studio-v13.22-dev16.js')
+          s=p.read_text()
+          s=s.replace('v13.22-dev15 — remove Shapes information panel','v13.22-dev16 — robustly remove all Shapes information panels')
+
+          anchor="""  function installShapeStudioLayoutV132207(){\n"""
+          helper="""  function removeAllShapeInfoV132216(){\n    const panel=document.querySelector('.decorate-studio-panel[data-decorate-group=\"shapes\"]');\n    if(!panel)return;\n    panel.querySelectorAll('#shapeStudioInfoV132207,.shape-studio-info,.decorate-studio-intro').forEach(node=>{\n      if(node.closest?.('#shapeEditPanelV132203'))return;\n      const text=String(node.textContent||'').replace(/\\s+/g,' ').trim();\n      if(node.matches('#shapeStudioInfoV132207,.shape-studio-info') || /^Shapes\\b/i.test(text) || /Shape Studio/i.test(text)){\n        node.remove();\n      }\n    });\n  }\n\n"""
+          if anchor not in s:
+              raise SystemExit('install anchor not found')
+          s=s.replace(anchor,helper+anchor,1)
+
+          old="""    document.getElementById('shapeStudioInfoV132207')?.remove();\n    const oldHint=studio.querySelector('.shape-studio-hint');\n"""
+          new="""    removeAllShapeInfoV132216();\n    const oldHint=studio.querySelector('.shape-studio-hint');\n"""
+          if old not in s:
+              raise SystemExit('old cleanup line not found')
+          s=s.replace(old,new,1)
+
+          css_old='''      .screen[data-screen="outfits"] .decorate-studio-panel[data-decorate-group="shapes"]>.decorate-studio-intro{display:none!important}\n      .screen[data-screen="outfits"] #shapeStudioInfoV132207{display:none!important}\n'''
+          css_new='''      .screen[data-screen="outfits"] .decorate-studio-panel[data-decorate-group="shapes"] .decorate-studio-intro{display:none!important}\n      .screen[data-screen="outfits"] .decorate-studio-panel[data-decorate-group="shapes"] #shapeStudioInfoV132207,\n      .screen[data-screen="outfits"] .decorate-studio-panel[data-decorate-group="shapes"] .shape-studio-info{display:none!important}\n'''
+          if css_old not in s:
+              raise SystemExit('old Shapes hide CSS not found')
+          s=s.replace(css_old,css_new,1)
+
+          observer_anchor="""  installStylesV132207();\n  installShapeStudioLayoutV132207();\n"""
+          observer="""  const shapePanelObserverV132216=new MutationObserver(()=>removeAllShapeInfoV132216());\n  const observeShapePanelV132216=()=>{\n    const panel=document.querySelector('.decorate-studio-panel[data-decorate-group=\"shapes\"]');\n    if(panel){\n      shapePanelObserverV132216.disconnect();\n      shapePanelObserverV132216.observe(panel,{childList:true,subtree:true});\n      removeAllShapeInfoV132216();\n    }\n  };\n\n  installStylesV132207();\n  installShapeStudioLayoutV132207();\n  observeShapePanelV132216();\n  setTimeout(observeShapePanelV132216,200);\n  setTimeout(observeShapePanelV132216,700);\n"""
+          if observer_anchor not in s:
+              raise SystemExit('observer insertion anchor not found')
+          s=s.replace(observer_anchor,observer,1)
+          p.write_text(s)
+
+          p=Path('index.html')
+          s=p.read_text()
+          s=s.replace('manifest.webmanifest?v=13.22-dev15','manifest.webmanifest?v=13.22-dev16')
+          s=s.replace('styles.css?v=13.22-dev15','styles.css?v=13.22-dev16')
+          s=s.replace('app.js?v=13.22-dev15','app.js?v=13.22-dev16')
+          for n in ('dev1','dev3','dev4','dev5','dev6'):
+              s=s.replace(f'shape-studio-v13.22-{n}.js?v=13.22-dev15',f'shape-studio-v13.22-{n}.js?v=13.22-dev16')
+          s=s.replace('shape-studio-v13.22-dev15.js?v=13.22-dev15','shape-studio-v13.22-dev16.js?v=13.22-dev16')
+          s=s.replace('./sw.js?v=13.22-dev15','./sw.js?v=13.22-dev16')
+          p.write_text(s)
+
+          p=Path('sw.js')
+          s=p.read_text()
+          s=s.replace('audrey-closet-v13.22-dev15','audrey-closet-v13.22-dev16')
+          s=s.replace("'./shape-studio-v13.22-dev15.js'","'./shape-studio-v13.22-dev16.js'")
+          p.write_text(s)
+          PY
+
+          grep -q 'shape-studio-v13.22-dev16.js?v=13.22-dev16' index.html
+          grep -q 'audrey-closet-v13.22-dev16' sw.js
+          grep -q 'removeAllShapeInfoV132216' shape-studio-v13.22-dev16.js
+          grep -q 'shapePanelObserverV132216' shape-studio-v13.22-dev16.js
+
+      - name: Commit dev16
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html sw.js shape-studio-v13.22-dev16.js
+          git commit -m 'v13.22-dev16 hard-remove Shapes info panel'
+          git push origin main
