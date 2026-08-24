@@ -1,0 +1,76 @@
+name: v13.22-dev15 delivery
+
+on:
+  push:
+    paths:
+      - '.github/workflows/v13.22-dev15-delivery.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  deliver-dev15:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Build dev15 Shapes layout
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp shape-studio-v13.22-dev14.js shape-studio-v13.22-dev15.js
+          python3 - <<'PY'
+          from pathlib import Path
+
+          p=Path('shape-studio-v13.22-dev15.js')
+          s=p.read_text()
+          s=s.replace('v13.22-dev14 — compact Selected Shape style row','v13.22-dev15 — remove Shapes information panel')
+
+          old='''    let info=document.getElementById('shapeStudioInfoV132207');\n    const oldHint=studio.querySelector('.shape-studio-hint');\n    if(oldHint)oldHint.remove();\n\n    if(!info || info.tagName!=='BUTTON' || !info.querySelector('.shape-studio-info-toggle')){\n      info=buildInfoButtonV132210(info);\n      studioCard.insertAdjacentElement('beforebegin',info);\n    }else if(info.nextElementSibling!==studioCard){\n      studioCard.insertAdjacentElement('beforebegin',info);\n    }\n\n    studio.querySelector('.shape-studio-head')?.remove();\n    studio.querySelectorAll('.shape-studio-label').forEach(label=>label.remove());\n\n    syncShapeStudioMessageV132209(info);\n    syncInfoCollapsedV132210(info);'''
+          new='''    document.getElementById('shapeStudioInfoV132207')?.remove();\n    const oldHint=studio.querySelector('.shape-studio-hint');\n    if(oldHint)oldHint.remove();\n\n    studio.querySelector('.shape-studio-head')?.remove();\n    studio.querySelectorAll('.shape-studio-label').forEach(label=>label.remove());'''
+          if old not in s:
+              raise SystemExit('Shapes info layout block not found')
+          s=s.replace(old,new)
+
+          marker='''      /* Shape-only refinements. */\n      .screen[data-screen="outfits"] .decorate-studio-panel[data-decorate-group="shapes"]>.decorate-studio-intro{display:none!important}\n'''
+          replacement='''      /* Shape-only refinements. */\n      .screen[data-screen="outfits"] .decorate-studio-panel[data-decorate-group="shapes"]>.decorate-studio-intro{display:none!important}\n      .screen[data-screen="outfits"] #shapeStudioInfoV132207{display:none!important}\n'''
+          if marker not in s:
+              raise SystemExit('Shapes CSS marker not found')
+          s=s.replace(marker,replacement)
+          p.write_text(s)
+
+          p=Path('index.html')
+          s=p.read_text()
+          s=s.replace('manifest.webmanifest?v=13.22-dev14','manifest.webmanifest?v=13.22-dev15')
+          s=s.replace('styles.css?v=13.22-dev14','styles.css?v=13.22-dev15')
+          s=s.replace('app.js?v=13.22-dev14','app.js?v=13.22-dev15')
+          for n in ('dev1','dev3','dev4','dev5','dev6'):
+              s=s.replace(f'shape-studio-v13.22-{n}.js?v=13.22-dev14',f'shape-studio-v13.22-{n}.js?v=13.22-dev15')
+          s=s.replace('shape-studio-v13.22-dev14.js?v=13.22-dev14','shape-studio-v13.22-dev15.js?v=13.22-dev15')
+          s=s.replace('./sw.js?v=13.22-dev14','./sw.js?v=13.22-dev15')
+          p.write_text(s)
+
+          p=Path('sw.js')
+          s=p.read_text()
+          s=s.replace('audrey-closet-v13.22-dev14','audrey-closet-v13.22-dev15')
+          s=s.replace("'./shape-studio-v13.22-dev14.js'","'./shape-studio-v13.22-dev15.js'")
+          p.write_text(s)
+          PY
+
+          grep -q 'shape-studio-v13.22-dev15.js?v=13.22-dev15' index.html
+          grep -q 'audrey-closet-v13.22-dev15' sw.js
+          grep -q "document.getElementById('shapeStudioInfoV132207')?.remove()" shape-studio-v13.22-dev15.js
+
+      - name: Commit dev15
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html sw.js shape-studio-v13.22-dev15.js
+          git commit -m 'v13.22-dev15 remove Shapes information panel'
+          git push origin main
