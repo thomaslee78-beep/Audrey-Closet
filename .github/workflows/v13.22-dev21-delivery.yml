@@ -1,0 +1,72 @@
+name: v13.22-dev21 delivery
+
+on:
+  push:
+    paths:
+      - '.github/workflows/v13.22-dev21-delivery.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  deliver-dev21:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Build dev21 compact Text Studio
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp shape-studio-v13.22-dev20.js shape-studio-v13.22-dev21.js
+          python3 - <<'PY'
+          from pathlib import Path
+
+          p=Path('shape-studio-v13.22-dev21.js')
+          s=p.read_text()
+          s=s.replace('v13.22-dev20 — true Rectangle picker preview geometry','v13.22-dev21 — compact Decorate Text Studio controls')
+
+          anchor='''      /* dev14: compact Selected Shape styling controls into one row. */\n'''
+          text_css='''      /* dev21: compact Text Studio vertically without changing handlers or structure. */\n      .screen[data-screen="outfits"] .decorate-studio-panel[data-decorate-group="text"] .text-studio{gap:6px!important}\n      .screen[data-screen="outfits"] .decorate-studio-panel[data-decorate-group="text"] .text-entry-action-row{gap:5px!important}\n      .screen[data-screen="outfits"] .decorate-studio-panel[data-decorate-group="text"] .text-entry-action-row #boardTextInput{height:64px!important;min-height:64px!important;max-height:64px!important;padding:7px 9px!important;font-size:14px!important;line-height:1.25!important}\n      .screen[data-screen="outfits"] .decorate-studio-panel[data-decorate-group="text"] .text-action-stack{grid-template-rows:repeat(2,29px)!important;gap:4px!important}\n      .screen[data-screen="outfits"] .decorate-studio-panel[data-decorate-group="text"] .text-entry-action-row .text-studio-action,\n      .screen[data-screen="outfits"] .decorate-studio-panel[data-decorate-group="text"] .text-action-stack .text-studio-action{height:29px!important;min-height:29px!important;font-size:10px!important;padding:0 6px!important;border-radius:9px!important}\n      .screen[data-screen="outfits"] .decorate-studio-panel[data-decorate-group="text"] .text-clear-btn{height:29px!important;font-size:10px!important;padding:0 6px!important;border-radius:9px!important}\n      .screen[data-screen="outfits"] .decorate-studio-panel[data-decorate-group="text"] .text-font-align-row{gap:4px!important;grid-template-columns:auto minmax(0,1fr) auto 32px!important}\n      .screen[data-screen="outfits"] .decorate-studio-panel[data-decorate-group="text"] .text-studio-label{font-size:9px!important}\n      .screen[data-screen="outfits"] .decorate-studio-panel[data-decorate-group="text"] .text-font-select{height:32px!important;padding:0 7px!important;font-size:12px!important;border-radius:9px!important}\n      .screen[data-screen="outfits"] .decorate-studio-panel[data-decorate-group="text"] .text-align-group{grid-template-columns:repeat(3,32px)!important;gap:3px!important}\n      .screen[data-screen="outfits"] .decorate-studio-panel[data-decorate-group="text"] .text-align-btn{width:32px!important;height:32px!important;border-radius:9px!important}\n      .screen[data-screen="outfits"] .decorate-studio-panel[data-decorate-group="text"] .text-align-btn span{font-size:14px!important;width:16px!important}\n      .screen[data-screen="outfits"] .decorate-studio-panel[data-decorate-group="text"] #boardTextColorInputV13213{width:32px!important;height:32px!important;min-width:32px!important;border-radius:9px!important}\n      .screen[data-screen="outfits"] .decorate-studio-panel[data-decorate-group="text"] .text-format-row{gap:4px!important;flex-wrap:nowrap!important}\n      .screen[data-screen="outfits"] .decorate-studio-panel[data-decorate-group="text"] .text-format-btn{width:32px!important;height:30px!important;font-size:12px!important;border-radius:9px!important}\n      .screen[data-screen="outfits"] .decorate-studio-panel[data-decorate-group="text"] .text-size-group{gap:3px!important;min-width:0!important}\n      .screen[data-screen="outfits"] .decorate-studio-panel[data-decorate-group="text"] .text-size-btn{height:30px!important;font-size:9px!important;border-radius:9px!important;padding:0 3px!important}\n\n'''
+          if anchor not in s:
+              raise SystemExit('Text Studio CSS insertion anchor not found')
+          s=s.replace(anchor,text_css+anchor,1)
+          p.write_text(s)
+
+          p=Path('index.html')
+          s=p.read_text()
+          s=s.replace('manifest.webmanifest?v=13.22-dev20','manifest.webmanifest?v=13.22-dev21')
+          s=s.replace('styles.css?v=13.22-dev20','styles.css?v=13.22-dev21')
+          s=s.replace('app.js?v=13.22-dev20','app.js?v=13.22-dev21')
+          for n in ('dev1','dev3','dev4','dev5','dev6'):
+              s=s.replace(f'shape-studio-v13.22-{n}.js?v=13.22-dev20',f'shape-studio-v13.22-{n}.js?v=13.22-dev21')
+          s=s.replace('shape-studio-v13.22-dev20.js?v=13.22-dev20','shape-studio-v13.22-dev21.js?v=13.22-dev21')
+          s=s.replace('./sw.js?v=13.22-dev20','./sw.js?v=13.22-dev21')
+          p.write_text(s)
+
+          p=Path('sw.js')
+          s=p.read_text()
+          s=s.replace('audrey-closet-v13.22-dev20','audrey-closet-v13.22-dev21')
+          s=s.replace("'./shape-studio-v13.22-dev20.js'","'./shape-studio-v13.22-dev21.js'")
+          p.write_text(s)
+          PY
+
+          grep -q 'shape-studio-v13.22-dev21.js?v=13.22-dev21' index.html
+          grep -q 'audrey-closet-v13.22-dev21' sw.js
+          grep -q 'height:64px!important' shape-studio-v13.22-dev21.js
+          grep -q 'text-font-select{height:32px!important' shape-studio-v13.22-dev21.js
+          grep -q 'text-size-btn{height:30px!important' shape-studio-v13.22-dev21.js
+
+      - name: Commit dev21
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html sw.js shape-studio-v13.22-dev21.js
+          git commit -m 'v13.22-dev21 compact Decorate Text Studio'
+          git push origin main
