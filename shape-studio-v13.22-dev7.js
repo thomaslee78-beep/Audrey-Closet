@@ -1,4 +1,4 @@
-/* Audrey Closet v13.22-dev7 — Shape Studio layout cleanup */
+/* Audrey Closet v13.22-dev9 — Shape Studio compact layout + status messaging */
 (function(){
   'use strict';
 
@@ -14,6 +14,26 @@
       (/^Shapes\b/.test(text) && /Captions\s*&\s*arrows/i.test(text) && /Thought bubbles/i.test(text));
   }
 
+  function selectedShapeV132209(){
+    const model=boardItems.find(x=>String(x.uid)===String(selectedBoardUid));
+    return model?.kind==='shape'?model:null;
+  }
+
+  function syncShapeStudioMessageV132209(info){
+    if(!info)return;
+    const title=info.querySelector('.shape-studio-info-copy strong');
+    const copy=info.querySelector('.shape-studio-info-copy span');
+    if(!title||!copy)return;
+
+    if(selectedShapeV132209()){
+      title.textContent='Shape Editing';
+      copy.textContent='Select a shape on the Board to move, rotate or resize it. Side handles stretch width or height independently.';
+    }else{
+      title.textContent='Shape Studio';
+      copy.textContent='Tap a shape to add it to the Board.';
+    }
+  }
+
   function installShapeStudioLayoutV132207(){
     const studio=document.getElementById('shapeStudioV132201');
     if(!studio)return;
@@ -22,17 +42,15 @@
     const studioCard=studio.closest('.decorate-tool-card')||studio.parentElement;
     if(!content||!studioCard)return;
 
-    // Remove the older generic Shapes intro/placeholder card above Shape Studio.
+    // Remove older generic Shapes placeholder cards if present.
     [...content.children].forEach(child=>{
       if(child===studioCard||child.contains?.(studio))return;
       if(looksLikeLegacyShapesIntro(child))child.remove();
     });
 
-    // Move the existing help sentence out of the Shape Studio card and present it
-    // as a compact informational callout immediately above the studio.
+    // Use one compact informational callout as the Shape Studio status/message area.
     let info=document.getElementById('shapeStudioInfoV132207');
     const oldHint=studio.querySelector('.shape-studio-hint');
-    const helpText=String(oldHint?.textContent||'Select a shape on the Board to move, rotate or resize it. Side handles stretch width or height independently.').trim();
     if(oldHint)oldHint.remove();
 
     if(!info){
@@ -43,15 +61,19 @@
       info.innerHTML=`
         <span class="shape-studio-info-icon" aria-hidden="true">i</span>
         <div class="shape-studio-info-copy">
-          <strong>Shape editing</strong>
-          <span>${helpText}</span>
+          <strong>Shape Studio</strong>
+          <span>Tap a shape to add it to the Board.</span>
         </div>`;
       studioCard.insertAdjacentElement('beforebegin',info);
-    }else{
-      const copy=info.querySelector('.shape-studio-info-copy span');
-      if(copy)copy.textContent=helpText;
-      if(info.nextElementSibling!==studioCard)studioCard.insertAdjacentElement('beforebegin',info);
+    }else if(info.nextElementSibling!==studioCard){
+      studioCard.insertAdjacentElement('beforebegin',info);
     }
+
+    // The info box now owns the heading/help text, so remove duplicate picker copy.
+    studio.querySelector('.shape-studio-head')?.remove();
+    studio.querySelectorAll('.shape-studio-label').forEach(label=>label.remove());
+
+    syncShapeStudioMessageV132209(info);
   }
 
   function installStylesV132207(){
@@ -61,15 +83,34 @@
     style.textContent=`
       .screen[data-screen="outfits"] .decorate-studio-panel[data-decorate-group="shapes"]>.decorate-studio-intro{display:none!important}
       .screen[data-screen="outfits"] .decorate-studio-panel[data-decorate-group="shapes"]{gap:0!important}
-      .screen[data-screen="outfits"] .shape-studio-info{display:grid;grid-template-columns:24px minmax(0,1fr);gap:8px;align-items:start;margin:0 0 9px;padding:8px 10px;border:1px solid rgba(102,113,90,.18);border-radius:11px;background:rgba(238,240,232,.72);color:#665c50}
+      .screen[data-screen="outfits"] .shape-studio-info{display:grid;grid-template-columns:24px minmax(0,1fr);gap:8px;align-items:start;margin:0 0 6px;padding:8px 10px;border:1px solid rgba(102,113,90,.18);border-radius:11px;background:rgba(238,240,232,.72);color:#665c50}
       .screen[data-screen="outfits"] .shape-studio-info-icon{display:grid;place-items:center;width:22px;height:22px;border-radius:50%;background:#6d7863;color:#fff;font:800 12px/1 var(--sans)}
       .screen[data-screen="outfits"] .shape-studio-info-copy{display:grid;gap:2px;min-width:0}
       .screen[data-screen="outfits"] .shape-studio-info-copy strong{font-size:9px;line-height:1.15;font-weight:800;color:#52604c;letter-spacing:.02em}
       .screen[data-screen="outfits"] .shape-studio-info-copy span{font-size:9px;line-height:1.35;color:#74695d}
-      .screen[data-screen="outfits"] #shapeStudioV132201{gap:8px}
+      .screen[data-screen="outfits"] #shapeStudioV132201 .shape-studio-head{display:none!important}
+      .screen[data-screen="outfits"] #shapeStudioV132201 .shape-studio-label{display:none!important}
+      .screen[data-screen="outfits"] #shapeStudioV132201 .shape-studio-section{gap:3px}
+      .screen[data-screen="outfits"] #shapeStudioV132201{gap:5px}
     `;
     document.head.appendChild(style);
   }
+
+  const previousDrawBoardV132209=drawBoard;
+  drawBoard=function(){
+    const result=previousDrawBoardV132209.apply(this,arguments);
+    requestAnimationFrame(installShapeStudioLayoutV132207);
+    return result;
+  };
+
+  document.addEventListener('pointerup',e=>{
+    if(e.target.closest?.('#outfitBoard'))setTimeout(installShapeStudioLayoutV132207,0);
+  },true);
+  document.addEventListener('click',e=>{
+    if(e.target.closest?.('.decorate-studio-tab[data-decorate-group="shapes"]')||e.target.closest?.('#outfitBoard')){
+      setTimeout(installShapeStudioLayoutV132207,0);
+    }
+  },true);
 
   installStylesV132207();
   installShapeStudioLayoutV132207();
