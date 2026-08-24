@@ -2,6 +2,13 @@
 (function(){
   'use strict';
 
+  if(!document.querySelector('script[data-audrey-models]')){
+    const modelScript=document.createElement('script');
+    modelScript.src='models-v13.22-dev1.js?v=13.22-models-dev1';
+    modelScript.dataset.audreyModels='1';
+    document.head.appendChild(modelScript);
+  }
+
   async function waitForFontsV132112(){
     try{if(document.fonts&&document.fonts.ready)await document.fonts.ready}catch{}
   }
@@ -21,6 +28,24 @@
     const grid=24;
     for(let x=0;x<=w;x+=grid){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,h);ctx.stroke()}
     for(let y=0;y<=h;y+=grid){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke()}
+    ctx.restore();
+  }
+
+  function paintModelV1322(ctx,type,w,h){
+    const sx=w/120,sy=h/(type==='child'?240:type==='alien'?290:280),ink='#554b43',fill='#e7decc';
+    ctx.save();ctx.scale(sx,sy);ctx.strokeStyle=ink;ctx.fillStyle=fill;ctx.lineWidth=2.4/Math.max(.1,Math.min(sx,sy));ctx.lineCap='round';ctx.lineJoin='round';
+    const ellipse=(x,y,rx,ry)=>{ctx.beginPath();ctx.ellipse(x,y,rx,ry,0,0,Math.PI*2);ctx.fill();ctx.stroke()};
+    const limb=(x1,y1,x2,y2)=>{ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke()};
+    if(type==='child'){
+      ellipse(60,27,19,19);ctx.beginPath();ctx.moveTo(43,51);ctx.quadraticCurveTo(60,45,77,51);ctx.lineTo(80,112);ctx.quadraticCurveTo(72,126,70,141);ctx.lineTo(75,218);ctx.quadraticCurveTo(68,226,61,218);ctx.lineTo(59,148);ctx.lineTo(56,218);ctx.quadraticCurveTo(49,226,42,218);ctx.lineTo(48,141);ctx.quadraticCurveTo(47,126,40,112);ctx.closePath();ctx.fill();ctx.stroke();limb(42,63,23,130);limb(78,63,97,130);
+    }else if(type==='alien'){
+      ctx.beginPath();ctx.moveTo(60,4);ctx.quadraticCurveTo(92,7,88,39);ctx.quadraticCurveTo(84,67,60,72);ctx.quadraticCurveTo(36,67,32,39);ctx.quadraticCurveTo(28,7,60,4);ctx.closePath();ctx.fill();ctx.stroke();ctx.fillStyle=ink;ellipse(50,31,5,9);ellipse(70,31,5,9);ctx.fillStyle=fill;ctx.beginPath();ctx.moveTo(45,75);ctx.quadraticCurveTo(60,68,75,75);ctx.lineTo(79,138);ctx.quadraticCurveTo(71,151,69,166);ctx.lineTo(75,269);ctx.quadraticCurveTo(68,279,61,269);ctx.lineTo(59,178);ctx.lineTo(56,269);ctx.quadraticCurveTo(49,279,42,269);ctx.lineTo(49,166);ctx.quadraticCurveTo(46,151,41,138);ctx.closePath();ctx.fill();ctx.stroke();limb(42,86,16,166);limb(78,86,104,166);
+    }else{
+      if(type==='cat'){
+        ctx.beginPath();ctx.moveTo(43,17);ctx.lineTo(48,3);ctx.lineTo(57,15);ctx.quadraticCurveTo(60,14,63,15);ctx.lineTo(72,3);ctx.lineTo(77,18);ctx.quadraticCurveTo(83,26,79,38);ctx.quadraticCurveTo(73,49,60,49);ctx.quadraticCurveTo(47,49,41,38);ctx.quadraticCurveTo(37,27,43,17);ctx.closePath();ctx.fill();ctx.stroke();
+      }else ellipse(60,27,19,22);
+      const woman=type==='woman';ctx.beginPath();ctx.moveTo(woman?43:40,54);ctx.quadraticCurveTo(60,woman?45:46,woman?77:80,54);ctx.lineTo(woman?85:84,woman?113:121);ctx.quadraticCurveTo(woman?75:75,woman?132:135,woman?73:72,151);ctx.lineTo(woman?80:79,259);ctx.quadraticCurveTo(woman?72:71,270,woman?64:64,259);ctx.lineTo(woman?59:60,164);ctx.lineTo(woman?55:56,259);ctx.quadraticCurveTo(woman?47:48,270,woman?39:40,259);ctx.lineTo(47,151);ctx.quadraticCurveTo(woman?45:45,woman?132:135,woman?35:36,woman?113:121);ctx.closePath();ctx.fill();ctx.stroke();limb(woman?39:39,woman?67:66,woman?19:17,woman?142:145);limb(woman?81:81,woman?67:66,woman?101:103,woman?142:145);if(type==='cat'){ctx.beginPath();ctx.moveTo(77,119);ctx.quadraticCurveTo(108,131,96,175);ctx.quadraticCurveTo(91,191,103,202);ctx.stroke()}
+    }
     ctx.restore();
   }
 
@@ -66,6 +91,8 @@
           ctx.fillStyle='#6c5142';ctx.textAlign='center';ctx.textBaseline='middle';ctx.font='18px Georgia';
           ctx.fillText(obj.name||displayItemType(obj)||'piece',w/2,h/2,w*.9);
         }
+      }else if(b.kind==='model'){
+        paintModelV1322(ctx,b.value||'man',w,h);
       }else if(b.kind==='text'){
         if(typeof window.__audreyDrawBoardTextV132011==='function')window.__audreyDrawBoardTextV132011(ctx,b,w,h,1);
         else{ctx.fillStyle='#7d3547';ctx.textAlign='center';ctx.textBaseline='middle';ctx.font='28px Georgia';ctx.fillText(b.value||'',w/2,h/2,w*.94)}
