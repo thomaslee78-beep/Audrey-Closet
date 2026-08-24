@@ -14,7 +14,8 @@
 
   function shapeLabel(type){
     const def=(api.basicShapes||[]).find(x=>x.id===type);
-    return def?.label||String(type||'Shape');
+    const fun=(window.__audreyShapeStudioV132204?.funShapes||[]).find(x=>x.id===type);
+    return def?.label||fun?.label||String(type||'Shape');
   }
 
   function ensureEditor(){
@@ -72,8 +73,11 @@
     if(!piece)return;
     const svg=piece.querySelector('.shape-studio-svg');
     if(!svg)return;
+    const renderer=window.__audreyShapeStudioV132204?.funSvgMarkup&&window.__audreyShapeStudioV132204.funShapes?.some(x=>x.id===model.shapeType)
+      ? window.__audreyShapeStudioV132204.funSvgMarkup
+      : api.shapeSvgMarkup;
     const replacement=document.createElement('div');
-    replacement.innerHTML=api.shapeSvgMarkup(model);
+    replacement.innerHTML=renderer(model);
     const fresh=replacement.firstElementChild;
     if(fresh)svg.replaceWith(fresh);
   }
@@ -100,6 +104,7 @@
     if(!model)return;
 
     const width=Math.max(1,Math.min(12,Number(model.shapeStyle?.borderWidth)||1));
+    if(Number(model.shapeStyle?.borderWidth)<1)model.shapeStyle={...model.shapeStyle,borderWidth:1};
     if(document.activeElement!==slider)slider.value=String(width);
     output.textContent=width+' px';
     name.textContent=shapeLabel(model.shapeType);
