@@ -59,7 +59,6 @@
     const style=document.createElement('style');
     style.id='shapeStudioStylesV132207';
     style.textContent=`
-      .screen[data-screen="outfits"] .decorate-studio-panel[data-decorate-group="shapes"]>.decorate-studio-intro{display:none!important}
       .screen[data-screen="outfits"] .shape-studio-info{display:grid;grid-template-columns:24px minmax(0,1fr);gap:8px;align-items:start;margin:0 0 9px;padding:8px 10px;border:1px solid rgba(102,113,90,.18);border-radius:11px;background:rgba(238,240,232,.72);color:#665c50}
       .screen[data-screen="outfits"] .shape-studio-info-icon{display:grid;place-items:center;width:22px;height:22px;border-radius:50%;background:#6d7863;color:#fff;font:800 12px/1 var(--sans)}
       .screen[data-screen="outfits"] .shape-studio-info-copy{display:grid;gap:2px;min-width:0}
