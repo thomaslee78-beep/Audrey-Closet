@@ -1,9 +1,8 @@
 /* Audrey Closet v13.22 Board Focus Mode dev10
  * Small polish over clean dev1 + dev2 + dev7 + dev9 baseline.
- * - Do not auto-scroll Text merely from switching to the Text subtab.
+ * - Preserve Decorate panel scroll position when switching Text/Draw/Shapes/Stickers.
  * - Only reveal Text editor after the actual text input receives focus / keyboard opens.
- * - Add a small opaque divider/gap below the fixed main workspace tabs so scrolled
- *   content visually disappears behind the navigation instead of bleeding into it.
+ * - Use a thinner opaque divider below the fixed main workspace tabs.
  */
 (function(){
   'use strict';
@@ -22,18 +21,17 @@
     const style=document.createElement('style');
     style.id=STYLE_ID;
     style.textContent=`
-      /* Give the fixed primary workspace navigation a small opaque landing strip.
-         This makes scrolling content read as passing behind the tabs instead of touching them. */
+      /* Small opaque landing strip under the fixed primary workspace navigation. */
       .screen[data-screen="outfits"].board-focus-active-dev1 #boardWorkspace>.board-workspace-tabs{
         position:relative!important;
         z-index:70!important;
         margin-bottom:0!important;
-        padding-bottom:4px!important;
+        padding-bottom:2px!important;
         background:#e6dcc9!important;
-        box-shadow:0 3px 0 #e6dcc9, 0 4px 7px rgba(82,62,51,.08)!important;
+        box-shadow:0 2px 0 #e6dcc9, 0 3px 5px rgba(82,62,51,.06)!important;
       }
       .screen[data-screen="outfits"].board-focus-active-dev1 #boardWorkspace>.board-workspace-panel.active{
-        scroll-padding-top:6px!important;
+        scroll-padding-top:4px!important;
       }
     `;
     document.head.appendChild(style);
@@ -70,8 +68,26 @@
     },90);
   }
 
+  function preserveDecorateScrollAcrossSubtabClick(e){
+    if(!focused())return;
+    const t=e.target;
+    if(!(t instanceof Element))return;
+    const tab=t.closest('.decorate-studio-tab[data-decorate-group]');
+    const panel=decoratePanel();
+    if(!tab||!panel||!panel.classList.contains('active'))return;
+
+    const keep=panel.scrollTop;
+    requestAnimationFrame(()=>{panel.scrollTop=keep;});
+    setTimeout(()=>{if(!actualTextInputFocused())panel.scrollTop=keep;},0);
+    setTimeout(()=>{if(!actualTextInputFocused())panel.scrollTop=keep;},80);
+    setTimeout(()=>{if(!actualTextInputFocused())panel.scrollTop=keep;},180);
+  }
+
   function start(){
     installStyles();
+
+    /* Capture before older compatibility handlers can auto-reveal Text. */
+    document.addEventListener('click',preserveDecorateScrollAcrossSubtabClick,true);
 
     /* Only entering the actual text field should trigger repositioning. */
     document.addEventListener('focusin',e=>{
