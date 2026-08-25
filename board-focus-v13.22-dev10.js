@@ -1,8 +1,9 @@
 /* Audrey Closet v13.22 Board Focus Mode dev10
- * Small polish over clean dev1 + dev2 + dev7 + dev9 baseline.
- * - Preserve Decorate panel scroll position when switching Text/Draw/Shapes/Stickers.
- * - Only reveal Text editor after the actual text input receives focus / keyboard opens.
- * - Use a thinner opaque divider below the fixed main workspace tabs.
+ * Focus scrolling policy:
+ * - entering Decorate starts at the top so its sub-menu is always visible
+ * - switching Text/Draw/Shapes/Stickers starts at the top; no automatic reveal of tool content
+ * - only focusing the actual Text input may move the panel for the iPhone keyboard
+ * - keep the thin 2px divider below the fixed main workspace tabs
  */
 (function(){
   'use strict';
@@ -21,7 +22,6 @@
     const style=document.createElement('style');
     style.id=STYLE_ID;
     style.textContent=`
-      /* Small opaque landing strip under the fixed primary workspace navigation. */
       .screen[data-screen="outfits"].board-focus-active-dev1 #boardWorkspace>.board-workspace-tabs{
         position:relative!important;
         z-index:70!important;
@@ -68,28 +68,37 @@
     },90);
   }
 
-  function preserveDecorateScrollAcrossSubtabClick(e){
+  function resetDecorateTop(){
+    if(!focused()||actualTextInputFocused())return;
+    const panel=decoratePanel();
+    if(!panel)return;
+    panel.scrollTop=0;
+  }
+
+  function scheduleDecorateTopReset(){
+    resetDecorateTop();
+    requestAnimationFrame(()=>requestAnimationFrame(resetDecorateTop));
+    setTimeout(resetDecorateTop,0);
+    setTimeout(resetDecorateTop,50);
+    setTimeout(resetDecorateTop,140);
+  }
+
+  function handleToolNavigation(e){
     if(!focused())return;
     const t=e.target;
     if(!(t instanceof Element))return;
-    const tab=t.closest('.decorate-studio-tab[data-decorate-group]');
-    const panel=decoratePanel();
-    if(!tab||!panel||!panel.classList.contains('active'))return;
-
-    const keep=panel.scrollTop;
-    requestAnimationFrame(()=>{panel.scrollTop=keep;});
-    setTimeout(()=>{if(!actualTextInputFocused())panel.scrollTop=keep;},0);
-    setTimeout(()=>{if(!actualTextInputFocused())panel.scrollTop=keep;},80);
-    setTimeout(()=>{if(!actualTextInputFocused())panel.scrollTop=keep;},180);
+    const decorateMain=t.closest('.board-workspace-tab[data-board-panel="decorate"]');
+    const decorateSub=t.closest('.decorate-studio-tab[data-decorate-group]');
+    if(decorateMain||decorateSub)scheduleDecorateTopReset();
   }
 
   function start(){
     installStyles();
 
-    /* Capture before older compatibility handlers can auto-reveal Text. */
-    document.addEventListener('click',preserveDecorateScrollAcrossSubtabClick,true);
+    /* Focus Mode owns tool-navigation scroll position: always show the menu first. */
+    document.addEventListener('click',handleToolNavigation,true);
 
-    /* Only entering the actual text field should trigger repositioning. */
+    /* Only entering the actual text field may reposition for the keyboard. */
     document.addEventListener('focusin',e=>{
       const t=e.target;
       if(!(t instanceof Element))return;
