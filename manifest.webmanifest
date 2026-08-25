@@ -1,7 +1,7 @@
 {
-  "name": "Audrey's Clothing App",
-  "short_name": "Audrey's App",
-  "description": "Audrey's Clothing App \u2014 v13.6",
+  "name": "Audrey's Clothing App — Draw Test",
+  "short_name": "Audrey Draw Test",
+  "description": "Audrey's Clothing App — clean Draw deployment test",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
