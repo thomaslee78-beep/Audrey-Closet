@@ -2,7 +2,9 @@
  * Clean direct-image architecture proof:
  * - generic type:image + src handling for PNG/JPG/SVG stickers
  * - no sprite dependency
- * - no legacy dev6 asset remapping
+ * - no legacy dev6/dev7b asset remapping
+ * - Standard pack image mappings live here for this proof
+ * - one standalone transparent PNG Music sticker (guitar)
  * - preserves glyph stickers untouched
  * Intended foundation for future user-uploaded sticker packs.
  */
@@ -11,6 +13,20 @@
 
   const STYLE_ID='stickerStudioV1322Dev7cImageCoreStyles';
   const GUITAR_ASSET='assets/stickers/music/guitar-sketch-dev7c-test.png';
+  const STANDARD_ASSETS={
+    heart:{src:'assets/stickers/standard/heart-pop.svg',alt:'Pink heart sticker'},
+    diamond:{src:'assets/stickers/standard/diamond-blue.svg',alt:'Blue diamond with sparkle sticker'},
+    star:{src:'assets/stickers/standard/star-burst.svg',alt:'Golden star sticker'},
+    happy:{src:'assets/stickers/standard/happy-day.svg',alt:'Happy face sticker'},
+    sparkle:{src:'assets/stickers/standard/sparkle-burst.svg',alt:'Multidimensional sparkle burst sticker'},
+    lightning:{src:'assets/stickers/standard/lightning-triple.svg',alt:'Three-prong yellow lightning sticker'},
+    flower:{src:'assets/stickers/standard/flower-detailed.svg',alt:'Detailed pink flower sticker'},
+    rainbow:{src:'assets/stickers/standard/rainbow-soft.svg',alt:'Six-color rainbow sticker'},
+    cloud:{src:'assets/stickers/standard/cloud-puffy.svg',alt:'White puffy cloud sticker'},
+    sun:{src:'assets/stickers/standard/sun-happy.svg',alt:'Cartoon sun sticker'},
+    moon:{src:'assets/stickers/standard/moon-crescent.svg',alt:'Crescent moon sticker'},
+    butterfly:{src:'assets/stickers/standard/butterfly-cartoon.svg',alt:'Cartoon butterfly sticker'}
+  };
   let rendererWrapped=false;
 
   function registry(){return window.AUDREY_STICKER_PACKS_V1}
@@ -50,15 +66,26 @@
     document.head.appendChild(style);
   }
 
-  function configureMusicProof(){
-    const music=registry()?.packs?.find(pack=>pack.id==='music');
+  function configureAssets(){
+    const reg=registry();
+    if(!reg?.packs)return false;
+    const standard=reg.packs.find(pack=>pack.id==='standard');
+    (standard?.stickers||[]).forEach(sticker=>{
+      const asset=STANDARD_ASSETS[sticker.id];
+      if(!asset)return;
+      sticker.type='image';
+      sticker.src=asset.src;
+      sticker.alt=asset.alt;
+    });
+    const music=reg.packs.find(pack=>pack.id==='music');
     const guitar=music?.stickers?.find(sticker=>sticker.id==='guitar');
-    if(!guitar)return false;
-    guitar.type='image';
-    guitar.src=GUITAR_ASSET;
-    guitar.alt='Hand-drawn blue Stratocaster-style guitar sticker';
-    guitar.sizeClass='medium';
-    guitar.dev7cDirectPng=true;
+    if(guitar){
+      guitar.type='image';
+      guitar.src=GUITAR_ASSET;
+      guitar.alt='Hand-drawn blue Stratocaster-style guitar sticker';
+      guitar.sizeClass='medium';
+      guitar.dev7cDirectPng=true;
+    }
     return true;
   }
 
@@ -153,7 +180,7 @@
 
   function reconcile(){
     installStyles();
-    configureMusicProof();
+    configureAssets();
     wrapBoardRenderer();
     syncPicker();
   }
