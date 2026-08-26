@@ -1,11 +1,11 @@
 /* Audrey Closet v13.22 Sticker Studio dev6
  * First real sticker asset proof-of-concept over dev1-dev5.
- * Stabilized image rendering:
- * - six transparent SVG stickers across Standard + Music
+ * Release stabilization:
+ * - SVG image stickers remain supported for Standard + Music
+ * - asset mapping is fallback-only so later pack artwork is never overwritten
  * - picker image nodes mount once instead of rebuilding on every reconcile
  * - Board image stickers use an image-specific content node so dev4's glyph
  *   sizing observer does not continuously touch/repaint them
- * - newly added image metadata is applied once with one Board redraw
  */
 (function(){
   'use strict';
@@ -47,7 +47,6 @@
       .screen[data-screen="outfits"] #stickerStudioV1322Dev1 .sticker-tile[data-size-class="medium"] .sticker-preview.sticker-image-preview-dev6{
         width:112px!important;height:105px!important;
       }
-
       .screen[data-screen="outfits"] #outfitBoard .board-sticker-image-dev6{
         width:100%!important;height:100%!important;display:grid!important;place-items:center!important;
         overflow:visible!important;line-height:1!important;box-sizing:border-box!important;
@@ -74,9 +73,13 @@
       (pack.stickers||[]).forEach(sticker=>{
         const asset=packAssets[sticker.id];
         if(!asset)return;
-        if(sticker.type!=='image')sticker.type='image';
-        if(sticker.src!==asset.src)sticker.src=asset.src;
-        if(sticker.alt!==asset.alt)sticker.alt=asset.alt;
+        // Only seed the original asset when no later module has already
+        // established an image mapping. This prevents pack-switch flicker.
+        if(sticker.type==='image'&&sticker.src&&sticker.src!==asset.src)return;
+        if(sticker.type&&sticker.type!=='glyph'&&sticker.type!=='image')return;
+        sticker.type='image';
+        sticker.src=asset.src;
+        sticker.alt=asset.alt;
       });
     });
   }
@@ -167,9 +170,6 @@
       if(!(target instanceof Element))return;
       const tile=target.closest('#stickerStudioV1322Dev1 .sticker-tile[data-sticker-id]');
       if(tile){
-        // dev1/dev3 finish creating and sizing the selected Board object during
-        // this same click. One delayed enrichment is enough; retry only if the
-        // item is not ready yet, never redraw an already-enriched sticker.
         setTimeout(()=>{
           if(!enrichAddedSticker(tile))setTimeout(()=>enrichAddedSticker(tile),45);
         },0);
@@ -185,9 +185,7 @@
     syncPickerAssets();
   }
 
-  function schedule(){
-    requestAnimationFrame(()=>requestAnimationFrame(reconcile));
-  }
+  function schedule(){requestAnimationFrame(()=>requestAnimationFrame(reconcile));}
 
   function start(){
     reconcile();
