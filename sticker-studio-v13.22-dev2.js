@@ -4,6 +4,7 @@
  * - medium stickers occupy 2x2 cells (about four small stickers)
  * - dense packing lets small tiles fill gaps around medium tiles
  * - rebalances pack size metadata so each pack mixes small + medium stickers
+ * - removes the legacy Stickers placeholder above the new browser
  */
 (function(){
   'use strict';
@@ -36,6 +37,13 @@
     const style=document.createElement('style');
     style.id=STYLE_ID;
     style.textContent=`
+      .screen[data-screen="outfits"] .decorate-studio-panel[data-decorate-group="stickers"]{
+        gap:0!important;
+      }
+      .screen[data-screen="outfits"] .decorate-studio-panel[data-decorate-group="stickers"]>.decorate-studio-content{
+        margin-top:0!important;
+        padding-top:0!important;
+      }
       .screen[data-screen="outfits"] #stickerStudioV1322Dev1 .sticker-browser{
         display:grid!important;
         grid-template-columns:repeat(4,minmax(0,1fr))!important;
@@ -91,12 +99,31 @@
     document.head.appendChild(style);
   }
 
+  function stickerPanel(){
+    return document.querySelector('.decorate-studio-panel[data-decorate-group="stickers"]');
+  }
+
+  function removeLegacyPlaceholder(){
+    const panel=stickerPanel();
+    if(!panel)return;
+    const content=[...panel.children].find(child=>child.classList?.contains('decorate-studio-content'));
+    if(!content)return;
+    let node=content.previousElementSibling;
+    while(node){
+      const previous=node.previousElementSibling;
+      node.style.display='none';
+      node.setAttribute('aria-hidden','true');
+      node=previous;
+    }
+  }
+
   function activePackId(){
     const active=document.querySelector('#stickerStudioV1322Dev1 .sticker-pack-btn.active');
     return active?.dataset.pack||'standard';
   }
 
   function syncRenderedSizes(){
+    removeLegacyPlaceholder();
     applyRegistrySizes();
     const pack=(registry()?.packs||[]).find(x=>x.id===activePackId());
     if(!pack)return;
@@ -114,6 +141,7 @@
 
   function start(){
     installStyles();
+    removeLegacyPlaceholder();
     applyRegistrySizes();
     scheduleSync();
     document.addEventListener('click',e=>{
