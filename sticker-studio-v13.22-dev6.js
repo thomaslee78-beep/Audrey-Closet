@@ -1,10 +1,11 @@
 /* Audrey Closet v13.22 Sticker Studio dev6
  * First real sticker asset proof-of-concept over dev1-dev5.
+ * Stabilized image rendering:
  * - six transparent SVG stickers across Standard + Music
- * - registry stays backward-compatible with glyph fallbacks
- * - picker previews render image assets where available
- * - Board objects remember asset metadata and render scalable images
- * - white outline works on image silhouettes via drop-shadow halo
+ * - picker image nodes mount once instead of rebuilding on every reconcile
+ * - Board image stickers use an image-specific content node so dev4's glyph
+ *   sizing observer does not continuously touch/repaint them
+ * - newly added image metadata is applied once with one Board redraw
  */
 (function(){
   'use strict';
@@ -47,22 +48,19 @@
         width:112px!important;height:105px!important;
       }
 
-      .screen[data-screen="outfits"] #outfitBoard .board-sticker.sticker-image-dev6{
+      .screen[data-screen="outfits"] #outfitBoard .board-sticker-image-dev6{
         width:100%!important;height:100%!important;display:grid!important;place-items:center!important;
-        overflow:visible!important;
+        overflow:visible!important;line-height:1!important;box-sizing:border-box!important;
       }
-      .screen[data-screen="outfits"] #outfitBoard .board-sticker.sticker-image-dev6 img{
+      .screen[data-screen="outfits"] #outfitBoard .board-sticker-image-dev6 img{
         display:block;width:100%;height:100%;object-fit:contain;pointer-events:none;user-select:none;-webkit-user-drag:none;
       }
-      .screen[data-screen="outfits"] #outfitBoard .board-sticker.sticker-image-dev6.sticker-outline-dev6 img{
+      .screen[data-screen="outfits"] #outfitBoard .board-sticker-image-dev6.sticker-outline-dev6 img{
         filter:
           drop-shadow(2px 0 0 #fff) drop-shadow(-2px 0 0 #fff)
           drop-shadow(0 2px 0 #fff) drop-shadow(0 -2px 0 #fff)
           drop-shadow(1.5px 1.5px 0 #fff) drop-shadow(-1.5px -1.5px 0 #fff)
           drop-shadow(-1.5px 1.5px 0 #fff) drop-shadow(1.5px -1.5px 0 #fff)!important;
-      }
-      .screen[data-screen="outfits"] #outfitBoard .board-sticker.sticker-image-dev6.sticker-outline-dev3{
-        text-shadow:none!important;
       }
     `;
     document.head.appendChild(style);
@@ -76,9 +74,9 @@
       (pack.stickers||[]).forEach(sticker=>{
         const asset=packAssets[sticker.id];
         if(!asset)return;
-        sticker.type='image';
-        sticker.src=asset.src;
-        sticker.alt=asset.alt;
+        if(sticker.type!=='image')sticker.type='image';
+        if(sticker.src!==asset.src)sticker.src=asset.src;
+        if(sticker.alt!==asset.alt)sticker.alt=asset.alt;
       });
     });
   }
@@ -87,6 +85,22 @@
     const reg=registry();
     const activeId=document.querySelector('#stickerStudioV1322Dev1 .sticker-pack-btn.active')?.dataset.pack||'standard';
     return (reg?.packs||[]).find(pack=>pack.id===activeId);
+  }
+
+  function mountImagePreview(preview,sticker,tile){
+    preview.classList.add('sticker-image-preview-dev6');
+    let img=preview.querySelector(':scope > img[data-sticker-dev6-image="1"]');
+    if(!img){
+      preview.textContent='';
+      img=document.createElement('img');
+      img.dataset.stickerDev6Image='1';
+      img.alt='';
+      img.setAttribute('aria-hidden','true');
+      img.decoding='async';
+      preview.appendChild(img);
+    }
+    if(img.getAttribute('src')!==sticker.src)img.setAttribute('src',sticker.src);
+    tile.dataset.stickerAsset='image';
   }
 
   function syncPickerAssets(){
@@ -99,12 +113,14 @@
       const preview=tile.querySelector('.sticker-preview');
       if(!sticker||!preview)return;
       if(sticker.type==='image'&&sticker.src){
-        preview.classList.add('sticker-image-preview-dev6');
-        preview.innerHTML=`<img src="${escAttr(sticker.src)}" alt="" aria-hidden="true">`;
-        tile.dataset.stickerAsset='image';
+        mountImagePreview(preview,sticker,tile);
       }else{
-        preview.classList.remove('sticker-image-preview-dev6');
-        if(!preview.textContent)preview.textContent=sticker.glyph||'';
+        if(preview.classList.contains('sticker-image-preview-dev6')){
+          preview.classList.remove('sticker-image-preview-dev6');
+          preview.textContent=sticker.glyph||'';
+        }else if(!preview.textContent){
+          preview.textContent=sticker.glyph||'';
+        }
         delete tile.dataset.stickerAsset;
       }
     });
@@ -116,15 +132,17 @@
 
   function enrichAddedSticker(tile){
     const pack=activePack();
-    if(!pack||!tile)return;
+    if(!pack||!tile)return false;
     const sticker=(pack.stickers||[]).find(item=>item.id===tile.dataset.stickerId);
-    if(!sticker||sticker.type!=='image'||!sticker.src)return;
+    if(!sticker||sticker.type!=='image'||!sticker.src)return false;
     const item=selectedBoardSticker();
-    if(!item||item.kind!=='sticker'||item.stickerId!==sticker.id)return;
+    if(!item||item.kind!=='sticker'||item.stickerId!==sticker.id)return false;
+    if(item.stickerType==='image'&&item.stickerAssetSrc===sticker.src)return true;
     item.stickerType='image';
     item.stickerAssetSrc=sticker.src;
     item.stickerAssetAlt=sticker.alt||sticker.label||'Sticker';
     if(typeof drawBoard==='function')drawBoard();
+    return true;
   }
 
   function wrapBoardRenderer(){
@@ -133,7 +151,7 @@
     boardItemContent=function(b){
       if(b&&b.kind==='sticker'&&b.stickerType==='image'&&b.stickerAssetSrc){
         const outline=b.stickerOutline?' sticker-outline-dev6':'';
-        return `<div class="board-sticker sticker-image-dev6${outline}"><img src="${escAttr(b.stickerAssetSrc)}" alt="${escAttr(b.stickerAssetAlt||'Sticker')}" draggable="false"></div>`;
+        return `<div class="board-sticker-image-dev6${outline}"><img src="${escAttr(b.stickerAssetSrc)}" alt="${escAttr(b.stickerAssetAlt||'Sticker')}" draggable="false" decoding="async"></div>`;
       }
       return original(b);
     };
@@ -149,8 +167,12 @@
       if(!(target instanceof Element))return;
       const tile=target.closest('#stickerStudioV1322Dev1 .sticker-tile[data-sticker-id]');
       if(tile){
-        setTimeout(()=>enrichAddedSticker(tile),20);
-        setTimeout(()=>enrichAddedSticker(tile),90);
+        // dev1/dev3 finish creating and sizing the selected Board object during
+        // this same click. One delayed enrichment is enough; retry only if the
+        // item is not ready yet, never redraw an already-enriched sticker.
+        setTimeout(()=>{
+          if(!enrichAddedSticker(tile))setTimeout(()=>enrichAddedSticker(tile),45);
+        },0);
       }
       if(target.closest('#stickerStudioV1322Dev1 .sticker-pack-btn,.decorate-studio-tab[data-decorate-group="stickers"],.board-workspace-tab[data-board-panel="decorate"]'))schedule();
     },false);
@@ -165,7 +187,6 @@
 
   function schedule(){
     requestAnimationFrame(()=>requestAnimationFrame(reconcile));
-    setTimeout(reconcile,55);
   }
 
   function start(){
