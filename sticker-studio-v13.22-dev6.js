@@ -18,9 +18,11 @@
       rainbow:{src:'assets/stickers/standard/rainbow-soft.svg',alt:'Soft rainbow sticker'}
     },
     music:{
-      guitar:{src:'assets/stickers/music/guitar-electric.svg',alt:'Electric guitar sticker'},
+      guitar:{src:'assets/stickers/music/guitar-electric.svg',alt:'Blue Strat style electric guitar sticker'},
       headphones:{src:'assets/stickers/music/headphones.svg',alt:'Headphones sticker'},
-      record:{src:'assets/stickers/music/record.svg',alt:'Vinyl record sticker'}
+      record:{src:'assets/stickers/music/record.svg',alt:'Vinyl record sticker'},
+      amp:{src:'assets/stickers/music/amp-stack.svg',alt:'Rock guitar amp stack sticker'},
+      sheet:{src:'assets/stickers/music/sheet-music.svg',alt:'Sheet music sticker'}
     }
   };
 
@@ -73,8 +75,6 @@
       (pack.stickers||[]).forEach(sticker=>{
         const asset=packAssets[sticker.id];
         if(!asset)return;
-        // Only seed the original asset when no later module has already
-        // established an image mapping. This prevents pack-switch flicker.
         if(sticker.type==='image'&&sticker.src&&sticker.src!==asset.src)return;
         if(sticker.type&&sticker.type!=='glyph'&&sticker.type!=='image')return;
         sticker.type='image';
