@@ -1,11 +1,13 @@
-/* Audrey Closet v13.22 share export compatibility dev5
+/* Audrey Closet v13.22 share export compatibility dev6
  * Export current creative objects without changing saved Board/Portfolio data.
  *
- * dev5:
+ * dev6:
  * - preserves drawing strokeColor, strokeWidth, opacity and dotted style in Share
- * - uses SVG-backed temporary image pieces for drawings, just like shapes
+ * - uses SVG-backed temporary image pieces for drawings and shapes
+ * - marks temporary creative pieces as shareDecoration and filters them from
+ *   "Items in this look" while still allowing the board image renderer to draw them
  * - keeps pencil/pen visual distinction in exported images
- * - retains dev4 shape geometry + fixed-pattern canvas alignment
+ * - retains shape geometry + fixed-pattern canvas alignment
  */
 (function(){
   'use strict';
@@ -59,7 +61,7 @@
   function svgDataUrl(markup,item){
     if(!markup)return '';
     const w=Math.max(1,num(item?.w,100)),h=Math.max(1,num(item?.h,100));
-    let svg=markup.replace('<svg ','<svg xmlns="http://www.w3.org/2000/svg" width="'+w+'" height="'+h+'" ');
+    const svg=markup.replace('<svg ','<svg xmlns="http://www.w3.org/2000/svg" width="'+w+'" height="'+h+'" ');
     return 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
   }
 
@@ -67,7 +69,7 @@
     const photo=svgDataUrl(markup,item);if(!photo)return null;
     const tempId='share-'+String(label||'creative')+'-'+String(item.uid||Math.random().toString(36).slice(2));
     tempItems.push({id:tempId,name:label||'Creative',type:label||'Creative',category:'Misc',photo});
-    return {...clone(item),kind:'piece',source:'closet',id:tempId};
+    return {...clone(item),kind:'piece',source:'shareDecoration',id:tempId};
   }
 
   function transformPieces(source,tempItems){
@@ -127,10 +129,19 @@
       const synthetic=sourceOutfit||{name:document.getElementById('outfitName')?.value?.trim()||'My outfit',notes:document.getElementById('outfitNotes')?.value?.trim()||'',boardWidth:board?.clientWidth||390,boardHeight:board?.clientHeight||420};
       synthetic.pieces=transformed;
       const originalLength=Array.isArray(state?.items)?state.items.length:0;
-      try{if(Array.isArray(state?.items)&&tempItems.length)state.items.push(...tempItems);return await original({...options,outfit:synthetic});}
-      finally{if(Array.isArray(state?.items)&&state.items.length>originalLength)state.items.splice(originalLength);}
+      const originalDetails=typeof portfolioItemDetails==='function'?portfolioItemDetails:null;
+      try{
+        if(Array.isArray(state?.items)&&tempItems.length)state.items.push(...tempItems);
+        if(originalDetails){
+          portfolioItemDetails=function(outfit){return originalDetails(outfit).filter(row=>row?.source!=='shareDecoration');};
+        }
+        return await original({...options,outfit:synthetic});
+      }finally{
+        if(originalDetails)portfolioItemDetails=originalDetails;
+        if(Array.isArray(state?.items)&&state.items.length>originalLength)state.items.splice(originalLength);
+      }
     };
-    window.AUDREY_SHARE_EXPORT_COMPAT_V5={transformPieces,styleAwareShapeMarkup,drawingMarkup,paintFixedPattern};
+    window.AUDREY_SHARE_EXPORT_COMPAT_V6={transformPieces,styleAwareShapeMarkup,drawingMarkup,paintFixedPattern};
     installed=true;return true;
   }
 
