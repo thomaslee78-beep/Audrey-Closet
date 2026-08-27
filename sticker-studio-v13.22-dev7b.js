@@ -1,6 +1,7 @@
 /* Audrey Closet v13.22 Sticker Studio dev7b
  * Completes illustrated artwork for the Standard sticker pack.
- * Builds on stabilized dev6 image rendering and dev7a Emoji pack.
+ * Stabilized for release candidate: registry assets are seeded once and
+ * existing preview image nodes are reused without redundant scheduled remounts.
  */
 (function(){
   'use strict';
@@ -21,6 +22,8 @@
     butterfly:{src:'assets/stickers/standard/butterfly-cartoon.svg',alt:'Cartoon butterfly sticker'}
   };
 
+  let registrySeeded=false;
+
   function registry(){return window.AUDREY_STICKER_PACKS_V1}
   function standardPack(){return registry()?.packs?.find(pack=>pack.id==='standard')||null}
 
@@ -29,83 +32,54 @@
     const style=document.createElement('style');
     style.id=STYLE_ID;
     style.textContent=`
-      .screen[data-screen="outfits"] #stickerStudioV1322Dev1 .sticker-tile[data-standard-image-dev7b="1"] .sticker-preview{
-        padding:3px!important;
-      }
-      .screen[data-screen="outfits"] #stickerStudioV1322Dev1 .sticker-tile[data-standard-image-dev7b="1"] .sticker-preview img{
-        display:block;width:100%;height:100%;object-fit:contain;pointer-events:none;
-        filter:drop-shadow(0 1px 1px rgba(72,54,44,.08));
-      }
+      .screen[data-screen="outfits"] #stickerStudioV1322Dev1 .sticker-tile[data-standard-image-dev7b="1"] .sticker-preview{padding:3px!important}
+      .screen[data-screen="outfits"] #stickerStudioV1322Dev1 .sticker-tile[data-standard-image-dev7b="1"] .sticker-preview img{display:block;width:100%;height:100%;object-fit:contain;pointer-events:none;filter:drop-shadow(0 1px 1px rgba(72,54,44,.08))}
     `;
     document.head.appendChild(style);
   }
 
   function applyRegistryAssets(){
-    const pack=standardPack();
-    if(!pack)return false;
-    (pack.stickers||[]).forEach(sticker=>{
-      const asset=STANDARD_ASSETS[sticker.id];
-      if(!asset)return;
-      sticker.type='image';
-      sticker.src=asset.src;
-      sticker.alt=asset.alt;
-    });
-    return true;
+    if(registrySeeded)return true;
+    const pack=standardPack();if(!pack)return false;
+    (pack.stickers||[]).forEach(sticker=>{const asset=STANDARD_ASSETS[sticker.id];if(!asset)return;sticker.type='image';sticker.src=asset.src;sticker.alt=asset.alt;});
+    registrySeeded=true;return true;
   }
 
   function activePackId(){return document.querySelector('#stickerStudioV1322Dev1 .sticker-pack-btn.active')?.dataset.pack||'standard'}
 
   function mountPreview(preview,sticker,tile){
+    const rendered=tile.dataset.standardRenderedSrc||'';
     let img=preview.querySelector(':scope > img[data-sticker-dev7b-image="1"]');
-    if(!img){
-      preview.textContent='';
-      img=document.createElement('img');
-      img.dataset.stickerDev7bImage='1';
-      img.alt='';
-      img.setAttribute('aria-hidden','true');
-      img.decoding='async';
-      preview.appendChild(img);
-    }
+    if(img&&rendered===sticker.src&&img.getAttribute('src')===sticker.src)return;
+    if(!img){preview.textContent='';img=document.createElement('img');img.dataset.stickerDev7bImage='1';img.alt='';img.setAttribute('aria-hidden','true');img.decoding='async';preview.appendChild(img);}
     if(img.getAttribute('src')!==sticker.src)img.setAttribute('src',sticker.src);
-    preview.classList.add('sticker-image-preview-dev6');
-    tile.dataset.stickerAsset='image';
-    tile.dataset.standardImageDev7b='1';
+    preview.classList.add('sticker-image-preview-dev6');tile.dataset.stickerAsset='image';tile.dataset.standardImageDev7b='1';tile.dataset.standardRenderedSrc=sticker.src;
   }
 
   function syncStandardPicker(){
     if(activePackId()!=='standard')return;
-    const pack=standardPack();
-    if(!pack)return;
+    const pack=standardPack();if(!pack)return;
     const byId=Object.fromEntries((pack.stickers||[]).map(sticker=>[sticker.id,sticker]));
-    document.querySelectorAll('#stickerStudioV1322Dev1 .sticker-tile[data-sticker-id]').forEach(tile=>{
-      const sticker=byId[tile.dataset.stickerId];
-      const preview=tile.querySelector('.sticker-preview');
-      if(!sticker||!preview||sticker.type!=='image'||!sticker.src)return;
-      mountPreview(preview,sticker,tile);
-    });
+    document.querySelectorAll('#stickerStudioV1322Dev1 .sticker-tile[data-sticker-id]').forEach(tile=>{const sticker=byId[tile.dataset.stickerId],preview=tile.querySelector('.sticker-preview');if(!sticker||!preview||sticker.type!=='image'||!sticker.src)return;mountPreview(preview,sticker,tile);});
   }
 
-  function reconcile(){
-    installStyles();
-    if(!applyRegistryAssets())return;
-    syncStandardPicker();
-  }
-
-  function schedule(){
-    requestAnimationFrame(()=>requestAnimationFrame(reconcile));
-    setTimeout(reconcile,40);
-  }
+  function reconcile(){installStyles();if(!applyRegistryAssets())return;syncStandardPicker();}
+  function schedule(){requestAnimationFrame(()=>requestAnimationFrame(reconcile));}
 
   function start(){
     reconcile();
     document.addEventListener('click',e=>{
-      const target=e.target;
-      if(!(target instanceof Element))return;
-      if(target.closest('#stickerStudioV1322Dev1 .sticker-pack-btn[data-pack="standard"],.decorate-studio-tab[data-decorate-group="stickers"],.board-workspace-tab[data-board-panel="decorate"]'))schedule();
+      const target=e.target;if(!(target instanceof Element))return;
+      const standardBtn=target.closest('#stickerStudioV1322Dev1 .sticker-pack-btn[data-pack="standard"]');
+      if(standardBtn){
+        // dev1 owns pack switching. Let it rebuild once, then remount images once.
+        // If Standard was already active, dev1 may still rebuild; one RAF pass is enough.
+        schedule();return;
+      }
+      if(target.closest('.decorate-studio-tab[data-decorate-group="stickers"],.board-workspace-tab[data-board-panel="decorate"]'))schedule();
     },false);
     window.addEventListener('pageshow',schedule);
   }
 
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});
-  else start();
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 })();
