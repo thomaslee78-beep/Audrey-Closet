@@ -43,8 +43,8 @@
         {id:'piano',label:'Piano',glyph:'🎹',sizeClass:'medium'},
         {id:'drums',label:'Drums',glyph:'🥁',sizeClass:'medium'},
         {id:'microphone',label:'Microphone',glyph:'🎤',sizeClass:'medium'},
-        {id:'notes',label:'Music notes',glyph:'🎵',sizeClass:'small'},
-        {id:'double-notes',label:'Double notes',glyph:'🎶',sizeClass:'small'},
+        {id:'notes',label:'Eighth Note',glyph:'🎵',sizeClass:'small'},
+        {id:'double-notes',label:'Music Notes',glyph:'🎶',sizeClass:'small'},
         {id:'headphones',label:'Headphones',glyph:'🎧',sizeClass:'medium'},
         {id:'record',label:'Record',glyph:'💿',sizeClass:'medium'},
         {id:'amp',label:'Guitar amp',glyph:'▣',sizeClass:'medium'},
@@ -93,8 +93,6 @@
     }
   ];
 
-  // Deliberately public registry: future pack loaders can append/replace packs
-  // without coupling the Sticker Studio UI to hard-coded buttons.
   window.AUDREY_STICKER_PACKS_V1={version:REGISTRY_VERSION,packs:STICKER_PACKS};
 
   let activePackId='standard';
@@ -141,7 +139,6 @@
   function addPlaceholderSticker(pack,sticker,button){
     if(typeof addCreativeItem!=='function')return;
     addCreativeItem('sticker',sticker.glyph);
-    // Enrich the existing compatible object for the future Sticker Studio model.
     try{
       const item=boardItems.find(entry=>entry.uid===selectedBoardUid);
       if(item){
@@ -152,7 +149,7 @@
         if(typeof item.stickerOutline==='undefined')item.stickerOutline=false;
         if(sticker.sizeClass==='medium'&&Number(item.w)===90&&Number(item.h)===90){item.w=108;item.h=108;drawBoard()}
       }
-    }catch(_){/* compatibility metadata is optional in dev1 */}
+    }catch(_){}
     button?.classList.add('added');
     setTimeout(()=>button?.classList.remove('added'),550);
     if(typeof toast==='function')toast(`${sticker.label} added`);
@@ -204,17 +201,6 @@
     renderBrowser();
   }
 
-  function schedule(){requestAnimationFrame(()=>requestAnimationFrame(mount))}
-  function start(){
-    mount();
-    document.addEventListener('click',e=>{
-      const t=e.target;
-      if(!(t instanceof Element))return;
-      if(t.closest('.board-workspace-tab[data-board-panel="decorate"],.decorate-studio-tab[data-decorate-group="stickers"],#decorateToggle'))schedule();
-    },false);
-    window.addEventListener('pageshow',schedule);
-  }
-
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});
-  else start();
+  function start(){mount();setTimeout(mount,180);setTimeout(mount,650)}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 })();
