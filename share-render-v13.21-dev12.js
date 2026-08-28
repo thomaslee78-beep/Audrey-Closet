@@ -1,4 +1,4 @@
-/* Audrey Closet v13.23.3 — production release bootstrap
+/* Audrey Closet v13.23.4 — production release bootstrap
  * Loads high-fidelity Share, accepted Decorate/Draw/Focus runtime, Sticker
  * compatibility, and Share modal scroll locking. Warms the production cache
  * after successful online launch so the accepted runtime remains available.
@@ -6,7 +6,7 @@
 (function(){
   'use strict';
 
-  const HOTFIX='13.23.3-share-fidelity';
+  const HOTFIX='13.23.4-glyph-bounds';
   document.write('<script src="share-render-v13.21-dev12-core.js?v='+HOTFIX+'"><\/script>');
 
   const modules=[
@@ -59,7 +59,7 @@
     if(!('caches' in window))return Promise.resolve();
     return caches.open('audrey-closet-v13.22-dev26')
       .then(cache=>Promise.allSettled(releaseAssets.map(asset=>cache.add(asset))))
-      .catch(err=>console.warn('Audrey v13.23.3 release cache warm skipped',err));
+      .catch(err=>console.warn('Audrey v13.23.4 release cache warm skipped',err));
   }
 
   function loadSequentially(){
@@ -71,7 +71,7 @@
         const s=document.createElement('script');s.src=src;s.async=false;s.onload=resolve;s.onerror=()=>reject(new Error('Failed to load '+src));document.body.appendChild(s);
       }));
     });
-    chain.then(warmReleaseCache).catch(err=>console.error('Audrey v13.23.3 release bootstrap failed',err));
+    chain.then(warmReleaseCache).catch(err=>console.error('Audrey v13.23.4 release bootstrap failed',err));
   }
 
   if(document.readyState==='complete')loadSequentially();
