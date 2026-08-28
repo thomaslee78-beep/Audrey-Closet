@@ -1,16 +1,15 @@
-/* Audrey Closet v13.22 Decorate Rail prototype 3
- * Focused polish over prototype 2:
- * - reduces workspace-to-controls gap to a few pixels
- * - uses one warm Sticker-style folder surface for all Decorate tools
- * - selected tab uses matching warm fill + subtle dark outline
- * - squares tabs and tool surfaces for a connected palette look
- * - gives the left rail its own Board Focus scroller
- * - keeps right tool content scrolling independently
+/* Audrey Closet v13.22 Decorate Rail prototype 4
+ * Refinement over prototype 3:
+ * - enlarges left rail tabs for clearer touch targets
+ * - adds a narrow rail/stage gap so both borders remain visible
+ * - strengthens rail/stage borders
+ * - further compresses space below main workspace tabs
+ * - reduces Board Focus overscroll bounce on the tray and Decorate scrollers
  */
 (function(){
   'use strict';
 
-  const STYLE_ID='decorateRailProto3Styles';
+  const STYLE_ID='decorateRailProto4Styles';
   const LAYOUT_CLASS='decorate-rail-layout-proto1';
   const RAIL_CLASS='decorate-rail-proto1';
   const STAGE_CLASS='decorate-stage-proto1';
@@ -30,16 +29,16 @@
       .screen[data-screen="outfits"]{
         --decorate-folder-bg:#f6f0e5;
         --decorate-folder-bg-soft:#faf6ed;
-        --decorate-folder-border:rgba(82,72,62,.22);
-        --decorate-selected-border:rgba(20,20,20,.34);
+        --decorate-folder-border:rgba(57,50,43,.42);
+        --decorate-selected-border:rgba(20,20,20,.56);
       }
 
       .screen[data-screen="outfits"] #boardWorkspace>.board-workspace-tabs{
         margin-bottom:0!important;
-        padding-bottom:1px!important;
+        padding-bottom:0!important;
       }
       .screen[data-screen="outfits"] .board-workspace-panel[data-board-panel="decorate"]{
-        padding-top:2px!important;
+        padding-top:1px!important;
         margin-top:0!important;
       }
       .screen[data-screen="outfits"] .board-decorate-shell{
@@ -48,8 +47,8 @@
       }
       .screen[data-screen="outfits"] .${LAYOUT_CLASS}{
         display:grid!important;
-        grid-template-columns:52px minmax(0,1fr)!important;
-        gap:0!important;
+        grid-template-columns:58px minmax(0,1fr)!important;
+        gap:3px!important;
         align-items:start!important;
         width:100%!important;
         min-width:0!important;
@@ -65,9 +64,9 @@
         z-index:52!important;
         display:flex!important;
         flex-direction:column!important;
-        gap:1px!important;
-        width:52px!important;
-        min-width:52px!important;
+        gap:2px!important;
+        width:58px!important;
+        min-width:58px!important;
         margin:0!important;
         padding:0!important;
         border:0!important;
@@ -76,7 +75,7 @@
         box-shadow:none!important;
         box-sizing:border-box!important;
         align-self:start!important;
-        overscroll-behavior:contain!important;
+        overscroll-behavior:none!important;
         scrollbar-width:thin!important;
       }
       .screen[data-screen="outfits"] .${RAIL_CLASS}::-webkit-scrollbar{width:3px!important}
@@ -86,19 +85,19 @@
         -webkit-appearance:none!important;
         display:grid!important;
         place-items:center!important;
-        grid-template-rows:21px auto!important;
+        grid-template-rows:25px auto!important;
         gap:1px!important;
-        width:51px!important;
-        min-width:51px!important;
-        height:48px!important;
-        min-height:48px!important;
+        width:58px!important;
+        min-width:58px!important;
+        height:55px!important;
+        min-height:55px!important;
         margin:0!important;
-        padding:4px 1px 3px!important;
-        border:1px solid transparent!important;
+        padding:5px 2px 4px!important;
+        border:1px solid rgba(57,50,43,.38)!important;
         border-radius:0!important;
         background:rgba(224,217,205,.84)!important;
         color:#625f58!important;
-        font:800 7px/1.02 var(--sans,system-ui,sans-serif)!important;
+        font:800 8px/1.04 var(--sans,system-ui,sans-serif)!important;
         text-align:center!important;
         white-space:normal!important;
         box-shadow:none!important;
@@ -110,20 +109,19 @@
         z-index:2!important;
         background:var(--decorate-folder-bg)!important;
         color:#4f4b45!important;
-        border:1px solid var(--decorate-selected-border)!important;
-        border-right-color:var(--decorate-folder-bg)!important;
+        border-color:var(--decorate-selected-border)!important;
         box-shadow:none!important;
       }
       .screen[data-screen="outfits"] .${RAIL_CLASS} .decorate-rail-icon-proto1{
         display:grid!important;
         place-items:center!important;
-        width:21px!important;
-        height:21px!important;
-        font:800 15px/1 var(--sans,system-ui,sans-serif)!important;
+        width:25px!important;
+        height:25px!important;
+        font:800 18px/1 var(--sans,system-ui,sans-serif)!important;
       }
       .screen[data-screen="outfits"] .${RAIL_CLASS} .decorate-rail-label-proto1{
         display:block!important;
-        max-width:48px!important;
+        max-width:54px!important;
         overflow:hidden!important;
         text-overflow:ellipsis!important;
       }
@@ -137,27 +135,29 @@
         padding:0!important;
         box-sizing:border-box!important;
         background:var(--decorate-folder-bg)!important;
+        border:1px solid var(--decorate-folder-border)!important;
+        border-radius:0!important;
       }
       .screen[data-screen="outfits"] .${STAGE_CLASS}>.decorate-studio-panel{
         min-width:0!important;
         width:100%!important;
         margin:0!important;
         padding:0!important;
+        border:0!important;
         border-radius:0!important;
         background:var(--decorate-folder-bg)!important;
         box-sizing:border-box!important;
       }
-      .screen[data-screen="outfits"] .${STAGE_CLASS}>.decorate-studio-panel.active{
+      .screen[data-screen="outfits"] .${STAGE_CLASS}>.decorate-studio-panel.active,
+      .screen[data-screen="outfits"] .${STAGE_CLASS}>.decorate-studio-panel.active>.decorate-studio-content{
         background:var(--decorate-folder-bg)!important;
       }
       .screen[data-screen="outfits"] .${STAGE_CLASS}>.decorate-studio-panel.active>.decorate-studio-content{
         margin:0!important;
         padding-left:0!important;
-        background:var(--decorate-folder-bg)!important;
         border-radius:0!important;
       }
 
-      /* Normalize every Decorate tool surface to the warmer Sticker treatment. */
       .screen[data-screen="outfits"] .${STAGE_CLASS}>.decorate-studio-panel.active .decorate-tool-card,
       .screen[data-screen="outfits"] .${STAGE_CLASS}>.decorate-studio-panel.active #drawStudioDev10,
       .screen[data-screen="outfits"] .${STAGE_CLASS}>.decorate-studio-panel.active #shapeStudioV132201,
@@ -166,7 +166,7 @@
         margin-right:0!important;
         border-radius:0!important;
         background:var(--decorate-folder-bg)!important;
-        border-color:var(--decorate-folder-border)!important;
+        border-color:rgba(57,50,43,.32)!important;
         box-shadow:none!important;
       }
       .screen[data-screen="outfits"] .${STAGE_CLASS}>.decorate-studio-panel.active .text-studio,
@@ -174,47 +174,47 @@
       .screen[data-screen="outfits"] .${STAGE_CLASS}>.decorate-studio-panel.active .decorate-draw-current{
         background:var(--decorate-folder-bg)!important;
       }
-
-      /* Keep nested Sticker browser readable while its outer panel matches the folder surface. */
       .screen[data-screen="outfits"] #stickerStudioV1322Release .sticker-browser{
         background:linear-gradient(180deg,rgba(255,253,248,.97),rgba(248,242,232,.94))!important;
       }
 
       .screen[data-screen="outfits"].board-focus-active-dev1 #boardWorkspace>.board-workspace-tabs{
         margin-bottom:0!important;
-        padding-bottom:1px!important;
+        padding-bottom:0!important;
+      }
+      .screen[data-screen="outfits"].board-focus-active-dev1 #boardFocusTrayDev1{
+        overscroll-behavior:none!important;
+        -webkit-overflow-scrolling:auto!important;
       }
       .screen[data-screen="outfits"].board-focus-active-dev1 .board-workspace-panel[data-board-panel="decorate"].active{
-        padding-top:2px!important;
-        scroll-padding-top:2px!important;
+        padding-top:1px!important;
+        scroll-padding-top:1px!important;
         overflow-y:auto!important;
         overflow-x:hidden!important;
-        overscroll-behavior-y:contain!important;
+        overscroll-behavior:none!important;
+        -webkit-overflow-scrolling:auto!important;
       }
-      .screen[data-screen="outfits"].board-focus-active-dev1 .${LAYOUT_CLASS}{
-        min-height:100%!important;
-      }
+      .screen[data-screen="outfits"].board-focus-active-dev1 .${LAYOUT_CLASS}{min-height:100%!important}
       .screen[data-screen="outfits"].board-focus-active-dev1 .${RAIL_CLASS}{
         top:0!important;
         overflow-y:auto!important;
         overflow-x:hidden!important;
         max-height:var(--decorate-rail-visible-h,180px)!important;
-        -webkit-overflow-scrolling:touch!important;
+        -webkit-overflow-scrolling:auto!important;
+        overscroll-behavior:none!important;
         touch-action:pan-y!important;
       }
       .screen[data-screen="outfits"].board-focus-active-dev1 .${STAGE_CLASS}{
         min-height:100%!important;
         background:var(--decorate-folder-bg)!important;
+        overscroll-behavior:none!important;
       }
-      .screen[data-screen="outfits"].board-focus-active-dev1 .${STAGE_CLASS}>.decorate-studio-panel.active{
-        position:relative!important;
-        top:0!important;
-      }
+      .screen[data-screen="outfits"].board-focus-active-dev1 .${STAGE_CLASS}>.decorate-studio-panel.active{position:relative!important;top:0!important}
 
       @media(max-width:370px){
-        .screen[data-screen="outfits"] .${LAYOUT_CLASS}{grid-template-columns:49px minmax(0,1fr)!important}
-        .screen[data-screen="outfits"] .${RAIL_CLASS}{width:49px!important;min-width:49px!important}
-        .screen[data-screen="outfits"] .${RAIL_CLASS} .decorate-studio-tab{width:48px!important;min-width:48px!important;height:47px!important;min-height:47px!important}
+        .screen[data-screen="outfits"] .${LAYOUT_CLASS}{grid-template-columns:54px minmax(0,1fr)!important;gap:2px!important}
+        .screen[data-screen="outfits"] .${RAIL_CLASS}{width:54px!important;min-width:54px!important}
+        .screen[data-screen="outfits"] .${RAIL_CLASS} .decorate-studio-tab{width:54px!important;min-width:54px!important;height:52px!important;min-height:52px!important}
       }
     `;
   }
@@ -237,7 +237,7 @@
       rail.style.removeProperty('--decorate-rail-visible-h');
       return;
     }
-    const visible=Math.max(104,Math.floor(workspace.clientHeight-4));
+    const visible=Math.max(112,Math.floor(workspace.clientHeight-2));
     rail.style.setProperty('--decorate-rail-visible-h',visible+'px');
   }
 
