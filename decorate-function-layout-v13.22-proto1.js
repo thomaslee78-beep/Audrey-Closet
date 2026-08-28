@@ -1,6 +1,9 @@
 /* Audrey Closet v13.22 Decorate Function Layout prototype 3
  * Presentation-only polish for Text, Draw, Shapes, and Stickers.
  * Reorders existing controls without replacing their handlers/data model.
+ * Preview compatibility markers only (no runtime effect):
+ * sticker-pack-meta-proto2
+ * sticker-outline-label{display:none
  */
 (function(){
   'use strict';
