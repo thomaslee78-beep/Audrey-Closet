@@ -24,7 +24,8 @@
     return {
       fill:typeof s.fill==='string'&&s.fill?s.fill:'rgba(77,142,138,.08)',
       borderColor:typeof s.borderColor==='string'&&s.borderColor?s.borderColor:'#4d8e8a',
-      borderWidth:Math.max(0,Math.min(20,Number(s.borderWidth)||4))
+      borderWidth:Math.max(0,Math.min(20,Number(s.borderWidth)||4)),
+      borderStyle:String(s.borderStyle||'solid')==='dashed'?'dashed':'solid'
     };
   }
 
