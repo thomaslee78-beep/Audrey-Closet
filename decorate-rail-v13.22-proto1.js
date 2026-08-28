@@ -1,15 +1,14 @@
-/* Audrey Closet v13.22 Decorate Rail prototype 4
- * Refinement over prototype 3:
- * - enlarges left rail tabs for clearer touch targets
- * - adds a narrow rail/stage gap so both borders remain visible
- * - strengthens rail/stage borders
- * - further compresses space below main workspace tabs
- * - reduces Board Focus overscroll bounce on the tray and Decorate scrollers
+/* Audrey Closet v13.22 Decorate Rail prototype 5
+ * Minor visual cleanup over prototype 4:
+ * - returns borders to a lighter, subtler treatment
+ * - shortens left rail tabs into compact rectangles
+ * - removes the outer border from the right functional stage
+ * - preserves warm surfaces, spacing, and Board Focus scroll behavior
  */
 (function(){
   'use strict';
 
-  const STYLE_ID='decorateRailProto4Styles';
+  const STYLE_ID='decorateRailProto5Styles';
   const LAYOUT_CLASS='decorate-rail-layout-proto1';
   const RAIL_CLASS='decorate-rail-proto1';
   const STAGE_CLASS='decorate-stage-proto1';
@@ -29,8 +28,8 @@
       .screen[data-screen="outfits"]{
         --decorate-folder-bg:#f6f0e5;
         --decorate-folder-bg-soft:#faf6ed;
-        --decorate-folder-border:rgba(57,50,43,.42);
-        --decorate-selected-border:rgba(20,20,20,.56);
+        --decorate-folder-border:rgba(82,72,62,.18);
+        --decorate-selected-border:rgba(20,20,20,.30);
       }
 
       .screen[data-screen="outfits"] #boardWorkspace>.board-workspace-tabs{
@@ -85,20 +84,21 @@
         -webkit-appearance:none!important;
         display:grid!important;
         place-items:center!important;
-        grid-template-rows:25px auto!important;
-        gap:1px!important;
+        grid-template-columns:18px 1fr!important;
+        grid-template-rows:1fr!important;
+        gap:4px!important;
         width:58px!important;
         min-width:58px!important;
-        height:55px!important;
-        min-height:55px!important;
+        height:36px!important;
+        min-height:36px!important;
         margin:0!important;
-        padding:5px 2px 4px!important;
-        border:1px solid rgba(57,50,43,.38)!important;
+        padding:4px 5px!important;
+        border:1px solid rgba(82,72,62,.18)!important;
         border-radius:0!important;
         background:rgba(224,217,205,.84)!important;
         color:#625f58!important;
         font:800 8px/1.04 var(--sans,system-ui,sans-serif)!important;
-        text-align:center!important;
+        text-align:left!important;
         white-space:normal!important;
         box-shadow:none!important;
         -webkit-tap-highlight-color:transparent!important;
@@ -115,15 +115,16 @@
       .screen[data-screen="outfits"] .${RAIL_CLASS} .decorate-rail-icon-proto1{
         display:grid!important;
         place-items:center!important;
-        width:25px!important;
-        height:25px!important;
-        font:800 18px/1 var(--sans,system-ui,sans-serif)!important;
+        width:18px!important;
+        height:18px!important;
+        font:800 14px/1 var(--sans,system-ui,sans-serif)!important;
       }
       .screen[data-screen="outfits"] .${RAIL_CLASS} .decorate-rail-label-proto1{
         display:block!important;
-        max-width:54px!important;
+        max-width:30px!important;
         overflow:hidden!important;
         text-overflow:ellipsis!important;
+        white-space:nowrap!important;
       }
 
       .screen[data-screen="outfits"] .${STAGE_CLASS}{
@@ -135,7 +136,7 @@
         padding:0!important;
         box-sizing:border-box!important;
         background:var(--decorate-folder-bg)!important;
-        border:1px solid var(--decorate-folder-border)!important;
+        border:0!important;
         border-radius:0!important;
       }
       .screen[data-screen="outfits"] .${STAGE_CLASS}>.decorate-studio-panel{
@@ -166,7 +167,7 @@
         margin-right:0!important;
         border-radius:0!important;
         background:var(--decorate-folder-bg)!important;
-        border-color:rgba(57,50,43,.32)!important;
+        border-color:var(--decorate-folder-border)!important;
         box-shadow:none!important;
       }
       .screen[data-screen="outfits"] .${STAGE_CLASS}>.decorate-studio-panel.active .text-studio,
@@ -214,7 +215,7 @@
       @media(max-width:370px){
         .screen[data-screen="outfits"] .${LAYOUT_CLASS}{grid-template-columns:54px minmax(0,1fr)!important;gap:2px!important}
         .screen[data-screen="outfits"] .${RAIL_CLASS}{width:54px!important;min-width:54px!important}
-        .screen[data-screen="outfits"] .${RAIL_CLASS} .decorate-studio-tab{width:54px!important;min-width:54px!important;height:52px!important;min-height:52px!important}
+        .screen[data-screen="outfits"] .${RAIL_CLASS} .decorate-studio-tab{width:54px!important;min-width:54px!important;height:34px!important;min-height:34px!important;padding-left:4px!important;padding-right:4px!important}
       }
     `;
   }
