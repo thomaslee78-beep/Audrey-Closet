@@ -1,14 +1,12 @@
-/* Audrey Closet v13.23.2 — production release bootstrap
- * Keeps the accepted share renderer synchronous, then loads the accepted
- * Decorate/Draw/Focus runtime after the existing Shape stack has finished.
- * After a successful online launch, warms the existing production cache with
- * the release modules and sticker assets so subsequent offline launches retain
- * the same accepted runtime without modifying the large service-worker patch.
+/* Audrey Closet v13.23.3 — production release bootstrap
+ * Loads high-fidelity Share, accepted Decorate/Draw/Focus runtime, Sticker
+ * compatibility, and Share modal scroll locking. Warms the production cache
+ * after successful online launch so the accepted runtime remains available.
  */
 (function(){
   'use strict';
 
-  const HOTFIX='13.23.2-sticker-render';
+  const HOTFIX='13.23.3-share-fidelity';
   document.write('<script src="share-render-v13.21-dev12-core.js?v='+HOTFIX+'"><\/script>');
 
   const modules=[
@@ -28,7 +26,8 @@
     'sticker-render-compat-v13.23.1.js?v='+HOTFIX,
     'decorate-rail-v13.22-proto1.js?v=13.23-release',
     'decorate-function-layout-v13.22-proto1.js?v=13.23-release',
-    'share-export-compat-v13.22-dev1.js?v=13.23-release'
+    'share-export-compat-v13.22-dev1.js?v=13.23-release',
+    'share-modal-lock-v13.23.3.js?v='+HOTFIX
   ];
 
   const releaseAssets=[
@@ -60,7 +59,7 @@
     if(!('caches' in window))return Promise.resolve();
     return caches.open('audrey-closet-v13.22-dev26')
       .then(cache=>Promise.allSettled(releaseAssets.map(asset=>cache.add(asset))))
-      .catch(err=>console.warn('Audrey v13.23.2 release cache warm skipped',err));
+      .catch(err=>console.warn('Audrey v13.23.3 release cache warm skipped',err));
   }
 
   function loadSequentially(){
@@ -69,15 +68,10 @@
     let chain=Promise.resolve();
     modules.forEach(src=>{
       chain=chain.then(()=>new Promise((resolve,reject)=>{
-        const s=document.createElement('script');
-        s.src=src;
-        s.async=false;
-        s.onload=resolve;
-        s.onerror=()=>reject(new Error('Failed to load '+src));
-        document.body.appendChild(s);
+        const s=document.createElement('script');s.src=src;s.async=false;s.onload=resolve;s.onerror=()=>reject(new Error('Failed to load '+src));document.body.appendChild(s);
       }));
     });
-    chain.then(warmReleaseCache).catch(err=>console.error('Audrey v13.23.2 release bootstrap failed',err));
+    chain.then(warmReleaseCache).catch(err=>console.error('Audrey v13.23.3 release bootstrap failed',err));
   }
 
   if(document.readyState==='complete')loadSequentially();
