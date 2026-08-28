@@ -1,6 +1,9 @@
 /* Audrey Closet v13.23 — production release bootstrap
  * Keeps the accepted share renderer synchronous, then loads the accepted
  * Decorate/Draw/Focus runtime after the existing Shape stack has finished.
+ * After a successful online launch, warms the existing production cache with
+ * the release modules and sticker assets so subsequent offline launches retain
+ * the same accepted runtime without modifying the large service-worker patch.
  */
 (function(){
   'use strict';
@@ -26,6 +29,38 @@
     'share-export-compat-v13.22-dev1.js?v=13.23-release'
   ];
 
+  const releaseAssets=[
+    'share-render-v13.21-dev12-core.js?v=13.23-release',
+    ...modules,
+    'assets/stickers/fashion/button-sewing.svg',
+    'assets/stickers/fashion/fabric-swatch-floral.svg',
+    'assets/stickers/fashion/hanger-wood.svg',
+    'assets/stickers/fashion/necklace-pendant.svg',
+    'assets/stickers/music/amp-stack.svg',
+    'assets/stickers/music/headphones.svg',
+    'assets/stickers/music/record.svg',
+    'assets/stickers/music/sheet-music.svg',
+    'assets/stickers/standard/butterfly-cartoon.svg',
+    'assets/stickers/standard/cloud-puffy.svg',
+    'assets/stickers/standard/diamond-blue.svg',
+    'assets/stickers/standard/flower-detailed.svg',
+    'assets/stickers/standard/happy-day.svg',
+    'assets/stickers/standard/heart-pop.svg',
+    'assets/stickers/standard/lightning-triple.svg',
+    'assets/stickers/standard/moon-crescent.svg',
+    'assets/stickers/standard/rainbow-soft.svg',
+    'assets/stickers/standard/sparkle-burst.svg',
+    'assets/stickers/standard/star-burst.svg',
+    'assets/stickers/standard/sun-happy.svg'
+  ];
+
+  function warmReleaseCache(){
+    if(!('caches' in window))return Promise.resolve();
+    return caches.open('audrey-closet-v13.22-dev26')
+      .then(cache=>Promise.allSettled(releaseAssets.map(asset=>cache.add(asset))))
+      .catch(err=>console.warn('Audrey v13.23 release cache warm skipped',err));
+  }
+
   function loadSequentially(){
     if(window.__audreyReleaseV1323Bootstrapped)return;
     window.__audreyReleaseV1323Bootstrapped=true;
@@ -40,7 +75,7 @@
         document.body.appendChild(s);
       }));
     });
-    chain.catch(err=>console.error('Audrey v13.23 release bootstrap failed',err));
+    chain.then(warmReleaseCache).catch(err=>console.error('Audrey v13.23 release bootstrap failed',err));
   }
 
   if(document.readyState==='complete')loadSequentially();
