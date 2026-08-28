@@ -73,9 +73,16 @@
     if(!piece)return;
     const svg=piece.querySelector('.shape-studio-svg');
     if(!svg)return;
-    const renderer=window.__audreyShapeStudioV132204?.funSvgMarkup&&window.__audreyShapeStudioV132204.funShapes?.some(x=>x.id===model.shapeType)
+
+    // Use the final style-aware renderer when it is available. The older basic/fun
+    // renderers do not apply shapeStyle.borderStyle, which made a dashed shape
+    // appear solid as soon as the border-width slider redrew it.
+    const styleAwareRenderer=window.__audreyShapeStudioV132206?.shapeMarkup;
+    const fallbackRenderer=window.__audreyShapeStudioV132204?.funSvgMarkup&&window.__audreyShapeStudioV132204.funShapes?.some(x=>x.id===model.shapeType)
       ? window.__audreyShapeStudioV132204.funSvgMarkup
       : api.shapeSvgMarkup;
+    const renderer=typeof styleAwareRenderer==='function'?styleAwareRenderer:fallbackRenderer;
+
     const replacement=document.createElement('div');
     replacement.innerHTML=renderer(model);
     const fresh=replacement.firstElementChild;
