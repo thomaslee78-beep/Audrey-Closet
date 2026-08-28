@@ -1,10 +1,10 @@
-/* Audrey Closet v13.22 Decorate Function Layout prototype 2
+/* Audrey Closet v13.22 Decorate Function Layout prototype 3
  * Presentation-only polish for Text, Draw, Shapes, and Stickers.
  * Reorders existing controls without replacing their handlers/data model.
  */
 (function(){
   'use strict';
-  const STYLE_ID='decorateFunctionLayoutProto2Styles';
+  const STYLE_ID='decorateFunctionLayoutProto3Styles';
 
   function installStyles(){
     let s=document.getElementById(STYLE_ID);
@@ -55,14 +55,9 @@
         .screen[data-screen="outfits"] #shapeStyleControlsV132206 .shape-border-style-btn{min-width:62px!important;padding:0 6px!important}
       }
 
-      /* STICKERS — compact outline switch in the pack header, above count. */
-      .screen[data-screen="outfits"] #stickerStudioV1322Release .sticker-pack-head{align-items:flex-start!important}
-      .screen[data-screen="outfits"] #stickerStudioV1322Release .sticker-pack-meta-proto2{display:grid!important;justify-items:end!important;gap:4px!important;flex:0 0 auto!important}
-      .screen[data-screen="outfits"] #stickerStudioV1322Release .sticker-pack-meta-proto2 .sticker-outline-row{display:block!important;min-height:0!important;padding:0!important;margin:0!important;border:0!important}
-      .screen[data-screen="outfits"] #stickerStudioV1322Release .sticker-pack-meta-proto2 .sticker-outline-label{display:none!important}
-      .screen[data-screen="outfits"] #stickerStudioV1322Release .sticker-pack-meta-proto2 .sticker-outline-segment{padding:1px!important;border-radius:999px!important}
-      .screen[data-screen="outfits"] #stickerStudioV1322Release .sticker-pack-meta-proto2 .sticker-outline-btn{min-width:34px!important;height:22px!important;padding:0 6px!important;border-radius:999px!important;font-size:7px!important}
-      .screen[data-screen="outfits"] #stickerStudioV1322Release .sticker-pack-count{white-space:nowrap!important}
+      /* STICKERS — restore working Outline row below browser. */
+      .screen[data-screen="outfits"] #stickerStudioV1322Release .sticker-outline-row.sticker-outline-below-proto3{display:flex!important;margin-top:2px!important;padding-top:5px!important;border-top:1px solid rgba(126,105,82,.12)!important}
+      .screen[data-screen="outfits"] #stickerStudioV1322Release .sticker-outline-row.sticker-outline-below-proto3 .sticker-outline-label{display:block!important}
     `;
   }
 
@@ -114,13 +109,12 @@
 
   function polishStickers(){
     const root=document.getElementById('stickerStudioV1322Release');if(!root)return false;
-    const outline=root.querySelector('.sticker-outline-row'),head=root.querySelector('.sticker-pack-head'),count=head?.querySelector('.sticker-pack-count');
-    if(!outline||!head||!count)return false;
+    const outline=root.querySelector('.sticker-outline-row'),browser=root.querySelector('.sticker-browser');
+    if(!outline||!browser)return false;
+    outline.classList.add('sticker-outline-below-proto3');
     outline.classList.remove('sticker-outline-below-proto1');
-    let meta=head.querySelector('.sticker-pack-meta-proto2');
-    if(!meta){meta=document.createElement('div');meta.className='sticker-pack-meta-proto2';count.insertAdjacentElement('beforebegin',meta);meta.appendChild(count);}
-    if(outline.parentNode!==meta)meta.insertBefore(outline,count);
-    const label=outline.querySelector('.sticker-outline-label');if(label)label.setAttribute('aria-hidden','true');
+    const label=outline.querySelector('.sticker-outline-label');if(label)label.removeAttribute('aria-hidden');
+    if(outline.previousElementSibling!==browser)browser.insertAdjacentElement('afterend',outline);
     return true;
   }
 
