@@ -1,9 +1,10 @@
-/* Audrey Closet v13.23.1 — flattened saved-look Share renderer */
+/* Audrey Closet v13.23.2 — flattened saved-look Share renderer */
 (function(){
   'use strict';
 
   const SHARE_BOARD_SCALE=2;
   const SHARE_OUTPUT_WIDTH=1440;
+  const STICKER_SURFACE_SCALE=2;
 
   async function waitForFontsV132112(){
     try{if(document.fonts&&document.fonts.ready)await document.fonts.ready}catch{}
@@ -54,39 +55,56 @@
     return {dx,dy,dw,dh};
   }
 
-  function drawOutlinedImageV13231(ctx,img,box,outline){
-    const {dx,dy,dw,dh}=box;
-    if(outline){
-      const r=Math.max(1.5,Math.min(3.5,Math.min(dw,dh)*.035));
-      const offsets=[[-r,0],[r,0],[0,-r],[0,r],[-r*.72,-r*.72],[r*.72,r*.72],[-r*.72,r*.72],[r*.72,-r*.72]];
-      ctx.save();
-      ctx.shadowColor='#fff';ctx.shadowBlur=r*1.7;ctx.shadowOffsetX=0;ctx.shadowOffsetY=0;
-      for(const [ox,oy] of offsets)ctx.drawImage(img,dx+ox,dy+oy,dw,dh);
-      ctx.restore();
-    }
-    ctx.drawImage(img,dx,dy,dw,dh);
+  function newStickerSurfaceV13232(w,h){
+    const c=document.createElement('canvas');
+    c.width=Math.max(2,Math.ceil(w*STICKER_SURFACE_SCALE));
+    c.height=Math.max(2,Math.ceil(h*STICKER_SURFACE_SCALE));
+    const ctx=c.getContext('2d');
+    ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';ctx.scale(STICKER_SURFACE_SCALE,STICKER_SURFACE_SCALE);
+    return {canvas:c,ctx};
   }
 
-  function drawGlyphStickerV13231(ctx,piece,w,h){
-    const glyph=stickerGlyphV13231(piece);
-    const size=Math.max(12,Math.min(w,h)*.78);
-    ctx.save();
-    ctx.textAlign='center';ctx.textBaseline='middle';ctx.font=`${size}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",system-ui`;
-    if(piece?.stickerOutline){ctx.shadowColor='#fff';ctx.shadowBlur=Math.max(2,size*.09);ctx.shadowOffsetX=0;ctx.shadowOffsetY=0;}
-    ctx.fillText(glyph,w/2,h/2,Math.max(1,w*.94));
-    ctx.restore();
-  }
-
-  async function drawStickerV13231(ctx,piece,w,h){
+  async function renderStickerSurfaceV13232(piece,w,h){
+    const {canvas,ctx}=newStickerSurfaceV13232(w,h);
     const src=stickerSourceV13231(piece);
     if(src){
       try{
         const img=await imageFromSrc(src);
-        drawOutlinedImageV13231(ctx,img,containRectV13231(img,w,h),!!piece?.stickerOutline);
-        return;
+        const {dx,dy,dw,dh}=containRectV13231(img,w,h);
+        ctx.drawImage(img,dx,dy,dw,dh);
+        return canvas;
       }catch(e){console.warn('Sticker Share asset failed; using glyph fallback',src,e);}
     }
-    drawGlyphStickerV13231(ctx,piece,w,h);
+    const glyph=stickerGlyphV13231(piece);
+    const size=Math.max(12,Math.min(w,h)*.78);
+    ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.font=`${size}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",system-ui`;
+    ctx.fillText(glyph,w/2,h/2,Math.max(1,w*.94));
+    return canvas;
+  }
+
+  function whiteStickerSilhouetteV13232(surface){
+    const mask=document.createElement('canvas');mask.width=surface.width;mask.height=surface.height;
+    const m=mask.getContext('2d');m.drawImage(surface,0,0);m.globalCompositeOperation='source-in';m.fillStyle='#fff';m.fillRect(0,0,mask.width,mask.height);m.globalCompositeOperation='source-over';
+    return mask;
+  }
+
+  function drawStickerSurfaceV13232(ctx,surface,piece,w,h){
+    if(piece?.stickerOutline){
+      const mask=whiteStickerSilhouetteV13232(surface);
+      const r=Math.max(2,Math.min(4,Math.min(w,h)*.032));
+      const steps=20;
+      for(let i=0;i<steps;i++){
+        const a=Math.PI*2*i/steps;
+        ctx.drawImage(mask,Math.cos(a)*r,Math.sin(a)*r,w,h);
+      }
+    }
+    ctx.drawImage(surface,0,0,w,h);
+  }
+
+  async function drawStickerV13231(ctx,piece,w,h){
+    const surface=await renderStickerSurfaceV13232(piece,w,h);
+    drawStickerSurfaceV13232(ctx,surface,piece,w,h);
   }
 
   async function renderSavedBoardToCanvasV132112(outfit){
@@ -139,5 +157,5 @@
   const originalRequestOutfitShareV132112=requestOutfitShare;
   requestOutfitShare=function(outfitId=null){if(outfitId){const saved=state.outfits.find(x=>x.id===outfitId);if(!saved)return toast('Saved look not found');return originalRequestOutfitShareV132112(outfitId)}if(editingOutfitId&&state.outfits.some(x=>x.id===editingOutfitId)){const oid=editingOutfitId;toast('Share from the full saved look preview');viewOutfit(oid);return}toast('Save this look first, then share it from Portfolio');};
   makeOutfitShareBlob=makeFlattenedShareBlobV132112;window.__audreyRenderSavedBoardToCanvasV132112=renderSavedBoardToCanvasV132112;
-  window.__audreyShareStickerV13231={stickerDefinitionV13231,stickerSourceV13231,drawStickerV13231};
+  window.__audreyShareStickerV13231={stickerDefinitionV13231,stickerSourceV13231,drawStickerV13231,renderStickerSurfaceV13232,whiteStickerSilhouetteV13232};
 })();
