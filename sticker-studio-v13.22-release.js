@@ -1,5 +1,4 @@
 /* Audrey Closet v13.22 Sticker Studio — consolidated release runtime
- * Replaces dev0-dev7b layering with one stable implementation.
  * One registry, one browser renderer, one pack switch path, one Board renderer.
  */
 (function(){
@@ -7,9 +6,10 @@
 
   const ROOT_ID='stickerStudioV1322Release';
   const STYLE_ID='stickerStudioV1322ReleaseStyles';
-  const REGISTRY_VERSION=2;
+  const REGISTRY_VERSION=3;
   const SMALL_BOARD_SIZE=84;
   const MEDIUM_BOARD_SIZE=118;
+  const ANIMAL_BOARD_SIZE=132;
 
   const PACKS=[
     {id:'standard',label:'Standard',icon:'✦',description:'Everyday symbols and little accents.',stickers:[
@@ -29,36 +29,33 @@
     {id:'music',label:'Music',icon:'♫',description:'Notes, instruments and studio energy.',stickers:[
       {id:'treble-clef',label:'Treble clef',glyph:'𝄞',sizeClass:'small'},
       {id:'bass-clef',label:'Bass clef',glyph:'𝄢',sizeClass:'small'},
-      {id:'guitar',label:'Guitar',glyph:'🎸',sizeClass:'medium',type:'image',src:'assets/stickers/music/guitar-electric.svg',alt:'Blue Strat style electric guitar sticker'},
-      {id:'piano',label:'Piano',glyph:'🎹',sizeClass:'medium'},
-      {id:'drums',label:'Drums',glyph:'🥁',sizeClass:'medium'},
+      {id:'guitar',label:'Guitar',glyph:'🎸',sizeClass:'small'},
+      {id:'piano',label:'Piano',glyph:'🎹',sizeClass:'small'},
+      {id:'drums',label:'Drums',glyph:'🥁',sizeClass:'small'},
       {id:'microphone',label:'Microphone',glyph:'🎤',sizeClass:'small'},
       {id:'notes',label:'Eighth Note',glyph:'🎵',sizeClass:'small'},
       {id:'double-notes',label:'Music Notes',glyph:'🎶',sizeClass:'small'},
-      {id:'headphones',label:'Headphones',glyph:'🎧',sizeClass:'medium',type:'image',src:'assets/stickers/music/headphones.svg',alt:'Headphones sticker'},
+      {id:'headphones',label:'Headphones',glyph:'🎧',sizeClass:'small',type:'image',src:'assets/stickers/music/headphones.svg',alt:'Headphones sticker'},
       {id:'record',label:'Record',glyph:'💿',sizeClass:'small',type:'image',src:'assets/stickers/music/record.svg',alt:'Vinyl record sticker'},
       {id:'amp',label:'Guitar amp',glyph:'▣',sizeClass:'medium',type:'image',src:'assets/stickers/music/amp-stack.svg',alt:'Rock guitar amp stack sticker'},
       {id:'sheet',label:'Sheet music',glyph:'▤',sizeClass:'medium',type:'image',src:'assets/stickers/music/sheet-music.svg',alt:'Sheet music sticker'}
     ]},
     {id:'cute-animals',label:'Cute Animals',icon:'🐾',description:'Friendly little creatures for playful looks.',stickers:[
-      {id:'dog',label:'Dog',glyph:'🐶',sizeClass:'medium'},{id:'cat',label:'Cat',glyph:'🐱',sizeClass:'medium'},{id:'lion',label:'Lion',glyph:'🦁',sizeClass:'small'},{id:'tiger',label:'Tiger',glyph:'🐯',sizeClass:'medium'},
-      {id:'fish',label:'Fish',glyph:'🐠',sizeClass:'small'},{id:'frog',label:'Frog',glyph:'🐸',sizeClass:'small'},{id:'mouse',label:'Mouse',glyph:'🐭',sizeClass:'small'},{id:'bunny',label:'Bunny',glyph:'🐰',sizeClass:'medium'},
-      {id:'bear',label:'Bear',glyph:'🐻',sizeClass:'medium'},{id:'panda',label:'Panda',glyph:'🐼',sizeClass:'medium'},{id:'fox',label:'Fox',glyph:'🦊',sizeClass:'small'},{id:'penguin',label:'Penguin',glyph:'🐧',sizeClass:'small'}
+      {id:'dog',label:'Dog',glyph:'🐶',sizeClass:'medium',boardSize:ANIMAL_BOARD_SIZE},{id:'cat',label:'Cat',glyph:'🐱',sizeClass:'medium',boardSize:ANIMAL_BOARD_SIZE},{id:'lion',label:'Lion',glyph:'🦁',sizeClass:'medium',boardSize:ANIMAL_BOARD_SIZE},{id:'tiger',label:'Tiger',glyph:'🐯',sizeClass:'medium',boardSize:ANIMAL_BOARD_SIZE},
+      {id:'fish',label:'Fish',glyph:'🐠',sizeClass:'medium',boardSize:ANIMAL_BOARD_SIZE},{id:'frog',label:'Frog',glyph:'🐸',sizeClass:'medium',boardSize:ANIMAL_BOARD_SIZE},{id:'mouse',label:'Mouse',glyph:'🐭',sizeClass:'medium',boardSize:ANIMAL_BOARD_SIZE},{id:'bunny',label:'Bunny',glyph:'🐰',sizeClass:'medium',boardSize:ANIMAL_BOARD_SIZE},
+      {id:'bear',label:'Bear',glyph:'🐻',sizeClass:'medium',boardSize:ANIMAL_BOARD_SIZE},{id:'panda',label:'Panda',glyph:'🐼',sizeClass:'medium',boardSize:ANIMAL_BOARD_SIZE},{id:'fox',label:'Fox',glyph:'🦊',sizeClass:'medium',boardSize:ANIMAL_BOARD_SIZE},{id:'penguin',label:'Penguin',glyph:'🐧',sizeClass:'medium',boardSize:ANIMAL_BOARD_SIZE}
     ]},
     {id:'fashion',label:'Fashion',icon:'✂',description:'Closet, sewing and accessory details.',stickers:[
       {id:'button',label:'Button',glyph:'◉',sizeClass:'small',type:'image',src:'assets/stickers/fashion/button-sewing.svg',alt:'Four-hole sewing button sticker'},
       {id:'pin',label:'Pin',glyph:'📌',sizeClass:'small'},
-      {id:'swatch',label:'Fabric swatch',glyph:'▧',sizeClass:'medium',type:'image',src:'assets/stickers/fashion/fabric-swatch-floral.svg',alt:'Floral fabric swatch sticker'},
+      {id:'swatch',label:'Fabric swatch',glyph:'▧',sizeClass:'small',type:'image',src:'assets/stickers/fashion/fabric-swatch-floral.svg',alt:'Floral fabric swatch sticker'},
       {id:'watch',label:'Watch',glyph:'⌚',sizeClass:'small'},
-      {id:'necklace',label:'Necklace',glyph:'💎',sizeClass:'medium',type:'image',src:'assets/stickers/fashion/necklace-pendant.svg',alt:'Gold pendant necklace sticker'},
-      {id:'sunglasses',label:'Sunglasses',glyph:'🕶️',sizeClass:'medium'},{id:'bag',label:'Handbag',glyph:'👜',sizeClass:'medium'},{id:'thread',label:'Thread',glyph:'🧵',sizeClass:'small'},
-      {id:'needle',label:'Needle',glyph:'🪡',sizeClass:'small'},{id:'bow',label:'Bow',glyph:'🎀',sizeClass:'medium'},{id:'shoe',label:'Shoe',glyph:'👠',sizeClass:'medium'},
+      {id:'necklace',label:'Necklace',glyph:'💎',sizeClass:'small',type:'image',src:'assets/stickers/fashion/necklace-pendant.svg',alt:'Gold pendant necklace sticker'},
+      {id:'sunglasses',label:'Sunglasses',glyph:'🕶️',sizeClass:'small'},{id:'bag',label:'Handbag',glyph:'👜',sizeClass:'small'},{id:'thread',label:'Thread',glyph:'🧵',sizeClass:'small'},
+      {id:'needle',label:'Needle',glyph:'🪡',sizeClass:'small'},{id:'bow',label:'Bow',glyph:'🎀',sizeClass:'small'},{id:'shoe',label:'Shoe',glyph:'👠',sizeClass:'small'},
       {id:'hanger',label:'Hanger',glyph:'♧',sizeClass:'small',type:'image',src:'assets/stickers/fashion/hanger-wood.svg',alt:'Wood coat hanger sticker'}
     ]}
   ];
-
-  const emojiSources=[...PACKS];
-  PACKS.push({id:'emoji',label:'Emoji',icon:'☺',description:'Quick glyph stickers from every original pack.',stickers:emojiSources.flatMap(pack=>pack.stickers.map(s=>({id:`emoji-${pack.id}-${s.id}`,label:s.label,glyph:s.glyph,sizeClass:'small',sourcePack:pack.id}))) });
 
   window.AUDREY_STICKER_PACKS_V1={version:REGISTRY_VERSION,packs:PACKS};
 
@@ -68,7 +65,7 @@
   let renderToken=0;
   const preloaded=new Map();
 
-  function esc(v){return String(v??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#39;'}[ch]));}
+  function esc(v){return String(v??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));}
   function packById(id){return PACKS.find(p=>p.id===id)||PACKS[0];}
   function stickerByIdentity(packId,stickerId){return packById(packId)?.stickers?.find(s=>s.id===stickerId)||null;}
 
@@ -84,7 +81,7 @@
       .screen[data-screen="outfits"] #${ROOT_ID} .sticker-outline-row{display:flex;align-items:center;justify-content:flex-end;gap:6px;min-height:28px;padding:0 2px}.screen[data-screen="outfits"] #${ROOT_ID} .sticker-outline-label{font:800 9px/1 var(--sans);color:var(--ink)}.screen[data-screen="outfits"] #${ROOT_ID} .sticker-outline-segment{display:inline-flex;padding:1px;border:1px solid rgba(126,105,82,.16);border-radius:8px;background:rgba(255,255,255,.58)}.screen[data-screen="outfits"] #${ROOT_ID} .sticker-outline-btn{min-width:42px;height:23px;padding:0 7px;border:0;border-radius:7px;background:transparent;color:#74695d;font:800 8px/1 var(--sans)}.screen[data-screen="outfits"] #${ROOT_ID} .sticker-outline-btn.active{background:var(--olive);color:#fff}
       .screen[data-screen="outfits"] #${ROOT_ID} .sticker-pack-head{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;padding:1px 3px 0}.screen[data-screen="outfits"] #${ROOT_ID} .sticker-pack-copy{display:grid;gap:1px}.screen[data-screen="outfits"] #${ROOT_ID} .sticker-pack-copy strong{font-family:var(--serif);font-size:15px;line-height:1.1;color:var(--ink)}.screen[data-screen="outfits"] #${ROOT_ID} .sticker-pack-copy small{font-size:9px;color:#817568}.screen[data-screen="outfits"] #${ROOT_ID} .sticker-pack-count{font-size:9px;font-weight:800;color:#7c746b}
       .screen[data-screen="outfits"] #${ROOT_ID} .sticker-browser{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-auto-flow:dense;grid-auto-rows:68px;gap:7px;align-items:stretch;padding:8px;border:1px solid rgba(126,105,82,.16);border-radius:14px;background:linear-gradient(180deg,rgba(255,253,248,.95),rgba(248,242,232,.92));transition:none}.screen[data-screen="outfits"] #${ROOT_ID} .sticker-browser.pack-loading{visibility:hidden}
-      .screen[data-screen="outfits"] #${ROOT_ID} .sticker-tile{position:relative;min-height:0;height:auto;padding:5px 3px 4px;border:1px solid rgba(126,105,82,.13);border-radius:13px;background:rgba(255,255,255,.48);display:grid;place-items:center;grid-template-rows:1fr auto;gap:3px;color:var(--ink);box-shadow:none;-webkit-tap-highlight-color:transparent}.screen[data-screen="outfits"] #${ROOT_ID} .sticker-tile[data-size-class="medium"]{grid-column:span 2;grid-row:span 2;min-height:143px;padding:9px 7px 7px}.screen[data-screen="outfits"] #${ROOT_ID} .sticker-preview{display:grid;place-items:center;width:42px;height:38px;font-size:26px;line-height:1}.screen[data-screen="outfits"] #${ROOT_ID} .sticker-tile[data-size-class="medium"] .sticker-preview{width:86px;height:92px;font-size:54px}.screen[data-screen="outfits"] #${ROOT_ID} .sticker-preview img{display:block;width:100%;height:100%;object-fit:contain;pointer-events:none}.screen[data-screen="outfits"] #${ROOT_ID} .sticker-tile small{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:8px;color:#756c62;font-weight:700}.screen[data-screen="outfits"] #${ROOT_ID} .sticker-tile[data-size-class="medium"] small{font-size:9px}
+      .screen[data-screen="outfits"] #${ROOT_ID} .sticker-tile{position:relative;min-height:0;height:auto;padding:5px 3px 4px;border:1px solid rgba(126,105,82,.13);border-radius:13px;background:rgba(255,255,255,.48);display:grid;place-items:center;grid-template-rows:1fr auto;gap:3px;color:var(--ink);box-shadow:none;-webkit-tap-highlight-color:transparent}.screen[data-screen="outfits"] #${ROOT_ID} .sticker-tile[data-size-class="medium"]{grid-column:span 2;grid-row:span 2;min-height:143px;padding:9px 7px 7px}.screen[data-screen="outfits"] #${ROOT_ID} .sticker-preview{display:grid;place-items:center;width:42px;height:38px;font-size:26px;line-height:1}.screen[data-screen="outfits"] #${ROOT_ID} .sticker-tile[data-size-class="medium"] .sticker-preview{width:86px;height:92px;font-size:54px}.screen[data-screen="outfits"] #${ROOT_ID}[data-rendered-pack="cute-animals"] .sticker-tile[data-size-class="medium"] .sticker-preview{width:98px;height:104px;font-size:66px}.screen[data-screen="outfits"] #${ROOT_ID} .sticker-preview img{display:block;width:100%;height:100%;object-fit:contain;pointer-events:none}.screen[data-screen="outfits"] #${ROOT_ID} .sticker-tile small{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:8px;color:#756c62;font-weight:700}.screen[data-screen="outfits"] #${ROOT_ID} .sticker-tile[data-size-class="medium"] small{font-size:9px}
       .screen[data-screen="outfits"] #${ROOT_ID} .sticker-tile.added::after{content:'✓';position:absolute;right:5px;top:5px;width:17px;height:17px;border-radius:999px;background:var(--olive);color:#fff;display:grid;place-items:center;font-size:10px;font-weight:900}.screen[data-screen="outfits"] #${ROOT_ID} .sticker-footnote{padding:0 2px;font-size:8px;line-height:1.3;color:#91877a;opacity:.72}
       #outfitBoard .board-sticker-release{width:100%;height:100%;display:grid;place-items:center;line-height:1;box-sizing:border-box}.screen[data-screen="outfits"] #outfitBoard .board-sticker-release img{display:block;width:100%;height:100%;object-fit:contain;pointer-events:none;user-select:none;-webkit-user-drag:none}.screen[data-screen="outfits"] #outfitBoard .board-sticker-release.sticker-outline img{filter:drop-shadow(2px 0 0 #fff) drop-shadow(-2px 0 0 #fff) drop-shadow(0 2px 0 #fff) drop-shadow(0 -2px 0 #fff) drop-shadow(1.5px 1.5px 0 #fff) drop-shadow(-1.5px -1.5px 0 #fff) drop-shadow(-1.5px 1.5px 0 #fff) drop-shadow(1.5px -1.5px 0 #fff)}.screen[data-screen="outfits"] #outfitBoard .board-sticker-release.sticker-glyph.sticker-outline{text-shadow:-2px 0 #fff,2px 0 #fff,0 -2px #fff,0 2px #fff,-1.5px -1.5px #fff,1.5px 1.5px #fff}
       @media(max-width:370px){.screen[data-screen="outfits"] #${ROOT_ID} .sticker-browser{grid-auto-rows:62px;gap:6px}.screen[data-screen="outfits"] #${ROOT_ID} .sticker-tile[data-size-class="medium"]{min-height:130px}}
@@ -132,7 +129,7 @@
       item.stickerVersion=REGISTRY_VERSION;item.stickerPack=activePackId;item.stickerId=sticker.id;item.stickerSizeClass=sticker.sizeClass||'small';item.stickerOutline=outlineEnabled;
       if(sticker.type==='image'&&sticker.src){item.stickerType='image';item.stickerAssetSrc=sticker.src;item.stickerAssetAlt=sticker.alt||sticker.label||'Sticker';}
       else{delete item.stickerType;delete item.stickerAssetSrc;delete item.stickerAssetAlt;}
-      const target=sticker.sizeClass==='medium'?MEDIUM_BOARD_SIZE:SMALL_BOARD_SIZE;item.w=target;item.h=target;if(typeof drawBoard==='function')drawBoard();
+      const target=Number(sticker.boardSize)||(sticker.sizeClass==='medium'?MEDIUM_BOARD_SIZE:SMALL_BOARD_SIZE);item.w=target;item.h=target;if(typeof drawBoard==='function')drawBoard();
     }
     tile?.classList.add('added');setTimeout(()=>tile?.classList.remove('added'),450);if(typeof toast==='function')toast(`${sticker.label} added`);
   }
