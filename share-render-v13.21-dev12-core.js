@@ -1,140 +1,80 @@
-/* Audrey Closet v13.23.2 — flattened saved-look Share renderer */
+/* Audrey Closet v13.23.3 — high-fidelity saved-look Share renderer */
 (function(){
   'use strict';
 
-  const SHARE_BOARD_SCALE=2;
+  const SHARE_BOARD_SCALE=4;
   const SHARE_OUTPUT_WIDTH=1440;
-  const STICKER_SURFACE_SCALE=2;
+  const STICKER_SURFACE_SCALE=4;
 
-  async function waitForFontsV132112(){
-    try{if(document.fonts&&document.fonts.ready)await document.fonts.ready}catch{}
-  }
-
-  function savedOutfitForShareV132112(outfit){
-    if(outfit&&outfit.id)return outfit;
-    if(pendingShareOutfitId)return state.outfits.find(x=>x.id===pendingShareOutfitId)||null;
-    return null;
-  }
-
-  function paintFallbackBoardV132112(ctx,w,h){
-    ctx.fillStyle='#efe9d9';ctx.fillRect(0,0,w,h);ctx.save();ctx.strokeStyle='rgba(108,81,66,.10)';ctx.lineWidth=1;
-    const grid=24;for(let x=0;x<=w;x+=grid){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,h);ctx.stroke()}for(let y=0;y<=h;y+=grid){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke()}ctx.restore();
-  }
+  async function waitForFontsV132112(){try{if(document.fonts&&document.fonts.ready)await document.fonts.ready}catch{}}
+  function savedOutfitForShareV132112(outfit){if(outfit&&outfit.id)return outfit;if(pendingShareOutfitId)return state.outfits.find(x=>x.id===pendingShareOutfitId)||null;return null;}
+  function paintFallbackBoardV132112(ctx,w,h){ctx.fillStyle='#efe9d9';ctx.fillRect(0,0,w,h);ctx.save();ctx.strokeStyle='rgba(108,81,66,.10)';ctx.lineWidth=1;const grid=24;for(let x=0;x<=w;x+=grid){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,h);ctx.stroke()}for(let y=0;y<=h;y+=grid){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke()}ctx.restore();}
 
   function stickerDefinitionV13231(piece){
-    const registry=window.AUDREY_STICKER_PACKS_V1;
-    const packs=Array.isArray(registry?.packs)?registry.packs:[];
-    const packId=String(piece?.stickerPack||'');
-    const stickerId=String(piece?.stickerId||'');
+    const packs=Array.isArray(window.AUDREY_STICKER_PACKS_V1?.packs)?window.AUDREY_STICKER_PACKS_V1.packs:[];
+    const packId=String(piece?.stickerPack||''),stickerId=String(piece?.stickerId||'');
     if(!stickerId)return null;
-    const pack=packs.find(p=>String(p.id)===packId);
-    const exact=pack?.stickers?.find(s=>String(s.id)===stickerId);
-    if(exact)return exact;
-    for(const p of packs){
-      const found=p?.stickers?.find(s=>String(s.id)===stickerId);
-      if(found)return found;
-    }
-    return null;
+    const exact=packs.find(p=>String(p.id)===packId)?.stickers?.find(s=>String(s.id)===stickerId);if(exact)return exact;
+    for(const p of packs){const found=p?.stickers?.find(s=>String(s.id)===stickerId);if(found)return found;}return null;
   }
+  function stickerSourceV13231(piece){const def=stickerDefinitionV13231(piece);return piece?.stickerAssetSrc||(def?.type==='image'?def.src:'')||'';}
+  function stickerGlyphV13231(piece){const def=stickerDefinitionV13231(piece);return String(piece?.value||def?.glyph||'✨');}
+  function containRectV13231(img,w,h){const iw=img.naturalWidth||img.width||1,ih=img.naturalHeight||img.height||1,ar=iw/ih,box=w/h;let dw=w,dh=h,dx=0,dy=0;if(ar>box){dh=w/ar;dy=(h-dh)/2}else{dw=h*ar;dx=(w-dw)/2}return{dx,dy,dw,dh};}
 
-  function stickerSourceV13231(piece){
-    const def=stickerDefinitionV13231(piece);
-    return piece?.stickerAssetSrc||(def?.type==='image'?def.src:'')||'';
+  function newStickerSurfaceV13233(w,h,pad=0){
+    const logicalW=w+pad*2,logicalH=h+pad*2,c=document.createElement('canvas');
+    c.width=Math.max(2,Math.ceil(logicalW*STICKER_SURFACE_SCALE));c.height=Math.max(2,Math.ceil(logicalH*STICKER_SURFACE_SCALE));
+    const ctx=c.getContext('2d');ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';ctx.scale(STICKER_SURFACE_SCALE,STICKER_SURFACE_SCALE);
+    return{canvas:c,ctx,pad,logicalW,logicalH};
   }
-
-  function stickerGlyphV13231(piece){
-    const def=stickerDefinitionV13231(piece);
-    return String(piece?.value||def?.glyph||'✨');
+  async function renderStickerSurfaceV13233(piece,w,h,pad=0){
+    const out=newStickerSurfaceV13233(w,h,pad),ctx=out.ctx,src=stickerSourceV13231(piece);
+    if(src){try{const img=await imageFromSrc(src),r=containRectV13231(img,w,h);ctx.drawImage(img,pad+r.dx,pad+r.dy,r.dw,r.dh);return out}catch(e){console.warn('Sticker Share asset failed; using glyph fallback',src,e)}}
+    const glyph=stickerGlyphV13231(piece),size=Math.max(12,Math.min(w,h)*.78);ctx.textAlign='center';ctx.textBaseline='middle';ctx.font=`${size}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",system-ui`;ctx.fillText(glyph,pad+w/2,pad+h/2,Math.max(1,w*.94));return out;
   }
-
-  function containRectV13231(img,w,h){
-    const iw=img.naturalWidth||img.width||1,ih=img.naturalHeight||img.height||1;
-    const ar=iw/ih,box=w/h;
-    let dw=w,dh=h,dx=0,dy=0;
-    if(ar>box){dh=w/ar;dy=(h-dh)/2}else{dw=h*ar;dx=(w-dw)/2}
-    return {dx,dy,dw,dh};
+  function whiteStickerSilhouetteV13233(surface){const mask=document.createElement('canvas');mask.width=surface.width;mask.height=surface.height;const m=mask.getContext('2d');m.drawImage(surface,0,0);m.globalCompositeOperation='source-in';m.fillStyle='#fff';m.fillRect(0,0,mask.width,mask.height);m.globalCompositeOperation='source-over';return mask;}
+  function drawStickerSurfaceV13233(ctx,surface,piece,w,h){
+    const pad=surface.pad||0;
+    if(piece?.stickerOutline){const mask=whiteStickerSilhouetteV13233(surface.canvas),r=Math.max(2,Math.min(4,Math.min(w,h)*.032)),steps=28;for(let i=0;i<steps;i++){const a=Math.PI*2*i/steps;ctx.drawImage(mask,-pad+Math.cos(a)*r,-pad+Math.sin(a)*r,surface.logicalW,surface.logicalH)}}
+    ctx.drawImage(surface.canvas,-pad,-pad,surface.logicalW,surface.logicalH);
   }
+  async function drawStickerV13231(ctx,piece,w,h){const outline=!!piece?.stickerOutline,r=outline?Math.max(3,Math.min(6,Math.min(w,h)*.05)):0;const surface=await renderStickerSurfaceV13233(piece,w,h,r);drawStickerSurfaceV13233(ctx,surface,piece,w,h);}
 
-  function newStickerSurfaceV13232(w,h){
-    const c=document.createElement('canvas');
-    c.width=Math.max(2,Math.ceil(w*STICKER_SURFACE_SCALE));
-    c.height=Math.max(2,Math.ceil(h*STICKER_SURFACE_SCALE));
-    const ctx=c.getContext('2d');
-    ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';ctx.scale(STICKER_SURFACE_SCALE,STICKER_SURFACE_SCALE);
-    return {canvas:c,ctx};
+  function explicitTextLineCountV13233(value){return Math.max(1,String(value||'').split(/\r?\n/).length);}
+  function estimatedTextHeightV13233(b,w,h){
+    const value=String(b?.value||'');if(!value)return h;
+    const explicit=explicitTextLineCountV13233(value),roughWrap=Math.max(explicit,Math.ceil(value.length/Math.max(8,Math.floor(w/18))));
+    if(roughWrap<=2)return h;
+    return Math.max(h,Math.min(h*3.5,roughWrap*42));
   }
-
-  async function renderStickerSurfaceV13232(piece,w,h){
-    const {canvas,ctx}=newStickerSurfaceV13232(w,h);
-    const src=stickerSourceV13231(piece);
-    if(src){
-      try{
-        const img=await imageFromSrc(src);
-        const {dx,dy,dw,dh}=containRectV13231(img,w,h);
-        ctx.drawImage(img,dx,dy,dw,dh);
-        return canvas;
-      }catch(e){console.warn('Sticker Share asset failed; using glyph fallback',src,e);}
-    }
-    const glyph=stickerGlyphV13231(piece);
-    const size=Math.max(12,Math.min(w,h)*.78);
-    ctx.textAlign='center';ctx.textBaseline='middle';
-    ctx.font=`${size}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",system-ui`;
-    ctx.fillText(glyph,w/2,h/2,Math.max(1,w*.94));
-    return canvas;
-  }
-
-  function whiteStickerSilhouetteV13232(surface){
-    const mask=document.createElement('canvas');mask.width=surface.width;mask.height=surface.height;
-    const m=mask.getContext('2d');m.drawImage(surface,0,0);m.globalCompositeOperation='source-in';m.fillStyle='#fff';m.fillRect(0,0,mask.width,mask.height);m.globalCompositeOperation='source-over';
-    return mask;
-  }
-
-  function drawStickerSurfaceV13232(ctx,surface,piece,w,h){
-    if(piece?.stickerOutline){
-      const mask=whiteStickerSilhouetteV13232(surface);
-      const r=Math.max(2,Math.min(4,Math.min(w,h)*.032));
-      const steps=20;
-      for(let i=0;i<steps;i++){
-        const a=Math.PI*2*i/steps;
-        ctx.drawImage(mask,Math.cos(a)*r,Math.sin(a)*r,w,h);
-      }
-    }
-    ctx.drawImage(surface,0,0,w,h);
-  }
-
-  async function drawStickerV13231(ctx,piece,w,h){
-    const surface=await renderStickerSurfaceV13232(piece,w,h);
-    drawStickerSurfaceV13232(ctx,surface,piece,w,h);
+  function drawTextHighFidelityV13233(ctx,b,w,h){
+    if(typeof window.__audreyDrawBoardTextV132011!=='function'){ctx.fillStyle='#7d3547';ctx.textAlign='center';ctx.textBaseline='middle';ctx.font='28px Georgia';ctx.fillText(b.value||'',w/2,h/2,w*.94);return;}
+    const virtualH=estimatedTextHeightV13233(b,w,h);
+    if(virtualH<=h+1){window.__audreyDrawBoardTextV132011(ctx,b,w,h,1);return;}
+    ctx.save();ctx.translate(0,-(virtualH-h)/2);window.__audreyDrawBoardTextV132011(ctx,b,w,virtualH,1);ctx.restore();
   }
 
   async function renderSavedBoardToCanvasV132112(outfit){
     if(!outfit)throw new Error('saved outfit required');await waitForFontsV132112();
-    const sourceW=Math.max(1,Math.round(Number(outfit.boardWidth)||390));
-    const sourceH=Math.max(1,Math.round(Number(outfit.boardHeight)||420));
-    const canvas=document.createElement('canvas');canvas.width=sourceW*SHARE_BOARD_SCALE;canvas.height=sourceH*SHARE_BOARD_SCALE;
+    const sourceW=Math.max(1,Number(outfit.boardWidth)||390),sourceH=Math.max(1,Number(outfit.boardHeight)||420);
+    const canvas=document.createElement('canvas');canvas.width=Math.ceil(sourceW*SHARE_BOARD_SCALE);canvas.height=Math.ceil(sourceH*SHARE_BOARD_SCALE);
     const ctx=canvas.getContext('2d');ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';ctx.scale(SHARE_BOARD_SCALE,SHARE_BOARD_SCALE);
-
     if(typeof window.__audreyPaintBoardCanvasV1320==='function')window.__audreyPaintBoardCanvasV1320(ctx,0,0,sourceW,sourceH,outfit.canvasBackground||{id:'default'});else paintFallbackBoardV132112(ctx,sourceW,sourceH);
-
     const pieces=(outfit.pieces||[]).map(x=>normalizeBoardItem({...x})).sort((a,b)=>(Number(a.z)||0)-(Number(b.z)||0));
     for(const b of pieces){
-      const w=Math.max(1,Number(b.w)||1),h=Math.max(1,Number(b.h)||1),cx=(Number(b.x)||0)+w/2,cy=(Number(b.y)||0)+h/2;
+      const w=Math.max(.01,Number(b.w)||1),h=Math.max(.01,Number(b.h)||1),x=Number(b.x)||0,y=Number(b.y)||0,cx=x+w/2,cy=y+h/2;
       ctx.save();ctx.translate(cx,cy);ctx.rotate((Number(b.rotation)||0)*Math.PI/180);ctx.translate(-w/2,-h/2);
       if(b.kind==='piece'){
         const obj=(b.source==='wishlist'?state.wishlist:state.items).find(o=>o.id===b.id);
-        if(obj?.photo){try{const img=await imageFromSrc(obj.photo);const ar=(img.naturalWidth||img.width)/(img.naturalHeight||img.height||1),box=w/h;let dw=w,dh=h,dx=0,dy=0;if(ar>box){dh=w/ar;dy=(h-dh)/2}else{dw=h*ar;dx=(w-dw)/2}ctx.drawImage(img,dx,dy,dw,dh)}catch{}}
-        else if(obj){ctx.fillStyle='#6c5142';ctx.textAlign='center';ctx.textBaseline='middle';ctx.font='18px Georgia';ctx.fillText(obj.name||displayItemType(obj)||'piece',w/2,h/2,w*.9)}
-      }else if(b.kind==='text'){
-        if(typeof window.__audreyDrawBoardTextV132011==='function')window.__audreyDrawBoardTextV132011(ctx,b,w,h,1);else{ctx.fillStyle='#7d3547';ctx.textAlign='center';ctx.textBaseline='middle';ctx.font='28px Georgia';ctx.fillText(b.value||'',w/2,h/2,w*.94)}
-      }else if(b.kind==='sticker'){
-        await drawStickerV13231(ctx,b,w,h);
-      }else if(b.kind==='shape'){
-        if(b.value==='circle'){ctx.strokeStyle='#4d8e8a';ctx.fillStyle='rgba(77,142,138,.08)';ctx.lineWidth=6;ctx.beginPath();ctx.ellipse(w/2,h/2,Math.max(2,w/2-7),Math.max(2,h/2-7),0,0,Math.PI*2);ctx.fill();ctx.stroke()}
-        else if(b.value==='line'){ctx.save();ctx.translate(w/2,h/2);ctx.rotate(-4*Math.PI/180);ctx.fillStyle='#7d3547';roundRectPath(ctx,-w/2,-4,w,8,4);ctx.fill();ctx.restore()}
-        else if(b.value==='tape'){ctx.fillStyle='rgba(198,163,78,.42)';ctx.fillRect(0,h*.08,w,h*.84)}
-      }else if(b.kind==='doodle'){
-        const pts=parseDoodlePoints(b.points||'');if(pts.length){ctx.strokeStyle='#6c5142';ctx.lineWidth=4;ctx.lineCap='round';ctx.lineJoin='round';ctx.beginPath();pts.forEach((p,i)=>{i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1])});ctx.stroke()}
-      }
+        if(obj?.photo){try{const img=await imageFromSrc(obj.photo),r=containRectV13231(img,w,h);ctx.drawImage(img,r.dx,r.dy,r.dw,r.dh)}catch{}}else if(obj){ctx.fillStyle='#6c5142';ctx.textAlign='center';ctx.textBaseline='middle';ctx.font='18px Georgia';ctx.fillText(obj.name||displayItemType(obj)||'piece',w/2,h/2,w*.9)}
+      }else if(b.kind==='text')drawTextHighFidelityV13233(ctx,b,w,h);
+      else if(b.kind==='sticker')await drawStickerV13231(ctx,b,w,h);
+      else if(b.kind==='shape'){
+        if(typeof window.__audreyDrawShareShapeV1322==='function')window.__audreyDrawShareShapeV1322(ctx,b,w,h,1);
+        else if(b.value==='circle'){ctx.strokeStyle='#4d8e8a';ctx.fillStyle='rgba(77,142,138,.08)';ctx.lineWidth=6;ctx.beginPath();ctx.ellipse(w/2,h/2,Math.max(2,w/2-7),Math.max(2,h/2-7),0,0,Math.PI*2);ctx.fill();ctx.stroke()}
+        else if(b.value==='line'){ctx.save();ctx.translate(w/2,h/2);ctx.rotate(-4*Math.PI/180);ctx.fillStyle='#7d3547';roundRectPath(ctx,-w/2,-4,w,8,4);ctx.fill();ctx.restore()}else if(b.value==='tape'){ctx.fillStyle='rgba(198,163,78,.42)';ctx.fillRect(0,h*.08,w,h*.84)}
+      }else if(b.kind==='drawing'&&typeof window.__audreyDrawShareDrawingV1322==='function')window.__audreyDrawShareDrawingV1322(ctx,b,w,h,1);
+      else if(b.kind==='doodle'){const pts=parseDoodlePoints(b.points||'');if(pts.length){ctx.strokeStyle='#6c5142';ctx.lineWidth=4;ctx.lineCap='round';ctx.lineJoin='round';ctx.beginPath();pts.forEach((p,i)=>{i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1])});ctx.stroke()}}
       ctx.restore();
     }
     return canvas;
@@ -143,12 +83,9 @@
   async function makeFlattenedShareBlobV132112({mode='look',outfit=null}={}){
     const saved=savedOutfitForShareV132112(outfit);if(!saved)throw new Error('Share requires a saved look');
     const flatBoard=await renderSavedBoardToCanvasV132112(saved),title=saved.name||'My outfit',notes=saved.notes||'',rows=portfolioItemDetails(saved),includeItems=mode==='items'||mode==='itemsNotes',includeNotes=mode==='itemsNotes';
-    const W=SHARE_OUTPUT_WIDTH,pad=Math.round(W*.0611),header=Math.round(W*.1204),footer=Math.round(W*.0537),drawW=W-pad*2;
-    const scale=drawW/flatBoard.width,drawH=flatBoard.height*scale,maxTextW=W-pad*2,detailLine=Math.round(W*.0611);
-    let detailsH=0,lookNoteLines=[];
-    if(includeItems){detailsH=Math.round(W*.0519)+rows.length*detailLine;if(includeNotes){const m=document.createElement('canvas').getContext('2d');m.font=Math.round(W*.0185)+'px system-ui';if(notes)lookNoteLines=wrapCanvasLines(m,notes,maxTextW,8);detailsH+=notes?Math.round(W*.0481)+lookNoteLines.length*Math.round(W*.0296):0;}}
-    const H=Math.ceil(header+drawH+footer+detailsH),c=document.createElement('canvas');c.width=W;c.height=H;const ctx=c.getContext('2d');ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';
-    ctx.fillStyle='#f7f0df';ctx.fillRect(0,0,W,H);ctx.fillStyle='#2e2a24';ctx.textAlign='left';ctx.textBaseline='alphabetic';ctx.font=`600 ${Math.round(W*.0444)}px Georgia`;ctx.fillText(title,pad,Math.round(W*.0685),W-pad*2);ctx.fillStyle='#7d3547';ctx.font=`italic ${Math.round(W*.025)}px Georgia`;ctx.fillText((state.settings?.appName||DEFAULT_APP_NAME),pad,Math.round(W*.1),W-pad*2);
+    const W=SHARE_OUTPUT_WIDTH,pad=Math.round(W*.0611),header=Math.round(W*.1204),footer=Math.round(W*.0537),drawW=W-pad*2,scale=drawW/flatBoard.width,drawH=flatBoard.height*scale,maxTextW=W-pad*2,detailLine=Math.round(W*.0611);
+    let detailsH=0,lookNoteLines=[];if(includeItems){detailsH=Math.round(W*.0519)+rows.length*detailLine;if(includeNotes){const m=document.createElement('canvas').getContext('2d');m.font=Math.round(W*.0185)+'px system-ui';if(notes)lookNoteLines=wrapCanvasLines(m,notes,maxTextW,8);detailsH+=notes?Math.round(W*.0481)+lookNoteLines.length*Math.round(W*.0296):0;}}
+    const H=Math.ceil(header+drawH+footer+detailsH),c=document.createElement('canvas');c.width=W;c.height=H;const ctx=c.getContext('2d');ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';ctx.fillStyle='#f7f0df';ctx.fillRect(0,0,W,H);ctx.fillStyle='#2e2a24';ctx.textAlign='left';ctx.textBaseline='alphabetic';ctx.font=`600 ${Math.round(W*.0444)}px Georgia`;ctx.fillText(title,pad,Math.round(W*.0685),W-pad*2);ctx.fillStyle='#7d3547';ctx.font=`italic ${Math.round(W*.025)}px Georgia`;ctx.fillText((state.settings?.appName||DEFAULT_APP_NAME),pad,Math.round(W*.1),W-pad*2);
     const boardTop=header;ctx.save();roundRectPath(ctx,pad,boardTop,drawW,drawH,Math.round(W*.0389));ctx.clip();ctx.drawImage(flatBoard,pad,boardTop,drawW,drawH);ctx.restore();
     if(includeItems){let y=boardTop+drawH+Math.round(W*.0389);ctx.fillStyle='#2e2a24';ctx.font=`600 ${Math.round(W*.0278)}px Georgia`;ctx.fillText('Items in this look',pad,y);y+=Math.round(W*.0278);for(const r of rows){ctx.fillStyle='#3f3931';ctx.font=`600 ${Math.round(W*.0204)}px system-ui`;ctx.fillText(compactShareItemLabel(r),pad,y+Math.round(W*.0222),maxTextW);ctx.fillStyle='#776c5e';ctx.font=`${Math.round(W*.0167)}px system-ui`;ctx.fillText([r.meta,r.archived?'Archived':'',r.source==='wishlist'?'Wishlist':''].filter(Boolean).join(' · '),pad,y+Math.round(W*.0444),maxTextW);y+=detailLine;ctx.strokeStyle='rgba(108,81,66,.12)';ctx.beginPath();ctx.moveTo(pad,y+3);ctx.lineTo(W-pad,y+3);ctx.stroke()}if(includeNotes&&notes){y+=Math.round(W*.0259);ctx.fillStyle='#2e2a24';ctx.font=`600 ${Math.round(W*.025)}px Georgia`;ctx.fillText('Look notes',pad,y);y+=Math.round(W*.0296);ctx.fillStyle='#6c5142';ctx.font=`${Math.round(W*.0185)}px system-ui`;for(const line of lookNoteLines){ctx.fillText(line,pad,y,maxTextW);y+=Math.round(W*.0296)}}}
     return new Promise((resolve,reject)=>c.toBlob(blob=>blob?resolve(blob):reject(new Error('image export failed')),'image/jpeg',.97));
@@ -157,5 +94,5 @@
   const originalRequestOutfitShareV132112=requestOutfitShare;
   requestOutfitShare=function(outfitId=null){if(outfitId){const saved=state.outfits.find(x=>x.id===outfitId);if(!saved)return toast('Saved look not found');return originalRequestOutfitShareV132112(outfitId)}if(editingOutfitId&&state.outfits.some(x=>x.id===editingOutfitId)){const oid=editingOutfitId;toast('Share from the full saved look preview');viewOutfit(oid);return}toast('Save this look first, then share it from Portfolio');};
   makeOutfitShareBlob=makeFlattenedShareBlobV132112;window.__audreyRenderSavedBoardToCanvasV132112=renderSavedBoardToCanvasV132112;
-  window.__audreyShareStickerV13231={stickerDefinitionV13231,stickerSourceV13231,drawStickerV13231,renderStickerSurfaceV13232,whiteStickerSilhouetteV13232};
+  window.__audreyShareStickerV13231={stickerDefinitionV13231,stickerSourceV13231,drawStickerV13231,renderStickerSurfaceV13233,whiteStickerSilhouetteV13233};
 })();
