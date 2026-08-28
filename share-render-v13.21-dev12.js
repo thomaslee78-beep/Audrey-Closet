@@ -1,4 +1,4 @@
-/* Audrey Closet v13.23 — production release bootstrap
+/* Audrey Closet v13.23.2 — production release bootstrap
  * Keeps the accepted share renderer synchronous, then loads the accepted
  * Decorate/Draw/Focus runtime after the existing Shape stack has finished.
  * After a successful online launch, warms the existing production cache with
@@ -8,7 +8,8 @@
 (function(){
   'use strict';
 
-  document.write('<script src="share-render-v13.21-dev12-core.js?v=13.23-release"><\/script>');
+  const HOTFIX='13.23.2-sticker-render';
+  document.write('<script src="share-render-v13.21-dev12-core.js?v='+HOTFIX+'"><\/script>');
 
   const modules=[
     'draw-studio-v13.22-dev10.js?v=13.23-release',
@@ -23,14 +24,15 @@
     'board-focus-v13.22-dev2.js?v=13.23-release',
     'board-focus-v13.22-dev7.js?v=13.23-release',
     'board-focus-v13.22-dev10.js?v=13.23-release',
-    'sticker-studio-v13.22-release.js?v=13.23-release',
+    'sticker-studio-v13.22-release.js?v='+HOTFIX,
+    'sticker-render-compat-v13.23.1.js?v='+HOTFIX,
     'decorate-rail-v13.22-proto1.js?v=13.23-release',
     'decorate-function-layout-v13.22-proto1.js?v=13.23-release',
     'share-export-compat-v13.22-dev1.js?v=13.23-release'
   ];
 
   const releaseAssets=[
-    'share-render-v13.21-dev12-core.js?v=13.23-release',
+    'share-render-v13.21-dev12-core.js?v='+HOTFIX,
     ...modules,
     'assets/stickers/fashion/button-sewing.svg',
     'assets/stickers/fashion/fabric-swatch-floral.svg',
@@ -58,7 +60,7 @@
     if(!('caches' in window))return Promise.resolve();
     return caches.open('audrey-closet-v13.22-dev26')
       .then(cache=>Promise.allSettled(releaseAssets.map(asset=>cache.add(asset))))
-      .catch(err=>console.warn('Audrey v13.23 release cache warm skipped',err));
+      .catch(err=>console.warn('Audrey v13.23.2 release cache warm skipped',err));
   }
 
   function loadSequentially(){
@@ -75,7 +77,7 @@
         document.body.appendChild(s);
       }));
     });
-    chain.then(warmReleaseCache).catch(err=>console.error('Audrey v13.23 release bootstrap failed',err));
+    chain.then(warmReleaseCache).catch(err=>console.error('Audrey v13.23.2 release bootstrap failed',err));
   }
 
   if(document.readyState==='complete')loadSequentially();
