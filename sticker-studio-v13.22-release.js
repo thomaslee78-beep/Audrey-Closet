@@ -16,18 +16,18 @@
       {id:'heart',label:'Heart',glyph:'♥',sizeClass:'small',type:'image',src:'assets/stickers/standard/heart-pop.svg',alt:'Pink heart sticker'},
       {id:'diamond',label:'Diamond',glyph:'◆',sizeClass:'small',type:'image',src:'assets/stickers/standard/diamond-blue.svg',alt:'Blue diamond sticker'},
       {id:'star',label:'Star',glyph:'★',sizeClass:'small',type:'image',src:'assets/stickers/standard/star-burst.svg',alt:'Golden star sticker'},
-      {id:'happy',label:'Happy face',glyph:'☺',sizeClass:'medium',type:'image',src:'assets/stickers/standard/happy-day.svg',alt:'Happy face sticker'},
+      {id:'happy',label:'Happy face',glyph:'☺',sizeClass:'small',type:'image',src:'assets/stickers/standard/happy-day.svg',alt:'Happy face sticker'},
       {id:'sparkle',label:'Sparkle',glyph:'✨',sizeClass:'small',type:'image',src:'assets/stickers/standard/sparkle-burst.svg',alt:'Sparkle burst sticker'},
       {id:'lightning',label:'Lightning',glyph:'⚡',sizeClass:'small',type:'image',src:'assets/stickers/standard/lightning-triple.svg',alt:'Lightning sticker'},
-      {id:'flower',label:'Flower',glyph:'🌼',sizeClass:'medium',type:'image',src:'assets/stickers/standard/flower-detailed.svg',alt:'Flower sticker'},
-      {id:'rainbow',label:'Rainbow',glyph:'🌈',sizeClass:'medium',type:'image',src:'assets/stickers/standard/rainbow-soft.svg',alt:'Rainbow sticker'},
-      {id:'cloud',label:'Cloud',glyph:'☁️',sizeClass:'medium',type:'image',src:'assets/stickers/standard/cloud-puffy.svg',alt:'Cloud sticker'},
+      {id:'flower',label:'Flower',glyph:'🌼',sizeClass:'small',type:'image',src:'assets/stickers/standard/flower-detailed.svg',alt:'Flower sticker'},
+      {id:'rainbow',label:'Rainbow',glyph:'🌈',sizeClass:'small',type:'image',src:'assets/stickers/standard/rainbow-soft.svg',alt:'Rainbow sticker'},
+      {id:'cloud',label:'Cloud',glyph:'☁️',sizeClass:'small',type:'image',src:'assets/stickers/standard/cloud-puffy.svg',alt:'Cloud sticker'},
       {id:'sun',label:'Sun',glyph:'☀️',sizeClass:'small',type:'image',src:'assets/stickers/standard/sun-happy.svg',alt:'Sun sticker'},
       {id:'moon',label:'Moon',glyph:'🌙',sizeClass:'small',type:'image',src:'assets/stickers/standard/moon-crescent.svg',alt:'Moon sticker'},
-      {id:'butterfly',label:'Butterfly',glyph:'🦋',sizeClass:'medium',type:'image',src:'assets/stickers/standard/butterfly-cartoon.svg',alt:'Butterfly sticker'}
+      {id:'butterfly',label:'Butterfly',glyph:'🦋',sizeClass:'small',type:'image',src:'assets/stickers/standard/butterfly-cartoon.svg',alt:'Butterfly sticker'}
     ]},
     {id:'music',label:'Music',icon:'♫',description:'Notes, instruments and studio energy.',stickers:[
-      {id:'treble-clef',label:'Treble clef',glyph:'𝄞',sizeClass:'medium'},
+      {id:'treble-clef',label:'Treble clef',glyph:'𝄞',sizeClass:'small'},
       {id:'bass-clef',label:'Bass clef',glyph:'𝄢',sizeClass:'small'},
       {id:'guitar',label:'Guitar',glyph:'🎸',sizeClass:'medium',type:'image',src:'assets/stickers/music/guitar-electric.svg',alt:'Blue Strat style electric guitar sticker'},
       {id:'piano',label:'Piano',glyph:'🎹',sizeClass:'medium'},
@@ -68,7 +68,7 @@
   let renderToken=0;
   const preloaded=new Map();
 
-  function esc(v){return String(v??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));}
+  function esc(v){return String(v??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#39;'}[ch]));}
   function packById(id){return PACKS.find(p=>p.id===id)||PACKS[0];}
   function stickerByIdentity(packId,stickerId){return packById(packId)?.stickers?.find(s=>s.id===stickerId)||null;}
 
