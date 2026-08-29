@@ -31,8 +31,8 @@
     'share-export-compat-v13.22-dev1.js?v=13.23-release',
     'photo-studio-bugfix-v13.23.6.3.js?v='+HOTFIX,
     'photo-upload-v13.23.6.3.js?v='+HOTFIX,
-    'photo-cutout-methods-v13.23-preview1.js?v=13.23-bg-preview2',
-    'photo-cutout-method-persist-v13.23-preview2.js?v=13.23-bg-preview2',
+    'photo-cutout-methods-v13.23-preview1.js?v=13.23-bg-preview4',
+    'photo-cutout-method-persist-v13.23-preview2.js?v=13.23-bg-preview4',
     'share-modal-lock-v13.23.3.js?v='+HOTFIX
   ];
 
