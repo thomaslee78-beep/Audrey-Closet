@@ -215,3 +215,12 @@
     return result;
   };
 })();
+
+/* v13.22-bugfix1 — isolated Photo Studio cutout tuning loader. */
+(function(){
+  if(window.__audreyCutoutBugfix1)return;
+  const s=document.createElement('script');
+  s.src='photo-cutout-v13.22-bugfix1.js?v=13.22-bugfix1';
+  s.async=false;
+  document.head.appendChild(s);
+})();
