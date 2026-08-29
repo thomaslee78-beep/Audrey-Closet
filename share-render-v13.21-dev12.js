@@ -220,7 +220,16 @@
 (function(){
   if(window.__audreyCutoutBugfix1)return;
   const s=document.createElement('script');
-  s.src='photo-cutout-v13.22-bugfix1.js?v=13.22-bugfix1';
+  s.src='photo-cutout-v13.22-bugfix1.js?v=13.22-bugfix2';
+  s.async=false;
+  document.head.appendChild(s);
+})();
+
+/* v13.22-bugfix — transparent upload normalization loader. */
+(function(){
+  if(window.__audreyPhotoUploadBugfix1)return;
+  const s=document.createElement('script');
+  s.src='photo-upload-v13.22-bugfix1.js?v=13.22-upload-bugfix1';
   s.async=false;
   document.head.appendChild(s);
 })();
