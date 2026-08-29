@@ -1,7 +1,7 @@
-/* Audrey Closet v13.23 background-removal preview — Phase 2 Cutout Method lab.
+/* Audrey Closet v13.23 background-removal preview — Phase 3 Cutout Method lab.
  * Standard preserves the current production cutout path exactly.
- * Center Focus runs the normal production cutout first, then conservatively
- * rescues likely subject pixels near the image center before manual masks apply.
+ * Center Focus rescues likely centered subject pixels.
+ * Edge Guide rescues subtle subject detail near detected boundaries/shadows.
  * Remaining experimental methods stay disabled.
  */
 (function(){
@@ -10,7 +10,7 @@
   const METHODS=[
     {id:'standard',label:'Standard',help:'Uses the current background removal method.',enabled:true},
     {id:'center',label:'Center Focus',help:'Protects likely subject pixels near the center after the normal cutout pass.',enabled:true},
-    {id:'edge',label:'Edge Guide',help:'Looks for subtle outlines and shadows.',enabled:false},
+    {id:'edge',label:'Edge Guide',help:'Protects subtle outlines and shadow-adjacent subject detail.',enabled:true},
     {id:'grow',label:'Subject Grow',help:'Builds outward from the main object.',enabled:false},
     {id:'blend',label:'Smart Blend',help:'Combines several subject clues.',enabled:false}
   ];
@@ -100,21 +100,18 @@
     syncMethodUI();
   }
 
-  function studioOriginalSourceV1323Center(){
+  function studioOriginalSourceV1323(){
     if(typeof studioTarget!=='undefined'&&studioTarget==='wish'){
       return wishOriginalPhoto||studioSourcePhoto||wishWorkingPhoto||'';
     }
     return itemOriginalPhoto||studioSourcePhoto||itemWorkingPhoto||'';
   }
 
-  function estimateBorderColorV1323Center(data,w,h){
+  function estimateBorderColorV1323(data,w,h){
     const band=Math.max(2,Math.round(Math.min(w,h)*.035));
     let r=0,g=0,b=0,count=0;
     const step=Math.max(1,Math.round(Math.min(w,h)/220));
-    function take(x,y){
-      const i=(y*w+x)*4;
-      r+=data[i];g+=data[i+1];b+=data[i+2];count++;
-    }
+    function take(x,y){const i=(y*w+x)*4;r+=data[i];g+=data[i+1];b+=data[i+2];count++;}
     for(let y=0;y<h;y+=step){
       for(let x=0;x<w;x+=step){
         if(x<band||x>=w-band||y<band||y>=h-band)take(x,y);
@@ -123,30 +120,29 @@
     return count?[r/count,g/count,b/count]:[255,255,255];
   }
 
-  function lumaV1323Center(data,i){
-    return data[i]*.2126+data[i+1]*.7152+data[i+2]*.0722;
-  }
+  function lumaV1323(data,i){return data[i]*.2126+data[i+1]*.7152+data[i+2]*.0722;}
 
-  async function applyCenterFocusRescueV1323(mode){
-    const src=studioOriginalSourceV1323Center();
-    if(!src||!studioBaseCanvas)return false;
-
+  async function sourceAndCutoutImagesV1323(){
+    const src=studioOriginalSourceV1323();
+    if(!src||!studioBaseCanvas)return null;
     const originalCanvas=await sourceToStudioCanvas(src);
-    if(!originalCanvas)return false;
-
+    if(!originalCanvas)return null;
     const w=studioBaseCanvas.width,h=studioBaseCanvas.height;
-    if(!w||!h)return false;
-
+    if(!w||!h)return null;
     const source=document.createElement('canvas');
     source.width=w;source.height=h;
     const sourceCtx=source.getContext('2d',{willReadFrequently:true});
     sourceCtx.drawImage(originalCanvas,0,0,w,h);
-
     const cutCtx=studioBaseCanvas.getContext('2d',{willReadFrequently:true});
-    const srcImage=sourceCtx.getImageData(0,0,w,h);
-    const cutImage=cutCtx.getImageData(0,0,w,h);
+    return {w,h,sourceCtx,cutCtx,srcImage:sourceCtx.getImageData(0,0,w,h),cutImage:cutCtx.getImageData(0,0,w,h)};
+  }
+
+  async function applyCenterFocusRescueV1323(mode){
+    const pack=await sourceAndCutoutImagesV1323();
+    if(!pack)return false;
+    const {w,h,cutCtx,srcImage,cutImage}=pack;
     const s=srcImage.data,c=cutImage.data;
-    const bg=estimateBorderColorV1323Center(s,w,h);
+    const bg=estimateBorderColorV1323(s,w,h);
     const cx=(w-1)/2,cy=(h-1)/2;
     const rx=Math.max(1,w*.46),ry=Math.max(1,h*.52);
     const threshold=mode==='clean'?.50:.54;
@@ -157,34 +153,74 @@
       for(let x=2;x<w-2;x++){
         const i=(y*w+x)*4;
         if(c[i+3]>=245)continue;
-
         const nx=(x-cx)/rx;
         const radial=nx*nx+ny*ny;
         if(radial>=1)continue;
         const centerWeight=1-radial;
         if(centerWeight<.10)continue;
+        const dr=s[i]-bg[0],dg=s[i+1]-bg[1],db=s[i+2]-bg[2];
+        const colorDistance=Math.sqrt(dr*dr+dg*dg+db*db);
+        const left=(y*w+(x-2))*4,right=(y*w+(x+2))*4;
+        const up=((y-2)*w+x)*4,down=((y+2)*w+x)*4;
+        const gradient=Math.max(Math.abs(lumaV1323(s,left)-lumaV1323(s,right)),Math.abs(lumaV1323(s,up)-lumaV1323(s,down)));
+        const colorSignal=Math.min(1,colorDistance/72);
+        const edgeSignal=Math.min(1,gradient/34);
+        const score=centerWeight*.60+colorSignal*.24+edgeSignal*.16;
+        if(score<threshold)continue;
+        const confidence=Math.min(1,(score-threshold)/(1-threshold));
+        const rescueAlpha=Math.round(95+160*Math.max(centerWeight*.55,confidence));
+        c[i]=s[i];c[i+1]=s[i+1];c[i+2]=s[i+2];c[i+3]=Math.max(c[i+3],Math.min(255,rescueAlpha));
+        rescued++;
+      }
+    }
+    if(!rescued)return false;
+    cutCtx.putImageData(cutImage,0,0);
+    rebuildStudioWorkCanvas();
+    return true;
+  }
+
+  async function applyEdgeGuideRescueV1323(mode){
+    const pack=await sourceAndCutoutImagesV1323();
+    if(!pack)return false;
+    const {w,h,cutCtx,srcImage,cutImage}=pack;
+    const s=srcImage.data,c=cutImage.data;
+    const bg=estimateBorderColorV1323(s,w,h);
+    const radius=mode==='clean'?3:2;
+    const threshold=mode==='clean'?.48:.53;
+    let rescued=0;
+
+    function alphaAt(x,y){return c[(y*w+x)*4+3];}
+    for(let y=radius+1;y<h-radius-1;y++){
+      for(let x=radius+1;x<w-radius-1;x++){
+        const i=(y*w+x)*4;
+        if(c[i+3]>=245)continue;
+
+        let nearForeground=0,strongForeground=0;
+        for(let dy=-radius;dy<=radius;dy++){
+          for(let dx=-radius;dx<=radius;dx++){
+            if(!dx&&!dy)continue;
+            const a=alphaAt(x+dx,y+dy);
+            if(a>35)nearForeground++;
+            if(a>180)strongForeground++;
+          }
+        }
+        if(!nearForeground||!strongForeground)continue;
 
         const dr=s[i]-bg[0],dg=s[i+1]-bg[1],db=s[i+2]-bg[2];
         const colorDistance=Math.sqrt(dr*dr+dg*dg+db*db);
         const left=(y*w+(x-2))*4,right=(y*w+(x+2))*4;
         const up=((y-2)*w+x)*4,down=((y+2)*w+x)*4;
-        const gradient=Math.max(
-          Math.abs(lumaV1323Center(s,left)-lumaV1323Center(s,right)),
-          Math.abs(lumaV1323Center(s,up)-lumaV1323Center(s,down))
-        );
-
-        const colorSignal=Math.min(1,colorDistance/72);
-        const edgeSignal=Math.min(1,gradient/34);
-        const score=centerWeight*.60+colorSignal*.24+edgeSignal*.16;
+        const gradX=Math.abs(lumaV1323(s,left)-lumaV1323(s,right));
+        const gradY=Math.abs(lumaV1323(s,up)-lumaV1323(s,down));
+        const edgeSignal=Math.min(1,Math.max(gradX,gradY)/28);
+        const colorSignal=Math.min(1,colorDistance/68);
+        const continuity=Math.min(1,strongForeground/Math.max(2,(radius*2+1)*2));
+        const score=edgeSignal*.46+continuity*.34+colorSignal*.20;
         if(score<threshold)continue;
 
-        // Preserve source RGB and add only enough alpha to rescue plausible
-        // centered subject detail. The center weighting keeps this deliberately
-        // conservative so broad background areas are not simply restored.
         const confidence=Math.min(1,(score-threshold)/(1-threshold));
-        const rescueAlpha=Math.round(95+160*Math.max(centerWeight*.55,confidence));
-        c[i]=s[i];c[i+1]=s[i+1];c[i+2]=s[i+2];
-        c[i+3]=Math.max(c[i+3],Math.min(255,rescueAlpha));
+        const rescueAlpha=Math.round(80+150*Math.max(continuity*.72,confidence));
+        c[i]=s[i];c[i+1]=s[i+1];c[i+2]=s[i+2];c[i+3]=Math.max(c[i+3],Math.min(235,rescueAlpha));
         rescued++;
       }
     }
@@ -208,19 +244,21 @@
 
   const originalApplyStudioModeV1323Methods=applyStudioMode;
   applyStudioMode=async function(mode,options){
-    // Always run the exact production path first. Standard returns immediately,
-    // so choosing Standard is behaviorally identical to the current app.
     const result=await originalApplyStudioModeV1323Methods.apply(this,arguments);
-    if(mode!=='original'&&studioCutoutMethod==='center'){
+    if(mode!=='original'){
       try{
-        const rescued=await applyCenterFocusRescueV1323(mode);
+        let rescued=false;
+        if(studioCutoutMethod==='center')rescued=await applyCenterFocusRescueV1323(mode);
+        else if(studioCutoutMethod==='edge')rescued=await applyEdgeGuideRescueV1323(mode);
         if(rescued&&document.getElementById('studioStatus')){
-          document.getElementById('studioStatus').textContent='Center Focus applied. Compare with Standard to choose the cleaner result.';
+          document.getElementById('studioStatus').textContent=studioCutoutMethod==='edge'
+            ?'Edge Guide applied. Compare with Standard or Center Focus to choose the cleanest boundary.'
+            :'Center Focus applied. Compare with Standard to choose the cleaner result.';
         }
       }catch(error){
-        console.error('Center Focus preview failed',error);
+        console.error('Cutout method preview failed',error);
         if(document.getElementById('studioStatus')){
-          document.getElementById('studioStatus').textContent='Center Focus could not improve this photo. Standard cutout is still intact.';
+          document.getElementById('studioStatus').textContent='This preview method could not improve the photo. Standard cutout is still intact.';
         }
       }
     }
@@ -238,7 +276,7 @@
   };
 
   window.__audreyCutoutMethodPreview={
-    phase:2,
+    phase:3,
     getMethod:()=>studioCutoutMethod,
     methods:METHODS.map(x=>({...x}))
   };
