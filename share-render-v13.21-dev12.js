@@ -162,4 +162,34 @@
 
   makeOutfitShareBlob=makeFlattenedShareBlobV132112;
   window.__audreyRenderSavedBoardToCanvasV132112=renderSavedBoardToCanvasV132112;
+
+  /* v13.22-bugfix-dev1 — allow manual Erase/Restore while Original is selected.
+   * The v13.20-dev7 service-worker patch correctly rebuilds Original from the true
+   * captured source, but its Original-mode renderer intentionally bypassed all
+   * manual masks. That made Erase appear non-functional until Quick/Clean was chosen.
+   * Keep Original sourced from the pristine captured photo, then apply only the
+   * user's manual restore/erase masks on top. Automatic cutout alpha never becomes
+   * part of the Original base canvas, so the earlier pristine-source fix remains.
+   */
+  rebuildStudioWorkCanvas=function(){
+    if(!studioBaseCanvas)return;
+    studioWorkCanvas=newStudioCanvas();
+    const ctx=studioWorkCanvas.getContext('2d');
+    ctx.drawImage(studioBaseCanvas,0,0);
+
+    if(studioManualRestoreMask){
+      const patch=newStudioCanvas(),pc=patch.getContext('2d');
+      pc.drawImage(studioOriginalCanvas||studioBaseCanvas,0,0);
+      pc.globalCompositeOperation='destination-in';
+      pc.drawImage(studioManualRestoreMask,0,0);
+      ctx.drawImage(patch,0,0);
+    }
+    if(studioManualEraseMask){
+      ctx.save();
+      ctx.globalCompositeOperation='destination-out';
+      ctx.drawImage(studioManualEraseMask,0,0);
+      ctx.restore();
+    }
+    applyStudioAdjustmentsAndRender();
+  };
 })();
