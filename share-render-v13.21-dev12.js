@@ -192,4 +192,26 @@
     }
     applyStudioAdjustmentsAndRender();
   };
+
+  /* v13.22 bug-fix — keep tone/detail adjustments scoped to one source photo.
+   * Saved Photo Studio state already stores exposure/contrast/highlights together
+   * with a sourceFingerprint. Reopen the same source with its saved values; any
+   * new or replacement photo starts neutral instead of inheriting global values
+   * from the previous Studio session.
+   */
+  const originalOpenPhotoStudioV1322Tone=openPhotoStudio;
+  openPhotoStudio=async function(target='item'){
+    const nextTarget=target==='wish'?'wish':'item';
+    const original=nextTarget==='wish'?wishOriginalPhoto:itemOriginalPhoto;
+    const savedState=nextTarget==='wish'?wishStudioState:itemStudioState;
+    const saved=savedState&&savedState.sourceFingerprint===photoFingerprint(original||'')?savedState:null;
+
+    studioExposure=saved&&Number.isFinite(Number(saved.exposure))?Number(saved.exposure):0;
+    studioContrast=saved&&Number.isFinite(Number(saved.contrast))?Number(saved.contrast):0;
+    studioHighlights=saved&&Number.isFinite(Number(saved.highlights))?Number(saved.highlights):0;
+
+    const result=await originalOpenPhotoStudioV1322Tone.apply(this,arguments);
+    syncStudioAdjustmentControls();
+    return result;
+  };
 })();
