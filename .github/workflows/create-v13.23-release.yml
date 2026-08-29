@@ -1,0 +1,23 @@
+name: Create Audrey Closet v13.23 Release
+
+on:
+  push:
+    branches:
+      - release-tools/v13.23
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create stable GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create v13.23 \
+            --repo "${{ github.repository }}" \
+            --target 517455d829ea7573857fa9a23bb8b2f7a66f20dd \
+            --title "Audrey Closet v13.23 — Share & Portfolio Fidelity" \
+            --notes $'Stable checkpoint for the v13.23 Design Board rendering and sharing improvements.\n\nHighlights:\n- High-fidelity Share rendering for Stickers, including wide emoji/glyph stickers such as Sunglasses\n- True white Sticker outline rendering in Share\n- Shared Board Text layout engine with S / M / L / XL size support\n- Preserved explicit multiline text and improved Share font/scale fidelity\n- Share modal background scroll locking\n- Portfolio small-card rendering upgraded to a scaled full-size saved Board plane for better typography, wrapping, Sticker geometry, and object placement fidelity\n- Full Portfolio detail and Share rendering remain aligned with the saved Design Board\n\nStable rollback branch: release/v13.23\nStable source commit: 517455d829ea7573857fa9a23bb8b2f7a66f20dd\nProduction Pages deployment: successful (run 33225844180)'
