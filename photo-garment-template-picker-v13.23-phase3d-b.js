@@ -1,12 +1,12 @@
 /* Audrey Closet v13.23 Cutout Phase 3D-C — Guided garment template picker.
- * Exposes six garment templates and derives compact inline icons directly from
- * each template's default polygon. Switching templates preserves placement and
- * protection, but clears applied guide state so the new shape must be reapplied.
+ * Final release picker exposes nine garment templates and derives compact inline
+ * icons directly from each template's default polygon. Switching templates keeps
+ * placement/protection but clears applied state so the new shape is reapplied.
  */
 (function(){
 'use strict';
 
-const ENABLED=['shirt','long-sleeve-shirt','tank','hoodie','pants','dress'];
+const ENABLED=['shirt','long-sleeve-shirt','tank','hoodie','pants','dress','shorts','skirt','coat'];
 const stateApi=()=>window.__audreyCutoutState;
 const guidesApi=()=>window.__audreyGarmentGuides;
 const workflowApi=()=>window.__audreyCutoutWorkflow3B;
@@ -42,7 +42,7 @@ function install(){
     (head||panel.firstElementChild)?.insertAdjacentElement('afterend',picker);
   }
   const options=picker.querySelector('.garment-template-options');
-  if(options&&options.dataset.phase!=='3D-C'){
+  if(options&&options.dataset.phase!=='3D-C-final'){
     options.replaceChildren();
     ENABLED.forEach(id=>{
       const d=def(id);if(!d)return;
@@ -50,7 +50,7 @@ function install(){
       b.innerHTML=`<span class="garment-template-icon" aria-hidden="true">${templateIconSvg(d)}</span><span class="garment-template-copy"><strong>${d.label}</strong><small>${d.defaultPoints.length} pts</small></span>`;
       b.onclick=()=>selectTemplate(id);options.appendChild(b);
     });
-    options.dataset.phase='3D-C';
+    options.dataset.phase='3D-C-final';
   }
   sync();return true;
 }
@@ -86,5 +86,5 @@ openPhotoStudio=async function(){const out=await open0.apply(this,arguments);ins
 const wf=workflowApi();
 if(wf?.sync){const sync0=wf.sync;wf.sync=function(){const out=sync0.apply(this,arguments);install();sync();return out;};}
 
-window.__audreyGarmentTemplatePicker={phase:'3D-C1',enabledTemplates:[...ENABLED],install,selectTemplate,sync,templateIconSvg};
+window.__audreyGarmentTemplatePicker={phase:'3D-C2',enabledTemplates:[...ENABLED],install,selectTemplate,sync,templateIconSvg};
 })();
