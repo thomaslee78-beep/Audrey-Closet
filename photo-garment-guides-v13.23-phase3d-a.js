@@ -1,6 +1,6 @@
 /* Audrey Closet v13.23 Cutout Phase 3D-C — garment guide registry + dynamic points.
- * Extends the generic Phase 3D guide registry with Tank, Hoodie, Pants and Dress
- * templates while leaving the Phase 3C cutout/protection engine unchanged.
+ * Final release template set: Shirt, Long-Sleeve, Tank, Hoodie, Pants, Dress,
+ * Shorts, Skirt and Coat/Jacket. Cutout/protection math remains unchanged.
  */
 (function(){
 'use strict';
@@ -42,16 +42,16 @@ const TEMPLATES=[
     defaultTransform:{x:360,y:365,width:310,height:520,rotation:0}
   },
   {
-    id:'shorts',label:'Shorts',geometryVersion:1,
-    defaultPoints:[[.25,0],[.75,0],[.80,.20],[.78,.88],[.58,.88],[.53,.54],[.50,.44],[.47,.54],[.42,.88],[.22,.88],[.20,.20],[.25,.08]],
-    pointLabels:['Left waist','Right waist','Right hip','Right outer hem','Right inner hem','Right inner leg','Crotch right','Crotch left','Left inner hem','Left outer hem','Left hip','Left waist side'],
-    defaultTransform:{x:360,y:345,width:320,height:340,rotation:0}
+    id:'shorts',label:'Shorts',geometryVersion:2,
+    defaultPoints:[[.74,0],[.92,.72],[.58,.82],[.50,.48],[.42,.82],[.08,.72],[.26,0]],
+    pointLabels:['Right waist','Right outer hem','Right inner hem','Crotch','Left inner hem','Left outer hem','Left waist'],
+    defaultTransform:{x:360,y:350,width:350,height:320,rotation:0}
   },
   {
-    id:'skirt',label:'Skirt',geometryVersion:1,
-    defaultPoints:[[.32,0],[.68,0],[.73,.12],[.88,1],[.12,1],[.27,.12]],
-    pointLabels:['Left waist','Right waist','Right hip','Right hem','Left hem','Left hip'],
-    defaultTransform:{x:360,y:355,width:330,height:390,rotation:0}
+    id:'skirt',label:'Skirt',geometryVersion:2,
+    defaultPoints:[[.66,0],[.78,.18],[.88,1],[.12,1],[.22,.18],[.34,0]],
+    pointLabels:['Right waist','Right upper flare','Right hem','Left hem','Left upper flare','Left waist'],
+    defaultTransform:{x:360,y:355,width:340,height:430,rotation:0}
   },
   {
     id:'dress',label:'Dress',geometryVersion:2,
@@ -60,10 +60,10 @@ const TEMPLATES=[
     defaultTransform:{x:360,y:365,width:390,height:560,rotation:0}
   },
   {
-    id:'coat',label:'Coat / Jacket',geometryVersion:1,
-    defaultPoints:[[.29,.05],[.41,0],[.59,0],[.71,.05],[.98,.18],[.92,.76],[.76,.70],[.74,1],[.26,1],[.24,.70],[.08,.76],[.02,.18]],
-    pointLabels:['Left shoulder','Left neck','Right neck','Right shoulder','Right outer sleeve','Right cuff','Right underarm','Right hem','Left hem','Left underarm','Left cuff','Left outer sleeve'],
-    defaultTransform:{x:360,y:360,width:390,height:520,rotation:0}
+    id:'coat',label:'Coat / Jacket',geometryVersion:2,
+    defaultPoints:[[.42,0],[.28,.08],[.05,.70],[.18,.70],[.20,1],[.80,1],[.82,.70],[.95,.70],[.72,.08],[.58,0]],
+    pointLabels:['Left collar top','Left shoulder','Left outer cuff','Left underarm','Left hem','Right hem','Right underarm','Right outer cuff','Right shoulder','Right collar top'],
+    defaultTransform:{x:360,y:365,width:390,height:560,rotation:0}
   }
 ];
 
@@ -154,7 +154,7 @@ if(workflow?.sync){
 }
 
 window.__audreyGarmentGuides={
-  phase:'3D-C3',
+  phase:'3D-C4',
   getTemplates:()=>TEMPLATES.map(clone),
   getTemplate,
   createGuide,
