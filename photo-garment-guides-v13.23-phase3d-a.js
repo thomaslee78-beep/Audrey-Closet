@@ -24,9 +24,9 @@ const TEMPLATES=[
     defaultTransform:{x:360,y:360,width:360,height:470,rotation:0}
   },
   {
-    id:'tank',label:'Tank',geometryVersion:3,
-    defaultPoints:[[.72,.04],[.60,.18],[.87,.22],[.77,1],[.23,1],[.13,.22],[.40,.18],[.28,.04],[.44,.12],[.56,.12]],
-    pointLabels:['Right strap outer top','Right strap inner','Right upper side','Right hem','Left hem','Left upper side','Left strap inner','Left strap outer top','Left neckline curve','Right neckline curve'],
+    id:'tank',label:'Tank',geometryVersion:4,
+    defaultPoints:[[.28,.02],[.40,.05],[.44,.18],[.56,.18],[.60,.05],[.72,.02],[.69,.30],[.76,1],[.24,1],[.31,.30]],
+    pointLabels:['Left strap outer top','Left strap inner','Left neckline curve','Right neckline curve','Right strap inner','Right strap outer top','Right armhole','Right hem','Left hem','Left armhole'],
     defaultTransform:{x:360,y:360,width:300,height:430,rotation:0}
   },
   {
@@ -154,7 +154,7 @@ if(workflow?.sync){
 }
 
 window.__audreyGarmentGuides={
-  phase:'3D-C2',
+  phase:'3D-C3',
   getTemplates:()=>TEMPLATES.map(clone),
   getTemplate,
   createGuide,
