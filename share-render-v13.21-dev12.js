@@ -7,7 +7,7 @@
   'use strict';
 
   const HOTFIX='13.23.6.3-photo-fixes';
-  const BG_PREVIEW='13.23-cutout-phase3c';
+  const BG_PREVIEW='13.23-cutout-phase3c-fix1';
   document.write('<script src="share-render-v13.21-dev12-core.js?v='+HOTFIX+'"><\/script>');
 
   const modules=[
@@ -36,6 +36,7 @@
     'photo-cutout-state-v13.23-phase3a.js?v='+BG_PREVIEW,
     'photo-cutout-workflow-v13.23-phase3b.js?v='+BG_PREVIEW,
     'photo-cutout-pipeline-v13.23-phase3c.js?v='+BG_PREVIEW,
+    'photo-guided-lifecycle-v13.23-phase3c.js?v='+BG_PREVIEW,
     'share-modal-lock-v13.23.3.js?v='+HOTFIX
   ];
 
