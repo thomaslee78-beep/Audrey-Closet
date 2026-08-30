@@ -127,6 +127,13 @@
     persist(t,committed);
     return out;
   };
+  // bindPhotoStudio() ran before this dynamically loaded module and assigned the
+  // original core function object directly to #studioApply.onclick. Rebind through
+  // a late-bound callback so taps reach the canonical wrapper above (and any future
+  // wrappers layered after it) instead of bypassing Phase 3A persistence.
+  const studioApplyButton=document.getElementById('studioApply');
+  if(studioApplyButton)studioApplyButton.onclick=()=>applyPhotoStudio();
+
   const saveItem0=saveItem;saveItem=async function(){captureRuntime('item');persist('item');return saveItem0.apply(this,arguments);};
   const saveWish0=saveWish;saveWish=async function(){captureRuntime('wish');persist('wish');return saveWish0.apply(this,arguments);};
 
@@ -135,5 +142,5 @@
     restoreCapturedOriginal=function(){const out=restoreOriginal0.apply(this,arguments);resetTarget('item');return out;};
   }
 
-  window.__audreyCutoutState={phase:'3A-fix4',version:STATE_VERSION,registerGuideType,getGuideTypes:()=>[...guideTypes.values()].map(clone),normalizeGuide,normalizeCutout,getState:(t=target())=>clone(active[t]||normalizeCutout(rawState(t))),persist,resetTarget,emptyCutout};
+  window.__audreyCutoutState={phase:'3A-fix5',version:STATE_VERSION,registerGuideType,getGuideTypes:()=>[...guideTypes.values()].map(clone),normalizeGuide,normalizeCutout,getState:(t=target())=>clone(active[t]||normalizeCutout(rawState(t))),persist,resetTarget,emptyCutout};
 })();
