@@ -80,7 +80,18 @@
   }
 
   async function canvasFromData(src){const img=await imageFrom(src),c=newStudioCanvas(),ctx=c.getContext('2d');ctx.clearRect(0,0,720,720);ctx.drawImage(img,0,0,720,720);return c;}
-  async function restoreCanonicalBase(cutout){if(cutout.algorithm==='original'||!cutout.baseResult)return false;try{studioBaseCanvas=await canvasFromData(cutout.baseResult);studioCutoutPhoto=cutout.baseResult;rebuildStudioWorkCanvas();return true}catch(err){console.error('Phase 3A canonical cutout restore failed',err);return false;}}
+  async function restoreCanonicalManualMasks(cutout){
+    try{
+      studioManualEraseMask=cutout.eraseMask?await canvasFromData(cutout.eraseMask):newStudioCanvas();
+      studioManualRestoreMask=cutout.restoreMask?await canvasFromData(cutout.restoreMask):newStudioCanvas();
+      return true;
+    }catch(err){
+      console.error('Phase 3A canonical manual-mask restore failed',err);
+      studioManualEraseMask=newStudioCanvas();studioManualRestoreMask=newStudioCanvas();
+      return false;
+    }
+  }
+  async function restoreCanonicalBase(cutout){if(cutout.algorithm==='original'||!cutout.baseResult)return false;try{studioBaseCanvas=await canvasFromData(cutout.baseResult);studioCutoutPhoto=cutout.baseResult;return true}catch(err){console.error('Phase 3A canonical cutout restore failed',err);return false;}}
   function syncModeUi(cutout){studioMode=cutout.algorithm;document.querySelectorAll('.studio-mode').forEach(b=>b.classList.toggle('active',b.dataset.mode===cutout.algorithm));}
 
   const open0=openPhotoStudio;
@@ -92,7 +103,11 @@
       const restored=await restoreCanonicalBase(canonical);
       if(!restored&&canonical.algorithm!=='original'){
         const fallback={...canonical,algorithm:'original',baseResult:''};active[nt]=fallback;syncModeUi(fallback);persist(nt,fallback);const status=document.getElementById('studioStatus');if(status)status.textContent='Legacy cutout opened safely from Original. Reapply Quick or Clean once to create the new exact saved base.';
-      }else{persist(nt,canonical);const status=document.getElementById('studioStatus');if(status&&canonical.algorithm!=='original')status.textContent='Saved cutout restored exactly. No background-removal algorithm was rerun.';}
+      }else{
+        await restoreCanonicalManualMasks(canonical);
+        if(typeof rebuildStudioWorkCanvas==='function')rebuildStudioWorkCanvas();
+        persist(nt,canonical);const status=document.getElementById('studioStatus');if(status&&canonical.algorithm!=='original')status.textContent='Saved cutout and manual cleanup restored exactly. No background-removal algorithm was rerun.';
+      }
       if(typeof renderStudio==='function')await renderStudio();return out;
     }finally{opening=false;}
   };
@@ -109,5 +124,5 @@
     restoreCapturedOriginal=function(){const out=restoreOriginal0.apply(this,arguments);resetTarget('item');return out;};
   }
 
-  window.__audreyCutoutState={phase:'3A-fix2',version:STATE_VERSION,registerGuideType,getGuideTypes:()=>[...guideTypes.values()].map(clone),normalizeGuide,normalizeCutout,getState:(t=target())=>clone(active[t]||normalizeCutout(rawState(t))),persist,resetTarget,emptyCutout};
+  window.__audreyCutoutState={phase:'3A-fix3',version:STATE_VERSION,registerGuideType,getGuideTypes:()=>[...guideTypes.values()].map(clone),normalizeGuide,normalizeCutout,getState:(t=target())=>clone(active[t]||normalizeCutout(rawState(t))),persist,resetTarget,emptyCutout};
 })();
