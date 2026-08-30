@@ -1,6 +1,6 @@
-/* Audrey Closet v13.23 background-removal preview — method persistence shim.
- * Keeps the selected experimental cutout method with the existing Photo Studio
- * state without changing the production state schema or cutout algorithm.
+/* Audrey Closet v13.23 background-removal preview — method + garment guide persistence shim.
+ * Keeps the selected experimental cutout method and Shirt Guide Phase 1C state
+ * with the existing Photo Studio state without changing the production schema.
  */
 (function(){
   'use strict';
@@ -10,16 +10,23 @@
     return ['standard','center','edge','grow'].includes(value)?value:'standard';
   }
 
+  function currentGarmentGuide(){
+    const value=window.__audreyGarmentGuidePreview?.getState?.();
+    if(!value||value.type!=='shirt')return null;
+    return {...value};
+  }
+
   function stampWorkingStudioState(target){
     const method=currentMethod();
+    const garmentGuide=currentGarmentGuide();
     if(target==='wish'){
       if(wishStudioState&&typeof wishStudioState==='object'){
-        wishStudioState={...wishStudioState,cutoutMethod:method};
+        wishStudioState={...wishStudioState,cutoutMethod:method,...(garmentGuide?{garmentGuide}:{})};
       }
       return;
     }
     if(itemStudioState&&typeof itemStudioState==='object'){
-      itemStudioState={...itemStudioState,cutoutMethod:method};
+      itemStudioState={...itemStudioState,cutoutMethod:method,...(garmentGuide?{garmentGuide}:{})};
     }
   }
 
@@ -57,5 +64,9 @@
       if(btn&&!btn.disabled)await btn.click();
     }
     return result;
+  };
+
+  window.__audreyPhotoStudioPreviewPersistence={
+    stampWorkingStudioState
   };
 })();
