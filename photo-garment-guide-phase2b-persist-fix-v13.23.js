@@ -1,8 +1,9 @@
 /* Audrey Closet v13.23 background-removal preview — Shirt Guide Phase 2B persistence hotfix.
  * Narrow regression fix only:
  * 1) preserve the exact accepted guided Quick base across reopen/save cycles;
- * 2) stamp the live 10-point guide state at edit completion and save boundaries.
- * No geometry, cutout scoring, masks, or Photo Studio performance observers changed.
+ * 2) stamp the live 10-point guide state at edit completion and save boundaries;
+ * 3) when an exact guided Quick exists, reopen without running Standard Quick first.
+ * No geometry scoring, masks, or Photo Studio performance observers changed.
  */
 (function(){
   'use strict';
@@ -38,17 +39,41 @@
     const before=rawState(next);
     const savedGuide=before?.garmentGuide;
     const savedExact=typeof savedGuide?.acceptedBase==='string'&&savedGuide.acceptedBase.startsWith('data:image/')?savedGuide.acceptedBase:'';
+    const exactQuick=!!(savedExact&&before?.mode==='quick');
+    const dialog=document.getElementById('photoStudioDialog');
+    const priorVisibility=dialog?.style.visibility||'';
+    let temporaryState=null;
+
     if(savedExact)preservedBase[next]=savedExact;
+    // Prevent the base Photo Studio opener from recomputing Standard Quick.
+    // Load all saved masks/transforms against Original, then swap the exact
+    // previously accepted guided base in before revealing the dialog.
+    if(exactQuick&&before){
+      temporaryState={...before,mode:'original'};
+      setRawState(next,temporaryState);
+      if(dialog)dialog.style.visibility='hidden';
+    }
+
     openingStudio=true;
     try{
       const out=await open0.apply(this,arguments);
-      // Phase 2B's base open may rebuild Quick while restoring state. Put the
-      // previously accepted guided cutout back last so reopen is lossless.
-      if(savedExact&&before?.mode==='quick')await restoreExactBase(savedExact);
+      if(exactQuick){
+        setRawState(next,before);
+        studioMode='quick';
+        document.querySelectorAll('.studio-mode').forEach(b=>b.classList.toggle('active',b.dataset.mode==='quick'));
+        await restoreExactBase(savedExact);
+        const status=document.getElementById('studioStatus');
+        if(status)status.textContent='Saved Shirt Guide cutout restored exactly.';
+        if(typeof renderStudio==='function')await renderStudio();
+      }
       forceStamp(next);
       bindGuideStamping();
       return out;
-    }finally{openingStudio=false;}
+    }finally{
+      if(exactQuick&&rawState(next)===temporaryState)setRawState(next,before);
+      if(dialog)dialog.style.visibility=priorVisibility;
+      openingStudio=false;
+    }
   };
 
   const mode0=applyStudioMode;
@@ -93,5 +118,5 @@
   }
 
   bindGuideStamping();
-  window.__audreyGarmentGuidePhase2BPersistFix={phase:'2B-persist-fix',forceStamp,get preservedBase(){return{...preservedBase};}};
+  window.__audreyGarmentGuidePhase2BPersistFix={phase:'2B-fix2',forceStamp,get preservedBase(){return{...preservedBase};}};
 })();
