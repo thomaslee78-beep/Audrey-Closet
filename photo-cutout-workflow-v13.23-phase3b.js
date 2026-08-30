@@ -1,6 +1,6 @@
 /* Audrey Closet v13.23 Cutout Phase 3B — Easy / Guided workflow UI.
  * UI + generic guide editing only. Canonical persistence stays owned by Phase 3A.
- * Shirt is the first registered guide. Image-processing integration is Phase 3C.
+ * Shirt is the default registered guide. Image-processing integration is Phase 3C.
  */
 (function(){
 'use strict';
@@ -19,20 +19,24 @@ let drag=null;
 let initializedFor=null;
 let workflowUi=null;
 
-function shirtDef(){return stateApi()?.getGuideTypes?.().find(x=>x.id==='shirt')||null;}
-function newShirtGuide(){
-  const def=shirtDef();
+function guideDef(type='shirt'){return stateApi()?.getGuideTypes?.().find(x=>x.id===type)||null;}
+function newGuide(type='shirt'){
+  const external=window.__audreyGarmentGuides?.createGuide?.(type);if(external)return external;
+  const def=guideDef(type)||guideDef('shirt');
   return {
-    schemaVersion:1,type:'shirt',geometryVersion:def?.geometryVersion||2,
+    schemaVersion:1,type:def?.id||'shirt',geometryVersion:def?.geometryVersion||2,
     applied:false,dirty:false,
     points:clone(def?.defaultPoints||[]),
-    transform:{...DEF_TRANSFORM},protection:70,baseResult:''
+    transform:{...DEF_TRANSFORM},protection:70,baseResult:'',appliedShape:null
   };
 }
 function currentState(){return stateApi()?.getState?.(target())||null;}
 function persistState(next){stateApi()?.persist?.(target(),next);return next;}
 function updateState(mutator){const cur=currentState();if(!cur)return null;const next=clone(cur);mutator(next);return persistState(next);}
-function ensureGuide(state){if(state.guide?.type==='shirt')return state.guide;state.guide=newShirtGuide();return state.guide;}
+function ensureGuide(state){
+  if(state.guide&&guideDef(state.guide.type))return state.guide;
+  state.guide=newGuide('shirt');return state.guide;
+}
 
 function styles(){
   if(document.getElementById('cutoutPhase3BStyles'))return;
@@ -62,7 +66,7 @@ function installUi(){
   }
   if(!document.getElementById('cutoutGuide3B')){
     const panel=document.createElement('section');panel.id='cutoutGuide3B';panel.className='cutout-guide-3b hidden';panel.hidden=true;
-    panel.innerHTML=`<div class="cutout-guide-head"><strong>Shirt Guide</strong><span class="cutout-guide-status">Not applied</span></div><div class="cutout-guide-actions"><button type="button" id="cutoutGuideShow3B" class="cutout-guide-btn">Show Guide</button><button type="button" id="cutoutGuideEdit3B" class="cutout-guide-btn">Edit Guide</button><button type="button" id="cutoutGuideLock3B" class="cutout-guide-btn">Lock</button><button type="button" id="cutoutGuideReset3B" class="cutout-guide-btn">Reset Guide</button></div><button type="button" id="cutoutGuideApply3B" class="cutout-guide-apply">Apply Shirt Guide</button><p class="cutout-guide-note">Adjust the garment outline, then apply it. Phase 3B stores the guide state; algorithm-independent protection is added in Phase 3C.</p>`;
+    panel.innerHTML=`<div class="cutout-guide-head"><strong>Garment Guide</strong><span class="cutout-guide-status">Not applied</span></div><div class="cutout-guide-actions"><button type="button" id="cutoutGuideShow3B" class="cutout-guide-btn">Show Guide</button><button type="button" id="cutoutGuideEdit3B" class="cutout-guide-btn">Edit Guide</button><button type="button" id="cutoutGuideLock3B" class="cutout-guide-btn">Lock</button><button type="button" id="cutoutGuideReset3B" class="cutout-guide-btn">Reset Guide</button></div><button type="button" id="cutoutGuideApply3B" class="cutout-guide-apply">Apply Garment Guide</button><p class="cutout-guide-note">Adjust the garment outline, then apply it. Phase 3B stores the guide state; algorithm-independent protection is added in Phase 3C.</p>`;
     const wf=document.getElementById('cutoutWorkflow3B');wf.insertAdjacentElement('afterend',panel);
     document.getElementById('cutoutGuideShow3B').onclick=()=>{visible=!visible;if(!visible)editing=false;sync();};
     document.getElementById('cutoutGuideEdit3B').onclick=()=>{visible=true;editing=!editing;sync();};
@@ -88,22 +92,24 @@ function selectWorkflow(workflow){
 
 function resetGuide(){
   workflowUi='guided';
-  updateState(s=>{s.workflow='guided';s.guide=newShirtGuide();});
+  const type=currentState()?.guide?.type||'shirt',label=guideDef(type)?.label||'Garment';
+  updateState(s=>{s.workflow='guided';s.guide=newGuide(type);});
   visible=true;editing=true;locked=false;sync();
-  const st=document.getElementById('studioStatus');if(st)st.textContent='Shirt Guide reset to its centered starting shape.';
+  const st=document.getElementById('studioStatus');if(st)st.textContent=label+' Guide reset to its centered starting shape.';
 }
 function applyGuideState(){
   updateState(s=>{const g=ensureGuide(s);g.applied=true;g.dirty=false;});
   editing=false;sync();
-  const st=document.getElementById('studioStatus');if(st)st.textContent='Shirt Guide geometry saved. Phase 3C will connect this applied guide to every cutout algorithm.';
+  const type=currentState()?.guide?.type||'shirt',label=guideDef(type)?.label||'Garment';
+  const st=document.getElementById('studioStatus');if(st)st.textContent=label+' Guide geometry saved. Phase 3C will connect this applied guide to every cutout algorithm.';
 }
 function markDirty(){updateState(s=>{const g=ensureGuide(s);g.dirty=true;});}
 
 function installOverlay(){
   const w=wrap();if(!w||document.getElementById('cutoutShirtOverlay3B'))return;
   const o=document.createElement('div');o.id='cutoutShirtOverlay3B';o.className='cutout-shirt-overlay hidden';
-  o.innerHTML='<svg class="cutout-shirt-outline" aria-hidden="true"><polygon></polygon></svg><div class="cutout-shirt-label">SHIRT GUIDE</div><div class="cutout-shirt-rotate" aria-label="Rotate shirt guide"></div><div class="cutout-shirt-resize" aria-label="Resize shirt guide"></div>';
-  const labels=shirtDef()?.pointLabels||[];
+  o.innerHTML='<svg class="cutout-shirt-outline" aria-hidden="true"><polygon></polygon></svg><div class="cutout-shirt-label">GARMENT GUIDE</div><div class="cutout-shirt-rotate" aria-label="Rotate garment guide"></div><div class="cutout-shirt-resize" aria-label="Resize garment guide"></div>';
+  const labels=guideDef('shirt')?.pointLabels||[];
   for(let i=0;i<10;i++){const b=document.createElement('button');b.type='button';b.className='cutout-shirt-point';b.dataset.i=i;b.setAttribute('aria-label',labels[i]||('Point '+(i+1)));o.appendChild(b);}
   w.appendChild(o);
   const rotate=o.querySelector('.cutout-shirt-rotate'),resize=o.querySelector('.cutout-shirt-resize');
@@ -127,7 +133,7 @@ function installOverlay(){
         const dx=x-drag.sx,dy=y-drag.sy,rr=-(drag.tr.rotation||0)*Math.PI/180,cr=Math.cos(rr),sr=Math.sin(rr),lx=dx*cr-dy*sr,ly=dx*sr+dy*cr;
         if(drag.kind==='move'){tr.x=clamp(drag.tr.x+dx,-tr.width/2+34,720+tr.width/2-34);tr.y=clamp(drag.tr.y+dy,-tr.height/2+34,720+tr.height/2-34);}
         else if(drag.kind==='resize'){tr.width=clamp(drag.tr.width+lx*2,120,1200);tr.height=clamp(drag.tr.height+ly*2,150,1200);}
-        else if(drag.kind==='point'){g.points[drag.i]=[clamp(drag.p[0]+lx/Math.max(1,drag.tr.width),-3,4),clamp(drag.p[1]+ly/Math.max(1,drag.tr.height),-3,4)];}
+        else if(drag.kind==='point'&&g.points[drag.i]){g.points[drag.i]=[clamp(drag.p[0]+lx/Math.max(1,drag.tr.width),-3,4),clamp(drag.p[1]+ly/Math.max(1,drag.tr.height),-3,4)];}
       }
       g.dirty=true;
     });
@@ -145,12 +151,13 @@ function syncPanel(workflowOverride){
   const panel=document.getElementById('cutoutGuide3B');
   if(panel){const hide=workflow!=='guided';panel.classList.toggle('hidden',hide);panel.hidden=hide;panel.setAttribute('aria-hidden',hide?'true':'false');}
   if(workflow!=='guided')return;
-  const g=s.guide||newShirtGuide();
+  const g=s.guide||newGuide('shirt'),def=guideDef(g.type)||{label:'Garment'},label=def.label||'Garment';
+  const heading=document.querySelector('#cutoutGuide3B .cutout-guide-head strong');if(heading)heading.textContent=label+' Guide';
   const show=document.getElementById('cutoutGuideShow3B');if(show){show.textContent=visible?'Hide Guide':'Show Guide';show.classList.toggle('active',visible);}
   const edit=document.getElementById('cutoutGuideEdit3B');if(edit){edit.textContent=editing?'Editing Guide':'Edit Guide';edit.classList.toggle('active',editing);}
   const lock=document.getElementById('cutoutGuideLock3B');if(lock){lock.textContent=locked?'Locked':'Lock';lock.classList.toggle('active',locked);}
   const status=document.querySelector('#cutoutGuide3B .cutout-guide-status');if(status){status.classList.toggle('applied',g.applied&&!g.dirty);status.textContent=g.dirty?(g.applied?'Changed · reapply':'Changed · apply'):g.applied?'✓ Applied':'Not applied';}
-  const apply=document.getElementById('cutoutGuideApply3B');if(apply){apply.textContent=g.applied?'Reapply Shirt Guide':'Apply Shirt Guide';apply.classList.toggle('dirty',!!g.dirty);}
+  const apply=document.getElementById('cutoutGuideApply3B');if(apply){apply.textContent=(g.applied?'Reapply ':'Apply ')+label+' Guide';apply.classList.toggle('dirty',!!g.dirty);}
 }
 function syncOverlay(){
   const s=currentState(),o=document.getElementById('cutoutShirtOverlay3B'),c=canvas();if(!o||!c)return;
@@ -176,7 +183,7 @@ openPhotoStudio=async function(t='item'){
   workflowUi=s?.workflow||'easy';
   // Existing Guided items reopen with a clean garment view; geometry remains stored.
   visible=false;editing=false;locked=false;
-  if(s?.workflow==='guided'&&!s.guide){updateState(x=>{x.guide=newShirtGuide();});}
+  if(s?.workflow==='guided'&&!s.guide){updateState(x=>{x.guide=newGuide('shirt');});}
   sync();return out;
 };
 
@@ -184,5 +191,5 @@ if(typeof renderStudio==='function'){
   const render0=renderStudio;renderStudio=async function(){const out=await render0.apply(this,arguments);syncOverlay();return out;};
 }
 
-window.__audreyCutoutWorkflow3B={phase:'3B-fix1',get visible(){return visible;},get editing(){return editing;},selectWorkflow,resetGuide,applyGuideState,sync};
+window.__audreyCutoutWorkflow3B={phase:'3B-generic1',get visible(){return visible;},get editing(){return editing;},selectWorkflow,resetGuide,applyGuideState,sync};
 })();
