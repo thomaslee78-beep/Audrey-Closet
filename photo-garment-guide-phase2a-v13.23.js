@@ -39,9 +39,10 @@
 
     const panel=document.getElementById('studioGarmentGuidePanel');
     const badge=panel?.querySelector('.studio-garment-guide-head small');
-    if(badge)badge.textContent='Phase 2A';
+    if(badge&&badge.textContent!=='Phase 2A')badge.textContent='Phase 2A';
     const note=panel?.querySelector('.studio-garment-guide-note');
-    if(note)note.textContent='Drag the guide to move it, use the lower-right handle to resize, the top handle to rotate, and the small dots to refine shoulders, sleeves, armpits and hem. Lock position when you only want to edit the dots.';
+    const text='Drag the guide to move it, use the lower-right handle to resize, the top handle to rotate, and the small dots to refine shoulders, sleeves, armpits and hem. Lock position when you only want to edit the dots.';
+    if(note&&note.textContent!==text)note.textContent=text;
 
     if(window.__audreyGarmentGuidePreview){
       window.__audreyGarmentGuidePreview.phase='2A';
@@ -49,13 +50,21 @@
     return true;
   }
 
-  const observer=new MutationObserver(()=>install());
-  const start=()=>{
-    install();
-    observer.observe(document.body,{childList:true,subtree:true});
-  };
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});
-  else start();
+  // Phase 2A previously watched the entire document with MutationObserver.
+  // That could self-trigger when install() updated the badge/note and create a
+  // continuous DOM mutation loop. Phase 1F already owns Photo Studio creation,
+  // so install the two additional handles only after Photo Studio opens.
+  if(typeof openPhotoStudio==='function'){
+    const openPhotoStudioPhase2A=openPhotoStudio;
+    openPhotoStudio=async function(){
+      const result=await openPhotoStudioPhase2A.apply(this,arguments);
+      install();
+      return result;
+    };
+  }
+
+  // Supports hot-loading the module while Photo Studio is already open.
+  install();
 
   window.__audreyGarmentGuidePhase2A={
     phase:'2A',
