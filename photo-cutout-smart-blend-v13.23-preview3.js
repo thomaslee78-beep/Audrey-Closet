@@ -4,12 +4,20 @@
  * that result using boundary continuity, local edge strength, foreground color
  * continuity, and separation from the estimated background. Center likelihood
  * is intentionally weighted more heavily than in the first Smart Blend pass.
+ *
+ * Phase 1 tuning adds three session-level controls:
+ * - Keep Subject: increases center protection and lowers rescue thresholds.
+ * - Clean Edges: makes boundary cleanup more selective/aggressive.
+ * - Recover Detail: increases continuity-based recovery of thin/missing pixels.
  */
 (function(){
   'use strict';
 
   let smartBlendSelected=false;
   let savedApi=null;
+  const BLEND_DEFAULTS={keep:90,clean:25,recover:20};
+  const blendControls={...BLEND_DEFAULTS};
+  let blendRefreshTimer=0;
 
   function sourceForBlend(){
     if(typeof studioTarget!=='undefined'&&studioTarget==='wish'){
@@ -19,6 +27,7 @@
   }
 
   function luma(data,i){return data[i]*.2126+data[i+1]*.7152+data[i+2]*.0722;}
+  function control01(name){return Math.max(0,Math.min(1,(Number(blendControls[name])||0)/100));}
 
   function estimateBorderColor(data,w,h){
     const band=Math.max(2,Math.round(Math.min(w,h)*.035));
@@ -42,12 +51,74 @@
       blend.classList.toggle('active',smartBlendSelected);
       blend.setAttribute('aria-pressed',smartBlendSelected?'true':'false');
     }
+    const controls=document.getElementById('studioSmartBlendPhase1');
+    if(controls)controls.classList.toggle('hidden',!smartBlendSelected);
     if(smartBlendSelected){
       root.querySelectorAll('[data-cutout-method]').forEach(btn=>{
         if(btn!==blend){btn.classList.remove('active');btn.setAttribute('aria-pressed','false');}
       });
       const help=root.querySelector('.studio-cutout-method-help');
-      if(help)help.textContent='Starts with a Center Focus rescue, then blends boundary, edge, color, and region-continuity clues with extra weight on the centered subject.';
+      if(help)help.textContent='Smart Blend starts with Center Focus protection. Use Keep Subject, Clean Edges, and Recover Detail to tune the result.';
+    }
+    [['keep','Keep'],['clean','Clean'],['recover','Recover']].forEach(([key,id])=>{
+      const input=document.getElementById('studioBlend'+id);
+      const output=document.getElementById('studioBlend'+id+'Value');
+      if(input&&Number(input.value)!==blendControls[key])input.value=String(blendControls[key]);
+      if(output)output.textContent=String(blendControls[key]);
+    });
+  }
+
+  function scheduleBlendRefresh(){
+    clearTimeout(blendRefreshTimer);
+    if(!smartBlendSelected||typeof studioMode==='undefined'||studioMode==='original')return;
+    blendRefreshTimer=setTimeout(()=>{
+      if(smartBlendSelected&&typeof applyStudioMode==='function')applyStudioMode(studioMode,{showBusy:false});
+    },110);
+  }
+
+  function installBlendControls(){
+    const root=document.getElementById('studioCutoutMethods');
+    if(!root||document.getElementById('studioSmartBlendPhase1'))return;
+    const panel=document.createElement('div');
+    panel.id='studioSmartBlendPhase1';
+    panel.className='studio-smart-blend-phase1 hidden';
+    panel.innerHTML=
+      '<div class="studio-smart-blend-phase1-head"><strong>Smart Blend controls</strong><small>Phase 1</small></div>'+
+      '<label><span>Keep Subject <output id="studioBlendKeepValue">90</output></span><input id="studioBlendKeep" type="range" min="0" max="100" value="90"></label>'+
+      '<label><span>Clean Edges <output id="studioBlendCleanValue">25</output></span><input id="studioBlendClean" type="range" min="0" max="100" value="25"></label>'+
+      '<label><span>Recover Detail <output id="studioBlendRecoverValue">20</output></span><input id="studioBlendRecover" type="range" min="0" max="100" value="20"></label>'+
+      '<button type="button" class="text-btn studio-smart-blend-reset" id="studioBlendReset">Reset blend</button>';
+    root.appendChild(panel);
+
+    [['keep','Keep'],['clean','Clean'],['recover','Recover']].forEach(([key,id])=>{
+      const input=document.getElementById('studioBlend'+id);
+      input?.addEventListener('input',()=>{
+        blendControls[key]=Math.max(0,Math.min(100,Number(input.value)||0));
+        updateBlendUI();
+        scheduleBlendRefresh();
+      });
+    });
+    document.getElementById('studioBlendReset')?.addEventListener('click',()=>{
+      Object.assign(blendControls,BLEND_DEFAULTS);
+      updateBlendUI();
+      scheduleBlendRefresh();
+    });
+
+    if(!document.getElementById('studioSmartBlendPhase1Styles')){
+      const style=document.createElement('style');
+      style.id='studioSmartBlendPhase1Styles';
+      style.textContent=
+        '.studio-smart-blend-phase1{display:grid;gap:9px;margin-top:9px;padding:10px;border:1px solid rgba(108,81,66,.14);border-radius:13px;background:rgba(255,250,240,.74)}'+
+        '.studio-smart-blend-phase1.hidden{display:none!important}'+
+        '.studio-smart-blend-phase1-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px}'+
+        '.studio-smart-blend-phase1-head strong{font-size:12px;color:var(--ink)}'+
+        '.studio-smart-blend-phase1-head small{font-size:9px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#8a7c6e}'+
+        '.studio-smart-blend-phase1 label{display:grid;gap:4px}'+
+        '.studio-smart-blend-phase1 label>span{display:flex;justify-content:space-between;gap:8px;font-size:10px;font-weight:800;color:#675d52}'+
+        '.studio-smart-blend-phase1 output{font-variant-numeric:tabular-nums;color:#7d3547}'+
+        '.studio-smart-blend-phase1 input[type="range"]{width:100%;accent-color:var(--olive)}'+
+        '.studio-smart-blend-reset{justify-self:end;padding:3px 0;font-size:10px}';
+      document.head.appendChild(style);
     }
   }
 
@@ -63,6 +134,7 @@
       const standard=root.querySelector('[data-cutout-method="standard"]');
       if(standard&&!standard.classList.contains('active'))standard.click();
       smartBlendSelected=true;
+      installBlendControls();
       updateBlendUI();
       if(typeof studioMode!=='undefined'&&studioMode!=='original'&&typeof applyStudioMode==='function'){
         await applyStudioMode(studioMode);
@@ -73,7 +145,9 @@
   function applyCenterBiasRescue(s,c,bg,w,h,mode){
     const cx=(w-1)/2,cy=(h-1)/2;
     const rx=Math.max(1,w*.47),ry=Math.max(1,h*.53);
-    const threshold=mode==='clean'?.47:.50;
+    const keep=control01('keep');
+    const recover=control01('recover');
+    const threshold=(mode==='clean'?.47:.50)-keep*.08-recover*.025;
     let rescued=0;
 
     for(let y=2;y<h-2;y++){
@@ -93,13 +167,14 @@
         const left=(y*w+(x-2))*4,right=(y*w+(x+2))*4,up=((y-2)*w+x)*4,down=((y+2)*w+x)*4;
         const edgeSignal=Math.min(1,Math.max(Math.abs(luma(s,left)-luma(s,right)),Math.abs(luma(s,up)-luma(s,down)))/34);
 
-        // Option C: use Center Focus as the first rescue layer, with stronger
-        // center weighting than the standalone preview method.
-        const score=centerSignal*.72+backgroundSignal*.17+edgeSignal*.11;
+        const centerWeight=.58+keep*.24;
+        const remaining=1-centerWeight;
+        const score=centerSignal*centerWeight+backgroundSignal*(remaining*.60)+edgeSignal*(remaining*.40);
         if(score<threshold)continue;
 
         const confidence=Math.min(1,(score-threshold)/(1-threshold));
-        const alpha=Math.round(Math.max(95,Math.min(235,105+centerSignal*75+confidence*70)));
+        const alphaBoost=18*keep+22*recover;
+        const alpha=Math.round(Math.max(95,Math.min(245,100+centerSignal*(68+28*keep)+confidence*(62+22*recover)+alphaBoost)));
         c[i]=s[i];c[i+1]=s[i+1];c[i+2]=s[i+2];c[i+3]=Math.max(c[i+3],alpha);
         rescued++;
       }
@@ -122,10 +197,10 @@
     const srcImage=sourceCtx.getImageData(0,0,w,h),cutImage=cutCtx.getImageData(0,0,w,h);
     const s=srcImage.data,c=cutImage.data,bg=estimateBorderColor(s,w,h);
     const cx=(w-1)/2,cy=(h-1)/2,rx=w*.50,ry=h*.56;
-    const radius=mode==='clean'?3:2;
+    const clean=control01('clean'),recover=control01('recover'),keep=control01('keep');
+    const radius=clean>.62?4:(mode==='clean'?3:2);
     const additions=[];
 
-    // Option C pipeline: Standard -> Center Focus-style rescue -> Smart Blend.
     const centerRescued=applyCenterBiasRescue(s,c,bg,w,h,mode);
 
     for(let y=radius+2;y<h-radius-2;y++){
@@ -156,29 +231,34 @@
         let continuitySignal=0;
         if(best>=0){
           const rr=s[i]-s[best],gg=s[i+1]-s[best+1],bb=s[i+2]-s[best+2];
-          continuitySignal=1-Math.min(1,Math.sqrt(rr*rr+gg*gg+bb*bb)/(mode==='clean'?58:50));
+          const tolerance=(mode==='clean'?58:50)+(recover*20)-(clean*9);
+          continuitySignal=1-Math.min(1,Math.sqrt(rr*rr+gg*gg+bb*bb)/Math.max(28,tolerance));
         }
 
         const votes=[
-          centerSignal>.36,
-          edgeSignal>.34,
-          boundarySignal>.30,
-          continuitySignal>.48,
-          backgroundSignal>.42
+          centerSignal>(.40-keep*.08),
+          edgeSignal>(.30+clean*.10),
+          boundarySignal>(.25+clean*.12),
+          continuitySignal>(.52-recover*.16),
+          backgroundSignal>(.38+clean*.10)
         ].filter(Boolean).length;
 
-        // Center-near pixels are allowed through with two agreeing clues; pixels
-        // farther from center still require the original three-vote consensus.
-        if(votes<3&&centerSignal<.66)continue;
+        const centerPass=.72-keep*.12;
+        if(votes<3&&centerSignal<centerPass)continue;
         if(votes<2)continue;
-        if(!near||(!strong&&centerSignal<.64))continue;
+        if(!near||(!strong&&centerSignal<centerPass-.02))continue;
 
-        const score=centerSignal*.34+edgeSignal*.16+boundarySignal*.18+continuitySignal*.20+backgroundSignal*.12;
-        const threshold=mode==='clean'?.45:.48;
+        const centerWeight=.27+keep*.13;
+        const edgeWeight=.13+clean*.08;
+        const boundaryWeight=.14+clean*.08;
+        const continuityWeight=.16+recover*.10;
+        const backgroundWeight=Math.max(.07,1-centerWeight-edgeWeight-boundaryWeight-continuityWeight);
+        const score=centerSignal*centerWeight+edgeSignal*edgeWeight+boundarySignal*boundaryWeight+continuitySignal*continuityWeight+backgroundSignal*backgroundWeight;
+        const threshold=(mode==='clean'?.45:.48)+clean*.035-recover*.025-keep*.018;
         if(score<threshold)continue;
 
         const confidence=Math.min(1,(score-threshold)/(1-threshold));
-        const alpha=Math.round(Math.max(90,Math.min(242,100+confidence*112+centerSignal*22+Math.min(28,strong*3))));
+        const alpha=Math.round(Math.max(86,Math.min(245,94+confidence*(106+recover*18)+centerSignal*(18+keep*12)+Math.min(32,strong*(2.5+clean)))));
         additions.push([i,alpha]);
       }
     }
@@ -190,6 +270,7 @@
     if(!centerRescued&&!additions.length)return false;
     cutCtx.putImageData(cutImage,0,0);
     rebuildStudioWorkCanvas();
+    window.__audreySmartBlendPhase1={keep:blendControls.keep,clean:blendControls.clean,recover:blendControls.recover,centerRescued,detailRescued:additions.length};
     return true;
   }
 
@@ -200,7 +281,7 @@
       ...previousApi,
       phase:5,
       getMethod:()=>smartBlendSelected?'blend':previousApi.getMethod(),
-      methods:(previousApi.methods||[]).map(x=>x.id==='blend'?{...x,enabled:true,help:'Starts with a Center Focus rescue, then blends several subject clues with extra center weighting.'}:x)
+      methods:(previousApi.methods||[]).map(x=>x.id==='blend'?{...x,enabled:true,help:'Starts with Center Focus protection, then blends several subject clues. Phase 1 adds Keep Subject, Clean Edges, and Recover Detail controls.'}:x)
     };
   }
 
@@ -211,6 +292,7 @@
     smartBlendSelected=!!(saved&&saved.cutoutMethod==='blend');
     const result=await openBeforeBlend.apply(this,arguments);
     installBlendButton();
+    installBlendControls();
     updateBlendUI();
     return result;
   };
@@ -222,7 +304,7 @@
       try{
         const improved=await applySmartBlend(mode);
         if(improved&&document.getElementById('studioStatus')){
-          document.getElementById('studioStatus').textContent='Smart Blend applied. Center Focus protection ran first, then the other subject clues refined the recovered detail.';
+          document.getElementById('studioStatus').textContent='Smart Blend applied. Tune Keep Subject, Clean Edges, or Recover Detail to refine this cutout.';
         }
       }catch(error){
         console.error('Smart Blend preview failed',error);
