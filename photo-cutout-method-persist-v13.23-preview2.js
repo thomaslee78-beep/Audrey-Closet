@@ -7,7 +7,7 @@
 
   function currentMethod(){
     const value=window.__audreyCutoutMethodPreview?.getMethod?.();
-    return ['standard','center','edge','grow','blend'].includes(value)?value:'standard';
+    return ['standard','center','edge','grow'].includes(value)?value:'standard';
   }
 
   function stampWorkingStudioState(target){
