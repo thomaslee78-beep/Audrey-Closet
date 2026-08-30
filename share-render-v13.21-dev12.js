@@ -7,7 +7,7 @@
   'use strict';
 
   const HOTFIX='13.23.6.3-photo-fixes';
-  const BG_PREVIEW='13.23-bg-phase1d';
+  const BG_PREVIEW='13.23-bg-phase1e';
   document.write('<script src="share-render-v13.21-dev12-core.js?v='+HOTFIX+'"><\/script>');
 
   const modules=[
