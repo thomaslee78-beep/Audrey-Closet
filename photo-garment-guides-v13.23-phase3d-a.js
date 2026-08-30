@@ -19,9 +19,9 @@ const TEMPLATES=[
     defaultTransform:{...DEF_TRANSFORM}
   },
   {
-    id:'long-sleeve-shirt',label:'Long-Sleeve Shirt',geometryVersion:1,
-    defaultPoints:[[.30,.05],[.42,0],[.58,0],[.70,.05],[.98,.16],[.92,.72],[.76,.68],[.73,1],[.27,1],[.24,.68],[.08,.72],[.02,.16]],
-    pointLabels:['Left shoulder','Left neck','Right neck','Right shoulder','Right outer sleeve','Right cuff','Right underarm','Right hem','Left hem','Left underarm','Left cuff','Left outer sleeve'],
+    id:'long-sleeve-shirt',label:'Long-Sleeve Shirt',geometryVersion:2,
+    defaultPoints:[[.30,.05],[.42,0],[.58,0],[.70,.05],[.98,.19],[.94,.86],[.79,.85],[.73,.34],[.69,1],[.31,1],[.27,.34],[.21,.85],[.06,.86],[.02,.19]],
+    pointLabels:['Left shoulder','Left neck','Right neck','Right shoulder','Right outer sleeve','Right outer cuff','Right inner cuff','Right underarm','Right hem','Left hem','Left underarm','Left inner cuff','Left outer cuff','Left outer sleeve'],
     defaultTransform:{x:360,y:360,width:360,height:470,rotation:0}
   },
   {
@@ -90,6 +90,31 @@ function createGuide(id='shirt',{transform=null,protection=70}={}){
   };
 }
 
+function migrateLegacyLongSleeve(){
+  const api=stateApi(),current=api?.getState?.(),def=byId.get('long-sleeve-shirt');
+  const guide=current?.guide;
+  if(!api||!current||!def||guide?.type!=='long-sleeve-shirt')return false;
+  const pointCount=Array.isArray(guide.points)?guide.points.length:0;
+  const version=Number.isFinite(Number(guide.geometryVersion))?Number(guide.geometryVersion):1;
+  if(version>=def.geometryVersion&&pointCount===def.defaultPoints.length)return false;
+  const next=clone(current);
+  // Phase 3D-B refinement: keep the user's placement/protection, but old 12-point
+  // Long-Sleeve geometry cannot be safely mapped to the new cuff/underarm anchors.
+  // Reseed only the polygon and clear applied protection/base state.
+  next.workflow='guided';
+  next.guide={
+    ...next.guide,
+    geometryVersion:def.geometryVersion,
+    points:clone(def.defaultPoints),
+    applied:false,
+    dirty:false,
+    appliedShape:null,
+    baseResult:''
+  };
+  api.persist?.(undefined,next);
+  return true;
+}
+
 function pointHost(){return document.getElementById('cutoutShirtOverlay3B');}
 function activeGuide(){return stateApi()?.getState?.()?.guide||null;}
 function reconcilePointControls(){
@@ -119,6 +144,7 @@ const open0=openPhotoStudio;
 openPhotoStudio=async function(){
   const out=await open0.apply(this,arguments);
   registerTemplates();
+  migrateLegacyLongSleeve();
   reconcilePointControls();
   workflowApi()?.sync?.();
   return out;
@@ -130,14 +156,14 @@ if(workflow?.sync){
   workflow.sync=function(){const out=sync0.apply(this,arguments);reconcilePointControls();return out;};
 }
 
-// Phase 3D-B will use this public seam for template selection. No picker or
-// template-switching behavior is introduced in 3D-A.
+// Phase 3D-B uses this public seam for template selection.
 window.__audreyGarmentGuides={
-  phase:'3D-A1',
+  phase:'3D-A2',
   getTemplates:()=>TEMPLATES.map(clone),
   getTemplate,
   createGuide,
   registerTemplates,
+  migrateLegacyLongSleeve,
   reconcilePointControls
 };
 })();
