@@ -1,7 +1,7 @@
 /* Audrey Closet v13.23 Cutout Phase 3C — Guided/manual-tool handoff.
  * Selecting Erase or Restore while the Shirt Guide is visible hides only the
  * transient guide overlay so the manual brush can own canvas input immediately.
- * Canonical Guided state, guide geometry, appliedShape and saved base are untouched.
+ * Canonical Guided state, guide geometry, protected-shape data and saved base are untouched.
  */
 (function(){
 'use strict';
