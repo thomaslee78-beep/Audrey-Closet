@@ -7,7 +7,7 @@
   'use strict';
 
   const HOTFIX='13.23.6.3-photo-fixes';
-  const BG_PREVIEW='13.23-bg-phase2c';
+  const BG_PREVIEW='13.23-cutout-phase3a';
   document.write('<script src="share-render-v13.21-dev12-core.js?v='+HOTFIX+'"><\/script>');
 
   const modules=[
@@ -33,10 +33,7 @@
     'photo-studio-bugfix-v13.23.6.3.js?v='+HOTFIX,
     'photo-upload-v13.23.6.3.js?v='+HOTFIX,
     'photo-cutout-methods-v13.23-preview1.js?v='+BG_PREVIEW,
-    'photo-cutout-method-persist-v13.23-preview2.js?v='+BG_PREVIEW,
-    'photo-garment-guide-v13.23-preview2b.js?v='+BG_PREVIEW,
-    'photo-garment-guide-phase2b-persist-fix-v13.23.js?v='+BG_PREVIEW,
-    'photo-garment-guide-phase2c-state-v13.23.js?v='+BG_PREVIEW,
+    'photo-cutout-state-v13.23-phase3a.js?v='+BG_PREVIEW,
     'share-modal-lock-v13.23.3.js?v='+HOTFIX
   ];
 
