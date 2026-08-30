@@ -7,7 +7,7 @@
   'use strict';
 
   const HOTFIX='13.23.6.3-photo-fixes';
-  const BG_PREVIEW='13.23-cutout-phase3d-a1';
+  const BG_PREVIEW='13.23-cutout-phase3d-b1';
   document.write('<script src="share-render-v13.21-dev12-core.js?v='+HOTFIX+'"><\/script>');
 
   const modules=[
@@ -40,6 +40,7 @@
     'photo-cutout-save-restore-v13.23-phase3c.js?v='+BG_PREVIEW,
     'photo-guided-manual-tools-v13.23-phase3c.js?v='+BG_PREVIEW,
     'photo-garment-guides-v13.23-phase3d-a.js?v='+BG_PREVIEW,
+    'photo-garment-template-picker-v13.23-phase3d-b.js?v='+BG_PREVIEW,
     'share-modal-lock-v13.23.3.js?v='+HOTFIX
   ];
 
