@@ -1,7 +1,6 @@
-/* Audrey Closet v13.23 Cutout Phase 3D-A — garment guide registry + dynamic points.
- * Registers garment template geometry without changing the Phase 3C cutout engine.
- * Reconciles edit handles from the active guide definition so point counts are no
- * longer structurally tied to Shirt's original 10-point overlay.
+/* Audrey Closet v13.23 Cutout Phase 3D-C — garment guide registry + dynamic points.
+ * Extends the generic Phase 3D guide registry with Tank, Hoodie, Pants and Dress
+ * templates while leaving the Phase 3C cutout/protection engine unchanged.
  */
 (function(){
 'use strict';
@@ -25,21 +24,21 @@ const TEMPLATES=[
     defaultTransform:{x:360,y:360,width:360,height:470,rotation:0}
   },
   {
-    id:'tank',label:'Tank / Sleeveless Top',geometryVersion:1,
-    defaultPoints:[[.31,.02],[.43,0],[.45,.18],[.55,.18],[.57,0],[.69,.02],[.75,.26],[.72,1],[.28,1],[.25,.26]],
-    pointLabels:['Left shoulder outer','Left shoulder inner','Left armhole','Right armhole','Right shoulder inner','Right shoulder outer','Right side upper','Right hem','Left hem','Left side upper'],
+    id:'tank',label:'Tank',geometryVersion:2,
+    defaultPoints:[[.72,.04],[.87,.22],[.80,.36],[.77,1],[.23,1],[.20,.36],[.13,.22],[.28,.04],[.50,0]],
+    pointLabels:['Right strap outer','Right armhole upper','Right side','Right hem','Left hem','Left side','Left armhole upper','Left strap outer','Neck center'],
     defaultTransform:{x:360,y:360,width:300,height:430,rotation:0}
   },
   {
-    id:'hoodie',label:'Hoodie / Sweatshirt',geometryVersion:1,
-    defaultPoints:[[.36,.08],[.40,0],[.60,0],[.64,.08],[.72,.10],[.98,.20],[.92,.76],[.76,.70],[.72,1],[.28,1],[.24,.70],[.08,.76],[.02,.20],[.28,.10]],
-    pointLabels:['Left hood base','Left hood crown','Right hood crown','Right hood base','Right shoulder','Right outer sleeve','Right cuff','Right underarm','Right hem','Left hem','Left underarm','Left cuff','Left outer sleeve','Left shoulder'],
+    id:'hoodie',label:'Hoodie',geometryVersion:2,
+    defaultPoints:[[.50,0],[.69,.12],[.76,.28],[.88,.33],[.98,.82],[.87,.91],[.77,.72],[.71,1],[.29,1],[.23,.72],[.13,.91],[.02,.82],[.12,.33],[.24,.28],[.31,.12]],
+    pointLabels:['Hood apex','Right hood upper','Right neckline','Right shoulder','Right outer cuff','Right inner cuff','Right underarm','Right hem','Left hem','Left underarm','Left inner cuff','Left outer cuff','Left shoulder','Left neckline','Left hood upper'],
     defaultTransform:{x:360,y:360,width:370,height:480,rotation:0}
   },
   {
-    id:'pants',label:'Pants',geometryVersion:1,
-    defaultPoints:[[.27,0],[.73,0],[.78,.18],[.80,1],[.58,1],[.53,.48],[.50,.40],[.47,.48],[.42,1],[.20,1],[.22,.18],[.27,.08]],
-    pointLabels:['Left waist','Right waist','Right hip','Right outer ankle','Right inner ankle','Right inner thigh','Crotch right','Crotch left','Left inner ankle','Left outer ankle','Left hip','Left waist side'],
+    id:'pants',label:'Pants',geometryVersion:2,
+    defaultPoints:[[.74,0],[.82,.18],[.84,1],[.58,1],[.50,.42],[.42,1],[.16,1],[.18,.18],[.26,0]],
+    pointLabels:['Right waist','Right outer leg upper','Right outer hem','Right inner hem','Crotch','Left inner hem','Left outer hem','Left outer leg upper','Left waist'],
     defaultTransform:{x:360,y:365,width:310,height:520,rotation:0}
   },
   {
@@ -55,9 +54,9 @@ const TEMPLATES=[
     defaultTransform:{x:360,y:355,width:330,height:390,rotation:0}
   },
   {
-    id:'dress',label:'Dress',geometryVersion:1,
-    defaultPoints:[[.32,.02],[.43,0],[.57,0],[.68,.02],[.76,.22],[.64,.36],[.90,1],[.10,1],[.36,.36],[.24,.22]],
-    pointLabels:['Left shoulder','Left neck','Right neck','Right shoulder','Right upper side','Right waist','Right hem','Left hem','Left waist','Left upper side'],
+    id:'dress',label:'Dress',geometryVersion:2,
+    defaultPoints:[[.58,0],[.82,.06],[.88,.22],[.70,.31],[.66,.48],[.78,.76],[.86,1],[.14,1],[.22,.76],[.34,.48],[.30,.31],[.12,.22],[.18,.06],[.42,0]],
+    pointLabels:['Right neckline','Right sleeve tip','Right sleeve under','Right upper bodice','Right waist','Right skirt side','Right hem','Left hem','Left skirt side','Left waist','Left upper bodice','Left sleeve under','Left sleeve tip','Left neckline'],
     defaultTransform:{x:360,y:365,width:390,height:560,rotation:0}
   },
   {
@@ -90,17 +89,14 @@ function createGuide(id='shirt',{transform=null,protection=70}={}){
   };
 }
 
-function migrateLegacyLongSleeve(){
-  const api=stateApi(),current=api?.getState?.(),def=byId.get('long-sleeve-shirt');
-  const guide=current?.guide;
-  if(!api||!current||!def||guide?.type!=='long-sleeve-shirt')return false;
+function migrateLegacyGeometry(){
+  const api=stateApi(),current=api?.getState?.(),guide=current?.guide;
+  if(!api||!current||!guide)return false;
+  const def=byId.get(guide.type);if(!def)return false;
   const pointCount=Array.isArray(guide.points)?guide.points.length:0;
   const version=Number.isFinite(Number(guide.geometryVersion))?Number(guide.geometryVersion):1;
   if(version>=def.geometryVersion&&pointCount===def.defaultPoints.length)return false;
   const next=clone(current);
-  // Phase 3D-B refinement: keep the user's placement/protection, but old 12-point
-  // Long-Sleeve geometry cannot be safely mapped to the new cuff/underarm anchors.
-  // Reseed only the polygon and clear applied protection/base state.
   next.workflow='guided';
   next.guide={
     ...next.guide,
@@ -115,6 +111,7 @@ function migrateLegacyLongSleeve(){
   return true;
 }
 
+function migrateLegacyLongSleeve(){return migrateLegacyGeometry();}
 function pointHost(){return document.getElementById('cutoutShirtOverlay3B');}
 function activeGuide(){return stateApi()?.getState?.()?.guide||null;}
 function reconcilePointControls(){
@@ -144,7 +141,7 @@ const open0=openPhotoStudio;
 openPhotoStudio=async function(){
   const out=await open0.apply(this,arguments);
   registerTemplates();
-  migrateLegacyLongSleeve();
+  migrateLegacyGeometry();
   reconcilePointControls();
   workflowApi()?.sync?.();
   return out;
@@ -156,13 +153,13 @@ if(workflow?.sync){
   workflow.sync=function(){const out=sync0.apply(this,arguments);reconcilePointControls();return out;};
 }
 
-// Phase 3D-B uses this public seam for template selection.
 window.__audreyGarmentGuides={
-  phase:'3D-A2',
+  phase:'3D-C1',
   getTemplates:()=>TEMPLATES.map(clone),
   getTemplate,
   createGuide,
   registerTemplates,
+  migrateLegacyGeometry,
   migrateLegacyLongSleeve,
   reconcilePointControls
 };
