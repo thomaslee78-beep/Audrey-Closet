@@ -115,7 +115,18 @@
   const mode0=applyStudioMode;
   applyStudioMode=async function(mode,options){const out=await mode0.apply(this,arguments);if(opening)return out;const t=target(),next=captureRuntime(t);if(mode==='original'){next.algorithm='original';next.baseResult='';}persist(t,next);return out;};
   const applyPhoto0=applyPhotoStudio;
-  applyPhotoStudio=async function(){const t=target();captureRuntime(t);persist(t);const out=await applyPhoto0.apply(this,arguments);const next=captureRuntime(t);persist(t,next);return out;};
+  applyPhotoStudio=async function(){
+    const t=target(),committed=captureRuntime(t);
+    // "Use this photo" is a draft-session commit boundary. The core Photo Studio
+    // writes its legacy v3 state while producing the flattened preview image, so
+    // keep one canonical snapshot from immediately before that write and restamp
+    // it afterward. The core state remains the source for transform/adjustment/bg
+    // fields; the canonical snapshot remains the source for Guided/cutout/masks.
+    persist(t,committed);
+    const out=await applyPhoto0.apply(this,arguments);
+    persist(t,committed);
+    return out;
+  };
   const saveItem0=saveItem;saveItem=async function(){captureRuntime('item');persist('item');return saveItem0.apply(this,arguments);};
   const saveWish0=saveWish;saveWish=async function(){captureRuntime('wish');persist('wish');return saveWish0.apply(this,arguments);};
 
@@ -124,5 +135,5 @@
     restoreCapturedOriginal=function(){const out=restoreOriginal0.apply(this,arguments);resetTarget('item');return out;};
   }
 
-  window.__audreyCutoutState={phase:'3A-fix3',version:STATE_VERSION,registerGuideType,getGuideTypes:()=>[...guideTypes.values()].map(clone),normalizeGuide,normalizeCutout,getState:(t=target())=>clone(active[t]||normalizeCutout(rawState(t))),persist,resetTarget,emptyCutout};
+  window.__audreyCutoutState={phase:'3A-fix4',version:STATE_VERSION,registerGuideType,getGuideTypes:()=>[...guideTypes.values()].map(clone),normalizeGuide,normalizeCutout,getState:(t=target())=>clone(active[t]||normalizeCutout(rawState(t))),persist,resetTarget,emptyCutout};
 })();
