@@ -3,7 +3,6 @@
  * Center Focus rescues likely centered subject pixels.
  * Edge Guide rescues subtle subject detail near detected boundaries/shadows.
  * Subject Grow expands outward only from confident foreground using source-color continuity.
- * Smart Blend remains disabled.
  */
 (function(){
   'use strict';
@@ -12,8 +11,7 @@
     {id:'standard',label:'Standard',help:'Uses the current background removal method.',enabled:true},
     {id:'center',label:'Center Focus',help:'Protects likely subject pixels near the center after the normal cutout pass.',enabled:true},
     {id:'edge',label:'Edge Guide',help:'Protects subtle outlines and shadow-adjacent subject detail.',enabled:true},
-    {id:'grow',label:'Subject Grow',help:'Grows outward from confident garment pixels when nearby source colors still look like the subject.',enabled:true},
-    {id:'blend',label:'Smart Blend',help:'Combines several subject clues.',enabled:false}
+    {id:'grow',label:'Subject Grow',help:'Grows outward from confident garment pixels when nearby source colors still look like the subject.',enabled:true}
   ];
 
   let studioCutoutMethod='standard';
@@ -46,7 +44,7 @@
     const root=document.getElementById('studioCutoutMethods');if(!root)return;
     root.classList.toggle('is-original',typeof studioMode!=='undefined'&&studioMode==='original');
     root.querySelectorAll('[data-cutout-method]').forEach(btn=>{const active=btn.dataset.cutoutMethod===studioCutoutMethod;btn.classList.toggle('active',active);btn.setAttribute('aria-pressed',active?'true':'false');});
-    const help=root.querySelector('.studio-cutout-method-help');if(help)help.textContent=methodDef().help+(methodDef().enabled?'':' Coming in a later preview phase.');
+    const help=root.querySelector('.studio-cutout-method-help');if(help)help.textContent=methodDef().help;
   }
   function installMethodUI(){
     if(document.getElementById('studioCutoutMethods')){syncMethodUI();return;}
