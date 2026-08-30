@@ -1,0 +1,252 @@
+/* Audrey Closet v13.23 Cutout Phase 3A — canonical Cutout state.
+ * Foundation only: one versioned state model, generic garment-guide schema,
+ * legacy normalization, and restore-only reopen. UI redesign comes in Phase 3B.
+ */
+(function(){
+  'use strict';
+
+  const STATE_VERSION=1;
+  const GUIDE_SCHEMA_VERSION=1;
+  const METHODS=new Set(['standard','center','edge','grow']);
+  const ALGORITHMS=new Set(['original','quick','clean']);
+  const WORKFLOWS=new Set(['easy','guided']);
+  const LEGACY12_TO_10=[0,1,2,3,4,6,7,8,9,11];
+  const SHIRT_DEFAULT_POINTS=[[.30,.05],[.42,0],[.58,0],[.70,.05],[.96,.22],[.73,.32],[.73,1],[.27,1],[.27,.32],[.04,.22]];
+  const guideTypes=new Map();
+  let opening=false;
+  let active={item:null,wish:null};
+
+  const target=()=>typeof studioTarget!=='undefined'&&studioTarget==='wish'?'wish':'item';
+  const rawState=t=>t==='wish'?wishStudioState:itemStudioState;
+  const setRawState=(t,v)=>{if(t==='wish')wishStudioState=v;else itemStudioState=v;};
+  const clone=v=>v==null?v:JSON.parse(JSON.stringify(v));
+  const finite=(v,f)=>Number.isFinite(Number(v))?Number(v):f;
+  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+  const dataImage=v=>typeof v==='string'&&v.startsWith('data:image/')?v:'';
+
+  function registerGuideType(def){
+    if(!def||typeof def.id!=='string'||!def.id)return false;
+    const normalized={
+      id:def.id,
+      label:def.label||def.id,
+      geometryVersion:finite(def.geometryVersion,1),
+      defaultPoints:Array.isArray(def.defaultPoints)?clone(def.defaultPoints):[],
+      pointLabels:Array.isArray(def.pointLabels)?[...def.pointLabels]:[]
+    };
+    guideTypes.set(normalized.id,normalized);return true;
+  }
+  registerGuideType({
+    id:'shirt',label:'Shirt',geometryVersion:2,
+    defaultPoints:SHIRT_DEFAULT_POINTS,
+    pointLabels:['Left shoulder','Left neck','Right neck','Right shoulder','Right sleeve tip','Right underarm','Right hem','Left hem','Left underarm','Left sleeve tip']
+  });
+
+  function normalizePoint(p,fallback=[.5,.5]){
+    if(!Array.isArray(p)||p.length<2)return [...fallback];
+    return [clamp(finite(p[0],fallback[0]),-3,4),clamp(finite(p[1],fallback[1]),-3,4)];
+  }
+  function normalizeGuidePoints(type,points){
+    const def=guideTypes.get(type);
+    if(type==='shirt'&&Array.isArray(points)&&points.length===12){
+      return LEGACY12_TO_10.map((oldIndex,i)=>normalizePoint(points[oldIndex],SHIRT_DEFAULT_POINTS[i]));
+    }
+    if(Array.isArray(points)&&points.length){
+      return points.map((p,i)=>normalizePoint(p,def?.defaultPoints?.[i]||[.5,.5]));
+    }
+    return clone(def?.defaultPoints||[]);
+  }
+  function normalizeGuide(input){
+    if(!input||typeof input!=='object')return null;
+    const type=typeof input.type==='string'&&input.type?input.type:'shirt';
+    const def=guideTypes.get(type);
+    const accepted=dataImage(input.baseResult||input.committedBase||input.acceptedBase);
+    const applied=!!(input.applied||input.committedBase||input.acceptedBase);
+    return {
+      schemaVersion:GUIDE_SCHEMA_VERSION,
+      type,
+      geometryVersion:finite(input.geometryVersion,def?.geometryVersion||1),
+      applied,
+      dirty:!!input.dirty,
+      points:normalizeGuidePoints(type,input.points),
+      transform:{
+        x:finite(input.transform?.x??input.x,360),
+        y:finite(input.transform?.y??input.y,360),
+        width:clamp(finite(input.transform?.width??input.w,330),80,1200),
+        height:clamp(finite(input.transform?.height??input.h,430),80,1200),
+        rotation:finite(input.transform?.rotation??input.rotation,0)
+      },
+      protection:clamp(finite(input.protection,70),0,100),
+      baseResult:accepted
+    };
+  }
+
+  function emptyCutout(){
+    return {
+      version:STATE_VERSION,
+      workflow:'easy',
+      algorithm:'original',
+      method:'standard',
+      baseResult:'',
+      eraseMask:'',
+      restoreMask:'',
+      guide:null
+    };
+  }
+
+  function normalizeCutout(raw){
+    const existing=raw?.cutout&&typeof raw.cutout==='object'?raw.cutout:null;
+    if(existing){
+      const guide=normalizeGuide(existing.guide);
+      return {
+        version:STATE_VERSION,
+        workflow:WORKFLOWS.has(existing.workflow)?existing.workflow:(guide?'guided':'easy'),
+        algorithm:ALGORITHMS.has(existing.algorithm)?existing.algorithm:'original',
+        method:METHODS.has(existing.method)?existing.method:'standard',
+        baseResult:dataImage(existing.baseResult),
+        eraseMask:dataImage(existing.eraseMask||raw?.eraseMask),
+        restoreMask:dataImage(existing.restoreMask||raw?.restoreMask),
+        guide
+      };
+    }
+    const legacyGuide=normalizeGuide(raw?.garmentGuide);
+    const algorithm=ALGORITHMS.has(raw?.mode)?raw.mode:'original';
+    const method=METHODS.has(raw?.cutoutMethod)?raw.cutoutMethod:'standard';
+    const baseResult=dataImage(legacyGuide?.baseResult||raw?.cutoutBaseResult);
+    return {
+      version:STATE_VERSION,
+      workflow:legacyGuide?'guided':'easy',
+      algorithm,
+      method,
+      baseResult,
+      eraseMask:dataImage(raw?.eraseMask),
+      restoreMask:dataImage(raw?.restoreMask),
+      guide:legacyGuide
+    };
+  }
+
+  function compatibleState(raw,cutout,{forceOriginal=false}={}){
+    if(!raw||typeof raw!=='object')return null;
+    return {
+      ...raw,
+      mode:forceOriginal?'original':cutout.algorithm,
+      cutoutMethod:cutout.method,
+      eraseMask:cutout.eraseMask||raw.eraseMask||'',
+      restoreMask:cutout.restoreMask||raw.restoreMask||'',
+      cutout:clone(cutout)
+    };
+  }
+
+  function captureBase(){
+    if(!studioBaseCanvas)return '';
+    try{return studioBaseCanvas.toDataURL('image/png');}catch{return '';}
+  }
+
+  function captureRuntime(t=target()){
+    const raw=rawState(t);
+    const previous=active[t]||normalizeCutout(raw);
+    const algorithm=ALGORITHMS.has(studioMode)?studioMode:previous.algorithm;
+    const method=METHODS.has(window.__audreyCutoutMethodPreview?.getMethod?.())?window.__audreyCutoutMethodPreview.getMethod():previous.method;
+    const next={
+      ...previous,
+      version:STATE_VERSION,
+      algorithm,
+      method,
+      baseResult:algorithm==='original'?'':captureBase(),
+      eraseMask:typeof maskDataURL==='function'?dataImage(maskDataURL(studioManualEraseMask)):previous.eraseMask,
+      restoreMask:typeof maskDataURL==='function'?dataImage(maskDataURL(studioManualRestoreMask)):previous.restoreMask
+    };
+    active[t]=next;return next;
+  }
+
+  function persist(t=target(),cutout=active[t]||normalizeCutout(rawState(t))){
+    const raw=rawState(t);if(!raw||typeof raw!=='object')return null;
+    const next=compatibleState(raw,cutout);
+    setRawState(t,next);active[t]=clone(cutout);return next;
+  }
+
+  async function canvasFromData(src){
+    const img=await imageFrom(src),c=newStudioCanvas(),ctx=c.getContext('2d');
+    ctx.clearRect(0,0,720,720);ctx.drawImage(img,0,0,720,720);return c;
+  }
+
+  async function restoreCanonicalBase(cutout){
+    if(cutout.algorithm==='original'||!cutout.baseResult)return false;
+    try{
+      studioBaseCanvas=await canvasFromData(cutout.baseResult);
+      studioCutoutPhoto=cutout.baseResult;
+      rebuildStudioWorkCanvas();
+      return true;
+    }catch(err){console.error('Phase 3A canonical cutout restore failed',err);return false;}
+  }
+
+  function syncModeUi(cutout){
+    studioMode=cutout.algorithm;
+    document.querySelectorAll('.studio-mode').forEach(b=>b.classList.toggle('active',b.dataset.mode===cutout.algorithm));
+  }
+
+  const open0=openPhotoStudio;
+  openPhotoStudio=async function(t='item'){
+    const nt=t==='wish'?'wish':'item';
+    const before=rawState(nt);
+    const canonical=normalizeCutout(before);
+    active[nt]=clone(canonical);
+    const temporary=before?compatibleState(before,canonical,{forceOriginal:true}):before;
+    if(temporary)setRawState(nt,temporary);
+    opening=true;
+    try{
+      // Base Photo Studio may initialize Original, masks, transforms and adjustments,
+      // but Phase 3A deliberately prevents it from executing a saved cutout mode.
+      const out=await open0.apply(this,arguments);
+      if(before)setRawState(nt,compatibleState(before,canonical));
+      syncModeUi(canonical);
+      const restored=await restoreCanonicalBase(canonical);
+      if(!restored&&canonical.algorithm!=='original'){
+        // Legacy states without an exact base are never recomputed silently.
+        // Keep Original visible until the user explicitly reapplies Quick/Clean.
+        const fallback={...canonical,algorithm:'original',baseResult:''};
+        active[nt]=fallback;syncModeUi(fallback);persist(nt,fallback);
+        const status=document.getElementById('studioStatus');
+        if(status)status.textContent='Legacy cutout opened safely from Original. Reapply Quick or Clean once to create the new exact saved base.';
+      }else{
+        persist(nt,canonical);
+        const status=document.getElementById('studioStatus');
+        if(status&&canonical.algorithm!=='original')status.textContent='Saved cutout restored exactly. No background-removal algorithm was rerun.';
+      }
+      if(typeof renderStudio==='function')await renderStudio();
+      return out;
+    }finally{opening=false;}
+  };
+
+  const mode0=applyStudioMode;
+  applyStudioMode=async function(mode,options){
+    const out=await mode0.apply(this,arguments);
+    if(opening)return out;
+    const t=target(),next=captureRuntime(t);
+    if(mode==='original'){next.algorithm='original';next.baseResult='';}
+    persist(t,next);return out;
+  };
+
+  const applyPhoto0=applyPhotoStudio;
+  applyPhotoStudio=async function(){
+    const t=target();captureRuntime(t);persist(t);
+    const out=await applyPhoto0.apply(this,arguments);
+    // applyPhotoStudio replaces the base studio state; reattach canonical state last.
+    const next=captureRuntime(t);persist(t,next);return out;
+  };
+
+  const saveItem0=saveItem;
+  saveItem=async function(){captureRuntime('item');persist('item');return saveItem0.apply(this,arguments);};
+  const saveWish0=saveWish;
+  saveWish=async function(){captureRuntime('wish');persist('wish');return saveWish0.apply(this,arguments);};
+
+  window.__audreyCutoutState={
+    phase:'3A',version:STATE_VERSION,
+    registerGuideType,
+    getGuideTypes:()=>[...guideTypes.values()].map(clone),
+    normalizeGuide,
+    normalizeCutout,
+    getState:(t=target())=>clone(active[t]||normalizeCutout(rawState(t))),
+    persist,
+    emptyCutout
+  };
+})();
