@@ -1,4 +1,4 @@
-/* Audrey Closet v13.23 — Cutout UI Cleanup iteration 3.
+/* Audrey Closet v13.23 — Cutout UI Cleanup iteration 4.
  * Copy/layout refinement only. Keeps the underlying 25–80 processing sensitivity
  * range intact while presenting it to users as a clearer 0–100 UI scale.
  */
@@ -13,9 +13,11 @@ const toInternal=ui=>Math.round(25+clamp(Number(ui)||0,0,100)*55/100);
 function styles(){
   if(document.getElementById('cutoutUiCleanupIter2Styles'))return;
   const s=document.createElement('style');s.id='cutoutUiCleanupIter2Styles';s.textContent=`
-    #cutoutWorkflow3B .cutout-workflow-main{grid-template-columns:1fr!important;gap:5px!important}
-    #cutoutWorkflow3B .cutout-workflow-help{order:0}
-    #cutoutWorkflow3B .cutout-workflow-switch{order:1}
+    #cutoutWorkflow3B.cutout-ui-clean{gap:5px!important}
+    #cutoutWorkflow3B .cutout-workflow-3b-head{min-height:18px!important;margin:0!important}
+    #cutoutWorkflow3B .cutout-workflow-main{grid-template-columns:1fr!important;gap:4px!important}
+    #cutoutWorkflow3B .cutout-workflow-help{order:0;margin:0!important}
+    #cutoutWorkflow3B .cutout-workflow-switch{order:1;margin:0!important}
 
     #cutoutGuide3B .cutout-guide-note{order:1;margin:0 0 1px!important}
     #garmentTemplatePicker3D{order:2}
@@ -47,7 +49,9 @@ function polishCopyAndLayout(){
   const help=workflow?.querySelector('.cutout-workflow-help');
   if(help){
     const isGuided=window.__audreyCutoutState?.getState?.()?.workflow==='guided';
-    help.textContent=isGuided?'Use a garment outline when Automatic needs extra control around the item.':'Recommended for most photos. Choose Original, Quick or Clean for the cutout you prefer.';
+    help.textContent=isGuided
+      ?'Guided adds an editable garment outline which can be applied to protect the region, before applying a cutout method.'
+      :'Automatic is recommended for most photos. Choose Original, Quick, or Clean to apply a cutout to the photo.';
     if(main&&sw&&help.parentElement===main&&main.firstElementChild!==help)main.insertBefore(help,sw);
   }
 
@@ -59,7 +63,7 @@ function polishCopyAndLayout(){
   const note=guide?.querySelector('.cutout-guide-note');
   const picker=document.getElementById('garmentTemplatePicker3D');
   if(note){
-    note.textContent='Choose a Garment Shape, position the outline around the garment, then Apply.';
+    note.textContent='Choose a Garment Shape, position it around the garment, edit the outline, then click the Apply Guide button to protect the region before applying a cutout method such as Quick or Clean.';
     if(guideHead&&note.previousElementSibling!==guideHead)guideHead.insertAdjacentElement('afterend',note);
   }
   const pickerHeading=picker?.querySelector('.garment-template-picker-head strong');if(pickerHeading)pickerHeading.textContent='Garment Shape';
@@ -133,5 +137,5 @@ function bind(){
 const open0=openPhotoStudio;
 openPhotoStudio=async function(){const out=await open0.apply(this,arguments);sync();bind();return out;};
 
-window.__audreyCutoutUiCleanupIter2={phase:'cleanup3',sync,toUi,toInternal};
+window.__audreyCutoutUiCleanupIter2={phase:'cleanup4',sync,toUi,toInternal};
 })();
