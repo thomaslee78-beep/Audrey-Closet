@@ -1,12 +1,14 @@
 /* Audrey Closet v13.23.6.3 — production release bootstrap
  * Loads high-fidelity Share, shared Text Layout, accepted Decorate/Draw/Focus
  * runtime, Sticker compatibility, scaled full-size Portfolio Mini Fidelity,
- * accepted Photo Studio/upload bug fixes, and Share modal scroll locking.
+ * accepted Photo Studio/upload bug fixes, final Cutout release candidate,
+ * and Share modal scroll locking.
  */
 (function(){
   'use strict';
 
   const HOTFIX='13.23.6.3-photo-fixes';
+  const CUTOUT_RELEASE='13.23-cutout-release1';
   document.write('<script src="share-render-v13.21-dev12-core.js?v='+HOTFIX+'"><\/script>');
 
   const modules=[
@@ -31,6 +33,17 @@
     'share-export-compat-v13.22-dev1.js?v=13.23-release',
     'photo-studio-bugfix-v13.23.6.3.js?v='+HOTFIX,
     'photo-upload-v13.23.6.3.js?v='+HOTFIX,
+    'photo-cutout-methods-v13.23-preview1.js?v='+CUTOUT_RELEASE,
+    'photo-cutout-state-v13.23-phase3a.js?v='+CUTOUT_RELEASE,
+    'photo-cutout-workflow-v13.23-phase3b.js?v='+CUTOUT_RELEASE,
+    'photo-cutout-pipeline-v13.23-phase3c.js?v='+CUTOUT_RELEASE,
+    'photo-guided-lifecycle-v13.23-phase3c.js?v='+CUTOUT_RELEASE,
+    'photo-cutout-save-restore-v13.23-phase3c.js?v='+CUTOUT_RELEASE,
+    'photo-guided-manual-tools-v13.23-phase3c.js?v='+CUTOUT_RELEASE,
+    'photo-garment-guides-v13.23-phase3d-a.js?v='+CUTOUT_RELEASE,
+    'photo-garment-template-picker-v13.23-phase3d-b.js?v='+CUTOUT_RELEASE,
+    'photo-cutout-ui-cleanup-v13.23.js?v='+CUTOUT_RELEASE,
+    'photo-cutout-ui-cleanup-v13.23-iter2.js?v='+CUTOUT_RELEASE,
     'share-modal-lock-v13.23.3.js?v='+HOTFIX
   ];
 
