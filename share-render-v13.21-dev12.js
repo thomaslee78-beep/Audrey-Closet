@@ -2,14 +2,14 @@
  * Loads high-fidelity Share, shared Text Layout, accepted Decorate/Draw/Focus
  * runtime, Sticker compatibility, scaled full-size Portfolio Mini Fidelity,
  * accepted Photo Studio/upload bug fixes, final Cutout release candidate,
- * Photo Studio layout dev3, and Share modal scroll locking.
+ * Photo Studio layout dev4, and Share modal scroll locking.
  */
 (function(){
   'use strict';
 
   const HOTFIX='13.23.6.3-photo-fixes';
   const CUTOUT_RELEASE='13.23-cutout-release1';
-  const PHOTO_STUDIO_LAYOUT='13.23-photo-studio-layout-dev3';
+  const PHOTO_STUDIO_LAYOUT='13.23-photo-studio-layout-dev4';
   document.write('<script src="share-render-v13.21-dev12-core.js?v='+HOTFIX+'"><\/script>');
 
   const modules=[
@@ -45,7 +45,7 @@
     'photo-garment-template-picker-v13.23-phase3d-b.js?v='+CUTOUT_RELEASE,
     'photo-cutout-ui-cleanup-v13.23.js?v='+CUTOUT_RELEASE,
     'photo-cutout-ui-cleanup-v13.23-iter2.js?v='+CUTOUT_RELEASE,
-    'photo-studio-layout-v13.23-dev3.js?v='+PHOTO_STUDIO_LAYOUT,
+    'photo-studio-layout-v13.23-dev4.js?v='+PHOTO_STUDIO_LAYOUT,
     'share-modal-lock-v13.23.3.js?v='+HOTFIX
   ];
 
