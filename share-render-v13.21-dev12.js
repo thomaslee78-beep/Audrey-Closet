@@ -2,7 +2,7 @@
  * Loads high-fidelity Share, shared Text Layout, accepted Decorate/Draw/Focus
  * runtime, Sticker compatibility, scaled full-size Portfolio Mini Fidelity,
  * accepted Photo Studio/upload bug fixes, final Cutout release candidate,
- * Photo Studio layout dev5 + Clean polish dev5a-dev5f + rail blend dev5h,
+ * Photo Studio layout dev5 + Clean polish dev5a-dev5f + rail blend dev5h + Cutout switch dev6,
  * and Share modal scroll locking.
  */
 (function(){
@@ -10,7 +10,7 @@
 
   const HOTFIX='13.23.6.3-photo-fixes';
   const CUTOUT_RELEASE='13.23-cutout-release1';
-  const PHOTO_STUDIO_LAYOUT='13.23-photo-studio-layout-dev5h';
+  const PHOTO_STUDIO_LAYOUT='13.23-photo-studio-layout-dev6';
   document.write('<script src="share-render-v13.21-dev12-core.js?v='+HOTFIX+'"><\/script>');
 
   const modules=[
@@ -54,6 +54,7 @@
     'photo-studio-clean-status-v13.23-dev5e.js?v='+PHOTO_STUDIO_LAYOUT,
     'photo-studio-status-hide-v13.23-dev5f.js?v='+PHOTO_STUDIO_LAYOUT,
     'photo-studio-rail-blend-v13.23-dev5g.js?v='+PHOTO_STUDIO_LAYOUT,
+    'photo-studio-cutout-switch-v13.23-dev6.js?v='+PHOTO_STUDIO_LAYOUT,
     'share-modal-lock-v13.23.3.js?v='+HOTFIX
   ];
 
@@ -62,7 +63,7 @@
     ...modules,
     'assets/stickers/fashion/button-sewing.svg','assets/stickers/fashion/fabric-swatch-floral.svg','assets/stickers/fashion/hanger-wood.svg','assets/stickers/fashion/necklace-pendant.svg',
     'assets/stickers/music/amp-stack.svg','assets/stickers/music/headphones.svg','assets/stickers/music/record.svg','assets/stickers/music/sheet-music.svg',
-    'assets/stickers/standard/butterfly-cartoon.svg','assets/stickers/standard/cloud-puffy.svg','assets/stickers/standard/diamond-blue.svg','assets/stickers/standard/flower-detailed.svg','assets/stickers/standard/happy-day.svg','assets/stickers/standard/heart-pop.svg','assets/stickers/standard/lightning-triple.svg','assets/stickers/standard/moon-crescent.svg','assets/stickers/standard/rainbow-soft.svg','assets/stickers/standard/sparkle-burst.svg','assets/stickers/standard/star-burst.svg','assets/stickers/standard/sun-happy.svg'
+    'assets/stickers/standard/butterfly-cartoon.svg','assets/stickers/standard/cloud-puffy.svg','assets/stickers/standard/diamond-blue.svg','assets/stickers/standard/flower-detailed.svg','assets/stickers/standard/hanger-wood.svg','assets/stickers/standard/happy-day.svg','assets/stickers/standard/heart-pop.svg','assets/stickers/standard/lightning-triple.svg','assets/stickers/standard/moon-crescent.svg','assets/stickers/standard/rainbow-soft.svg','assets/stickers/standard/sparkle-burst.svg','assets/stickers/standard/star-burst.svg','assets/stickers/standard/sun-happy.svg'
   ];
 
   function warmReleaseCache(){if(!('caches' in window))return Promise.resolve();return caches.open('audrey-closet-v13.22-dev26').then(cache=>Promise.allSettled(releaseAssets.map(asset=>cache.add(asset)))).catch(err=>console.warn('Audrey v13.23.6.3 release cache warm skipped',err));}
