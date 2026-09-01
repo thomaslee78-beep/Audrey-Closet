@@ -10,7 +10,7 @@
 
   const HOTFIX='13.23.6.3-photo-fixes';
   const CUTOUT_RELEASE='13.23-cutout-release1-scrollfix1';
-  const PHOTO_STUDIO_LAYOUT='13.23-photo-studio-layout-dev8c';
+  const PHOTO_STUDIO_LAYOUT='13.23-photo-studio-layout-dev8d';
   document.write('<script src="share-render-v13.21-dev12-core.js?v='+HOTFIX+'"><\/script>');
 
   const modules=[
