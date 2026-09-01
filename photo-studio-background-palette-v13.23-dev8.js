@@ -1,6 +1,6 @@
-/* Audrey Closet v13.23 Photo Studio Background palette dev8
- * Presentation-only: keep the full existing palette but wrap swatches into
- * iPhone-safe rows inside the narrower Photo Studio Background panel.
+/* Audrey Closet v13.23 Photo Studio Background palette dev8a
+ * Presentation-only: show eight curated swatches per palette type on one
+ * iPhone-safe row inside the narrower Photo Studio Background panel.
  */
 (function(){
 'use strict';
@@ -19,39 +19,41 @@ function styles(){
   width:100%!important;
   min-width:0!important;
   display:grid!important;
-  grid-template-columns:52px minmax(0,1fr)!important;
-  gap:7px!important;
-  align-items:start!important;
+  grid-template-columns:44px minmax(0,1fr)!important;
+  gap:5px!important;
+  align-items:center!important;
 }
 #studioPanelBackgroundDev5 .studio-palette-label{
-  padding-top:6px!important;
-  font-size:8px!important;
-  line-height:1.1!important;
+  padding-top:0!important;
+  font-size:7.6px!important;
+  line-height:1.05!important;
 }
 #studioPanelBackgroundDev5 .studio-palette-swatches{
   width:100%!important;
   min-width:0!important;
   display:grid!important;
-  grid-template-columns:repeat(5,minmax(0,1fr))!important;
-  gap:5px!important;
+  grid-template-columns:repeat(8,minmax(0,1fr))!important;
+  gap:3px!important;
   align-items:center!important;
 }
 #studioPanelBackgroundDev5 .studio-bg-swatch{
   width:100%!important;
-  max-width:30px!important;
+  max-width:24px!important;
   min-width:0!important;
   aspect-ratio:1/1!important;
   justify-self:center!important;
 }
+#studioPanelBackgroundDev5 .studio-palette-swatches>.studio-bg-swatch:nth-child(n+9){display:none!important}
 @media(max-width:390px){
   #studioPanelBackgroundDev5 .studio-palette-row{
-    grid-template-columns:48px minmax(0,1fr)!important;
-    gap:5px!important;
-  }
-  #studioPanelBackgroundDev5 .studio-palette-swatches{
-    grid-template-columns:repeat(5,minmax(0,1fr))!important;
+    grid-template-columns:40px minmax(0,1fr)!important;
     gap:4px!important;
   }
+  #studioPanelBackgroundDev5 .studio-palette-swatches{
+    grid-template-columns:repeat(8,minmax(0,1fr))!important;
+    gap:2px!important;
+  }
+  #studioPanelBackgroundDev5 .studio-bg-swatch{max-width:22px!important}
 }
 `;
 document.head.appendChild(s);
