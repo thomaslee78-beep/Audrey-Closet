@@ -1,0 +1,67 @@
+name: One-time Photo Studio production cache bust
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/one-time-photo-studio-cache-bust.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  cache-bust:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Apply production cache bust
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          index = Path('index.html')
+          html = index.read_text(encoding='utf-8')
+          old_loader = 'share-render-v13.21-dev12.js?v=13.21-dev12'
+          new_loader = 'share-render-v13.21-dev12.js?v=13.23-photo-studio1'
+          old_sw = "navigator.serviceWorker.register('./sw.js?v=13.22-dev26', { updateViaCache: 'none' })"
+          new_sw = "navigator.serviceWorker.register('./sw.js?v=13.23-photo-studio1', { updateViaCache: 'none' })"
+          if old_loader not in html:
+              raise SystemExit('Old share-render cache key not found')
+          if old_sw not in html:
+              raise SystemExit('Old service-worker registration key not found')
+          html = html.replace(old_loader, new_loader, 1)
+          html = html.replace(old_sw, new_sw, 1)
+          index.write_text(html, encoding='utf-8')
+
+          sw = Path('sw.js')
+          text = sw.read_text(encoding='utf-8')
+          old_cache = "const CACHE='audrey-closet-v13.22-dev26';"
+          new_cache = "const CACHE='audrey-closet-v13.23-photo-studio1';"
+          if old_cache not in text:
+              raise SystemExit('Old service-worker cache namespace not found')
+          text = text.replace(old_cache, new_cache, 1)
+          sw.write_text(text, encoding='utf-8')
+          PY
+
+      - name: Verify cache bust
+        shell: bash
+        run: |
+          grep -F "share-render-v13.21-dev12.js?v=13.23-photo-studio1" index.html
+          grep -F "navigator.serviceWorker.register('./sw.js?v=13.23-photo-studio1'" index.html
+          grep -F "const CACHE='audrey-closet-v13.23-photo-studio1';" sw.js
+
+      - name: Commit production correction and remove this one-time workflow
+        shell: bash
+        run: |
+          rm .github/workflows/one-time-photo-studio-cache-bust.yml
+          git config user.name "thomaslee78-beep"
+          git config user.email "thomaslee78@gmail.com"
+          git add index.html sw.js .github/workflows/one-time-photo-studio-cache-bust.yml
+          git commit -m "Bust production cache for Photo Studio v13.23"
+          git push origin HEAD:main
