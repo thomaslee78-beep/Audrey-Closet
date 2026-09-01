@@ -1,6 +1,6 @@
 /* Audrey Closet v13.23 Photo Studio Guide Settings dev6h
- * Presentation-only: one compact Guide Settings disclosure below Garment Shape,
- * containing the existing Reset Guide button. Removes duplicate settings UI.
+ * Presentation-only: one compact Guide Settings disclosure below Garment Shape
+ * and the Show/Edit/Lock row, containing the existing Reset Guide button.
  */
 (function(){
 'use strict';
@@ -55,6 +55,7 @@ function styles(){
 `;
 document.head.appendChild(s);
 }
+function state(){return window.__audreyCutoutState?.getState?.()||null;}
 function install(){
   styles();
   const panel=document.getElementById('cutoutGuide3B');
@@ -62,17 +63,33 @@ function install(){
   const actions=panel?.querySelector('.cutout-guide-actions');
   const reset=document.getElementById('cutoutGuideReset3B');
   let settings=document.getElementById('cutoutGuideSettingsCleanup1');
-  if(!panel||!picker||!reset)return false;
+  if(!panel||!picker||!actions||!reset)return false;
+
   const duplicate=document.getElementById('cutoutGuideSettingsFinalDev6g');
   if(duplicate)duplicate.remove();
+
+  const head=panel.querySelector('.cutout-guide-head strong');
+  const note=panel.querySelector('.cutout-guide-note');
+  const apply=document.getElementById('cutoutGuideApply3B');
+  if(head)head.textContent='Guided';
+  if(note)note.textContent='Choose a garment shape, position the guide around the item, then apply it.';
+  if(apply){
+    const text=state()?.guide?.applied?'Reapply Guide':'Apply Guide';
+    if(apply.textContent!==text)apply.textContent=text;
+    apply.setAttribute('aria-label',text);
+  }
+
   if(!settings){
     settings=document.createElement('section');settings.id='cutoutGuideSettingsCleanup1';settings.className='cutout-guide-settings is-collapsed';
     settings.innerHTML='<button type="button" class="cutout-guide-settings-toggle" aria-expanded="false"><span>Guide Settings</span><span>⌄</span></button><div class="cutout-guide-settings-body"></div>';
   }
   const body=settings.querySelector('.cutout-guide-settings-body');
   if(body&&reset.parentElement!==body)body.appendChild(reset);
-  if(settings.previousElementSibling!==picker)picker.insertAdjacentElement('afterend',settings);
-  if(actions&&actions.previousElementSibling!==settings)settings.insertAdjacentElement('afterend',actions);
+
+  /* Desired order: Garment Shape -> Show/Edit/Lock -> Guide Settings. */
+  if(actions.previousElementSibling!==picker)picker.insertAdjacentElement('afterend',actions);
+  if(settings.previousElementSibling!==actions)actions.insertAdjacentElement('afterend',settings);
+
   const toggle=settings.querySelector('.cutout-guide-settings-toggle');
   if(toggle&&!toggle.dataset.dev6hBound){
     toggle.dataset.dev6hBound='1';
