@@ -24,12 +24,6 @@ function styles(){
     #cutoutGuide3B .cutout-guide-actions{order:3}
     #cutoutGuideSettingsCleanup1{order:4}
 
-    #cutoutGuideSettingsCleanup1.cutout-guide-settings{display:grid!important;grid-template-columns:auto minmax(0,1fr)!important;align-items:center;gap:6px;padding:5px 6px!important;overflow:visible!important}
-    #cutoutGuideSettingsCleanup1 .cutout-guide-settings-toggle{width:auto!important;min-height:29px!important;padding:4px 2px!important;pointer-events:none!important;cursor:default!important}
-    #cutoutGuideSettingsCleanup1 .cutout-guide-settings-toggle span:last-child{display:none!important}
-    #cutoutGuideSettingsCleanup1 .cutout-guide-settings-body{display:grid!important;grid-template-columns:1fr 1fr!important;gap:5px!important;padding:0!important}
-    #cutoutGuideSettingsCleanup1.is-collapsed .cutout-guide-settings-body{display:grid!important}
-
     .studio-edge-control.cutout-sensitivity-clean{display:grid!important;grid-template-columns:1fr auto;gap:5px 8px;align-items:center}
     .studio-edge-control.cutout-sensitivity-clean>.cutout-sensitivity-label{font:800 9.5px/1 system-ui;color:#675d51}
     .studio-edge-control.cutout-sensitivity-clean>.cutout-sensitivity-value{min-width:24px;text-align:right;font:850 9.5px/1 system-ui;color:#7d3547}
@@ -68,16 +62,12 @@ function polishCopyAndLayout(){
   }
   const pickerHeading=picker?.querySelector('.garment-template-picker-head strong');if(pickerHeading)pickerHeading.textContent='Garment Shape';
 
+  /* Guide Settings disclosure state/behavior is owned by the later Photo Studio layout layer.
+     Do not force it open or remove its click handler here. */
   const settings=document.getElementById('cutoutGuideSettingsCleanup1');
   if(settings){
-    settings.classList.remove('is-collapsed');
     const toggle=settings.querySelector('.cutout-guide-settings-toggle');
-    if(toggle){
-      toggle.onclick=null;
-      toggle.removeAttribute('aria-expanded');
-      const first=toggle.querySelector('span:first-child');if(first)first.textContent='Guide Settings';
-      const last=toggle.querySelector('span:last-child');if(last)last.textContent='';
-    }
+    const first=toggle?.querySelector('span:first-child');if(first)first.textContent='Guide Settings';
   }
 }
 

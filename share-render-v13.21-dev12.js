@@ -2,13 +2,15 @@
  * Loads high-fidelity Share, shared Text Layout, accepted Decorate/Draw/Focus
  * runtime, Sticker compatibility, scaled full-size Portfolio Mini Fidelity,
  * accepted Photo Studio/upload bug fixes, final Cutout release candidate,
+ * Photo Studio layout dev5 + Clean polish dev5a-dev5f + rail blend dev5h + Cutout dev6-dev6h + Adjust dev7 + Background dev8 + menu labels/order dev8c,
  * and Share modal scroll locking.
  */
 (function(){
   'use strict';
 
   const HOTFIX='13.23.6.3-photo-fixes';
-  const CUTOUT_RELEASE='13.23-cutout-release1';
+  const CUTOUT_RELEASE='13.23-cutout-release1-scrollfix1';
+  const PHOTO_STUDIO_LAYOUT='13.23-photo-studio-layout-dev8d';
   document.write('<script src="share-render-v13.21-dev12-core.js?v='+HOTFIX+'"><\/script>');
 
   const modules=[
@@ -44,6 +46,22 @@
     'photo-garment-template-picker-v13.23-phase3d-b.js?v='+CUTOUT_RELEASE,
     'photo-cutout-ui-cleanup-v13.23.js?v='+CUTOUT_RELEASE,
     'photo-cutout-ui-cleanup-v13.23-iter2.js?v='+CUTOUT_RELEASE,
+    'photo-studio-layout-v13.23-dev5.js?v='+PHOTO_STUDIO_LAYOUT,
+    'photo-studio-clean-help-v13.23-dev5a.js?v='+PHOTO_STUDIO_LAYOUT,
+    'photo-studio-clean-brush-v13.23-dev5b.js?v='+PHOTO_STUDIO_LAYOUT,
+    'photo-studio-clean-brush-layout-v13.23-dev5c.js?v='+PHOTO_STUDIO_LAYOUT,
+    'photo-studio-clean-brush-slider-v13.23-dev5d.js?v='+PHOTO_STUDIO_LAYOUT,
+    'photo-studio-clean-status-v13.23-dev5e.js?v='+PHOTO_STUDIO_LAYOUT,
+    'photo-studio-status-hide-v13.23-dev5f.js?v='+PHOTO_STUDIO_LAYOUT,
+    'photo-studio-rail-blend-v13.23-dev5g.js?v='+PHOTO_STUDIO_LAYOUT,
+    'photo-studio-cutout-switch-v13.23-dev6.js?v='+PHOTO_STUDIO_LAYOUT,
+    'photo-studio-cutout-removal-v13.23-dev6a.js?v='+PHOTO_STUDIO_LAYOUT,
+    'photo-studio-cutout-guided-layout-v13.23-dev6b.js?v='+PHOTO_STUDIO_LAYOUT,
+    'photo-studio-cutout-surface-polish-v13.23-dev6f.js?v='+PHOTO_STUDIO_LAYOUT,
+    'photo-studio-cutout-guide-settings-v13.23-dev6h.js?v='+PHOTO_STUDIO_LAYOUT,
+    'photo-studio-adjust-sliders-v13.23-dev7.js?v='+PHOTO_STUDIO_LAYOUT,
+    'photo-studio-background-palette-v13.23-dev8.js?v='+PHOTO_STUDIO_LAYOUT,
+    'photo-studio-menu-labels-v13.23-dev8b.js?v='+PHOTO_STUDIO_LAYOUT,
     'share-modal-lock-v13.23.3.js?v='+HOTFIX
   ];
 

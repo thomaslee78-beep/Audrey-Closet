@@ -2,6 +2,7 @@
  * Final release picker exposes nine garment templates and derives compact inline
  * icons directly from each template's default polygon. Switching templates keeps
  * placement/protection but clears applied state so the new shape is reapplied.
+ * Preserve the Cutout panel scroll position while trying different templates.
  */
 (function(){
 'use strict';
@@ -55,11 +56,19 @@ function install(){
   sync();return true;
 }
 
+function restoreCutoutScroll(panel,top){
+  if(!panel)return;
+  const restore=()=>{if(panel.isConnected)panel.scrollTop=top;};
+  requestAnimationFrame(()=>{restore();requestAnimationFrame(restore);});
+}
+
 function selectTemplate(id){
   if(!ENABLED.includes(id))return false;
   const api=stateApi(),gapi=guidesApi(),cur=currentState();if(!api||!gapi||!cur)return false;
+  const cutoutPanel=document.getElementById('studioPanelCutoutDev5');
+  const preservedScroll=cutoutPanel?.scrollTop||0;
   const previous=cur.guide;
-  if(previous?.type===id){sync();return true;}
+  if(previous?.type===id){sync();restoreCutoutScroll(cutoutPanel,preservedScroll);return true;}
   const transform=previous?.transform?clone(previous.transform):null;
   const protection=Number.isFinite(Number(previous?.protection))?Number(previous.protection):70;
   const next=clone(cur);next.workflow='guided';next.guide=gapi.createGuide(id,{transform,protection});
@@ -71,6 +80,7 @@ function selectTemplate(id){
   if(!workflowApi()?.editing)edit?.click();
   const status=document.getElementById('studioStatus'),label=def(id)?.label||'Garment';
   if(status)status.textContent=label+' template selected. Adjust the outline, then Apply '+label+' Guide.';
+  restoreCutoutScroll(cutoutPanel,preservedScroll);
   return true;
 }
 
