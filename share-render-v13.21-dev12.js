@@ -63,7 +63,7 @@
     ...modules,
     'assets/stickers/fashion/button-sewing.svg','assets/stickers/fashion/fabric-swatch-floral.svg','assets/stickers/fashion/hanger-wood.svg','assets/stickers/fashion/necklace-pendant.svg',
     'assets/stickers/music/amp-stack.svg','assets/stickers/music/headphones.svg','assets/stickers/music/record.svg','assets/stickers/music/sheet-music.svg',
-    'assets/stickers/standard/butterfly-cartoon.svg','assets/stickers/standard/cloud-puffy.svg','assets/stickers/standard/diamond-blue.svg','assets/stickers/standard/flower-detailed.svg','assets/stickers/standard/hanger-wood.svg','assets/stickers/standard/happy-day.svg','assets/stickers/standard/heart-pop.svg','assets/stickers/standard/lightning-triple.svg','assets/stickers/standard/moon-crescent.svg','assets/stickers/standard/rainbow-soft.svg','assets/stickers/standard/sparkle-burst.svg','assets/stickers/standard/star-burst.svg','assets/stickers/standard/sun-happy.svg'
+    'assets/stickers/standard/butterfly-cartoon.svg','assets/stickers/standard/cloud-puffy.svg','assets/stickers/standard/diamond-blue.svg','assets/stickers/standard/flower-detailed.svg','assets/stickers/standard/happy-day.svg','assets/stickers/standard/heart-pop.svg','assets/stickers/standard/lightning-triple.svg','assets/stickers/standard/moon-crescent.svg','assets/stickers/standard/rainbow-soft.svg','assets/stickers/standard/sparkle-burst.svg','assets/stickers/standard/star-burst.svg','assets/stickers/standard/sun-happy.svg'
   ];
 
   function warmReleaseCache(){if(!('caches' in window))return Promise.resolve();return caches.open('audrey-closet-v13.22-dev26').then(cache=>Promise.allSettled(releaseAssets.map(asset=>cache.add(asset)))).catch(err=>console.warn('Audrey v13.23.6.3 release cache warm skipped',err));}
