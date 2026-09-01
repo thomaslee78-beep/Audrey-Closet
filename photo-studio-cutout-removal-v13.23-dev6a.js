@@ -1,6 +1,6 @@
-/* Audrey Closet v13.23 Photo Studio Cutout Removal dev6a
+/* Audrey Closet v13.23 Photo Studio Cutout Amount dev6a
  * Presentation-only: reuse the existing 0-100 Cutout Sensitivity proxy as a
- * compact one-row Removal slider above Advanced Cutout Method.
+ * compact one-row Cutout Amount slider above Advanced Cutout Method.
  */
 (function(){
 'use strict';
@@ -22,7 +22,7 @@ function installStyles(){
   padding:5px 9px!important;
   border:1px solid rgba(108,81,66,.14)!important;
   border-radius:11px!important;
-  background:rgba(255,250,240,.62)!important;
+  background:rgba(255,253,249,.96)!important;
 }
 #photoStudioDialog .cutout-removal-dev6a>.cutout-sensitivity-label{
   grid-area:label!important;
@@ -108,14 +108,14 @@ function layoutRemoval(){
   installStyles();
   control.classList.add('cutout-removal-dev6a');
   const label=control.querySelector('.cutout-sensitivity-label');
-  if(label)label.textContent='Removal';
+  if(label)label.textContent='Cutout Amount';
   const parent=methods.parentElement;
   if(parent&&control.parentElement===parent&&control.nextElementSibling!==methods){
     parent.insertBefore(control,methods);
   } else if(parent&&control.parentElement!==parent){
     parent.insertBefore(control,methods);
   }
-  proxy.setAttribute('aria-label','Removal');
+  proxy.setAttribute('aria-label','Cutout Amount');
   return true;
 }
 function schedule(){requestAnimationFrame(layoutRemoval)}
