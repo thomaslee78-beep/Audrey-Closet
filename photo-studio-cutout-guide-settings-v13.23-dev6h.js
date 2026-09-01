@@ -72,7 +72,7 @@ function install(){
   const note=panel.querySelector('.cutout-guide-note');
   const apply=document.getElementById('cutoutGuideApply3B');
   if(head)head.textContent='Guided';
-  if(note)note.textContent='Choose a garment shape, position the guide around the item, then apply it.';
+  if(note)note.textContent='Select a garment shape which matches the item outline. Position the guide, adjusting the points to protect the interior from cutout removal. Once you have finalized the shape, click "Apply Guide" to apply the protection. Now you can proceed with applying a cutout method such as Quick or Clean.';
   if(apply){
     const text=state()?.guide?.applied?'Reapply Guide':'Apply Guide';
     if(apply.textContent!==text)apply.textContent=text;
