@@ -2,7 +2,7 @@
  * Loads high-fidelity Share, shared Text Layout, accepted Decorate/Draw/Focus
  * runtime, Sticker compatibility, scaled full-size Portfolio Mini Fidelity,
  * accepted Photo Studio/upload bug fixes, final Cutout release candidate,
- * Photo Studio layout dev5 + Clean polish dev5a-dev5f + rail blend dev5g,
+ * Photo Studio layout dev5 + Clean polish dev5a-dev5f + rail blend dev5h,
  * and Share modal scroll locking.
  */
 (function(){
@@ -10,7 +10,7 @@
 
   const HOTFIX='13.23.6.3-photo-fixes';
   const CUTOUT_RELEASE='13.23-cutout-release1';
-  const PHOTO_STUDIO_LAYOUT='13.23-photo-studio-layout-dev5g';
+  const PHOTO_STUDIO_LAYOUT='13.23-photo-studio-layout-dev5h';
   document.write('<script src="share-render-v13.21-dev12-core.js?v='+HOTFIX+'"><\/script>');
 
   const modules=[
