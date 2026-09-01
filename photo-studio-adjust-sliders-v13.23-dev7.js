@@ -1,6 +1,7 @@
-/* Audrey Closet v13.23 Photo Studio Adjust sliders dev7
+/* Audrey Closet v13.23 Photo Studio Adjust sliders dev7a
  * Presentation-only: convert existing Adjust ranges to compact 0-100 proxy sliders
  * while preserving each native control's min/max, handlers, state, reset, and persistence.
+ * dev7a explicitly resyncs visible proxies after Reset Adjustments changes native values.
  */
 (function(){
 'use strict';
@@ -113,8 +114,21 @@ function labelText(label,native,index){
   const aria=(native.getAttribute('aria-label')||'').trim();
   return aria||`Adjustment ${index+1}`;
 }
+function syncOne(native){
+  const label=native.closest('label')||native.parentElement;
+  const proxy=label?.querySelector('.adjust-slider-proxy-dev7');
+  const value=label?.querySelector('.adjust-slider-value-dev7');
+  if(!proxy||!value)return;
+  const ui=String(toUi(native));
+  if(document.activeElement!==proxy&&proxy.value!==ui)proxy.value=ui;
+  if(value.textContent!==ui)value.textContent=ui;
+}
+function syncAll(){
+  const panel=document.getElementById('studioPanelAdjustDev5');
+  panel?.querySelectorAll('input.adjust-native-range-dev7').forEach(syncOne);
+}
 function enhance(label,native,index){
-  if(label.dataset.adjustSliderDev7==='1')return;
+  if(label.dataset.adjustSliderDev7==='1'){syncOne(native);return;}
   label.dataset.adjustSliderDev7='1';label.classList.add(CLASS);
   const title=document.createElement('span');title.className='adjust-slider-label-dev7';title.textContent=labelText(label,native,index);
   const value=document.createElement('span');value.className='adjust-slider-value-dev7';
@@ -122,11 +136,20 @@ function enhance(label,native,index){
   native.classList.add('adjust-native-range-dev7');
   Array.from(label.children).forEach(child=>{if(child!==native)child.style.display='none'});
   label.insertBefore(title,native);label.insertBefore(proxy,native);label.insertBefore(value,native);
-  const sync=()=>{const ui=String(toUi(native));if(document.activeElement!==proxy&&proxy.value!==ui)proxy.value=ui;if(value.textContent!==ui)value.textContent=ui;};
+  const sync=()=>syncOne(native);
   proxy.addEventListener('input',()=>{native.value=toNative(native,proxy.value);value.textContent=proxy.value;native.dispatchEvent(new Event('input',{bubbles:true}));});
   proxy.addEventListener('change',()=>{native.value=toNative(native,proxy.value);native.dispatchEvent(new Event('change',{bubbles:true}));sync();});
   native.addEventListener('input',sync);native.addEventListener('change',sync);
   sync();
+}
+function bindReset(reset){
+  if(!reset||reset.dataset.adjustProxyResetDev7a==='1')return;
+  reset.dataset.adjustProxyResetDev7a='1';
+  reset.addEventListener('click',()=>{
+    /* Core reset handler runs on the same click and writes native values directly.
+       Read those canonical values after the handler/render cycle, then update proxies. */
+    requestAnimationFrame(()=>{syncAll();requestAnimationFrame(syncAll);});
+  });
 }
 function install(){
   installStyles();
@@ -140,6 +163,8 @@ function install(){
   });
   const reset=details.querySelector('button[id*="Reset"],button[data-i18n*="reset" i]');
   if(reset&&reset.parentElement)reset.parentElement.appendChild(reset);
+  bindReset(reset);
+  syncAll();
   return ranges.length>0;
 }
 function start(){
