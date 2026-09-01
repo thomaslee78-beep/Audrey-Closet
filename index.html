@@ -647,7 +647,7 @@
 
   <div class="toast" id="toast"></div>
   <script src="app.js?v=13.22-dev26"></script>
-  <script src="share-render-v13.21-dev12.js?v=13.21-dev12"></script>
+  <script src="share-render-v13.21-dev12.js?v=13.23-photo-studio1"></script>
   <script src="shape-studio-v13.22-dev1.js?v=13.22-dev26"></script>
   <script src="shape-studio-v13.22-dev3.js?v=13.22-dev26"></script>
   <script src="shape-studio-v13.22-dev4.js?v=13.22-dev26"></script>
@@ -657,7 +657,7 @@
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', function () {
-        navigator.serviceWorker.register('./sw.js?v=13.22-dev26', { updateViaCache: 'none' })
+        navigator.serviceWorker.register('./sw.js?v=13.23-photo-studio1', { updateViaCache: 'none' })
           .then(function (registration) { return registration.update(); })
           .catch(function (error) { console.error('Service worker registration failed', error); });
       });
