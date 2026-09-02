@@ -12,10 +12,10 @@
     editorial:{label:'Editorial Serif',css:'"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif'},
     classic:{label:'Classic Serif',css:'Georgia,"Times New Roman",serif'},
     modern:{label:'Modern Sans',css:'"Avenir Next","Helvetica Neue",Arial,sans-serif'},
-    thin:{label:'Modern Thin',css:'"Avenir Next","Helvetica Neue",Arial,sans-serif',weight:300},
-    rounded:{label:'Soft Rounded',css:'"Arial Rounded MT Bold","SF Pro Rounded","Trebuchet MS",sans-serif'},
-    handwritten:{label:'Pencil / Handwritten',css:'Noteworthy,"Bradley Hand","Marker Felt",cursive'},
-    typewriter:{label:'Typewriter',css:'"American Typewriter","Courier New",Courier,monospace'},
+    thin:{label:'Modern Thin',css:'"Avenir Next Ultra Light","Avenir Next","Helvetica Neue",Arial,sans-serif',weight:300},
+    rounded:{label:'Soft Rounded',css:'"Avenir Next Rounded","Trebuchet MS",Arial,sans-serif'},
+    handwritten:{label:'Pencil / Handwritten',css:'"Bradley Hand","Noteworthy","Marker Felt",cursive'},
+    typewriter:{label:'Typewriter',css:'Menlo,"Courier New",monospace'},
     clean:{label:'Clean System',css:'-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif'},
     fun:{label:'Fun / Chalk',css:'"Chalkboard SE","Comic Sans MS","Marker Felt",cursive'}
   };
