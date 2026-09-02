@@ -6,14 +6,25 @@
 (function(){
   'use strict';
 
-  const VERSION='13.23.5';
+  const VERSION='13.23.5-font-registry1';
   const FONTS={
     script:{label:'Signature Script',css:'"Snell Roundhand","Segoe Script","Bradley Hand",cursive'},
     editorial:{label:'Editorial Serif',css:'"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif'},
     classic:{label:'Classic Serif',css:'Georgia,"Times New Roman",serif'},
     modern:{label:'Modern Sans',css:'"Avenir Next","Helvetica Neue",Arial,sans-serif'},
+    thin:{label:'Modern Thin',css:'"Avenir Next","Helvetica Neue",Arial,sans-serif',weight:300},
+    rounded:{label:'Soft Rounded',css:'"Arial Rounded MT Bold","SF Pro Rounded","Trebuchet MS",sans-serif'},
+    handwritten:{label:'Pencil / Handwritten',css:'Noteworthy,"Bradley Hand","Marker Felt",cursive'},
+    typewriter:{label:'Typewriter',css:'"American Typewriter","Courier New",Courier,monospace'},
     clean:{label:'Clean System',css:'-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif'},
     fun:{label:'Fun / Chalk',css:'"Chalkboard SE","Comic Sans MS","Marker Felt",cursive'}
+  };
+  const FONT_ALIASES={
+    'modern-thin':'thin',modernthin:'thin',
+    'soft-rounded':'rounded',softrounded:'rounded',
+    pencil:'handwritten','pencil-handwritten':'handwritten',
+    'fun-chalk':'fun',chalk:'fun',
+    mono:'typewriter
   };
   const SIZES={
     small:{label:'S',px:20,lineHeight:1.12},
@@ -25,9 +36,11 @@
   function esc(v){return String(v??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));}
   function normalizeStyle(style){
     const s=style&&typeof style==='object'?style:{};
+    const requested=String(s.font||'').trim();
+    const font=FONTS[requested]?requested:(FONT_ALIASES[requested.toLowerCase()]||'script');
     const color=/^#[0-9a-f]{6}$/i.test(String(s.color||''))?String(s.color).toLowerCase():'#7d3547';
     const align=['left','center','right'].includes(s.align)?s.align:'center';
-    return{font:FONTS[s.font]?s.font:'script',size:SIZES[s.size]?s.size:'medium',bold:!!s.bold,italic:!!s.italic,underline:!!s.underline,color,align};
+    return{font,size:SIZES[s.size]?s.size:'medium',bold:!!s.bold,italic:!!s.italic,underline:!!s.underline,color,align};
   }
   function resolveFont(style){const s=normalizeStyle(style);return FONTS[s.font];}
   function resolveSize(style,scale=1){const s=normalizeStyle(style),base=SIZES[s.size];return{...base,px:base.px*Math.max(.15,Number(scale)||1)};}
@@ -108,12 +121,12 @@
     window.__audreyBoardTextLayoutSnapshotWrappedV13235=true;return true;
   }
   function install(){
-    window.AUDREY_BOARD_TEXT_LAYOUT_V13235={version:VERSION,fonts:FONTS,sizes:SIZES,normalizeStyle,resolveFont,resolveSize,canvasFont,wrapExplicitLine,layout,drawCanvas,css,textMarkup};
+    window.AUDREY_BOARD_TEXT_LAYOUT_V13235={version:VERSION,fonts:FONTS,fontAliases:FONT_ALIASES,sizes:SIZES,normalizeStyle,resolveFont,resolveSize,canvasFont,wrapExplicitLine,layout,drawCanvas,css,textMarkup};
     // Make the legacy Canvas entry point authoritative through the new shared engine.
     window.__audreyDrawBoardTextV132011=function(ctx,piece,w,h,scale){return drawCanvas(ctx,piece,w,h,scale||1);};
     installBoardRenderer();installSnapshotStyling();
     const style=document.createElement('style');style.id='boardTextLayoutV13235Styles';style.textContent='.board-text-shared-v13235{width:100%;height:100%;display:flex;align-items:center;box-sizing:border-box;padding:3%;}';if(!document.getElementById(style.id))document.head.appendChild(style);
-    try{if(typeof drawBoard==='function')drawBoard();if(typeof renderSavedOutfits==='function')renderSavedOutfits();}catch(e){console.warn('Text Layout v13.23.5 refresh skipped',e)}
+    try{if(typeof drawBoard==='function')drawBoard();if(typeof renderSavedOutfits==='function')renderSavedOutfits();}catch(e){console.warn('Text Layout v13.23.5 font registry refresh skipped',e)}
     return true;
   }
   function start(){let tries=0;const attempt=()=>{tries++;if(typeof boardItemContent==='function'&&typeof renderSnapshotPiece==='function'){install();return true}return false};if(attempt())return;const timer=setInterval(()=>{if(attempt()||tries>40)clearInterval(timer)},50);}
