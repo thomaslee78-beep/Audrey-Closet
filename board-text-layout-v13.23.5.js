@@ -24,7 +24,7 @@
     'soft-rounded':'rounded',softrounded:'rounded',
     pencil:'handwritten','pencil-handwritten':'handwritten',
     'fun-chalk':'fun',chalk:'fun',
-    mono:'typewriter
+    mono:'typewriter'
   };
   const SIZES={
     small:{label:'S',px:20,lineHeight:1.12},
