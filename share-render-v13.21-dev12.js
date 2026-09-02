@@ -8,9 +8,9 @@
 (function(){
   'use strict';
 
-  const HOTFIX='13.23.6.3-photo-fixes';
+  const HOTFIX='13.23.6.3-font-registry1';
   const CUTOUT_RELEASE='13.23-cutout-release1-scrollfix1';
-  const PHOTO_STUDIO_LAYOUT='13.23-photo-studio-layout-dev8d';
+  const PHOTO_STUDIO_LAYOUT='13.23-photo-studio-layout-postmerge-bugfix1';
   document.write('<script src="share-render-v13.21-dev12-core.js?v='+HOTFIX+'"><\/script>');
 
   const modules=[
