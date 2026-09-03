@@ -1,13 +1,13 @@
 /* Audrey Closet v13.24 — Smart Scan Phase 2
  * Alpha-aware garment sampling while preserving the existing color/pattern classifier contract.
- * Phase 2 changes sampling only: no clustering, Lab color calibration, or new pattern rules yet.
+ * Phase 4.2 raises sampling fidelity to 256x256 and retains pixel coordinates for spatial analysis.
  */
 (function(){
   'use strict';
 
-  const VERSION='13.24-phase2-sampling1';
+  const VERSION='13.24-phase2-sampling2';
   const LEGACY_ANALYZE=typeof window.analyzeImage==='function'?window.analyzeImage:null;
-  const SAMPLE_SIZE=96;
+  const SAMPLE_SIZE=256;
   const ALPHA_MIN=80;
   const TRANSPARENT_IMAGE_MIN_FRACTION=.04;
 
@@ -24,6 +24,7 @@
     for(let i=0;i<data.length;i+=4){
       const a=data[i+3];
       if(a<ALPHA_MIN)continue;
+      const px=i/4,x=px%width,y=Math.floor(px/width);
       const r=data[i],g=data[i+1],b=data[i+2];
       // Legacy photos often use a white photographic background, so retain the old
       // near-white exclusion only when the image has no meaningful transparency.
@@ -32,11 +33,13 @@
       rs+=r;gs+=g;bs+=b;
       const mx=Math.max(r,g,b),mn=Math.min(r,g,b);
       const l=(r+g+b)/3,s=mx-mn;
-      lum.push(l);sat.push(s);pixels.push({r,g,b,a,lum:l,sat:s});
+      lum.push(l);sat.push(s);pixels.push({r,g,b,a,lum:l,sat:s,x,y});
     }
 
     return{
       version:VERSION,
+      width,height,
+      sampleSize:SAMPLE_SIZE,
       alphaAware,
       transparentFraction,
       totalPixels:total,
@@ -67,7 +70,7 @@
     let pattern='Solid';
     if(variance>2200&&avgSat>45)pattern='Floral/Print';
     else if(variance>1500)pattern='Graphic';
-    window.AUDREY_SMART_SCAN_PHASE2.lastDiagnostics={version:VERSION,alphaAware:sample.alphaAware,transparentFraction:sample.transparentFraction,sampledPixels:n,averageRgb:[r,g,b],variance,avgSat,color,pattern};
+    window.AUDREY_SMART_SCAN_PHASE2.lastDiagnostics={version:VERSION,sampleSize:SAMPLE_SIZE,alphaAware:sample.alphaAware,transparentFraction:sample.transparentFraction,sampledPixels:n,averageRgb:[r,g,b],variance,avgSat,color,pattern};
     return{color,pattern};
   }
 
@@ -75,10 +78,10 @@
     const current=await analyzeImagePhase2(dataURL);
     const legacy=LEGACY_ANALYZE?await LEGACY_ANALYZE(dataURL):null;
     const sample=await sampleGarmentPixels(dataURL);
-    return{version:VERSION,current,legacy,sampling:{alphaAware:sample.alphaAware,transparentFraction:sample.transparentFraction,sampledPixels:sample.sampledPixels}};
+    return{version:VERSION,current,legacy,sampling:{sampleSize:SAMPLE_SIZE,alphaAware:sample.alphaAware,transparentFraction:sample.transparentFraction,sampledPixels:sample.sampledPixels}};
   }
 
-  window.AUDREY_SMART_SCAN_PHASE2={version:VERSION,legacyAnalyzeImage:LEGACY_ANALYZE,sampleGarmentPixels,sampleGarmentPixelsFromImageData,analyzeImage:analyzeImagePhase2,compareLegacy,lastDiagnostics:null};
+  window.AUDREY_SMART_SCAN_PHASE2={version:VERSION,sampleSize:SAMPLE_SIZE,legacyAnalyzeImage:LEGACY_ANALYZE,sampleGarmentPixels,sampleGarmentPixelsFromImageData,analyzeImage:analyzeImagePhase2,compareLegacy,lastDiagnostics:null};
   window.analyzeImage=analyzeImagePhase2;
-  console.info(`Audrey Smart Scan ${VERSION} installed: alpha-aware sampling enabled; classifier thresholds unchanged.`);
+  console.info(`Audrey Smart Scan ${VERSION} installed: 256x256 alpha-aware sampling enabled; spatial coordinates retained.`);
 })();
