@@ -12,6 +12,7 @@
   const CUTOUT_RELEASE='13.23-cutout-release1-scrollfix1';
   const PHOTO_STUDIO_LAYOUT='13.23-photo-studio-layout-postmerge-bugfix1';
   const SMART_SCAN_PHASE1='13.24-phase1-baseline1';
+  const SMART_SCAN_PHASE2='13.24-phase2-sampling1';
   document.write('<script src="share-render-v13.21-dev12-core.js?v='+HOTFIX+'"><\/script>');
 
   const modules=[
@@ -64,7 +65,8 @@
     'photo-studio-background-palette-v13.23-dev8.js?v='+PHOTO_STUDIO_LAYOUT,
     'photo-studio-menu-labels-v13.23-dev8b.js?v='+PHOTO_STUDIO_LAYOUT,
     'share-modal-lock-v13.23.3.js?v='+HOTFIX,
-    'smart-scan-baseline-v13.24-phase1.js?v='+SMART_SCAN_PHASE1
+    'smart-scan-baseline-v13.24-phase1.js?v='+SMART_SCAN_PHASE1,
+    'smart-scan-sampling-v13.24-phase2.js?v='+SMART_SCAN_PHASE2
   ];
 
   const releaseAssets=[
