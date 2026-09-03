@@ -1,0 +1,67 @@
+name: One-time Smart Scan Phase 1 wiring
+
+on:
+  push:
+    branches: [dev/smart-scan-color-pattern-v13.24]
+    paths: [.github/workflows/one-time-smart-scan-phase1-wire.yml]
+
+permissions:
+  contents: write
+
+jobs:
+  wire:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: dev/smart-scan-color-pattern-v13.24
+          fetch-depth: 0
+      - name: Wire Phase 1 baseline harness
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          harness=Path('smart-scan-baseline-v13.24-phase1.js')
+          text=harness.read_text(encoding='utf-8')
+          old="""  async function runCurrentItem(){
+    if(typeof window.itemWorkingPhoto==='undefined'||!window.itemWorkingPhoto)throw new Error('Open an item with a working photo first');
+    return runDataURL(window.itemWorkingPhoto,{source:'itemWorkingPhoto'});
+  }
+"""
+          new="""  async function runCurrentItem(){
+    const preview=document.querySelector('#itemPhotoPreview');
+    const src=preview?.getAttribute('src')||preview?.src||'';
+    if(!src||!src.startsWith('data:image/'))throw new Error('Open an item with a working photo first');
+    return runDataURL(src,{source:'itemWorkingPhoto-preview'});
+  }
+"""
+          if old not in text: raise SystemExit('Phase 1 current-item baseline block not found')
+          harness.write_text(text.replace(old,new,1),encoding='utf-8')
+
+          loader=Path('share-render-v13.21-dev12.js')
+          text=loader.read_text(encoding='utf-8')
+          old="  const PHOTO_STUDIO_LAYOUT='13.23-photo-studio-layout-postmerge-bugfix1';\n"
+          new=old+"  const SMART_SCAN_PHASE1='13.24-phase1-baseline1';\n"
+          if old not in text: raise SystemExit('Photo Studio loader marker not found')
+          text=text.replace(old,new,1)
+          old="    'share-modal-lock-v13.23.3.js?v='+HOTFIX\n"
+          new="    'share-modal-lock-v13.23.3.js?v='+HOTFIX,\n    'smart-scan-baseline-v13.24-phase1.js?v='+SMART_SCAN_PHASE1+'\n"
+          if old not in text: raise SystemExit('Module tail marker not found')
+          text=text.replace(old,new,1)
+          loader.write_text(text,encoding='utf-8')
+          PY
+          node --check smart-scan-baseline-v13.24-phase1.js
+          node --check share-render-v13.21-dev12.js
+          grep -F "const SMART_SCAN_PHASE1='13.24-phase1-baseline1';" share-render-v13.21-dev12.js
+          grep -F "smart-scan-baseline-v13.24-phase1.js?v='+SMART_SCAN_PHASE1" share-render-v13.21-dev12.js
+          grep -F "Current analyzeImage() is unchanged" smart-scan-baseline-v13.24-phase1.js
+      - name: Commit Phase 1 wiring and remove helper
+        shell: bash
+        run: |
+          rm .github/workflows/one-time-smart-scan-phase1-wire.yml
+          git config user.name "thomaslee78-beep"
+          git config user.email "thomaslee78@gmail.com"
+          git add smart-scan-baseline-v13.24-phase1.js share-render-v13.21-dev12.js .github/workflows/one-time-smart-scan-phase1-wire.yml
+          git commit -m "Wire Smart Scan Phase 1 baseline harness"
+          git push origin HEAD:dev/smart-scan-color-pattern-v13.24
