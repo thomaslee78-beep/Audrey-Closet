@@ -58,8 +58,10 @@
   }
 
   async function runCurrentItem(){
-    if(typeof window.itemWorkingPhoto==='undefined'||!window.itemWorkingPhoto)throw new Error('Open an item with a working photo first');
-    return runDataURL(window.itemWorkingPhoto,{source:'itemWorkingPhoto'});
+    const preview=document.querySelector('#itemPhotoPreview');
+    const src=preview?.getAttribute('src')||preview?.src||'';
+    if(!src||!src.startsWith('data:image/'))throw new Error('Open an item with a working photo first');
+    return runDataURL(src,{source:'itemWorkingPhoto-preview'});
   }
 
   function cases(){return CASES.map(x=>({id:x.id,group:x.group,label:x.label,expected:{...x.expected}}))}
