@@ -13,6 +13,7 @@
   const PHOTO_STUDIO_LAYOUT='13.23-photo-studio-layout-postmerge-bugfix1';
   const SMART_SCAN_PHASE1='13.24-phase1-baseline1';
   const SMART_SCAN_PHASE2='13.24-phase2-sampling1';
+  const SMART_SCAN_PHASE3='13.24-phase3-dominant1';
   document.write('<script src="share-render-v13.21-dev12-core.js?v='+HOTFIX+'"><\/script>');
 
   const modules=[
@@ -66,7 +67,8 @@
     'photo-studio-menu-labels-v13.23-dev8b.js?v='+PHOTO_STUDIO_LAYOUT,
     'share-modal-lock-v13.23.3.js?v='+HOTFIX,
     'smart-scan-baseline-v13.24-phase1.js?v='+SMART_SCAN_PHASE1,
-    'smart-scan-sampling-v13.24-phase2.js?v='+SMART_SCAN_PHASE2
+    'smart-scan-sampling-v13.24-phase2.js?v='+SMART_SCAN_PHASE2,
+    'smart-scan-dominant-color-v13.24-phase3.js?v='+SMART_SCAN_PHASE3
   ];
 
   const releaseAssets=[
