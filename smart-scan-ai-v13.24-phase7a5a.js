@@ -1,18 +1,19 @@
 /* Audrey Closet v13.24 — Smart Scan Phase 7A5A Progress Overlay
  * Preview UX layer for clear in-progress feedback during AI or Local Smart Scan.
+ * Uses a native modal dialog so progress renders above the existing item/wishlist dialogs.
  * Listens to Phase 7A2 progress events; does not perform recognition itself.
  */
 (function(){
   'use strict';
-  const VERSION='13.24-phase7a5a-progress-overlay1';
+  const VERSION='13.24-phase7a5a-progress-overlay2-toplayer';
   let hideTimer=null;
 
   function installStyles(){
     if(document.getElementById('smartScanProgressStyles'))return;
     const style=document.createElement('style');style.id='smartScanProgressStyles';
     style.textContent=`
-      #smartScanProgressOverlay{position:fixed;inset:0;z-index:9999;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(28,28,24,.34);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
-      #smartScanProgressOverlay.show{display:flex}
+      #smartScanProgressOverlay{width:auto;max-width:none;border:0;padding:0;background:transparent;overflow:visible;color:inherit}
+      #smartScanProgressOverlay::backdrop{background:rgba(28,28,24,.34);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
       .smart-scan-progress-card{width:min(360px,calc(100vw - 34px));display:grid;grid-template-columns:82px 1fr;gap:14px;align-items:center;padding:16px;border-radius:20px;background:#fffaf0;border:1px solid rgba(108,81,66,.16);box-shadow:0 16px 44px rgba(48,40,34,.22)}
       .smart-scan-progress-thumb{width:82px;height:82px;border-radius:16px;overflow:hidden;background:#eee6d8;border:1px solid rgba(108,81,66,.12);display:flex;align-items:center;justify-content:center}
       .smart-scan-progress-thumb img{width:100%;height:100%;object-fit:contain;background:#f7f3ea}
@@ -35,8 +36,9 @@
     installStyles();
     let overlay=document.getElementById('smartScanProgressOverlay');
     if(overlay)return overlay;
-    overlay=document.createElement('div');overlay.id='smartScanProgressOverlay';overlay.setAttribute('role','status');overlay.setAttribute('aria-live','polite');overlay.setAttribute('aria-busy','true');
+    overlay=document.createElement('dialog');overlay.id='smartScanProgressOverlay';overlay.setAttribute('aria-live','polite');overlay.setAttribute('aria-busy','true');overlay.setAttribute('aria-label','Smart Scan in progress');
     overlay.innerHTML=`<div class="smart-scan-progress-card" data-mode="local"><div class="smart-scan-progress-thumb"><img id="smartScanProgressImage" alt="Item being analyzed"></div><div class="smart-scan-progress-copy"><div class="smart-scan-progress-kicker">Smart Scan</div><div class="smart-scan-progress-title" id="smartScanProgressTitle">Analyzing item</div><div class="smart-scan-progress-message" id="smartScanProgressMessage">Preparing scan…</div><div class="smart-scan-progress-row"><span class="smart-scan-progress-spinner" aria-hidden="true"></span><span class="smart-scan-progress-engine" id="smartScanProgressEngine">Local Smart Scan</span></div></div></div>`;
+    overlay.addEventListener('cancel',e=>e.preventDefault());
     document.body.appendChild(overlay);return overlay;
   }
 
@@ -48,23 +50,25 @@
     if(message)document.getElementById('smartScanProgressMessage').textContent=message;
     if(engine)document.getElementById('smartScanProgressEngine').textContent=engine;
   }
-  function show(detail={}){clearTimeout(hideTimer);const ai=detail.engine==='ai';setState({mode:ai?'ai':'local',title:ai?'AI Smart Scan in progress':'Local Smart Scan in progress',message:detail.message||'Preparing this item…',engine:ai?'AI Smart Scan':'Local Smart Scan',photo:detail.photo});ensureOverlay().classList.add('show')}
+  function openOverlay(){const overlay=ensureOverlay();if(!overlay.open){try{overlay.showModal()}catch{overlay.setAttribute('open','')}}}
+  function closeOverlay(){const overlay=ensureOverlay();if(overlay.open){try{overlay.close()}catch{overlay.removeAttribute('open')}}}
+  function show(detail={}){clearTimeout(hideTimer);const ai=detail.engine==='ai';setState({mode:ai?'ai':'local',title:ai?'AI Smart Scan in progress':'Local Smart Scan in progress',message:detail.message||'Preparing this item…',engine:ai?'AI Smart Scan':'Local Smart Scan',photo:detail.photo});openOverlay()}
   function update(detail={}){
-    const fallback=detail.stage==='fallback-start'||detail.fallback;
-    const error=detail.stage==='scan-error';
+    const fallback=detail.stage==='fallback-start'||detail.fallback,error=detail.stage==='scan-error';
     setState({mode:error?'error':(fallback?'fallback':(detail.engine==='ai'?'ai':'local')),title:error?'Smart Scan could not finish':(fallback?'Switching to Local Smart Scan':(detail.engine==='ai'?'AI Smart Scan in progress':'Local Smart Scan in progress')),message:detail.message||'',engine:error?'Smart Scan':(fallback?'Local fallback':(detail.engine==='ai'?'AI Smart Scan':'Local Smart Scan'))});
   }
-  function hide(delay=120){clearTimeout(hideTimer);hideTimer=setTimeout(()=>ensureOverlay().classList.remove('show'),delay)}
+  function hide(delay=0){clearTimeout(hideTimer);if(delay<=0)return closeOverlay();hideTimer=setTimeout(closeOverlay,delay)}
 
   window.addEventListener('audrey:smartscan-progress',e=>{
     const d=e.detail||{};
     if(d.stage==='scan-start')return show(d);
-    if(d.stage==='scan-complete'){update(d);return hide(100)}
+    // Close immediately before Phase 7A2 opens the result review dialog.
+    if(d.stage==='scan-complete'){update(d);return hide(0)}
     if(d.stage==='scan-error'){update(d);return hide(850)}
     update(d);
   });
 
   const API={version:VERSION,show,update,hide};
   window.AUDREY_SMART_SCAN_PROGRESS=API;
-  console.info(`Audrey Smart Scan ${VERSION} loaded: progress overlay listening for Smart Scan events.`);
+  console.info(`Audrey Smart Scan ${VERSION} loaded: top-layer progress dialog listening for Smart Scan events.`);
 })();
