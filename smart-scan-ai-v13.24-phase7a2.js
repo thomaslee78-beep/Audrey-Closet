@@ -5,7 +5,7 @@
  */
 (function(){
   'use strict';
-  const VERSION='13.24-phase7a2-ai-vision2-progress-events';
+  const VERSION='13.24-phase7a2-ai-vision3-offline-fallback';
   const CORE=window.AUDREY_SMART_SCAN;
   const AI=window.smartScanAI;
   const LOCAL=window.smartScanLocal;
@@ -71,6 +71,11 @@
   async function analyzeWithFallback(photo,{includeOCR=true}={}){
     const cfg=AI.getConfig();
     if(!cfg.enabled){progress('local-start',{engine:'local',message:'Analyzing this item locally…'});return LOCAL.analyze(photo,{includeOCR})}
+    if(navigator.onLine===false){
+      const err=new Error('Device is offline.');err.code='AI_OFFLINE';
+      progress('fallback-start',{engine:'local',fallback:true,message:'No internet connection. Using Local Smart Scan…'});
+      return markFallback(await LOCAL.analyze(photo,{includeOCR}),err,cfg);
+    }
     if(!AI.isConfigured()){
       const err=new Error('AI enabled but not fully configured.');err.code='AI_NOT_CONFIGURED';
       progress('fallback-start',{engine:'local',fallback:true,message:'AI is not fully configured. Continuing with Local Smart Scan…'});
@@ -105,8 +110,8 @@
     smartScanTarget=target==='wish'?'wish':'item';
     const photo=smartScanTarget==='wish'?wishWorkingPhoto:itemWorkingPhoto;
     if(!photo)return toast('Take or choose a photo first');
-    const cfg=AI.getConfig(),aiAttempt=Boolean(cfg.enabled&&AI.isConfigured());
-    progress('scan-start',{engine:aiAttempt?'ai':'local',target:smartScanTarget,photo,message:aiAttempt?'Preparing this item for AI Smart Scan…':'Preparing this item for Local Smart Scan…'});
+    const cfg=AI.getConfig(),offline=navigator.onLine===false,aiAttempt=Boolean(cfg.enabled&&AI.isConfigured()&&!offline);
+    progress('scan-start',{engine:aiAttempt?'ai':'local',target:smartScanTarget,photo,message:offline&&cfg.enabled?'No internet connection. Preparing Local Smart Scan…':(aiAttempt?'Preparing this item for AI Smart Scan…':'Preparing this item for Local Smart Scan…')});
     const busyText=aiAttempt?'AI is analyzing category, type, color and pattern…':'Scanning category, color, pattern and visible text…';
     if(smartScanTarget==='wish'){['#wishSmartScanBtn','#wishPhotoMenuBtn','#saveWishBtn'].forEach(sel=>{const el=$(sel);if(el)el.disabled=true});$('#wishScanStatus').textContent=busyText}else setPhotoBusy(true,busyText);
     try{
@@ -131,5 +136,5 @@
   AI.analyze=analyzeAI;
   const API={version:VERSION,analyze:analyzeAI,analyzeWithFallback,extractResponseText,ensureUsable,lastResult:null,lastError:null};
   window.AUDREY_SMART_SCAN_AI_TRANSPORT=API;
-  console.info(`Audrey Smart Scan ${VERSION} loaded: AI-first vision with Local Smart Scan v1.1 fallback enabled.`);
+  console.info(`Audrey Smart Scan ${VERSION} loaded: AI-first vision with offline-aware Local fallback enabled.`);
 })();
