@@ -5,7 +5,7 @@
  */
 (function(){
   'use strict';
-  const VERSION='13.24-phase7a2-ai-vision1';
+  const VERSION='13.24-phase7a2-ai-vision2-progress-events';
   const CORE=window.AUDREY_SMART_SCAN;
   const AI=window.smartScanAI;
   const LOCAL=window.smartScanLocal;
@@ -16,6 +16,7 @@
 
   const API_URL='https://api.openai.com/v1/responses';
   const clone=x=>x==null?x:JSON.parse(JSON.stringify(x));
+  function progress(stage,detail={}){window.dispatchEvent(new CustomEvent('audrey:smartscan-progress',{detail:{stage,...detail}}))}
 
   function extractResponseText(body){
     if(typeof body?.output_text==='string'&&body.output_text.trim())return body.output_text.trim();
@@ -45,23 +46,20 @@
     if(!cfg.apiKey){const err=new Error('AI Smart Scan API key is not configured.');err.code='AI_NOT_CONFIGURED';throw err}
     if(!photo){const err=new Error('No photo supplied to AI Smart Scan.');err.code='AI_NO_PHOTO';throw err}
 
-    const request=AI.buildOpenAIRequest(photo);
-    request.max_output_tokens=500;
+    progress('ai-request',{engine:'ai',message:'Sending this item to AI…'});
+    const request=AI.buildOpenAIRequest(photo);request.max_output_tokens=500;
     const started=performance.now();
     const response=await fetch(API_URL,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+cfg.apiKey},body:JSON.stringify(request)});
     let body={};try{body=await response.json()}catch{}
-    if(!response.ok){
-      const message=body?.error?.message||('OpenAI returned HTTP '+response.status);
-      const err=new Error(message);err.status=response.status;err.code=body?.error?.code||'AI_HTTP_ERROR';throw err;
-    }
+    if(!response.ok){const message=body?.error?.message||('OpenAI returned HTTP '+response.status);const err=new Error(message);err.status=response.status;err.code=body?.error?.code||'AI_HTTP_ERROR';throw err}
 
+    progress('ai-validating',{engine:'ai',message:'Validating detected clothing details…'});
     const text=extractResponseText(body);
     if(!text){const err=new Error('OpenAI returned no structured Smart Scan result.');err.code='AI_EMPTY_RESPONSE';throw err}
     let raw;try{raw=JSON.parse(text)}catch{const err=new Error('OpenAI returned an unreadable Smart Scan result.');err.code='AI_PARSE_ERROR';throw err}
     const normalized=ensureUsable(AI.normalizeAIOutput(raw,{provider:'openai',model:cfg.model}));
     normalized.diagnostics={...(normalized.diagnostics||{}),transportVersion:VERSION,responseId:body?.id||'',requestMs:Math.round(performance.now()-started),usage:clone(body?.usage||{}),rawValidated:true};
-    CORE.lastResult=normalized;CORE.lastDiagnostics=normalized.diagnostics;
-    API.lastResult=normalized;API.lastError=null;
+    CORE.lastResult=normalized;CORE.lastDiagnostics=normalized.diagnostics;API.lastResult=normalized;API.lastError=null;
     return normalized;
   }
 
@@ -72,25 +70,22 @@
 
   async function analyzeWithFallback(photo,{includeOCR=true}={}){
     const cfg=AI.getConfig();
-    if(!cfg.enabled)return LOCAL.analyze(photo,{includeOCR});
+    if(!cfg.enabled){progress('local-start',{engine:'local',message:'Analyzing this item locally…'});return LOCAL.analyze(photo,{includeOCR})}
     if(!AI.isConfigured()){
       const err=new Error('AI enabled but not fully configured.');err.code='AI_NOT_CONFIGURED';
+      progress('fallback-start',{engine:'local',fallback:true,message:'AI is not fully configured. Continuing with Local Smart Scan…'});
       return markFallback(await LOCAL.analyze(photo,{includeOCR}),err,cfg);
     }
     try{return await analyzeAI(photo,CORE.taxonomy)}catch(err){
       console.warn('AI Smart Scan failed; using Local Smart Scan v1.1 fallback.',err);
+      progress('fallback-start',{engine:'local',fallback:true,message:'AI was unavailable. Continuing with Local Smart Scan…'});
       return markFallback(await LOCAL.analyze(photo,{includeOCR}),err,cfg);
     }
   }
 
-  // Add Type to the existing review vocabulary. Confidence remains internal only.
   const previousFieldLabel=window.smartScanFieldLabel;
-  window.smartScanFieldLabel=function(key){
-    if(key==='type')return'Type';
-    return typeof previousFieldLabel==='function'?previousFieldLabel(key):key;
-  };
+  window.smartScanFieldLabel=function(key){if(key==='type')return'Type';return typeof previousFieldLabel==='function'?previousFieldLabel(key):key};
 
-  // Phase 6 applies Category/Color/Pattern/Brand/Size. Extend only the Type portion here.
   const previousApply=window.applyPendingSmartScan;
   window.applyPendingSmartScan=function(){
     if(!pendingSmartScanResult)return closeSmartScanReview();
@@ -100,15 +95,10 @@
     const selectedCategory=chosen.has('category')?String(pendingSmartScanResult.category||''):'';
     if(typeof previousApply==='function')previousApply();
     if(!selectedType)return;
-    // Category change repopulates the type selector synchronously; apply Type after the prior handler.
     const category=selectedCategory||$(wish?'#wishCategory':'#itemCategory')?.value||'';
     const allowed=CORE.taxonomy?.types?.[category]||[];
     if(!allowed.includes(selectedType))return;
-    const sel=$(wish?'#wishType':'#itemType');
-    if(!sel)return;
-    sel.value=selectedType;
-    sel.dispatchEvent(new Event('change',{bubbles:true}));
-    if(!wish)updateItemReviewSummary();
+    const sel=$(wish?'#wishType':'#itemType');if(!sel)return;sel.value=selectedType;sel.dispatchEvent(new Event('change',{bubbles:true}));if(!wish)updateItemReviewSummary();
   };
 
   window.smartScan=async function(target='item'){
@@ -116,33 +106,25 @@
     const photo=smartScanTarget==='wish'?wishWorkingPhoto:itemWorkingPhoto;
     if(!photo)return toast('Take or choose a photo first');
     const cfg=AI.getConfig(),aiAttempt=Boolean(cfg.enabled&&AI.isConfigured());
+    progress('scan-start',{engine:aiAttempt?'ai':'local',target:smartScanTarget,photo,message:aiAttempt?'Preparing this item for AI Smart Scan…':'Preparing this item for Local Smart Scan…'});
     const busyText=aiAttempt?'AI is analyzing category, type, color and pattern…':'Scanning category, color, pattern and visible text…';
-    if(smartScanTarget==='wish'){
-      ['#wishSmartScanBtn','#wishPhotoMenuBtn','#saveWishBtn'].forEach(sel=>{const el=$(sel);if(el)el.disabled=true});
-      $('#wishScanStatus').textContent=busyText;
-    }else setPhotoBusy(true,busyText);
+    if(smartScanTarget==='wish'){['#wishSmartScanBtn','#wishPhotoMenuBtn','#saveWishBtn'].forEach(sel=>{const el=$(sel);if(el)el.disabled=true});$('#wishScanStatus').textContent=busyText}else setPhotoBusy(true,busyText);
     try{
       const result=await analyzeWithFallback(photo,{includeOCR:true});
-      pendingSmartScanResult=CORE.toPendingFlat(result);
-      // Local v1.1 has no Type; AI Type is included only when valid for the selected Category.
-      if(!pendingSmartScanResult.type)delete pendingSmartScanResult.type;
+      pendingSmartScanResult=CORE.toPendingFlat(result);if(!pendingSmartScanResult.type)delete pendingSmartScanResult.type;
+      progress('scan-complete',{engine:result.engine,fallbackUsed:result.fallbackUsed,message:result.engine==='ai'?'AI Smart Scan complete.':'Smart Scan complete.'});
       openSmartScanReview(pendingSmartScanResult);
       const status=result.engine==='ai'?'AI Smart Scan complete. Review detected details before applying.':(result.fallbackUsed?'AI was unavailable, so Local Smart Scan was used. Review detected details before applying.':'Smart Scan complete. Review detected details before applying.');
       $(smartScanTarget==='wish'?'#wishScanStatus':'#scanStatus').textContent=status;
     }catch(err){
-      console.error(err);toast('Smart Scan could not analyze this photo');
-      $(smartScanTarget==='wish'?'#wishScanStatus':'#scanStatus').textContent='Smart Scan could not analyze this photo.';
+      progress('scan-error',{engine:aiAttempt?'ai':'local',message:'Smart Scan could not analyze this photo.'});
+      console.error(err);toast('Smart Scan could not analyze this photo');$(smartScanTarget==='wish'?'#wishScanStatus':'#scanStatus').textContent='Smart Scan could not analyze this photo.';
     }finally{
-      if(smartScanTarget==='wish')['#wishSmartScanBtn','#wishPhotoMenuBtn','#saveWishBtn'].forEach(sel=>{const el=$(sel);if(el)el.disabled=false});
-      else setPhotoBusy(false);
+      if(smartScanTarget==='wish')['#wishSmartScanBtn','#wishPhotoMenuBtn','#saveWishBtn'].forEach(sel=>{const el=$(sel);if(el)el.disabled=false});else setPhotoBusy(false);
     }
   };
 
-  function refreshConfigStatus(){
-    const status=document.getElementById('smartScanAIStatus');if(!status)return;
-    const c=AI.getConfig();
-    status.textContent=c.enabled?(AI.isConfigured()?'AI Smart Scan is enabled. Scans will try AI first and automatically fall back to Local if needed.':'AI is enabled but not fully configured; scans will use Local fallback.'):'AI Smart Scan is off. Local Smart Scan v1.1 is active.';
-  }
+  function refreshConfigStatus(){const status=document.getElementById('smartScanAIStatus');if(!status)return;const c=AI.getConfig();status.textContent=c.enabled?(AI.isConfigured()?'AI Smart Scan is enabled. Scans will try AI first and automatically fall back to Local if needed.':'AI is enabled but not fully configured; scans will use Local fallback.'):'AI Smart Scan is off. Local Smart Scan v1.1 is active.'}
   setTimeout(refreshConfigStatus,0);
   document.addEventListener('change',e=>{if(e.target?.id&&['smartScanAIEnabled','smartScanAIProvider','smartScanAIModel','smartScanAIApiKey'].includes(e.target.id))setTimeout(refreshConfigStatus,0)});
 
