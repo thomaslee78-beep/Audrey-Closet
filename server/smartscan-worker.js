@@ -1,19 +1,25 @@
-/* Audrey Closet Smart Scan Service — Phase 7A4B
- * Cloudflare Worker-style serverless proxy for public Smart Scan.
+/* Audrey Closet Smart Scan Service — Phase 7A4C
+ * Server-authoritative Smart Scan controls + Audrey Cloud admin foundation.
  * Required secret: OPENAI_API_KEY
- * Optional KV binding: SMARTSCAN_USAGE_KV (per-install/IP daily quotas)
+ * Optional secret: AUDREY_ADMIN_TOKEN (admin API)
+ * Optional bindings: SMARTSCAN_USAGE_KV (quotas), AUDREY_DB (D1 config persistence)
  */
-const SERVICE_VERSION='13.24-phase7a4b-worker2';
+const SERVICE_VERSION='13.24-phase7a4c-worker1';
 const APP_ID='audrey-closet';
 const FEATURE='smartscan';
-const DEFAULT_MODEL='gpt-5.6-luna';
 const ALLOWED_MODELS=new Set(['gpt-5.6-luna','gpt-5.6-terra','gpt-5.6-sol']);
-const ALLOWED_ORIGINS=new Set([
-  'https://thomaslee78-beep.github.io'
-]);
-const MAX_BODY_BYTES=8_000_000;
-const MAX_IMAGE_CHARS=7_500_000;
-const DEFAULT_DAILY_LIMIT=30;
+const ALLOWED_DETAILS=new Set(['low','high','auto']);
+const ALLOWED_ORIGINS=new Set(['https://thomaslee78-beep.github.io']);
+const DEFAULTS={
+  enabled:true,
+  model:'gpt-5.6-luna',
+  detail:'auto',
+  maxBodyBytes:8_000_000,
+  maxImageChars:7_500_000,
+  dailyInstallLimit:30,
+  globalDailyLimit:500,
+  minimumClientVersion:''
+};
 const TAXONOMY={
   categories:['Tops','Bottoms','Dresses','Outerwear','Shoes','Accessories','Misc'],
   patterns:['Solid','Stripe','Plaid','Floral/Print','Graphic','Colorblock','Other'],
@@ -31,11 +37,51 @@ const TAXONOMY={
 
 function cors(origin){
   const allowed=origin&&ALLOWED_ORIGINS.has(origin)?origin:'';
-  return{'Access-Control-Allow-Origin':allowed,'Access-Control-Allow-Methods':'GET,POST,OPTIONS','Access-Control-Allow-Headers':'Content-Type,X-Audrey-App,X-Audrey-Feature,X-Audrey-Request','Access-Control-Max-Age':'86400','Vary':'Origin'};
+  return{'Access-Control-Allow-Origin':allowed,'Access-Control-Allow-Methods':'GET,POST,PUT,OPTIONS','Access-Control-Allow-Headers':'Content-Type,Authorization,X-Audrey-App,X-Audrey-Feature,X-Audrey-Request,X-Audrey-Channel,X-Audrey-Build','Access-Control-Max-Age':'86400','Vary':'Origin'};
 }
 function json(body,status=200,origin=''){return new Response(JSON.stringify(body),{status,headers:{'Content-Type':'application/json; charset=utf-8',...cors(origin)}})}
 function error(code,message,status,origin,retryAfter){const body={ok:false,error:{code,message}};if(retryAfter)body.retryAfter=retryAfter;return json(body,status,origin)}
 function validOrigin(request){const origin=request.headers.get('Origin')||'';return origin&&ALLOWED_ORIGINS.has(origin)}
+function envInt(env,key,fallback){const n=Number(env?.[key]);return Number.isFinite(n)&&n>0?Math.floor(n):fallback}
+function safeConfig(raw={}){
+  const model=ALLOWED_MODELS.has(raw.model)?raw.model:DEFAULTS.model;
+  const detail=ALLOWED_DETAILS.has(raw.detail)?raw.detail:DEFAULTS.detail;
+  return{
+    enabled:raw.enabled===undefined?DEFAULTS.enabled:Boolean(raw.enabled),
+    model,detail,
+    maxBodyBytes:Math.max(100_000,Number(raw.maxBodyBytes)||DEFAULTS.maxBodyBytes),
+    maxImageChars:Math.max(100_000,Number(raw.maxImageChars)||DEFAULTS.maxImageChars),
+    dailyInstallLimit:Math.max(1,Number(raw.dailyInstallLimit)||DEFAULTS.dailyInstallLimit),
+    globalDailyLimit:Math.max(1,Number(raw.globalDailyLimit)||DEFAULTS.globalDailyLimit),
+    minimumClientVersion:String(raw.minimumClientVersion||'')
+  };
+}
+async function loadConfig(env){
+  const fallback=safeConfig({
+    enabled:String(env.SMARTSCAN_ENABLED??'true')!=='false',
+    model:env.SMARTSCAN_MODEL||DEFAULTS.model,
+    detail:env.SMARTSCAN_DETAIL||DEFAULTS.detail,
+    maxBodyBytes:envInt(env,'SMARTSCAN_MAX_BODY_BYTES',DEFAULTS.maxBodyBytes),
+    maxImageChars:envInt(env,'SMARTSCAN_MAX_IMAGE_CHARS',DEFAULTS.maxImageChars),
+    dailyInstallLimit:envInt(env,'SMARTSCAN_DAILY_LIMIT',DEFAULTS.dailyInstallLimit),
+    globalDailyLimit:envInt(env,'SMARTSCAN_GLOBAL_DAILY_LIMIT',DEFAULTS.globalDailyLimit),
+    minimumClientVersion:env.SMARTSCAN_MIN_CLIENT_VERSION||''
+  });
+  if(!env.AUDREY_DB)return{...fallback,source:'environment-defaults'};
+  try{
+    const row=await env.AUDREY_DB.prepare("SELECT value FROM app_config WHERE namespace='smartscan' AND key='production' LIMIT 1").first();
+    if(!row?.value)return{...fallback,source:'environment-defaults'};
+    return{...safeConfig({...fallback,...JSON.parse(row.value)}),source:'d1'};
+  }catch(err){console.warn('Smart Scan config D1 read failed; using defaults.',err);return{...fallback,source:'environment-defaults'};}
+}
+function publicConfig(cfg){return{enabled:cfg.enabled,model:cfg.model,detail:cfg.detail,maxBodyBytes:cfg.maxBodyBytes,maxImageChars:cfg.maxImageChars,dailyInstallLimit:cfg.dailyInstallLimit,globalDailyLimit:cfg.globalDailyLimit,minimumClientVersion:cfg.minimumClientVersion,source:cfg.source,serviceVersion:SERVICE_VERSION}}
+function adminAuthorized(request,env){if(!env.AUDREY_ADMIN_TOKEN)return false;const auth=request.headers.get('Authorization')||'';return auth==='Bearer '+env.AUDREY_ADMIN_TOKEN}
+async function saveAdminConfig(env,next){
+  if(!env.AUDREY_DB)throw Object.assign(new Error('AUDREY_DB D1 binding is not configured.'),{code:'D1_NOT_CONFIGURED'});
+  const cfg=safeConfig(next);
+  await env.AUDREY_DB.prepare("INSERT INTO app_config(namespace,key,value,updated_at) VALUES('smartscan','production',?,datetime('now')) ON CONFLICT(namespace,key) DO UPDATE SET value=excluded.value,updated_at=excluded.updated_at").bind(JSON.stringify(cfg)).run();
+  return{...cfg,source:'d1'};
+}
 function extractText(body){
   if(typeof body?.output_text==='string'&&body.output_text.trim())return body.output_text.trim();
   for(const out of body?.output||[])for(const c of out?.content||[])if((c?.type==='output_text'||c?.type==='text')&&typeof c.text==='string'&&c.text.trim())return c.text.trim();
@@ -45,68 +91,75 @@ function schema(){
   const allTypes=[...new Set(Object.values(TAXONOMY.types).flat())];
   return{name:'audrey_smart_scan_result',strict:true,schema:{type:'object',additionalProperties:false,properties:{category:{type:'string',enum:['',...TAXONOMY.categories]},type:{type:'string',enum:['',...allTypes]},color:{type:'string',enum:['',...TAXONOMY.colors]},pattern:{type:'string',enum:['',...TAXONOMY.patterns]},brand:{type:'string'},size:{type:'string'},confidence:{type:'object',additionalProperties:false,properties:{category:{type:'number',minimum:0,maximum:1},type:{type:'number',minimum:0,maximum:1},color:{type:'number',minimum:0,maximum:1},pattern:{type:'number',minimum:0,maximum:1}},required:['category','type','color','pattern']}},required:['category','type','color','pattern','brand','size','confidence']}};
 }
-function validateResult(raw){
-  if(!raw||!TAXONOMY.categories.includes(raw.category)||!TAXONOMY.colors.includes(raw.color)||!TAXONOMY.patterns.includes(raw.pattern))return false;
-  if(raw.type&&!(TAXONOMY.types[raw.category]||[]).includes(raw.type))return false;
-  return true;
-}
-async function quota(request,env,installId){
-  const dailyLimit=Math.max(1,Number(env.SMARTSCAN_DAILY_LIMIT||DEFAULT_DAILY_LIMIT)||DEFAULT_DAILY_LIMIT);
-  if(!env.SMARTSCAN_USAGE_KV)return{allowed:true,limit:dailyLimit,remaining:null,mode:'log-only'};
+function validateResult(raw){if(!raw||!TAXONOMY.categories.includes(raw.category)||!TAXONOMY.colors.includes(raw.color)||!TAXONOMY.patterns.includes(raw.pattern))return false;if(raw.type&&!(TAXONOMY.types[raw.category]||[]).includes(raw.type))return false;return true}
+async function quota(request,env,installId,cfg){
+  if(!env.SMARTSCAN_USAGE_KV)return{allowed:true,limit:cfg.dailyInstallLimit,remaining:null,globalRemaining:null,mode:'log-only'};
   const day=new Date().toISOString().slice(0,10),ip=request.headers.get('CF-Connecting-IP')||'unknown';
   const rawKey=`${APP_ID}:${FEATURE}:${day}:${installId||'no-install'}:${ip}`;
   const digest=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(rawKey));
   const hash=[...new Uint8Array(digest)].map(x=>x.toString(16).padStart(2,'0')).join('');
-  const key='quota:'+hash,count=Number(await env.SMARTSCAN_USAGE_KV.get(key)||0);
-  if(count>=dailyLimit)return{allowed:false,limit:dailyLimit,remaining:0,mode:'kv'};
-  await env.SMARTSCAN_USAGE_KV.put(key,String(count+1),{expirationTtl:172800});
-  return{allowed:true,limit:dailyLimit,remaining:Math.max(0,dailyLimit-count-1),mode:'kv'};
+  const installKey='quota:install:'+hash,globalKey=`quota:global:${APP_ID}:${FEATURE}:${day}`;
+  const [installRaw,globalRaw]=await Promise.all([env.SMARTSCAN_USAGE_KV.get(installKey),env.SMARTSCAN_USAGE_KV.get(globalKey)]);
+  const installCount=Number(installRaw||0),globalCount=Number(globalRaw||0);
+  if(globalCount>=cfg.globalDailyLimit)return{allowed:false,reason:'GLOBAL_LIMIT',limit:cfg.dailyInstallLimit,remaining:Math.max(0,cfg.dailyInstallLimit-installCount),globalRemaining:0,mode:'kv'};
+  if(installCount>=cfg.dailyInstallLimit)return{allowed:false,reason:'INSTALL_LIMIT',limit:cfg.dailyInstallLimit,remaining:0,globalRemaining:Math.max(0,cfg.globalDailyLimit-globalCount),mode:'kv'};
+  await Promise.all([
+    env.SMARTSCAN_USAGE_KV.put(installKey,String(installCount+1),{expirationTtl:172800}),
+    env.SMARTSCAN_USAGE_KV.put(globalKey,String(globalCount+1),{expirationTtl:172800})
+  ]);
+  return{allowed:true,limit:cfg.dailyInstallLimit,remaining:Math.max(0,cfg.dailyInstallLimit-installCount-1),globalRemaining:Math.max(0,cfg.globalDailyLimit-globalCount-1),mode:'kv'};
 }
 function logUsage(entry){console.log(JSON.stringify({type:'audrey.ai.usage',serviceVersion:SERVICE_VERSION,...entry}))}
 
 export default{
   async fetch(request,env){
     const origin=request.headers.get('Origin')||'';
-    if(request.method==='OPTIONS'){
-      return validOrigin(request)
-        ? new Response(null,{status:204,headers:cors(origin)})
-        : error('ORIGIN_NOT_ALLOWED','Origin is not allowed.',403,origin);
-    }
+    if(request.method==='OPTIONS')return validOrigin(request)?new Response(null,{status:204,headers:cors(origin)}):error('ORIGIN_NOT_ALLOWED','Origin is not allowed.',403,origin);
     const url=new URL(request.url);
-    if(url.pathname==='/health'&&request.method==='GET')return json({ok:true,service:'audrey-smartscan',version:SERVICE_VERSION,provider:'openai',defaultModel:DEFAULT_MODEL},200,origin);
+    if(url.pathname==='/health'&&request.method==='GET'){
+      const cfg=await loadConfig(env);return json({ok:true,service:'audrey-smartscan',version:SERVICE_VERSION,provider:'openai',configSource:cfg.source},200,origin);
+    }
+    if(url.pathname==='/v1/smartscan/config'&&request.method==='GET'){
+      if(!validOrigin(request))return error('ORIGIN_NOT_ALLOWED','Origin is not allowed.',403,origin);
+      return json({ok:true,config:publicConfig(await loadConfig(env))},200,origin);
+    }
+    if(url.pathname==='/v1/admin/smartscan/config'&&(request.method==='GET'||request.method==='PUT')){
+      if(!adminAuthorized(request,env))return error('ADMIN_UNAUTHORIZED','Admin authorization is required.',401,origin);
+      if(request.method==='GET')return json({ok:true,config:publicConfig(await loadConfig(env)),d1Configured:Boolean(env.AUDREY_DB),quotaKvConfigured:Boolean(env.SMARTSCAN_USAGE_KV)},200,origin);
+      let incoming;try{incoming=await request.json()}catch{return error('INVALID_JSON','Admin config must be valid JSON.',400,origin)}
+      try{return json({ok:true,config:publicConfig(await saveAdminConfig(env,incoming?.config||incoming))},200,origin)}catch(err){return error(err.code||'ADMIN_CONFIG_ERROR',err.message||'Could not save Smart Scan configuration.',503,origin)}
+    }
     if(url.pathname!=='/v1/smartscan/analyze'||request.method!=='POST')return error('NOT_FOUND','Not found.',404,origin);
     if(!validOrigin(request))return error('ORIGIN_NOT_ALLOWED','Origin is not allowed.',403,origin);
     if(request.headers.get('X-Audrey-App')!==APP_ID||request.headers.get('X-Audrey-Feature')!==FEATURE)return error('INVALID_CLIENT','Invalid application or feature.',403,origin);
     if(!env.OPENAI_API_KEY)return error('SERVICE_NOT_CONFIGURED','Smart Scan service is not configured.',503,origin);
-    const len=Number(request.headers.get('Content-Length')||0);if(len>MAX_BODY_BYTES)return error('REQUEST_TOO_LARGE','Smart Scan image is too large.',413,origin);
+    const cfg=await loadConfig(env);
+    if(!cfg.enabled)return error('SERVICE_DISABLED','AI Smart Scan is temporarily disabled.',503,origin);
+    const len=Number(request.headers.get('Content-Length')||0);if(len>cfg.maxBodyBytes)return error('REQUEST_TOO_LARGE','Smart Scan image is too large.',413,origin);
 
     let body;try{body=await request.json()}catch{return error('INVALID_JSON','Request body must be valid JSON.',400,origin)}
     if(body?.appId!==APP_ID||body?.feature!==FEATURE)return error('INVALID_CLIENT','Invalid Smart Scan client envelope.',403,origin);
     const requestId=String(body.requestId||request.headers.get('X-Audrey-Request')||'').slice(0,160);
     const installId=String(body.installId||'').slice(0,160);
-    const model=ALLOWED_MODELS.has(body.model)?body.model:DEFAULT_MODEL;
-    const detail=['low','high','auto'].includes(body.detail)?body.detail:'auto';
+    const channel=String(body?.client?.channel||request.headers.get('X-Audrey-Channel')||'unknown').slice(0,40);
+    const build=String(body?.client?.build||request.headers.get('X-Audrey-Build')||'').slice(0,120);
     const image=String(body.image||'');
     if(!requestId||!image.startsWith('data:image/'))return error('INVALID_REQUEST','A request ID and image are required.',400,origin);
-    if(image.length>MAX_IMAGE_CHARS)return error('IMAGE_TOO_LARGE','Smart Scan image is too large.',413,origin);
-    const q=await quota(request,env,installId);if(!q.allowed)return error('RATE_LIMITED','Daily Smart Scan limit reached for this device/network.',429,origin,'tomorrow');
+    if(image.length>cfg.maxImageChars)return error('IMAGE_TOO_LARGE','Smart Scan image is too large.',413,origin);
+    const q=await quota(request,env,installId,cfg);if(!q.allowed)return error('RATE_LIMITED',q.reason==='GLOBAL_LIMIT'?'Smart Scan is temporarily at its service usage limit.':'Daily Smart Scan limit reached for this device/network.',429,origin,'tomorrow');
 
     const prompt='Analyze this clothing item for Audrey Closet. Choose only values from the supplied taxonomy. Return the most likely category, exact type within that category, primary color, pattern, visible brand if any, visible size if any, and confidence for category/type/color/pattern. Taxonomy: '+JSON.stringify(TAXONOMY);
-    const providerRequest={model,input:[{role:'user',content:[{type:'input_text',text:prompt},{type:'input_image',image_url:image,detail}]}],text:{format:{type:'json_schema',...schema()}},max_output_tokens:500};
-    const started=Date.now();
-    let providerResponse,providerBody={};
-    try{
-      providerResponse=await fetch('https://api.openai.com/v1/responses',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+env.OPENAI_API_KEY},body:JSON.stringify(providerRequest)});
-      try{providerBody=await providerResponse.json()}catch{}
-    }catch(err){logUsage({requestId,installId,model,status:'provider-network-error',requestMs:Date.now()-started});return error('PROVIDER_UNAVAILABLE','AI provider is temporarily unavailable.',502,origin)}
+    const providerRequest={model:cfg.model,input:[{role:'user',content:[{type:'input_text',text:prompt},{type:'input_image',image_url:image,detail:cfg.detail}]}],text:{format:{type:'json_schema',...schema()}},max_output_tokens:500};
+    const started=Date.now();let providerResponse,providerBody={};
+    try{providerResponse=await fetch('https://api.openai.com/v1/responses',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+env.OPENAI_API_KEY},body:JSON.stringify(providerRequest)});try{providerBody=await providerResponse.json()}catch{}}
+    catch(err){logUsage({requestId,installId,channel,build,model:cfg.model,status:'provider-network-error',requestMs:Date.now()-started});return error('PROVIDER_UNAVAILABLE','AI provider is temporarily unavailable.',502,origin)}
     const requestMs=Date.now()-started;
-    if(!providerResponse.ok){logUsage({requestId,installId,model,status:'provider-error',providerStatus:providerResponse.status,requestMs});return error('PROVIDER_ERROR','AI provider could not complete Smart Scan.',502,origin)}
+    if(!providerResponse.ok){logUsage({requestId,installId,channel,build,model:cfg.model,status:'provider-error',providerStatus:providerResponse.status,requestMs});return error('PROVIDER_ERROR','AI provider could not complete Smart Scan.',502,origin)}
     const text=extractText(providerBody);let raw;try{raw=JSON.parse(text)}catch{return error('INVALID_PROVIDER_RESPONSE','AI provider returned an unreadable Smart Scan result.',502,origin)}
     if(!validateResult(raw))return error('INVALID_PROVIDER_RESULT','AI provider returned a result outside Audrey taxonomy.',502,origin);
-    const c=raw.confidence||{};
+    const c=raw.confidence||{},usage=providerBody?.usage||{};
     const result={category:{value:raw.category,confidence:c.category||0},type:{value:raw.type||'',confidence:c.type||0},color:{value:raw.color,confidence:c.color||0},pattern:{value:raw.pattern,confidence:c.pattern||0},brand:{value:raw.brand||'',confidence:null},size:{value:raw.size||'',confidence:null}};
-    const usage=providerBody?.usage||{};
-    logUsage({requestId,installId,userId:body.userId||null,sessionId:body.sessionId||'',appId:APP_ID,feature:FEATURE,model,status:'success',requestMs,providerRequestId:providerBody?.id||'',usage,quota:q});
-    return json({ok:true,serviceVersion:SERVICE_VERSION,requestId,provider:'openai',providerRequestId:providerBody?.id||'',model,requestMs,usage,quota:{limit:q.limit,remaining:q.remaining},result},200,origin);
+    logUsage({requestId,installId,userId:body.userId||null,sessionId:body.sessionId||'',appId:APP_ID,feature:FEATURE,channel,build,model:cfg.model,detail:cfg.detail,status:'success',requestMs,providerRequestId:providerBody?.id||'',usage,quota:q,configSource:cfg.source});
+    return json({ok:true,serviceVersion:SERVICE_VERSION,requestId,provider:'openai',providerRequestId:providerBody?.id||'',model:cfg.model,detail:cfg.detail,requestMs,usage,quota:{limit:q.limit,remaining:q.remaining,globalRemaining:q.globalRemaining},result},200,origin);
   }
 };
