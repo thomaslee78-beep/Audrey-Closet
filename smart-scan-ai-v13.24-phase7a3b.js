@@ -1,10 +1,10 @@
 /* Audrey Closet v13.24 — Smart Scan Phase 7A3B Editable Review
- * Lets users accept, modify, or skip Smart Scan suggestions directly in the review dialog.
- * Uses existing Audrey taxonomy and apply pipeline; no saved-item schema changes.
+ * Lets users accept, modify, reset, or skip Smart Scan suggestions directly in the review dialog.
+ * Uses existing Audrey taxonomy and apply pipeline; no saved-item schema changes or repeat AI calls.
  */
 (function(){
   'use strict';
-  const VERSION='13.24-phase7a3b-editable-review4-edited-label-polish';
+  const VERSION='13.24-phase7a3b-editable-review5-reset-smartscan';
   const CORE=window.AUDREY_SMART_SCAN;
   const TELEMETRY=window.AUDREY_SMART_SCAN_TELEMETRY;
   if(!CORE?.taxonomy){console.warn('Smart Scan Phase 7A3B skipped: Smart Scan contract unavailable.');return}
@@ -31,6 +31,8 @@
       .smart-scan-edit-control:disabled{opacity:.5;background:rgba(120,110,100,.06)}
       .smart-scan-edit-row.modified{border-color:rgba(178,138,61,.30);background:rgba(255,248,230,.78)}
       .smart-scan-edit-row.modified .smart-scan-edit-status{display:block}
+      #resetSmartScanReviewBtn{font-size:11px;padding-left:8px;padding-right:8px;white-space:nowrap}
+      #resetSmartScanReviewBtn[hidden]{display:none!important}
       @media(max-width:430px){
         #smartScanReviewDialog{width:calc(100vw - 20px);max-width:none}
         #smartScanReviewDialog .smart-scan-review-shell{max-height:82dvh}
@@ -39,6 +41,7 @@
         .smart-scan-edit-label{font-size:10.5px}
         .smart-scan-edit-status{font-size:8px}
         .smart-scan-edit-control{min-height:30px;font-size:11.5px;padding:4px 6px}
+        #resetSmartScanReviewBtn{font-size:10px;padding:6px 7px}
       }
     `;
     document.head.appendChild(style);
@@ -56,7 +59,20 @@
     return `<input class="smart-scan-edit-control" data-scan-edit="${escHtml(key)}" type="text" value="${escHtml(value)}" autocomplete="off" spellcheck="false">`;
   }
   function labelFor(key){return typeof window.smartScanFieldLabel==='function'?window.smartScanFieldLabel(key):key}
-  function setRowState(row){const key=row?.dataset?.field;if(!key)return;const checkbox=row.querySelector('input[data-scan-field]'),control=row.querySelector('[data-scan-edit]');if(control)control.disabled=!checkbox?.checked;row.classList.toggle('modified',Boolean(checkbox?.checked)&&String(control?.value??'')!==String(proposal[key]??''))}
+  function hasReviewEdits(){
+    return KNOWN.some(key=>{
+      const control=document.querySelector(`#smartScanReviewFields [data-scan-edit="${key}"]`);
+      return control&&String(control.value??'')!==String(proposal[key]??'');
+    });
+  }
+  function updateResetButton(){const btn=document.getElementById('resetSmartScanReviewBtn');if(btn)btn.hidden=!hasReviewEdits()}
+  function setRowState(row){
+    const key=row?.dataset?.field;if(!key)return;
+    const checkbox=row.querySelector('input[data-scan-field]'),control=row.querySelector('[data-scan-edit]');
+    if(control)control.disabled=!checkbox?.checked;
+    row.classList.toggle('modified',Boolean(checkbox?.checked)&&String(control?.value??'')!==String(proposal[key]??''));
+    updateResetButton();
+  }
   function refreshTypeOptions({fromCategoryChange=false}={}){
     const cat=document.querySelector('[data-scan-edit="category"]')?.value||proposal.category||'',type=document.querySelector('[data-scan-edit="type"]');if(!type)return;
     const allowed=CORE.taxonomy.types?.[cat]||[],current=type.value;
@@ -74,6 +90,31 @@
       setRowState(row);
     });
   }
+  function installResetButton(){
+    const actions=document.querySelector('#smartScanReviewDialog .smart-scan-review-actions');
+    if(!actions)return false;
+    let btn=document.getElementById('resetSmartScanReviewBtn');
+    if(!btn){
+      btn=document.createElement('button');btn.type='button';btn.id='resetSmartScanReviewBtn';btn.className='soft-btn';btn.textContent='↶ Reset to Smart Scan';btn.hidden=true;
+      const cancel=document.getElementById('cancelSmartScanReviewBtn');actions.insertBefore(btn,cancel||actions.firstChild);
+      btn.addEventListener('click',resetReviewToProposal);
+    }
+    updateResetButton();return true;
+  }
+  function resetReviewToProposal(){
+    const category=document.querySelector('[data-scan-edit="category"]');
+    if(category&&proposal.category!=null)category.value=String(proposal.category);
+    refreshTypeOptions();
+    KNOWN.forEach(key=>{
+      const control=document.querySelector(`#smartScanReviewFields [data-scan-edit="${key}"]`);if(!control)return;
+      control.value=String(proposal[key]??'');
+    });
+    // Category determines valid Type options, so refresh once more after restoring all proposal values.
+    refreshTypeOptions();
+    const type=document.querySelector('[data-scan-edit="type"]');if(type)type.value=String(proposal.type??'');
+    document.querySelectorAll('#smartScanReviewFields .smart-scan-edit-row').forEach(setRowState);
+    updateResetButton();
+  }
 
   const previousOpen=window.openSmartScanReview;
   window.openSmartScanReview=function(result){
@@ -83,7 +124,7 @@
     fields.classList.add('smart-scan-editable-fields');
     fields.innerHTML=entries.length?entries.map(key=>`<div class="smart-scan-edit-row" data-field="${escHtml(key)}"><input type="checkbox" data-scan-field="${escHtml(key)}" checked aria-label="Apply ${escHtml(labelFor(key))}"><div class="smart-scan-edit-label-wrap"><div class="smart-scan-edit-label">${escHtml(labelFor(key))}</div><div class="smart-scan-edit-status" aria-hidden="true">Edited</div></div>${controlFor(key,proposal[key])}</div>`).join(''):'<p class="empty-note">No reliable attributes were detected. You can still enter the details manually.</p>';
     const apply=document.getElementById('applySmartScanReviewBtn');if(apply)apply.disabled=!entries.length;
-    bindEditableReview();refreshTypeOptions();fields.scrollTop=0;
+    installResetButton();bindEditableReview();refreshTypeOptions();fields.scrollTop=0;updateResetButton();
     const dialog=document.getElementById('smartScanReviewDialog');if(dialog&&!dialog.open)dialog.showModal();
   };
 
@@ -131,7 +172,7 @@
     else setTimeout(bindApplyButton,0);
   }
 
-  const API={version:VERSION,getProposal:()=>clone(proposal),refreshTypeOptions,enforceEditedValues,bindApplyButton};
+  const API={version:VERSION,getProposal:()=>clone(proposal),refreshTypeOptions,enforceEditedValues,bindApplyButton,resetReviewToProposal,hasReviewEdits};
   window.AUDREY_SMART_SCAN_EDITABLE_REVIEW=API;
-  console.info(`Audrey Smart Scan ${VERSION} loaded: compact edited-state label polish enabled.`);
+  console.info(`Audrey Smart Scan ${VERSION} loaded: editable review reset to original Smart Scan proposal enabled.`);
 })();
