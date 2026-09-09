@@ -1,4 +1,4 @@
--- Audrey Cloud — Phase 7A4C initial D1 schema
+-- Audrey Cloud — Phase 7A4C Admin1 D1 schema
 -- Apply with: npx wrangler d1 execute <DATABASE_NAME> --remote --file=schema.sql
 
 CREATE TABLE IF NOT EXISTS app_config (
@@ -14,14 +14,27 @@ CREATE TABLE IF NOT EXISTS ai_usage_daily (
   app_id TEXT NOT NULL,
   feature TEXT NOT NULL,
   channel TEXT NOT NULL DEFAULT 'unknown',
+  build TEXT NOT NULL DEFAULT '',
   model TEXT NOT NULL DEFAULT '',
   requests INTEGER NOT NULL DEFAULT 0,
   successes INTEGER NOT NULL DEFAULT 0,
   failures INTEGER NOT NULL DEFAULT 0,
-  fallbacks INTEGER NOT NULL DEFAULT 0,
   input_tokens INTEGER NOT NULL DEFAULT 0,
   output_tokens INTEGER NOT NULL DEFAULT 0,
   total_tokens INTEGER NOT NULL DEFAULT 0,
+  request_ms INTEGER NOT NULL DEFAULT 0,
   updated_at TEXT NOT NULL DEFAULT (datetime('now')),
-  PRIMARY KEY (day, app_id, feature, channel, model)
+  PRIMARY KEY (day, app_id, feature, channel, build, model)
+);
+
+CREATE TABLE IF NOT EXISTS ai_install_daily (
+  day TEXT NOT NULL,
+  app_id TEXT NOT NULL,
+  feature TEXT NOT NULL,
+  channel TEXT NOT NULL DEFAULT 'unknown',
+  build TEXT NOT NULL DEFAULT '',
+  install_hash TEXT NOT NULL,
+  requests INTEGER NOT NULL DEFAULT 0,
+  updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+  PRIMARY KEY (day, app_id, feature, channel, build, install_hash)
 );
