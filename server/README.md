@@ -38,7 +38,7 @@ This sequence is recommended because the Worker declares `OPENAI_API_KEY` as a r
 
 The Worker name in Cloudflare must match the `name` field in `server/wrangler.jsonc`.
 
-> Deployment trigger note: this README was intentionally touched after GitHub integration so Cloudflare has a fresh production-branch push to build.
+> Deployment trigger note: this README was intentionally touched again after GitHub integration to create another fresh production-branch push for Cloudflare Builds.
 
 ## Secret safety
 
