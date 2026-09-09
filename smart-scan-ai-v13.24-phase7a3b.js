@@ -4,7 +4,7 @@
  */
 (function(){
   'use strict';
-  const VERSION='13.24-phase7a3b-editable-review2-apply-scroll';
+  const VERSION='13.24-phase7a3b-editable-review3-apply-binding';
   const CORE=window.AUDREY_SMART_SCAN;
   const TELEMETRY=window.AUDREY_SMART_SCAN_TELEMETRY;
   if(!CORE?.taxonomy){console.warn('Smart Scan Phase 7A3B skipped: Smart Scan contract unavailable.');return}
@@ -90,12 +90,12 @@
     sel.value=match.value;sel.dispatchEvent(new Event('change',{bubbles:true}));return true;
   }
   function enforceEditedValues(edited,selected,wish){
-    if(selected.has('category')&&edited.category){const cat=document.querySelector(wish?'#wishCategory':'#itemCategory');if(cat){setSelectValue(cat,edited.category)}}
-    if(selected.has('type')&&edited.type){setSelectValue(document.querySelector(wish?'#wishType':'#itemType'),edited.type)}
-    if(selected.has('color')&&edited.color){setSelectValue(document.querySelector(wish?'#wishColor':'#itemColor'),edited.color)}
-    if(selected.has('pattern')&&edited.pattern){setSelectValue(document.querySelector(wish?'#wishPattern':'#itemPattern'),edited.pattern)}
+    if(selected.has('category')&&edited.category){const cat=document.querySelector(wish?'#wishCategory':'#itemCategory');if(cat)setSelectValue(cat,edited.category)}
+    if(selected.has('type')&&edited.type)setSelectValue(document.querySelector(wish?'#wishType':'#itemType'),edited.type);
+    if(selected.has('color')&&edited.color)setSelectValue(document.querySelector(wish?'#wishColor':'#itemColor'),edited.color);
+    if(selected.has('pattern')&&edited.pattern)setSelectValue(document.querySelector(wish?'#wishPattern':'#itemPattern'),edited.pattern);
     if(selected.has('brand')){const el=document.querySelector(wish?'#wishBrand':'#itemBrand');if(el){el.value=edited.brand||'';el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}))}}
-    if(selected.has('size')&&edited.size){setSelectValue(document.querySelector(wish?'#wishSize':'#itemSize'),edited.size)}
+    if(selected.has('size')&&edited.size)setSelectValue(document.querySelector(wish?'#wishSize':'#itemSize'),edited.size);
     if(!wish&&typeof window.updateItemReviewSummary==='function')window.updateItemReviewSummary();
   }
 
@@ -113,13 +113,25 @@
     TELEMETRY?.setReviewContext?.({proposal:clone(proposal),appliedValues:clone(edited),selectedFields:[...selected],decisions:clone(decisions)});
     pendingSmartScanResult={...pendingSmartScanResult,...edited};
     const result=typeof previousApply==='function'?previousApply.apply(this,arguments):undefined;
-    // Legacy wrappers may close/clear pendingSmartScanResult. Re-assert the reviewed values onto
-    // the actual edit form after that chain so user edits are always what the item receives.
     enforceEditedValues(edited,selectedSet,wish);
     return result;
   };
 
-  const API={version:VERSION,getProposal:()=>clone(proposal),refreshTypeOptions,enforceEditedValues};
+  // app.js binds the Apply button to the original function object during startup.
+  // Replacing window.applyPendingSmartScan later does not update that stored onclick reference,
+  // so explicitly rebind it to the final 7A3B wrapper after all Smart Scan wrappers are installed.
+  function bindApplyButton(){
+    const btn=document.getElementById('applySmartScanReviewBtn');
+    if(!btn)return false;
+    btn.onclick=function(){return window.applyPendingSmartScan()};
+    return true;
+  }
+  if(!bindApplyButton()){
+    if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bindApplyButton,{once:true});
+    else setTimeout(bindApplyButton,0);
+  }
+
+  const API={version:VERSION,getProposal:()=>clone(proposal),refreshTypeOptions,enforceEditedValues,bindApplyButton};
   window.AUDREY_SMART_SCAN_EDITABLE_REVIEW=API;
-  console.info(`Audrey Smart Scan ${VERSION} loaded: compact scrollable editable review with enforced modified values.`);
+  console.info(`Audrey Smart Scan ${VERSION} loaded: editable review Apply button bound to final wrapper chain.`);
 })();
