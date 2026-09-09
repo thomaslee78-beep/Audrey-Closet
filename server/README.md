@@ -4,30 +4,39 @@ This folder contains the production Smart Scan service for Audrey Closet.
 
 The public PWA calls this Worker. The Worker holds `OPENAI_API_KEY` as a Cloudflare secret and forwards only approved Smart Scan requests to OpenAI.
 
-## Recommended first deployment: Cloudflare dashboard + GitHub
+## Recommended first deployment: create Worker first, then connect GitHub
+
+This sequence is recommended because the Worker declares `OPENAI_API_KEY` as a required secret. Creating the Worker shell first lets you add that secret before repository deployments begin.
 
 1. Create/sign in to a Cloudflare account.
-2. Open **Workers & Pages** and create/import a Worker from GitHub.
-3. Connect repository: `thomaslee78-beep/Audrey-Closet`.
-4. Use branch: `dev/smart-scan-color-pattern-v13.24` for Preview testing.
-5. Set the project root / working directory to `server`.
-6. Deploy command: `npm run deploy` (or `npx wrangler deploy`).
-7. Worker name: `audrey-smartscan-api`.
-8. Before the final deployment succeeds, add the required secret:
-   - Worker → **Settings** → **Variables and Secrets** → **Add**
+2. Open **Workers & Pages** → **Create application**.
+3. Create a simple Worker and name it exactly:
+   `audrey-smartscan-api`
+4. Deploy the starter Worker once so the Worker exists in your account.
+5. Open the new Worker → **Settings** → **Variables and Secrets** → **Add**.
+6. Add:
    - Type: **Secret**
    - Name: `OPENAI_API_KEY`
    - Value: your OpenAI API key
    - Save / Deploy
-9. Optional plain variable:
-   - `SMARTSCAN_DAILY_LIMIT=30`
-   - This already defaults to 30 in `wrangler.jsonc`.
-10. After deployment, Cloudflare will give you a URL similar to:
+7. Open Worker → **Settings** → **Builds** → **Connect**.
+8. Connect GitHub and authorize Cloudflare access to repository:
+   `thomaslee78-beep/Audrey-Closet`
+9. Configure the build:
+   - Worker name: `audrey-smartscan-api`
+   - Production branch for this first test: `dev/smart-scan-color-pattern-v13.24`
+   - Root directory: `server`
+   - Build command: leave blank
+   - Deploy command: `npx wrangler deploy`
+10. Save the build configuration and trigger/deploy the branch.
+11. Cloudflare will provide a URL similar to:
     `https://audrey-smartscan-api.<your-subdomain>.workers.dev`
-11. Test health in a browser:
+12. Test:
     `<worker-url>/health`
     Expected JSON includes `ok: true` and `service: "audrey-smartscan"`.
-12. Send only the Worker URL back to the development thread. Do **not** send the API key.
+13. Send only the Worker URL back to the Audrey Closet development thread. Do **not** send the API key.
+
+The Worker name in Cloudflare must match the `name` field in `server/wrangler.jsonc`.
 
 ## Secret safety
 
