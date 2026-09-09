@@ -7,7 +7,13 @@
     "enabled": true
   },
   "vars": {
-    "SMARTSCAN_DAILY_LIMIT": "30"
+    "SMARTSCAN_ENABLED": "true",
+    "SMARTSCAN_MODEL": "gpt-5.6-luna",
+    "SMARTSCAN_DETAIL": "auto",
+    "SMARTSCAN_DAILY_LIMIT": "30",
+    "SMARTSCAN_GLOBAL_DAILY_LIMIT": "500",
+    "SMARTSCAN_MAX_BODY_BYTES": "8000000",
+    "SMARTSCAN_MAX_IMAGE_CHARS": "7500000"
   },
   "secrets": {
     "required": ["OPENAI_API_KEY"]
