@@ -4,7 +4,7 @@
  */
 (function(){
   'use strict';
-  const VERSION='13.24-phase7a3b-editable-review3-apply-binding';
+  const VERSION='13.24-phase7a3b-editable-review4-edited-label-polish';
   const CORE=window.AUDREY_SMART_SCAN;
   const TELEMETRY=window.AUDREY_SMART_SCAN_TELEMETRY;
   if(!CORE?.taxonomy){console.warn('Smart Scan Phase 7A3B skipped: Smart Scan contract unavailable.');return}
@@ -24,17 +24,20 @@
       #smartScanReviewFields.smart-scan-editable-fields{display:grid;gap:6px;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:1px 2px 6px;overscroll-behavior:contain}
       .smart-scan-edit-row{display:grid;grid-template-columns:22px 72px minmax(0,1fr);gap:7px;align-items:center;padding:7px 8px;border:1px solid rgba(108,81,66,.12);border-radius:11px;background:rgba(255,250,240,.72)}
       .smart-scan-edit-row>input[type="checkbox"]{margin:0;width:16px;height:16px}
-      .smart-scan-edit-label{min-width:0;font-size:11px;font-weight:800;color:var(--ink,#443d36);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+      .smart-scan-edit-label-wrap{min-width:0;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:1px;line-height:1.05}
+      .smart-scan-edit-label{min-width:0;max-width:100%;font-size:11px;font-weight:800;color:var(--ink,#443d36);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+      .smart-scan-edit-status{display:none;font-size:8.5px;line-height:1;text-transform:uppercase;letter-spacing:.045em;color:#8b6a2b;font-weight:800;white-space:nowrap}
       .smart-scan-edit-control{width:100%;min-width:0;min-height:32px;border:1px solid rgba(108,81,66,.18);border-radius:8px;background:#fff;padding:5px 7px;font:inherit;font-size:12px;color:inherit}
       .smart-scan-edit-control:disabled{opacity:.5;background:rgba(120,110,100,.06)}
       .smart-scan-edit-row.modified{border-color:rgba(178,138,61,.30);background:rgba(255,248,230,.78)}
-      .smart-scan-edit-row.modified .smart-scan-edit-label::after{content:' • edited';font-size:9px;color:#8b6a2b;font-weight:700}
+      .smart-scan-edit-row.modified .smart-scan-edit-status{display:block}
       @media(max-width:430px){
         #smartScanReviewDialog{width:calc(100vw - 20px);max-width:none}
         #smartScanReviewDialog .smart-scan-review-shell{max-height:82dvh}
         #smartScanReviewDialog .smart-scan-review-intro{margin-top:4px;margin-bottom:8px;font-size:11px;line-height:1.35}
         .smart-scan-edit-row{grid-template-columns:20px 62px minmax(0,1fr);gap:5px;padding:6px 7px}
         .smart-scan-edit-label{font-size:10.5px}
+        .smart-scan-edit-status{font-size:8px}
         .smart-scan-edit-control{min-height:30px;font-size:11.5px;padding:4px 6px}
       }
     `;
@@ -78,7 +81,7 @@
     const fields=document.getElementById('smartScanReviewFields');if(!fields)return typeof previousOpen==='function'?previousOpen(result):undefined;
     const entries=KNOWN.filter(key=>String(proposal[key]??'').trim());
     fields.classList.add('smart-scan-editable-fields');
-    fields.innerHTML=entries.length?entries.map(key=>`<div class="smart-scan-edit-row" data-field="${escHtml(key)}"><input type="checkbox" data-scan-field="${escHtml(key)}" checked aria-label="Apply ${escHtml(labelFor(key))}"><div class="smart-scan-edit-label">${escHtml(labelFor(key))}</div>${controlFor(key,proposal[key])}</div>`).join(''):'<p class="empty-note">No reliable attributes were detected. You can still enter the details manually.</p>';
+    fields.innerHTML=entries.length?entries.map(key=>`<div class="smart-scan-edit-row" data-field="${escHtml(key)}"><input type="checkbox" data-scan-field="${escHtml(key)}" checked aria-label="Apply ${escHtml(labelFor(key))}"><div class="smart-scan-edit-label-wrap"><div class="smart-scan-edit-label">${escHtml(labelFor(key))}</div><div class="smart-scan-edit-status" aria-hidden="true">Edited</div></div>${controlFor(key,proposal[key])}</div>`).join(''):'<p class="empty-note">No reliable attributes were detected. You can still enter the details manually.</p>';
     const apply=document.getElementById('applySmartScanReviewBtn');if(apply)apply.disabled=!entries.length;
     bindEditableReview();refreshTypeOptions();fields.scrollTop=0;
     const dialog=document.getElementById('smartScanReviewDialog');if(dialog&&!dialog.open)dialog.showModal();
@@ -117,9 +120,6 @@
     return result;
   };
 
-  // app.js binds the Apply button to the original function object during startup.
-  // Replacing window.applyPendingSmartScan later does not update that stored onclick reference,
-  // so explicitly rebind it to the final 7A3B wrapper after all Smart Scan wrappers are installed.
   function bindApplyButton(){
     const btn=document.getElementById('applySmartScanReviewBtn');
     if(!btn)return false;
@@ -133,5 +133,5 @@
 
   const API={version:VERSION,getProposal:()=>clone(proposal),refreshTypeOptions,enforceEditedValues,bindApplyButton};
   window.AUDREY_SMART_SCAN_EDITABLE_REVIEW=API;
-  console.info(`Audrey Smart Scan ${VERSION} loaded: editable review Apply button bound to final wrapper chain.`);
+  console.info(`Audrey Smart Scan ${VERSION} loaded: compact edited-state label polish enabled.`);
 })();
