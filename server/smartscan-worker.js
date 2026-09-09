@@ -3,7 +3,7 @@
  * Required secret: OPENAI_API_KEY
  * Optional KV binding: SMARTSCAN_USAGE_KV (per-install/IP daily quotas)
  */
-const SERVICE_VERSION='13.24-phase7a4b-worker1';
+const SERVICE_VERSION='13.24-phase7a4b-worker2';
 const APP_ID='audrey-closet';
 const FEATURE='smartscan';
 const DEFAULT_MODEL='gpt-5.6-luna';
@@ -67,7 +67,11 @@ function logUsage(entry){console.log(JSON.stringify({type:'audrey.ai.usage',serv
 export default{
   async fetch(request,env){
     const origin=request.headers.get('Origin')||'';
-    if(request.method==='OPTIONS')return validOrigin(request)?new Response(null,{status:204,headers:cors(origin)}:error('ORIGIN_NOT_ALLOWED','Origin is not allowed.',403,origin);
+    if(request.method==='OPTIONS'){
+      return validOrigin(request)
+        ? new Response(null,{status:204,headers:cors(origin)})
+        : error('ORIGIN_NOT_ALLOWED','Origin is not allowed.',403,origin);
+    }
     const url=new URL(request.url);
     if(url.pathname==='/health'&&request.method==='GET')return json({ok:true,service:'audrey-smartscan',version:SERVICE_VERSION,provider:'openai',defaultModel:DEFAULT_MODEL},200,origin);
     if(url.pathname!=='/v1/smartscan/analyze'||request.method!=='POST')return error('NOT_FOUND','Not found.',404,origin);
