@@ -1,12 +1,11 @@
 /* Audrey Closet v13.24 — Smart Scan Phase 7A5A Progress Overlay
- * Preview UX layer for clear in-progress feedback during AI or Local Smart Scan.
- * Uses a native modal dialog so progress renders above the existing item/wishlist dialogs.
- * Listens to Phase 7A2 progress events; does not perform recognition itself.
+ * Clear in-progress feedback during AI or Local Smart Scan with bounded UI recovery.
  */
 (function(){
   'use strict';
-  const VERSION='13.24-phase7a5a-progress-overlay2-toplayer';
-  let hideTimer=null;
+  const VERSION='13.24-phase7a5a-progress-overlay3-watchdog';
+  const OVERLAY_WATCHDOG_MS=50000;
+  let hideTimer=null,watchdogTimer=null;
 
   function installStyles(){
     if(document.getElementById('smartScanProgressStyles'))return;
@@ -50,8 +49,10 @@
     if(message)document.getElementById('smartScanProgressMessage').textContent=message;
     if(engine)document.getElementById('smartScanProgressEngine').textContent=engine;
   }
-  function openOverlay(){const overlay=ensureOverlay();if(!overlay.open){try{overlay.showModal()}catch{overlay.setAttribute('open','')}}}
-  function closeOverlay(){const overlay=ensureOverlay();if(overlay.open){try{overlay.close()}catch{overlay.removeAttribute('open')}}}
+  function clearWatchdog(){clearTimeout(watchdogTimer);watchdogTimer=null}
+  function armWatchdog(){clearWatchdog();watchdogTimer=setTimeout(()=>{console.warn('Smart Scan progress overlay watchdog released a stale modal.');closeOverlay()},OVERLAY_WATCHDOG_MS)}
+  function openOverlay(){const overlay=ensureOverlay();if(!overlay.open){try{overlay.showModal()}catch{overlay.setAttribute('open','')}}armWatchdog()}
+  function closeOverlay(){clearWatchdog();const overlay=ensureOverlay();if(overlay.open){try{overlay.close()}catch{overlay.removeAttribute('open')}}}
   function show(detail={}){clearTimeout(hideTimer);const ai=detail.engine==='ai';setState({mode:ai?'ai':'local',title:ai?'AI Smart Scan in progress':'Local Smart Scan in progress',message:detail.message||'Preparing this item…',engine:ai?'AI Smart Scan':'Local Smart Scan',photo:detail.photo});openOverlay()}
   function update(detail={}){
     const fallback=detail.stage==='fallback-start'||detail.fallback,error=detail.stage==='scan-error';
@@ -62,13 +63,15 @@
   window.addEventListener('audrey:smartscan-progress',e=>{
     const d=e.detail||{};
     if(d.stage==='scan-start')return show(d);
-    // Close immediately before Phase 7A2 opens the result review dialog.
     if(d.stage==='scan-complete'){update(d);return hide(0)}
     if(d.stage==='scan-error'){update(d);return hide(850)}
     update(d);
   });
+  // iOS can restore a suspended page from its page cache. Never restore a stale modal lock.
+  window.addEventListener('pageshow',()=>{const overlay=document.getElementById('smartScanProgressOverlay');if(overlay?.open)closeOverlay()});
+  window.addEventListener('pagehide',clearWatchdog);
 
-  const API={version:VERSION,show,update,hide};
+  const API={version:VERSION,watchdogMs:OVERLAY_WATCHDOG_MS,show,update,hide};
   window.AUDREY_SMART_SCAN_PROGRESS=API;
-  console.info(`Audrey Smart Scan ${VERSION} loaded: top-layer progress dialog listening for Smart Scan events.`);
+  console.info(`Audrey Smart Scan ${VERSION} loaded: top-layer progress dialog has bounded recovery.`);
 })();
