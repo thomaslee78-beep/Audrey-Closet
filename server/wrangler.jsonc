@@ -1,7 +1,7 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "audrey-smartscan-api",
-  "main": "worker-entry-v13.24-phase7a7.js",
+  "main": "worker-entry-v13.24-phase7a7c.js",
   "compatibility_date": "2026-09-08",
   "observability": {
     "enabled": true
@@ -13,7 +13,12 @@
     "SMARTSCAN_DAILY_LIMIT": "30",
     "SMARTSCAN_GLOBAL_DAILY_LIMIT": "500",
     "SMARTSCAN_MAX_BODY_BYTES": "8000000",
-    "SMARTSCAN_MAX_IMAGE_CHARS": "7500000"
+    "SMARTSCAN_MAX_IMAGE_CHARS": "7500000",
+    "SMARTSCAN_MAX_IMAGE_WIDTH": "4096",
+    "SMARTSCAN_MAX_IMAGE_HEIGHT": "4096",
+    "SMARTSCAN_MAX_IMAGE_PIXELS": "16000000",
+    "SMARTSCAN_BURST_WINDOW_SECONDS": "60",
+    "SMARTSCAN_BURST_LIMIT": "10"
   },
   "d1_databases": [
     {
