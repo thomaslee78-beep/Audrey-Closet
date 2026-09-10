@@ -27,7 +27,7 @@ This sequence is recommended because the Worker declares `OPENAI_API_KEY` as a r
    - Production branch for this first test: `dev/smart-scan-color-pattern-v13.24`
    - Root directory: `server`
    - Build command: leave blank
-   - Deploy command: `npx wrangler deploy`
+   - Deploy command: `npm run deploy`
 10. Save the build configuration and trigger/deploy the branch.
 11. Cloudflare will provide a URL similar to:
     `https://audrey-smartscan-api.<your-subdomain>.workers.dev`
@@ -38,7 +38,7 @@ This sequence is recommended because the Worker declares `OPENAI_API_KEY` as a r
 
 The Worker name in Cloudflare must match the `name` field in `server/wrangler.jsonc`.
 
-> Deployment trigger note: this README was intentionally touched again after GitHub integration to create another fresh production-branch push for Cloudflare Builds.
+> Deployment trigger note: this README was intentionally touched after enabling the D1 migration deploy script to create a fresh production-branch push for Cloudflare Builds.
 
 ## Secret safety
 
