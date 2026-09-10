@@ -4,7 +4,9 @@
  */
 (function(){
   'use strict';
-  const VERSION='13.24-phase7a4c-service-runtime2';
+  const VERSION='13.24-phase7a4c-service-runtime3-hang-safe';
+  const LOCAL_TIMEOUT_MS=15000;
+  const SCAN_TIMEOUT_MS=45000;
   const CORE=window.AUDREY_SMART_SCAN;
   const LOCAL=window.smartScanLocal;
   const SERVICE=window.AUDREY_SMART_SCAN_SERVICE;
@@ -13,12 +15,23 @@
 
   function progress(stage,detail={}){window.dispatchEvent(new CustomEvent('audrey:smartscan-progress',{detail:{stage,...detail}}))}
   function serviceConfigured(){const c=SERVICE.getConfig();return Boolean(c.enabled&&c.endpoint)}
+  function timeoutError(code,message){const err=new Error(message);err.code=code;return err}
+  function withTimeout(promise,ms,code,message){
+    let timer;
+    return Promise.race([
+      Promise.resolve(promise),
+      new Promise((_,reject)=>{timer=setTimeout(()=>reject(timeoutError(code,message)),ms)})
+    ]).finally(()=>clearTimeout(timer));
+  }
+  async function analyzeLocalBounded(photo,{includeOCR=true}={}){
+    return withTimeout(LOCAL.analyze(photo,{includeOCR}),LOCAL_TIMEOUT_MS,'LOCAL_TIMEOUT','Local Smart Scan timed out.');
+  }
   function markServiceFallback(localResult,error){
     const result=CORE.normalizeResult({...localResult,engine:'local',fallbackUsed:true,provider:'openai',model:'',diagnostics:{...(localResult?.diagnostics||{}),fallback:{from:'audrey-smartscan-service',reason:error?.code||error?.message||'service failure'},transportVersion:VERSION}});
     CORE.lastResult=result;CORE.lastDiagnostics=result.diagnostics;API.lastResult=result;API.lastError=error||null;return result;
   }
   async function analyzeProduction(photo,{includeOCR=true,target='item'}={}){
-    if(navigator.onLine===false){const err=Object.assign(new Error('Device is offline.'),{code:'SERVICE_OFFLINE'});progress('fallback-start',{engine:'local',fallback:true,message:'No internet connection. Using Local Smart Scan…'});return markServiceFallback(await LOCAL.analyze(photo,{includeOCR}),err)}
+    if(navigator.onLine===false){const err=Object.assign(new Error('Device is offline.'),{code:'SERVICE_OFFLINE'});progress('fallback-start',{engine:'local',fallback:true,message:'No internet connection. Using Local Smart Scan…'});return markServiceFallback(await analyzeLocalBounded(photo,{includeOCR}),err)}
     try{
       progress('ai-request',{engine:'ai',message:'Sending this item to Smart Scan…'});
       const result=await SERVICE.analyze(photo,{target});
@@ -26,9 +39,9 @@
       progress('ai-validating',{engine:'ai',message:'Validating detected clothing details…'});return result;
     }catch(err){
       console.warn('Audrey Smart Scan service failed; using Local Smart Scan v1.1 fallback.',err);
-      const limited=err?.code==='RATE_LIMITED';const disabled=err?.code==='SERVICE_DISABLED';
-      progress('fallback-start',{engine:'local',fallback:true,message:limited?'Smart Scan limit reached. Using Local Smart Scan…':disabled?'AI Smart Scan is temporarily disabled. Using Local Smart Scan…':'AI was unavailable. Continuing with Local Smart Scan…'});
-      return markServiceFallback(await LOCAL.analyze(photo,{includeOCR}),err);
+      const limited=err?.code==='RATE_LIMITED';const disabled=err?.code==='SERVICE_DISABLED';const timedOut=err?.code==='SERVICE_TIMEOUT';
+      progress('fallback-start',{engine:'local',fallback:true,message:limited?'Smart Scan limit reached. Using Local Smart Scan…':disabled?'AI Smart Scan is temporarily disabled. Using Local Smart Scan…':timedOut?'AI Smart Scan timed out. Continuing with Local Smart Scan…':'AI was unavailable. Continuing with Local Smart Scan…'});
+      return markServiceFallback(await analyzeLocalBounded(photo,{includeOCR}),err);
     }
   }
 
@@ -42,14 +55,19 @@
     const busyText=navigator.onLine===false?'Scanning locally…':'AI is analyzing category, type, color and pattern…';
     if(smartScanTarget==='wish'){['#wishSmartScanBtn','#wishPhotoMenuBtn','#saveWishBtn'].forEach(sel=>{const el=$(sel);if(el)el.disabled=true});$('#wishScanStatus').textContent=busyText}else setPhotoBusy(true,busyText);
     try{
-      const result=await analyzeProduction(photo,{includeOCR:true,target:smartScanTarget});
+      const result=await withTimeout(analyzeProduction(photo,{includeOCR:true,target:smartScanTarget}),SCAN_TIMEOUT_MS,'SCAN_TIMEOUT','Smart Scan took too long and was stopped.');
       pendingSmartScanResult=CORE.toPendingFlat(result);if(!pendingSmartScanResult.type)delete pendingSmartScanResult.type;
       progress('scan-complete',{engine:result.engine,fallbackUsed:result.fallbackUsed,message:result.engine==='ai'?'AI Smart Scan complete.':'Smart Scan complete.'});
       openSmartScanReview(pendingSmartScanResult);
       const status=result.engine==='ai'?'AI Smart Scan complete. Review detected details before applying.':(result.fallbackUsed?'Audrey Cloud was unavailable or limited, so Local Smart Scan was used. Review detected details before applying.':'Smart Scan complete. Review detected details before applying.');
       $(smartScanTarget==='wish'?'#wishScanStatus':'#scanStatus').textContent=status;
-    }catch(err){progress('scan-error',{engine:'ai',message:'Smart Scan could not analyze this photo.'});console.error(err);toast('Smart Scan could not analyze this photo');$(smartScanTarget==='wish'?'#wishScanStatus':'#scanStatus').textContent='Smart Scan could not analyze this photo.'}
-    finally{if(smartScanTarget==='wish')['#wishSmartScanBtn','#wishPhotoMenuBtn','#saveWishBtn'].forEach(sel=>{const el=$(sel);if(el)el.disabled=false});else setPhotoBusy(false)}
+    }catch(err){
+      progress('scan-error',{engine:'ai',message:err?.code==='LOCAL_TIMEOUT'?'Local Smart Scan took too long. Please try again.':err?.code==='SCAN_TIMEOUT'?'Smart Scan took too long. Please try again.':'Smart Scan could not analyze this photo.'});
+      console.error(err);toast(err?.code==='LOCAL_TIMEOUT'||err?.code==='SCAN_TIMEOUT'?'Smart Scan took too long. Please try again.':'Smart Scan could not analyze this photo');$(smartScanTarget==='wish'?'#wishScanStatus':'#scanStatus').textContent='Smart Scan stopped. You can try again.';
+    }finally{
+      try{window.AUDREY_SMART_SCAN_PROGRESS?.hide?.(0)}catch{}
+      if(smartScanTarget==='wish')['#wishSmartScanBtn','#wishPhotoMenuBtn','#saveWishBtn'].forEach(sel=>{const el=$(sel);if(el)el.disabled=false});else setPhotoBusy(false)
+    }
   };
 
   async function applyServiceUI(){
@@ -69,7 +87,7 @@
   function scheduleServiceUI(){setTimeout(applyServiceUI,0);setTimeout(applyServiceUI,350)}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',scheduleServiceUI,{once:true});else scheduleServiceUI();
 
-  const API={version:VERSION,isServiceMode:serviceConfigured,analyzeProduction,refreshServiceUI:applyServiceUI,devTransport:DEV||null,lastResult:null,lastError:null};
+  const API={version:VERSION,isServiceMode:serviceConfigured,analyzeProduction,analyzeLocalBounded,localTimeoutMs:LOCAL_TIMEOUT_MS,scanTimeoutMs:SCAN_TIMEOUT_MS,refreshServiceUI:applyServiceUI,devTransport:DEV||null,lastResult:null,lastError:null};
   window.AUDREY_SMART_SCAN_PRODUCTION_RUNTIME=API;
-  console.info(`Audrey Smart Scan ${VERSION} loaded: Audrey Cloud controls production policy.`);
+  console.info(`Audrey Smart Scan ${VERSION} loaded: Audrey Cloud controls production policy with bounded service/local scan recovery.`);
 })();
