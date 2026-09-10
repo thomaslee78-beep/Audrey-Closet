@@ -28,6 +28,12 @@
       "migrations_dir": "migrations"
     }
   ],
+  "kv_namespaces": [
+    {
+      "binding": "SMARTSCAN_USAGE_KV",
+      "id": "624c181d64e743678b15937929f15778"
+    }
+  ],
   "secrets": {
     "required": ["OPENAI_API_KEY"]
   }
