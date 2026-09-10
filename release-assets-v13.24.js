@@ -1,9 +1,9 @@
 /* Audrey Closet v13.24 — production offline asset manifest
- * Phase 7A8B. Keep this list aligned with index.html + share-render-v13.24-release.js.
+ * Phase 7A8C. Keep this list aligned with index.html + share-render-v13.24-release.js.
  */
 self.AUDREY_RELEASE_ASSETS_V1324=[
   './','./index.html','./styles.css','./app.js','./manifest.webmanifest','./icon-192.png','./icon-512.png',
-  './share-render-v13.24-release.js','./share-render-v13.21-dev12-core.js',
+  './share-render-v13.24-release.js','./share-render-v13.21-dev12-core.js','./legacy-release-compat-v13.24.js','./legacy-release-payload-source-v13.24.js',
   './shape-studio-v13.22-dev1.js','./shape-studio-v13.22-dev3.js','./shape-studio-v13.22-dev4.js','./shape-studio-v13.22-dev5.js','./shape-studio-v13.22-dev6.js','./shape-studio-v13.22-dev26.js',
   './draw-studio-v13.22-dev10.js','./draw-studio-v13.22-dev11.js','./draw-studio-v13.22-dev12.js','./draw-studio-v13.22-dev13.js','./draw-studio-v13.22-dev14.js','./draw-studio-v13.22-dev15.js','./draw-studio-v13.22-dev16.js','./draw-studio-v13.22-dev17.js',
   './board-focus-v13.22-dev1.js','./board-focus-v13.22-dev2.js','./board-focus-v13.22-dev7.js','./board-focus-v13.22-dev10.js','./board-text-layout-v13.23.5.js','./sticker-studio-v13.22-release.js','./sticker-render-compat-v13.23.1.js','./portfolio-mini-fidelity-v13.23.6.2.js','./decorate-rail-v13.22-proto1.js','./decorate-function-layout-v13.22-proto1.js','./share-export-compat-v13.22-dev1.js',
