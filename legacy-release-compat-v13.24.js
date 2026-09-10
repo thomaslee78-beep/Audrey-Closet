@@ -4,13 +4,13 @@
  */
 (function(){
   'use strict';
-  const VERSION='13.24-phase7a8c-legacy-compat1';
+  const VERSION='13.24-phase7a8c-legacy-compat2';
   const MARKER='v13.21 baseline — dev12 feature set, fresh delivery';
   if(window.AUDREY_RELEASE_COMPAT?.readyPromise)return;
 
-  const API={version:VERSION,ready:false,source:'legacy-sw-payload',error:null,readyPromise:null};
+  const API={version:VERSION,ready:false,source:'legacy-release-payload-source-v13.24.js',error:null,readyPromise:null};
   API.readyPromise=(async()=>{
-    const response=await fetch('./sw.js?v=13.23-legacy-payload-source',{cache:'no-store'});
+    const response=await fetch('./legacy-release-payload-source-v13.24.js?v=13.24-phase7a8c-source1',{cache:'no-store'});
     if(!response.ok)throw new Error('Could not load legacy release payload source (HTTP '+response.status+').');
     const source=await response.text();
     const prefix='const TIER_PATCH=String.raw`';
