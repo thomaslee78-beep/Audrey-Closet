@@ -1,10 +1,12 @@
 /* Audrey Closet v13.24 — production service worker
- * Phase 7A8C offline hardening: mandatory core shell + best-effort secondary precache.
+ * Phase 7A8D: mandatory app shell + runtime JavaScript, best-effort decorative assets.
  */
-const CACHE='audrey-closet-v13.24-release2';
+const CACHE='audrey-closet-v13.24-release3';
 importScripts('./release-assets-v13.24.js');
 const ASSETS=Array.isArray(self.AUDREY_RELEASE_ASSETS_V1324)?self.AUDREY_RELEASE_ASSETS_V1324:[];
-const CORE=['./','./index.html','./styles.css','./app.js','./share-render-v13.24-release.js','./release-assets-v13.24.js','./manifest.webmanifest','./icon-192.png','./icon-512.png'];
+const SHELL=['./','./index.html','./styles.css','./app.js','./manifest.webmanifest','./icon-192.png','./icon-512.png'];
+const RUNTIME_JS=ASSETS.filter(asset=>/\.js(?:$|\?)/.test(asset));
+const CORE=[...new Set([...SHELL,...RUNTIME_JS])];
 
 async function cacheOne(cache,asset){
   const request=new Request(asset,{cache:'reload'});
@@ -17,10 +19,10 @@ self.addEventListener('install',event=>{
   self.skipWaiting();
   event.waitUntil((async()=>{
     const cache=await caches.open(CACHE);
-    // Core shell is mandatory. If this fails, offline launch would be unsafe to claim.
+    // Offline-ready means the shell and every JavaScript runtime dependency exist.
     for(const asset of CORE)await cacheOne(cache,asset);
-    // Secondary modules/assets are best-effort so one decorative/static miss cannot
-    // prevent the service worker from installing and controlling the app shell.
+    // Decorative/media assets should not block worker activation; they can populate
+    // opportunistically now or on first online use.
     const secondary=ASSETS.filter(asset=>!CORE.includes(asset));
     const results=await Promise.allSettled(secondary.map(asset=>cacheOne(cache,asset)));
     const failed=secondary.filter((_,i)=>results[i].status==='rejected');
