@@ -1,7 +1,7 @@
 /* Audrey Closet v13.24 — production service worker
  * Phase 7A8D: mandatory app shell + runtime JavaScript, best-effort decorative assets.
  */
-const CACHE='audrey-closet-v13.24-release3';
+const CACHE='audrey-closet-v13.24-release4';
 importScripts('./release-assets-v13.24.js');
 const ASSETS=Array.isArray(self.AUDREY_RELEASE_ASSETS_V1324)?self.AUDREY_RELEASE_ASSETS_V1324:[];
 const SHELL=['./','./index.html','./styles.css','./app.js','./manifest.webmanifest','./icon-192.png','./icon-512.png'];
