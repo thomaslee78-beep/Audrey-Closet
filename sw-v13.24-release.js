@@ -1,17 +1,30 @@
 /* Audrey Closet v13.24 — production service worker
- * Phase 7A8B: offline-first shell/assets, network-first navigation, cache-first static assets.
+ * Phase 7A8C offline hardening: mandatory core shell + best-effort secondary precache.
  */
-const CACHE='audrey-closet-v13.24-release1';
+const CACHE='audrey-closet-v13.24-release2';
 importScripts('./release-assets-v13.24.js');
 const ASSETS=Array.isArray(self.AUDREY_RELEASE_ASSETS_V1324)?self.AUDREY_RELEASE_ASSETS_V1324:[];
+const CORE=['./','./index.html','./styles.css','./app.js','./share-render-v13.24-release.js','./release-assets-v13.24.js','./manifest.webmanifest','./icon-192.png','./icon-512.png'];
+
+async function cacheOne(cache,asset){
+  const request=new Request(asset,{cache:'reload'});
+  const response=await fetch(request);
+  if(!response||!response.ok)throw new Error('HTTP '+(response&&response.status)+' for '+asset);
+  await cache.put(request,response.clone());
+}
 
 self.addEventListener('install',event=>{
   self.skipWaiting();
   event.waitUntil((async()=>{
     const cache=await caches.open(CACHE);
-    const results=await Promise.allSettled(ASSETS.map(asset=>cache.add(new Request(asset,{cache:'reload'}))));
-    const failed=results.filter(r=>r.status==='rejected');
-    if(failed.length)throw new Error('Audrey v13.24 precache failed for '+failed.length+' asset(s)');
+    // Core shell is mandatory. If this fails, offline launch would be unsafe to claim.
+    for(const asset of CORE)await cacheOne(cache,asset);
+    // Secondary modules/assets are best-effort so one decorative/static miss cannot
+    // prevent the service worker from installing and controlling the app shell.
+    const secondary=ASSETS.filter(asset=>!CORE.includes(asset));
+    const results=await Promise.allSettled(secondary.map(asset=>cacheOne(cache,asset)));
+    const failed=secondary.filter((_,i)=>results[i].status==='rejected');
+    if(failed.length)console.warn('Audrey v13.24 secondary precache misses',failed);
   })());
 });
 
@@ -36,7 +49,7 @@ self.addEventListener('fetch',event=>{
         if(response&&response.ok){const cache=await caches.open(CACHE);cache.put('./index.html',response.clone()).catch(()=>{})}
         return response;
       }catch{
-        return (await caches.match(request,{ignoreSearch:true}))||(await caches.match('./index.html',{ignoreSearch:true}))||Response.error();
+        return (await caches.match(request,{ignoreSearch:true}))||(await caches.match('./index.html',{ignoreSearch:true}))||(await caches.match('./',{ignoreSearch:true}))||Response.error();
       }
     })());
     return;
