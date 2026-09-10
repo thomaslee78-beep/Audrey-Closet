@@ -5,9 +5,10 @@
  */
 (function(){
   'use strict';
-  const VERSION='13.24-phase7a4c-service-adapter2';
+  const VERSION='13.24-phase7a4c-service-adapter3-timeout';
   const APP_ID='audrey-closet';
   const FEATURE='smartscan';
+  const REQUEST_TIMEOUT_MS=25000;
   const CORE=window.AUDREY_SMART_SCAN;
   const TELEMETRY=window.AUDREY_SMART_SCAN_TELEMETRY;
   if(!CORE?.normalizeResult||!CORE?.taxonomy){console.warn('Smart Scan service adapter skipped: Phase 6.3 contract unavailable.');return}
@@ -31,7 +32,16 @@
   async function request(path,options={}){
     const c=deploymentConfig();if(!c.endpoint)throw new Error('Smart Scan service endpoint is not configured.');
     const headers={'X-Audrey-App':APP_ID,'X-Audrey-Feature':FEATURE,'X-Audrey-Channel':c.channel,'X-Audrey-Build':c.build,...(options.headers||{})};
-    const r=await fetch(c.endpoint+path,{...options,headers});let b={};try{b=await r.json()}catch{}
+    const controller=new AbortController();
+    const timeout=setTimeout(()=>controller.abort(),REQUEST_TIMEOUT_MS);
+    let r;
+    try{
+      r=await fetch(c.endpoint+path,{...options,headers,signal:controller.signal});
+    }catch(err){
+      if(err?.name==='AbortError'){const timeoutErr=new Error('Smart Scan service request timed out.');timeoutErr.code='SERVICE_TIMEOUT';timeoutErr.status=0;throw timeoutErr}
+      throw err;
+    }finally{clearTimeout(timeout)}
+    let b={};try{b=await r.json()}catch{}
     if(!r.ok){const err=new Error(b?.error?.message||b?.message||('Smart Scan service returned HTTP '+r.status));err.status=r.status;err.code=b?.error?.code||'SERVICE_HTTP_ERROR';err.retryAfter=b?.retryAfter||null;throw err}return b;
   }
   async function analyze(photo,opts={}){
@@ -46,7 +56,7 @@
   async function health(){return request('/health')}
   async function serverConfig(){const b=await request('/v1/smartscan/config');API.lastServerConfig=clone(b.config||{});return clone(b.config||{})}
 
-  const API={version:VERSION,appId:APP_ID,feature:FEATURE,getConfig:deploymentConfig,identity,isAvailable,buildEnvelope,normalizeServiceResult,analyze,health,serverConfig,lastServerConfig:null,lastResult:null,lastResponse:null,lastError:null};
+  const API={version:VERSION,appId:APP_ID,feature:FEATURE,requestTimeoutMs:REQUEST_TIMEOUT_MS,getConfig:deploymentConfig,identity,isAvailable,buildEnvelope,normalizeServiceResult,analyze,health,serverConfig,lastServerConfig:null,lastResult:null,lastResponse:null,lastError:null};
   window.AUDREY_SMART_SCAN_SERVICE=API;
-  console.info(`Audrey Smart Scan ${VERSION} loaded: Audrey Cloud service controls are server-authoritative.`);
+  console.info(`Audrey Smart Scan ${VERSION} loaded: Audrey Cloud service controls are server-authoritative with bounded requests.`);
 })();
