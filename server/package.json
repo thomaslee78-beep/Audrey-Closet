@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "wrangler dev",
-    "deploy": "wrangler deploy",
+    "migrate": "wrangler d1 migrations apply AUDREY_DB --remote",
+    "deploy": "npm run migrate && wrangler deploy",
     "check": "wrangler deploy --dry-run"
   },
   "devDependencies": {
