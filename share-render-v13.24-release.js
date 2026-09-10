@@ -1,9 +1,9 @@
 /* Audrey Closet v13.24.1 — consolidated production release bootstrap
- * Tier idempotency hotfix on top of validated v13.24 runtime.
+ * Tier idempotency + initial ribbon synchronization hotfix on validated v13.24 runtime.
  */
 (function(){
   'use strict';
-  const RELEASE='13.24.1-tier-hotfix1';
+  const RELEASE='13.24.1-tier-hotfix2';
   const HOTFIX='13.23.6.3-font-registry1';
   const CUTOUT_RELEASE='13.23-cutout-release1-scrollfix1';
   const PHOTO_STUDIO_LAYOUT='13.23-photo-studio-layout-postmerge-bugfix1';
@@ -14,7 +14,7 @@
     a1:'13.24-phase7a1-config-adapter2',a2:'13.24-phase7a2-ai-vision3-offline-fallback',a5a:'13.24-phase7a5a-progress-overlay3-watchdog',a5b:'13.24-phase7a5b-light-polish1',a3:'13.24-phase7a3-telemetry2-editable-review',a3b:'13.24-phase7a3b-editable-review5-reset-smartscan',a4a:'13.24-phase7a4c-service-adapter3-timeout',a4r:'13.24-phase7a4c-service-runtime3-watchdog'
   };
   document.write('<script src="share-render-v13.21-dev12-core.js?v='+HOTFIX+'"><\/script>');
-  const compatibilityModule='legacy-release-compat-v13.24.js?v=13.24.1-tier-idempotency1';
+  const compatibilityModule='legacy-release-compat-v13.24.js?v=13.24.1-tier-idempotency2-ribbon-init';
   const baseModules=[
     'draw-studio-v13.22-dev10.js?v=13.23-release','draw-studio-v13.22-dev11.js?v=13.23-release','draw-studio-v13.22-dev12.js?v=13.23-release','draw-studio-v13.22-dev13.js?v=13.23-release','draw-studio-v13.22-dev14.js?v=13.23-release','draw-studio-v13.22-dev15.js?v=13.23-release','draw-studio-v13.22-dev16.js?v=13.23-release','draw-studio-v13.22-dev17.js?v=13.23-release',
     'board-focus-v13.22-dev1.js?v=13.23-release','board-focus-v13.22-dev2.js?v=13.23-release','board-focus-v13.22-dev7.js?v=13.23-release','board-focus-v13.22-dev10.js?v=13.23-release','board-text-layout-v13.23.5.js?v='+HOTFIX,'sticker-studio-v13.22-release.js?v='+HOTFIX,'sticker-render-compat-v13.23.1.js?v='+HOTFIX,'portfolio-mini-fidelity-v13.23.6.2.js?v='+HOTFIX,'decorate-rail-v13.22-proto1.js?v=13.23-release','decorate-function-layout-v13.22-proto1.js?v=13.23-release','share-export-compat-v13.22-dev1.js?v=13.23-release',
@@ -28,7 +28,7 @@
   const modules=[compatibilityModule,...baseModules,...smartScanModules];
   if(forbidden.some(name=>modules.some(src=>src.includes(name))))throw new Error('Audrey v13.24.1 release bootstrap contains a forbidden Smart Scan development module.');
   const releaseAssets=['share-render-v13.21-dev12-core.js?v='+HOTFIX,...modules,'legacy-release-payload-source-v13.24.js?v=13.24-phase7a8c-source1','assets/stickers/fashion/button-sewing.svg','assets/stickers/fashion/fabric-swatch-floral.svg','assets/stickers/fashion/hanger-wood.svg','assets/stickers/fashion/necklace-pendant.svg','assets/stickers/music/amp-stack.svg','assets/stickers/music/headphones.svg','assets/stickers/music/record.svg','assets/stickers/music/sheet-music.svg','assets/stickers/standard/butterfly-cartoon.svg','assets/stickers/standard/cloud-puffy.svg','assets/stickers/standard/diamond-blue.svg','assets/stickers/standard/flower-detailed.svg','assets/stickers/standard/happy-day.svg','assets/stickers/standard/heart-pop.svg','assets/stickers/standard/lightning-triple.svg','assets/stickers/standard/moon-crescent.svg','assets/stickers/standard/rainbow-soft.svg','assets/stickers/standard/sparkle-burst.svg','assets/stickers/standard/star-burst.svg','assets/stickers/standard/sun-happy.svg'];
-  function warmReleaseCache(){if(!('caches' in window))return Promise.resolve();return caches.open('audrey-closet-v13.24.1-release').then(cache=>Promise.allSettled(releaseAssets.map(asset=>cache.add(asset)))).catch(err=>console.warn('Audrey v13.24.1 release cache warm skipped',err));}
+  function warmReleaseCache(){if(!('caches' in window))return Promise.resolve();return caches.open('audrey-closet-v13.24.1-release2').then(cache=>Promise.allSettled(releaseAssets.map(asset=>cache.add(asset)))).catch(err=>console.warn('Audrey v13.24.1 release cache warm skipped',err));}
   function appendScript(src){return new Promise((resolve,reject)=>{const s=document.createElement('script');s.src=src;s.async=false;s.onload=()=>{if(src===compatibilityModule&&window.AUDREY_RELEASE_COMPAT?.readyPromise){window.AUDREY_RELEASE_COMPAT.readyPromise.then(resolve,reject);return}resolve()};s.onerror=()=>reject(new Error('Failed to load '+src));document.body.appendChild(s)})}
   function loadSequentially(){if(window.__audreyReleaseV1324Bootstrapped)return;window.__audreyReleaseV1324Bootstrapped=true;window.AUDREY_RELEASE_V1324={version:RELEASE,smartScanModules:[...smartScanModules],compatibilityModule,forbidden:[...forbidden],ready:false};let chain=Promise.resolve();modules.forEach(src=>{chain=chain.then(()=>appendScript(src))});window.AUDREY_RELEASE_V1324.readyPromise=chain.then(()=>{window.AUDREY_RELEASE_V1324.ready=true;return warmReleaseCache()}).catch(err=>{window.AUDREY_RELEASE_V1324.error=String(err?.message||err);console.error('Audrey v13.24.1 consolidated release bootstrap failed',err);throw err})}
   if(document.readyState==='complete')loadSequentially();else window.addEventListener('load',loadSequentially,{once:true});
