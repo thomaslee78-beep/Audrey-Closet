@@ -15,6 +15,14 @@
     "SMARTSCAN_MAX_BODY_BYTES": "8000000",
     "SMARTSCAN_MAX_IMAGE_CHARS": "7500000"
   },
+  "d1_databases": [
+    {
+      "binding": "AUDREY_DB",
+      "database_name": "audrey-cloud",
+      "database_id": "89f15dca-e5c3-471f-8b05-8e631d960992",
+      "migrations_dir": "migrations"
+    }
+  ],
   "secrets": {
     "required": ["OPENAI_API_KEY"]
   }
