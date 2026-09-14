@@ -6,11 +6,11 @@
 (function(){
   'use strict';
 
-  const VERSION='1.0';
+  const VERSION='1.1';
   const STYLE_ID='v1325JournalRowFinalStyles';
   const NEUTRAL_ACCENT='#9f9484';
 
-  function esc(value){return String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[ch]));}
+  function esc(value){return String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#039;'}[ch]));}
   function entryById(id){return state.journal.find(j=>String(j.id)===String(id||''))||null;}
   function validColor(value){return /^#[0-9a-f]{6}$/i.test(String(value||''));}
   function ratingValue(entry){const n=Number(entry?.rating||0);return Number.isFinite(n)?Math.max(0,Math.min(5,Math.round(n))):0;}
@@ -145,6 +145,23 @@
     window.AudreyJournalLayoutHardening?.refresh?.();
   }
 
+  function settleRows(){
+    renderAll();
+    requestAnimationFrame(renderAll);
+  }
+
+  function bindDetailClose(){
+    const dialog=document.querySelector('#journalDetailDialog');
+    if(!dialog||dialog.dataset.v1325FinalRowsCloseBound==='1')return;
+    dialog.dataset.v1325FinalRowsCloseBound='1';
+    dialog.addEventListener('close',()=>{
+      /* This listener is registered after the legacy row layers, so it always
+         runs last and restores the one canonical row DOM/layout. */
+      requestAnimationFrame(renderAll);
+      setTimeout(renderAll,35);
+    });
+  }
+
   function wrapRenderJournal(){
     if(typeof renderJournal!=='function'||renderJournal.__finalRowsWrapped)return;
     const render0=renderJournal;
@@ -157,6 +174,6 @@
     renderJournal.__finalRowsWrapped=true;
   }
 
-  installStyles();wrapRenderJournal();requestAnimationFrame(renderAll);setTimeout(renderAll,50);
+  installStyles();wrapRenderJournal();bindDetailClose();settleRows();setTimeout(renderAll,50);
   window.AudreyJournalFinalRows={version:VERSION,refresh:renderAll};
 })();
